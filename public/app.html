@@ -11,7 +11,7 @@
 :root{
 --bg0:#060a14;--bg1:#0b1020;--bg2:#10162e;--bg2h:#151d3a;--bg3:#192244;
 --brd:#1a2650;--brdh:#283a6e;
---t1:#e8ecf6;--t2:#8892b0;--t3:#4a5578;--t4:#2d3756;
+--t1:#edf0f7;--t2:#a8b2cc;--t3:#6b7a9a;--t4:#3d4e6e;
 --ac:#4f6cf7;--acg:#4f6cf740;--acs:#4f6cf720;--acl:#6b84ff;
 --red:#ef4444;--reds:#ef444418;--amb:#f59e0b;--ambs:#f59e0b18;
 --grn:#22c55e;--grns:#22c55e18;--pnk:#ec4899;--pnks:#ec489918;
@@ -24,7 +24,7 @@
 [data-theme="light"]{
 --bg0:#f4f6fb;--bg1:#ffffff;--bg2:#eef1f8;--bg2h:#e4e8f4;--bg3:#d8ddef;
 --brd:#d0d5e4;--brdh:#b8bfd4;
---t1:#1a1f36;--t2:#4a5068;--t3:#7a8098;--t4:#b0b5c8;
+--t1:#141a30;--t2:#3a4260;--t3:#687098;--t4:#a0a8c0;
 --ac:#4f6cf7;--acg:#4f6cf730;--acs:#4f6cf712;--acl:#3b5ae0;
 --red:#dc2626;--reds:#dc262610;--amb:#d97706;--ambs:#d9770610;
 --grn:#16a34a;--grns:#16a34a10;--pnk:#db2777;--pnks:#db277710;
@@ -77,7 +77,7 @@ html{font-size:16px;scroll-behavior:smooth}
 [data-theme="light"] .guide-tip{background:#eef2ff;color:#4338ca;border-color:#c7d2fe}
 [data-theme="light"] .mo .md{background:#fff;border-color:#d0d5e4;box-shadow:0 24px 80px rgba(0,0,0,.12)}
 [data-theme="light"] .export-menu{background:#fff;border-color:#d0d5e4;box-shadow:0 12px 40px rgba(0,0,0,.1)}
-.badge-fw{font-size:.5rem;padding:1px 6px;background:var(--vios);color:#c4b5fd;border:1px solid #8b5cf620;border-radius:14px;font-weight:600;text-transform:uppercase;letter-spacing:.2px}
+.badge-fw{font-size:.62rem;padding:1px 6px;background:var(--vios);color:#c4b5fd;border:1px solid #8b5cf620;border-radius:14px;font-weight:600;text-transform:uppercase;letter-spacing:.2px}
 [data-theme="light"] .badge-fw{background:#f3e8ff;color:#6b21a8;border-color:#c4b5fd30}
 body{font-family:var(--fs);background:var(--bg0);color:var(--t1);height:100vh;overflow:hidden;display:flex}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--brd);border-radius:9px}::-webkit-scrollbar-thumb:hover{background:var(--brdh)}
@@ -98,7 +98,7 @@ body{font-family:var(--fs);background:var(--bg0);color:var(--t1);height:100vh;ov
 .sb-brand .ic{width:34px;height:34px;background:linear-gradient(135deg,var(--ac),#7c5cf6);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 12px var(--acg)}
 .sb-brand .ic svg{stroke:#fff;width:18px;height:18px}
 .sb-brand h1{font-size:.85rem;font-weight:700;line-height:1.2;transition:opacity .15s}
-.sb-brand p{font-family:var(--fm);font-size:.55rem;color:var(--t3);letter-spacing:.5px;transition:opacity .15s}
+.sb-brand p{font-family:var(--fm);font-size:.65rem;color:var(--t3);letter-spacing:.5px;transition:opacity .15s}
 .theme-toggle{margin-left:auto;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0;border:1px solid transparent}
 .theme-toggle:hover{background:var(--bg2);border-color:var(--brd)}
 .sb.collapsed .theme-toggle{display:none}
@@ -129,13 +129,13 @@ body{font-family:var(--fs);background:var(--bg0);color:var(--t1);height:100vh;ov
 .guide-step-text b{color:var(--t1);font-weight:600}
 .guide-tip{padding:8px 10px;background:var(--acs);border:1px solid #4f6cf718;border-radius:var(--r);font-size:.68rem;color:#a5b4fc;margin:6px 0;line-height:1.5;display:flex;gap:6px;align-items:flex-start}
 .guide-tip svg{flex-shrink:0;margin-top:1px}
-.guide-kbd{display:inline-flex;padding:1px 5px;background:var(--bg1);border:1px solid var(--brd);border-radius:4px;font-family:var(--fm);font-size:.55rem;color:var(--t3);vertical-align:middle;margin:0 1px}
+.guide-kbd{display:inline-flex;padding:1px 5px;background:var(--bg1);border:1px solid var(--brd);border-radius:4px;font-family:var(--fm);font-size:.65rem;color:var(--t3);vertical-align:middle;margin:0 1px}
 .sb-ft .card{padding:10px}
-.sb-ft .lb{font-family:var(--fm);font-size:.52rem;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;transition:opacity .15s}
+.sb-ft .lb{font-family:var(--fm);font-size:.62rem;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;transition:opacity .15s}
 .sb-ft .vl{font-size:.72rem;font-weight:600;color:#a5b4fc;margin-top:1px;transition:opacity .15s}
 
 /* ===== MAIN ===== */
-main{flex:1;overflow-y:auto;padding:24px 32px;position:relative}
+main{flex:1;overflow-y:auto;padding:24px 32px;position:relative;line-height:1.6}
 main::before{content:'';position:fixed;top:-120px;right:-120px;width:500px;height:500px;background:radial-gradient(circle,#4f6cf718 0%,transparent 70%);pointer-events:none}
 main::after{content:'';position:fixed;bottom:-200px;left:-100px;width:400px;height:400px;background:radial-gradient(circle,#8b5cf610 0%,transparent 70%);pointer-events:none}
 .page{display:none;position:relative;z-index:1;animation:fi .25s cubic-bezier(.4,0,.2,1);max-width:1080px}
@@ -147,13 +147,13 @@ main::after{content:'';position:fixed;bottom:-200px;left:-100px;width:400px;heig
 @keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes fadeScale{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
 
-h1.pt{font-size:1.4rem;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:9px}
-.ps{font-size:.85rem;color:var(--t2);margin-bottom:20px}
+h1.pt{font-size:1.6rem;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:9px}
+.ps{font-size:1rem;color:var(--t2);margin-bottom:20px}
 
 .card{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--rl);transition:all .2s}
 .card:hover{border-color:var(--brdh)}
 
-.badge{display:inline-flex;padding:2px 7px;font-size:.55rem;font-weight:600;border-radius:16px;border:1px solid;text-transform:uppercase;letter-spacing:.2px}
+.badge{display:inline-flex;padding:3px 8px;font-size:.68rem;font-weight:600;border-radius:16px;border:1px solid;text-transform:uppercase;letter-spacing:.2px}
 .badge-draft{background:var(--ambs);color:var(--amb);border-color:#f59e0b25}
 .badge-review{background:var(--blus);color:var(--blu);border-color:#3b82f625}
 .badge-approved{background:var(--grns);color:var(--grn);border-color:#22c55e25}
@@ -164,21 +164,21 @@ h1.pt{font-size:1.4rem;font-weight:700;margin-bottom:3px;display:flex;align-item
 .badge-critical{background:#dc262620;color:#fca5a5;border-color:#dc262640}
 .badge-ai{background:var(--acs);color:#a5b4fc;border-color:#4f6cf725}
 
-.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;font-size:.78rem;font-weight:600;border-radius:var(--r);cursor:pointer;transition:all .2s;border:1px solid transparent;font-family:var(--fs)}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;font-size:.85rem;font-weight:600;border-radius:var(--r);cursor:pointer;transition:all .2s;border:1px solid transparent;font-family:var(--fs)}
 .btn-p{background:var(--ac);color:#fff}.btn-p:hover{background:#5f7af8;box-shadow:0 4px 20px var(--acg);transform:translateY(-1px)}
 .btn-s{background:var(--bg3);color:var(--t2);border-color:var(--brd)}.btn-s:hover{background:var(--bg2h);color:var(--t1)}
 .btn-d{background:var(--reds);color:var(--red);border-color:#ef444425}
 .btn-g{background:transparent;color:var(--t3);padding:3px 6px;border:none;cursor:pointer;border-radius:6px;transition:all .15s}.btn-g:hover{color:var(--t1);background:var(--bg3)}
 .btn-sm{padding:4px 9px;font-size:.65rem}
 
-.inp{width:100%;padding:8px 12px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r);color:var(--t1);font-size:.8rem;font-family:var(--fs);transition:all .2s;outline:none}
+.inp{width:100%;padding:10px 14px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r);color:var(--t1);font-size:.95rem;font-family:var(--fs);transition:all .2s;outline:none}
 .inp:focus{border-color:var(--ac);box-shadow:0 0 0 3px #4f6cf718}
 .inp::placeholder{color:var(--t3)}
 textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
-.lbl{font-family:var(--fm);font-size:.53rem;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--t3);margin-bottom:3px;display:block}
+.lbl{font-family:var(--fm);font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--t3);margin-bottom:4px;display:block}
 
 /* Phase tags */
-.nt{display:inline-flex;padding:2px 7px;font-size:.55rem;font-weight:600;border-radius:16px;border:1px solid;letter-spacing:.2px;cursor:pointer;transition:all .15s;user-select:none}
+.nt{display:inline-flex;padding:3px 9px;font-size:.78rem;font-weight:600;border-radius:16px;border:1px solid;letter-spacing:.2px;cursor:pointer;transition:all .15s;user-select:none}
 .nt.off{background:var(--bg1)!important;color:var(--t3)!important;border-color:var(--brd)!important;opacity:.4}
 .nt-0{background:#6366f118;color:#a5b4fc;border-color:#6366f125}
 .nt-1{background:#f59e0b18;color:#fcd34d;border-color:#f59e0b25}
@@ -195,21 +195,21 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
 /* Capability tags */
-.cap{display:inline-flex;padding:2px 7px;font-size:.55rem;font-weight:600;border-radius:16px;background:var(--bg1);color:var(--t2);border:1px solid var(--brd);margin:1px;transition:all .15s}
+.cap{display:inline-flex;padding:2px 7px;font-size:.65rem;font-weight:600;border-radius:16px;background:var(--bg1);color:var(--t2);border:1px solid var(--brd);margin:1px;transition:all .15s}
 .cap-active{background:var(--acs);color:#a5b4fc;border-color:#4f6cf725}
 .cap-sel{cursor:pointer}.cap-sel:hover{border-color:var(--brdh)}
 .cap-sel.off{opacity:.35}
 
 /* Coverage matrix */
-.matrix{width:100%;border-collapse:collapse;font-size:.65rem;margin-top:6px}
-.matrix th{padding:5px 6px;text-align:left;font-weight:600;color:var(--t3);font-family:var(--fm);font-size:.5rem;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--brd)}
-.matrix td{padding:4px 6px;border-bottom:1px solid #1a2040}
-.matrix .name{font-weight:600;font-size:.68rem;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis}
-.matrix .dot{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:.5rem;transition:all .2s}
+.matrix{width:100%;border-collapse:collapse;font-size:.85rem;margin-top:8px}
+.matrix th{padding:7px 10px;text-align:left;font-weight:600;color:var(--t3);font-family:var(--fm);font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--brd)}
+.matrix td{padding:6px 10px;border-bottom:1px solid #1a2040}
+.matrix .name{font-weight:600;font-size:.85rem;white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.matrix .dot{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:.75rem;transition:all .2s}
 .dot-on{background:var(--acs);color:var(--ac)}
 .dot-off{background:var(--bg1);color:var(--t4)}
 .dot-warn{background:var(--ambs);color:var(--amb)}
-.matrix-header-cell{text-align:center!important;font-size:.48rem!important}
+.matrix-header-cell{text-align:center!important;font-size:.75rem!important}
 
 /* Phase cards in detail */
 .pc{border-left:3px solid;margin-bottom:7px;overflow:hidden}
@@ -222,11 +222,11 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .phn{font-weight:600;font-size:.8rem}.phm{font-size:.6rem;color:var(--t3);margin-top:1px}
 .pb{padding:0 14px 14px;border-top:1px solid var(--brd);display:none}.pb.open{display:block;animation:fi .2s}
 .phs{margin-top:10px}
-.st{font-family:var(--fm);font-size:.53rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:5px;display:flex;align-items:center;gap:4px}
+.st{font-family:var(--fm);font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);margin-bottom:6px;display:flex;align-items:center;gap:4px}
 .st svg{width:10px;height:10px}
 
-.tc{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r);font-size:.68rem;margin:1px}
-.tc b{font-weight:600}.tc span{color:var(--t3);font-size:.58rem}
+.tc{display:inline-flex;align-items:center;gap:3px;padding:4px 10px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r);font-size:.85rem;margin:1px}
+.tc b{font-weight:600}.tc span{color:var(--t3);font-size:.82rem}
 .tb{padding:7px;background:var(--bg1);border-radius:var(--r);border:1px solid var(--brd)}
 .tb .tn{font-size:.72rem;font-weight:600;margin-bottom:1px}
 .tb .rl{font-size:.62rem;color:var(--t3);padding-left:6px;line-height:1.5}
@@ -235,10 +235,10 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .ai{display:flex;gap:6px;align-items:flex-start;padding:4px 0;border-radius:6px;transition:background .1s}
 .ai:hover{background:#ffffff04}
 .ai:hover .act-btns{opacity:1}
-.an{width:17px;height:17px;border-radius:50%;background:var(--bg1);border:1px solid var(--brd);display:flex;align-items:center;justify-content:center;font-size:.5rem;font-weight:600;color:var(--t3);flex-shrink:0;margin-top:2px}
+.an{width:17px;height:17px;border-radius:50%;background:var(--bg1);border:1px solid var(--brd);display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:600;color:var(--t3);flex-shrink:0;margin-top:2px}
 .at{font-size:.72rem;color:var(--t2);line-height:1.5;flex:1}
 .at.esc{color:var(--red);font-weight:600}
-.ar{font-size:.55rem;display:inline-flex;padding:1px 5px;border-radius:10px;margin-right:3px;font-weight:600}
+.ar{font-size:.65rem;display:inline-flex;padding:1px 5px;border-radius:10px;margin-right:3px;font-weight:600}
 .ar-role{background:var(--blus);color:var(--blu);border:1px solid #3b82f618}
 .ar-tool{background:var(--ambs);color:var(--amb);border:1px solid #f59e0b18}
 .ar-is{background:var(--reds);color:var(--red);border:1px solid #ef444418}
@@ -246,7 +246,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .act-btns{opacity:0;transition:opacity .15s;display:flex;gap:1px;flex-shrink:0}
 
 .isb{padding:10px;background:#ef44440a;border:1px solid #ef444418;border-radius:var(--r);margin-top:10px}
-.ist{font-family:var(--fm);font-size:.53rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--red);margin-bottom:4px}
+.ist{font-family:var(--fm);font-size:.63rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--red);margin-bottom:4px}
 .isi{display:flex;gap:5px;align-items:flex-start;padding:2px 0}
 .isd{width:4px;height:4px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:5px}
 .isi p{font-size:.7rem;color:#fca5a5;line-height:1.3}
@@ -270,17 +270,17 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .gb::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,#4f6cf708 60%,transparent 80%);background-size:200% 200%;animation:shimmer 6s ease infinite;pointer-events:none}
 .gb:hover{border-color:var(--ac);box-shadow:0 6px 32px var(--acg);transform:translateY(-2px)}
 .eg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px}
-.ec{padding:9px 10px;border-radius:var(--r);background:var(--bg1);border:1px solid var(--brd);cursor:pointer;transition:all .2s}
+.ec{padding:12px 14px;border-radius:var(--r);background:var(--bg1);border:1px solid var(--brd);cursor:pointer;transition:all .2s}
 .ec:hover{border-color:var(--ac);background:var(--bg2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,.2)}
-.ec h4{font-size:.72rem;font-weight:600;margin-bottom:1px}.ec p{font-size:.6rem;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ec h4{font-size:.95rem;font-weight:600;margin-bottom:3px}.ec p{font-size:.82rem;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-.genb{width:100%;padding:14px;background:linear-gradient(135deg,var(--ac),#6b5cf7);color:#fff;border:none;border-radius:var(--rl);font-size:.88rem;font-weight:700;cursor:pointer;transition:all .3s;font-family:var(--fs);display:flex;align-items:center;justify-content:center;gap:8px;position:relative;overflow:hidden}
+.genb{width:100%;padding:16px;background:linear-gradient(135deg,var(--ac),#6b5cf7);color:#fff;border:none;border-radius:var(--rl);font-size:1.05rem;font-weight:700;cursor:pointer;transition:all .3s;font-family:var(--fs);display:flex;align-items:center;justify-content:center;gap:8px;position:relative;overflow:hidden}
 .genb::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);transform:translateX(-100%);transition:transform .6s}
 .genb:hover::before{transform:translateX(100%)}
 .genb:hover{box-shadow:0 5px 28px var(--acg);transform:translateY(-1px)}.genb:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;transform:none}
 
 .sevs{display:flex;gap:4px}
-.sev{padding:5px 12px;border-radius:var(--r);font-size:.7rem;font-weight:600;cursor:pointer;border:1px solid var(--brd);background:var(--bg1);color:var(--t3);transition:all .2s}
+.sev{padding:8px 16px;border-radius:var(--r);font-size:.88rem;font-weight:600;cursor:pointer;border:1px solid var(--brd);background:var(--bg1);color:var(--t3);transition:all .2s}
 .sev:hover{border-color:var(--brdh)}
 .sev.on[data-s="low"]{background:var(--grns);color:var(--grn);border-color:#22c55e35}
 .sev.on[data-s="medium"]{background:var(--ambs);color:var(--amb);border-color:#f59e0b35}
@@ -304,17 +304,17 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .cov-section{margin-bottom:16px}
 .cov-header{padding:10px 14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:background .15s}
 .cov-header:hover{background:var(--bg2)}
-.cov-header h3{font-size:.75rem;font-weight:600;display:flex;align-items:center;gap:6px}
+.cov-header h3{font-size:.95rem;font-weight:600;display:flex;align-items:center;gap:6px}
 .cov-body{display:none;padding:8px 14px 12px;border-top:1px solid var(--brd)}
 .cov-body.open{display:block;animation:fi .15s}
-.cov-warn{display:flex;align-items:center;gap:5px;padding:6px 10px;background:var(--ambs);border:1px solid #f59e0b25;border-radius:var(--r);font-size:.65rem;color:var(--amb);margin-top:6px}
-.cov-ok{display:flex;align-items:center;gap:5px;padding:6px 10px;background:var(--grns);border:1px solid #22c55e25;border-radius:var(--r);font-size:.65rem;color:var(--grn);margin-top:6px}
+.cov-warn{display:flex;align-items:center;gap:5px;padding:10px 14px;background:var(--ambs);border:1px solid #f59e0b25;border-radius:var(--r);font-size:.88rem;color:var(--amb);margin-top:8px}
+.cov-ok{display:flex;align-items:center;gap:5px;padding:10px 14px;background:var(--grns);border:1px solid #22c55e25;border-radius:var(--r);font-size:.88rem;color:var(--grn);margin-top:8px}
 
 .spinner{width:14px;height:14px;border:2px solid var(--brd);border-top-color:var(--ac);border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
 .spinw{border-color:rgba(255,255,255,.2);border-top-color:#fff}
 .empty{text-align:center;padding:40px 16px;color:var(--t3)}
 .empty svg{margin-bottom:10px;opacity:.3}
-.hint{font-size:.58rem;color:var(--t3);margin-top:2px}
+.hint{font-size:.85rem;color:var(--t3);margin-top:4px}
 .toast{position:fixed;bottom:16px;right:16px;padding:10px 16px;background:var(--bg3);border:1px solid var(--brd);border-radius:var(--rl);font-size:.72rem;font-weight:500;z-index:100;transform:translateY(60px);opacity:0;transition:all .35s cubic-bezier(.16,1,.3,1);box-shadow:0 8px 30px rgba(0,0,0,.4);display:flex;align-items:center;gap:6px}
 .toast.show{transform:translateY(0);opacity:1}.toast.ok{border-color:#22c55e30;color:var(--grn)}
 
@@ -333,7 +333,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .export-item:hover{background:var(--bg2h);color:var(--t1)}
 
 /* Keyboard shortcut hint */
-.kbd{display:inline-flex;padding:1px 5px;background:var(--bg1);border:1px solid var(--brd);border-radius:4px;font-family:var(--fm);font-size:.5rem;color:var(--t3);margin-left:auto}
+.kbd{display:inline-flex;padding:1px 5px;background:var(--bg1);border:1px solid var(--brd);border-radius:4px;font-family:var(--fm);font-size:.62rem;color:var(--t3);margin-left:auto}
 
 /* Filter tabs */
 .filter-tabs{display:flex;gap:2px;margin-bottom:14px;padding:2px;background:var(--bg1);border-radius:var(--r);border:1px solid var(--brd);width:fit-content}
@@ -349,7 +349,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .tpl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:12px}
 .tpl-card{background:var(--c1);border:1px solid var(--bd);border-radius:12px;padding:16px;cursor:pointer;transition:all .2s}
 .tpl-card:hover{border-color:var(--ac);transform:translateY(-2px);box-shadow:0 8px 24px rgba(79,108,247,.15)}
-.tpl-badge{display:inline-flex;align-items:center;gap:4px;font-size:.55rem;font-weight:700;letter-spacing:.5px;padding:2px 8px;border-radius:6px;text-transform:uppercase}
+.tpl-badge{display:inline-flex;align-items:center;gap:4px;font-size:.65rem;font-weight:700;letter-spacing:.5px;padding:2px 8px;border-radius:6px;text-transform:uppercase}
 .tpl-badge.critical{background:#ef444420;color:#ef4444}.tpl-badge.high{background:#f59e0b20;color:#f59e0b}
 .tpl-badge.medium{background:#3b82f620;color:#3b82f6}.tpl-badge.low{background:#22c55e20;color:#22c55e}
 /* Analytics */
@@ -359,7 +359,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .stat-lbl{font-size:.6rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
 .chart-bar{display:flex;align-items:end;gap:6px;height:120px;margin:12px 0;padding:8px 0;border-bottom:1px solid var(--bd)}
 .chart-bar .bar{flex:1;border-radius:6px 6px 0 0;min-width:20px;position:relative;transition:height .3s;cursor:pointer}
-.chart-bar .bar:hover{filter:brightness(1.2)}.chart-bar .bar span{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:.45rem;color:var(--t3);white-space:nowrap}
+.chart-bar .bar:hover{filter:brightness(1.2)}.chart-bar .bar span{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:.58rem;color:var(--t3);white-space:nowrap}
 /* Settings */
 .settings-section{background:var(--c1);border:1px solid var(--bd);border-radius:12px;padding:20px;margin-bottom:12px}
 .settings-section h3{font-size:.75rem;font-weight:700;color:var(--t1);margin-bottom:4px}
@@ -379,11 +379,11 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .exec-check{width:18px;height:18px;border-radius:6px;border:2px solid var(--bd);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;margin-top:1px}
 .exec-check:hover{border-color:var(--ac)}.exec-check.checked{background:var(--ac);border-color:var(--ac)}
 .exec-timer{font-family:'IBM Plex Mono',monospace;font-size:1.5rem;font-weight:800;color:white}
-.exec-sla{font-size:.55rem;padding:2px 8px;border-radius:6px;font-weight:600}
+.exec-sla{font-size:.65rem;padding:2px 8px;border-radius:6px;font-weight:600}
 .exec-sla.ok{background:#22c55e20;color:#22c55e}.exec-sla.warn{background:#f59e0b20;color:#f59e0b}.exec-sla.breach{background:#ef444420;color:#ef4444}
 /* Compliance */
 .comp-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
-.comp-tag{font-size:.5rem;padding:2px 8px;border-radius:6px;font-weight:600;cursor:pointer;transition:all .15s;border:1px solid}
+.comp-tag{font-size:.62rem;padding:2px 8px;border-radius:6px;font-weight:600;cursor:pointer;transition:all .15s;border:1px solid}
 .comp-tag.soc2{background:#6366f120;color:#6366f1;border-color:#6366f130}.comp-tag.iso{background:#f59e0b20;color:#f59e0b;border-color:#f59e0b30}
 .comp-tag.nistcsf{background:#22c55e20;color:#22c55e;border-color:#22c55e30}.comp-tag.active{opacity:1;box-shadow:0 0 0 2px var(--ac)}.comp-tag.inactive{opacity:.4}
 /* Search */
@@ -396,9 +396,9 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .ver-item:last-child{border-bottom:none}
 .ver-num{font-weight:700;color:var(--ac);font-family:'IBM Plex Mono',monospace}
 /* RACI */
-.raci-table{width:100%;border-collapse:collapse;font-size:.55rem;margin-top:8px}
+.raci-table{width:100%;border-collapse:collapse;font-size:.65rem;margin-top:8px}
 .raci-table th,.raci-table td{padding:6px 8px;border:1px solid var(--bd);text-align:center}
-.raci-table th{background:var(--c1);font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);font-size:.5rem}
+.raci-table th{background:var(--c1);font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);font-size:.62rem}
 .raci-r{color:#6366f1;font-weight:700}.raci-a{color:#ef4444;font-weight:700}.raci-c{color:#f59e0b;font-weight:700}.raci-i{color:#22c55e;font-weight:700}
 /* Drill Mode */
 .drill-header{background:linear-gradient(135deg,#6366f1,#4f46e5);color:white;border-radius:12px;padding:20px;margin-bottom:16px}
@@ -409,14 +409,14 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .drill-score.excellent{color:#22c55e}.drill-score.good{color:#3b82f6}.drill-score.fair{color:#f59e0b}.drill-score.poor{color:#ef4444}
 /* Audit Log */
 .audit-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--bd);font-size:.6rem}
-.audit-action{font-weight:700;padding:2px 8px;border-radius:6px;font-size:.5rem;text-transform:uppercase;letter-spacing:.5px}
+.audit-action{font-weight:700;padding:2px 8px;border-radius:6px;font-size:.62rem;text-transform:uppercase;letter-spacing:.5px}
 .audit-action.create{background:#22c55e20;color:#22c55e}.audit-action.update{background:#3b82f620;color:#3b82f6}
 .audit-action.delete{background:#ef444420;color:#ef4444}.audit-action.execute{background:#f59e0b20;color:#f59e0b}
 /* Comments */
 .comment-thread{border-left:3px solid var(--ac);padding-left:12px;margin:8px 0}
 .comment-item{padding:6px 0;border-bottom:1px solid var(--bd)}
 .comment-item:last-child{border-bottom:none}
-.comment-author{font-size:.55rem;font-weight:700;color:var(--ac)}.comment-time{font-size:.45rem;color:var(--t3);margin-left:8px}
+.comment-author{font-size:.65rem;font-weight:700;color:var(--ac)}.comment-time{font-size:.58rem;color:var(--t3);margin-left:8px}
 .comment-text{font-size:.6rem;color:var(--t2);margin-top:2px;line-height:1.5}
 .comment-input{display:flex;gap:6px;margin-top:8px}
 .comment-input input{flex:1;padding:6px 10px;background:var(--c0);border:1px solid var(--bd);border-radius:8px;color:var(--t1);font-size:.6rem}
@@ -425,7 +425,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .maturity-val{font-size:1.8rem;font-weight:900;color:white}
 /* ATT&CK Heatmap */
 .attack-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:4px;margin:12px 0}
-.attack-cell{padding:6px 4px;border-radius:6px;text-align:center;font-size:.45rem;font-weight:600;cursor:pointer;transition:all .15s;border:1px solid transparent}
+.attack-cell{padding:6px 4px;border-radius:6px;text-align:center;font-size:.58rem;font-weight:600;cursor:pointer;transition:all .15s;border:1px solid transparent}
 .attack-cell:hover{transform:scale(1.05)}.attack-cell.covered{background:#22c55e20;color:#22c55e;border-color:#22c55e30}
 .attack-cell.partial{background:#f59e0b20;color:#f59e0b;border-color:#f59e0b30}.attack-cell.gap{background:#ef444410;color:#ef4444;border-color:#ef444420}
 /* Knowledge Base */
@@ -433,7 +433,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .kb-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.7rem}
 .kb-icon.doc{background:#3b82f620}.kb-icon.img{background:#22c55e20}.kb-icon.link{background:#f59e0b20}
 /* Responsive */
-@media(max-width:768px){.exec-header{padding:14px}.exec-timer{font-size:1.2rem}.exec-action{padding:8px 12px;font-size:.55rem}
+@media(max-width:768px){.exec-header{padding:14px}.exec-timer{font-size:1.2rem}.exec-action{padding:8px 12px;font-size:.65rem}
 .stat-grid{grid-template-columns:repeat(2,1fr)}.tpl-grid{grid-template-columns:1fr}
 .attack-grid{grid-template-columns:repeat(auto-fill,minmax(60px,1fr))}}
 /* Quiz Mode */
@@ -448,12 +448,12 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .sim-narrative{padding:16px;background:var(--c1);border:1px solid var(--bd);border-radius:12px;font-size:.7rem;line-height:1.7;color:var(--t2);margin:10px 0}
 .sim-choice{display:block;width:100%;text-align:left;padding:10px 14px;margin:5px 0;border-radius:10px;border:2px solid var(--bd);background:var(--c0);color:var(--t1);font-size:.65rem;cursor:pointer;transition:all .15s;font-weight:600}
 .sim-choice:hover{border-color:var(--ac);transform:translateX(4px)}.sim-choice:active{transform:scale(.98)}
-.sim-history{border-left:3px solid var(--ac);padding-left:12px;margin:8px 0;font-size:.55rem;color:var(--t3)}
+.sim-history{border-left:3px solid var(--ac);padding-left:12px;margin:8px 0;font-size:.65rem;color:var(--t3)}
 /* Certifications */
 .cert-card{background:linear-gradient(135deg,var(--c1),var(--c0));border:2px solid;border-radius:14px;padding:16px;text-align:center;position:relative;overflow:hidden}
 .cert-card.valid{border-color:#22c55e}.cert-card.expired{border-color:#ef4444;opacity:.7}
 .cert-badge{font-size:2rem;margin-bottom:4px}.cert-title{font-size:.7rem;font-weight:700;color:var(--t1)}
-.cert-meta{font-size:.5rem;color:var(--t3);margin-top:4px}.cert-score{font-size:1.5rem;font-weight:900;margin:4px 0}
+.cert-meta{font-size:.62rem;color:var(--t3);margin-top:4px}.cert-score{font-size:1.5rem;font-weight:900;margin:4px 0}
 /* Inject Editor */
 .inject-form{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
 .inject-form input,.inject-form select,.inject-form textarea{padding:6px 10px;background:var(--c0);border:1px solid var(--bd);border-radius:8px;color:var(--t1);font-size:.6rem;font-family:var(--f)}
@@ -462,9 +462,9 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .wh-card{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--c1);border:1px solid var(--bd);border-radius:10px;margin:4px 0}
 .wh-status{width:8px;height:8px;border-radius:50%}.wh-status.active{background:#22c55e}.wh-status.inactive{background:#ef4444}
 .wh-name{font-size:.65rem;font-weight:700;flex:1}.wh-events{display:flex;gap:2px;flex-wrap:wrap}
-.wh-evt{font-size:.45rem;padding:1px 6px;background:var(--acs);border-radius:10px;color:var(--ac)}
+.wh-evt{font-size:.58rem;padding:1px 6px;background:var(--acs);border-radius:10px;color:var(--ac)}
 /* IOC Panel */
-.ioc-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:.5rem;font-family:var(--fm);margin:2px}
+.ioc-tag{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:.62rem;font-family:var(--fm);margin:2px}
 .ioc-tag.ip{background:#3b82f615;color:#3b82f6;border:1px solid #3b82f625}.ioc-tag.hash{background:#6366f115;color:#6366f1;border:1px solid #6366f125}
 .ioc-tag.domain{background:#f59e0b15;color:#f59e0b;border:1px solid #f59e0b25}.ioc-tag.url{background:#ef444415;color:#ef4444;border:1px solid #ef444425}
 /* Bulk Operations */
@@ -476,7 +476,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .import-zone input[type=file]{display:none}
 /* Custom Fields */
 .cf-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--bd);font-size:.6rem}
-.cf-type{padding:2px 6px;border-radius:4px;font-size:.45rem;font-weight:700;text-transform:uppercase;background:var(--acs);color:var(--ac)}
+.cf-type{padding:2px 6px;border-radius:4px;font-size:.58rem;font-weight:700;text-transform:uppercase;background:var(--acs);color:var(--ac)}
 /* Branding */
 .brand-preview{padding:16px;border:1px solid var(--bd);border-radius:12px;margin:10px 0}
 .color-swatch{width:32px;height:32px;border-radius:8px;border:2px solid var(--bd);cursor:pointer;display:inline-block;vertical-align:middle}
@@ -493,22 +493,22 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .tl-entry{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:.6rem}
 .tl-dot{width:10px;height:10px;border-radius:50%;margin-top:4px;flex-shrink:0}
 .tl-dot.update{background:#3b82f6}.tl-dot.decision{background:#f59e0b}.tl-dot.escalation{background:#ef4444}.tl-dot.automation{background:#6366f1}.tl-dot.evidence{background:#22c55e}
-.tl-time{font-size:.45rem;color:var(--t3);font-family:var(--fm)}.tl-author{font-weight:700;color:var(--t1)}
+.tl-time{font-size:.58rem;color:var(--t3);font-family:var(--fm)}.tl-author{font-weight:700;color:var(--t1)}
 /* Evidence */
-.ev-card{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--bd);border-radius:8px;margin:4px 0;font-size:.55rem}
-.ev-type{font-size:.4rem;padding:2px 6px;border-radius:4px;font-weight:700;text-transform:uppercase}
+.ev-card{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--bd);border-radius:8px;margin:4px 0;font-size:.65rem}
+.ev-type{font-size:.58rem;padding:2px 6px;border-radius:4px;font-weight:700;text-transform:uppercase}
 .ev-type.screenshot{background:#3b82f620;color:#3b82f6}.ev-type.log{background:#6366f120;color:#6366f1}
 .ev-type.email{background:#f59e0b20;color:#f59e0b}.ev-type.note{background:#22c55e20;color:#22c55e}.ev-type.file{background:#ef444420;color:#ef4444}
 /* Automation */
-.auto-btn{padding:3px 8px;font-size:.45rem;font-weight:700;border-radius:6px;border:1px solid #6366f130;background:#6366f115;color:#6366f1;cursor:pointer}
+.auto-btn{padding:3px 8px;font-size:.58rem;font-weight:700;border-radius:6px;border:1px solid #6366f130;background:#6366f115;color:#6366f1;cursor:pointer}
 .auto-btn:hover{background:#6366f125}.auto-btn.running{animation:pulse 1s infinite;background:#f59e0b15;color:#f59e0b;border-color:#f59e0b30}
 /* Enrichment */
-.enrich-result{padding:8px 12px;border:1px solid var(--bd);border-radius:8px;margin:4px 0;font-size:.55rem}
-.enrich-score{font-size:1.2rem;font-weight:900}.enrich-source{font-size:.45rem;color:var(--t3);font-weight:600;text-transform:uppercase}
+.enrich-result{padding:8px 12px;border:1px solid var(--bd);border-radius:8px;margin:4px 0;font-size:.65rem}
+.enrich-score{font-size:1.2rem;font-weight:900}.enrich-source{font-size:.58rem;color:var(--t3);font-weight:600;text-transform:uppercase}
 .enrich-safe{color:#22c55e}.enrich-suspicious{color:#f59e0b}.enrich-malicious{color:#ef4444}
 /* Correlation */
 .corr-card{background:var(--c1);border:1px solid var(--bd);border-radius:12px;padding:14px;margin:8px 0}
-.corr-big{font-size:2rem;font-weight:900;color:var(--ac)}.corr-label{font-size:.55rem;color:var(--t3)}
+.corr-big{font-size:2rem;font-weight:900;color:var(--ac)}.corr-label{font-size:.65rem;color:var(--t3)}
 .corr-bar{height:6px;border-radius:3px;background:var(--bd);overflow:hidden;margin:4px 0}
 .corr-fill{height:100%;border-radius:3px;transition:width .4s}
 /* Marketplace */
@@ -523,30 +523,30 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .ai-insight h4{font-size:.6rem;font-weight:700;color:var(--ac);margin-bottom:6px}
 .ai-risk{font-size:2.5rem;font-weight:900;text-align:center}
 /* Scheduled Review */
-.review-badge{font-size:.45rem;padding:2px 6px;border-radius:6px;font-weight:700}
+.review-badge{font-size:.58rem;padding:2px 6px;border-radius:6px;font-weight:700}
 .review-badge.overdue{background:#ef444420;color:#ef4444}.review-badge.due-soon{background:#f59e0b20;color:#f59e0b}.review-badge.ok{background:#22c55e20;color:#22c55e}
 /* V5 — Timeline */
 .tl-entry{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:.6rem}
 .tl-dot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0}
 .tl-dot.update{background:var(--ac)}.tl-dot.decision{background:#f59e0b}.tl-dot.escalation{background:#ef4444}.tl-dot.automation{background:#22c55e}.tl-dot.evidence{background:#6366f1}
-.tl-meta{font-size:.5rem;color:var(--t3)}.tl-msg{color:var(--t1);line-height:1.5}
+.tl-meta{font-size:.62rem;color:var(--t3)}.tl-msg{color:var(--t1);line-height:1.5}
 .tl-input{display:flex;gap:6px;padding:8px 0}.tl-input input{flex:1}
 /* V5 — Evidence */
 .ev-card{display:flex;gap:10px;padding:10px;background:var(--c1);border:1px solid var(--bd);border-radius:10px;margin:4px 0;font-size:.6rem}
 .ev-type{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
 .ev-type.screenshot{background:#3b82f615}.ev-type.log{background:#22c55e15}.ev-type.email{background:#f59e0b15}.ev-type.note{background:#6366f115}.ev-type.ioc{background:#ef444415}
 /* V5 — Automation */
-.auto-btn{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:.5rem;font-weight:700;cursor:pointer;border:1px solid #22c55e40;background:#22c55e10;color:#22c55e;transition:all .15s}
+.auto-btn{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:.62rem;font-weight:700;cursor:pointer;border:1px solid #22c55e40;background:#22c55e10;color:#22c55e;transition:all .15s}
 .auto-btn:hover{background:#22c55e20;transform:scale(1.02)}.auto-btn.running{opacity:.6;cursor:wait}
 /* V5 — Enrichment */
-.enrich-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;font-size:.45rem;font-weight:700}
+.enrich-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;font-size:.58rem;font-weight:700}
 .enrich-badge.clean{background:#22c55e15;color:#22c55e;border:1px solid #22c55e25}
 .enrich-badge.suspicious{background:#f59e0b15;color:#f59e0b;border:1px solid #f59e0b25}
 .enrich-badge.malicious{background:#ef444415;color:#ef4444;border:1px solid #ef444425}
 /* V5 — Correlation */
 .pattern-card{background:var(--c1);border:1px solid var(--bd);border-radius:12px;padding:14px;margin:8px 0}
 .pattern-card h4{font-size:.65rem;font-weight:700;color:var(--t1);margin-bottom:8px}
-.day-bar{display:inline-block;width:calc(100%/7 - 4px);margin:2px;border-radius:4px;text-align:center;font-size:.45rem;font-weight:700;color:white;min-height:24px;line-height:24px}
+.day-bar{display:inline-block;width:calc(100%/7 - 4px);margin:2px;border-radius:4px;text-align:center;font-size:.58rem;font-weight:700;color:white;min-height:24px;line-height:24px}
 /* V5 — Effectiveness */
 .eff-card{background:var(--c1);border:1px solid var(--bd);border-radius:10px;padding:12px;margin:6px 0}
 .eff-bar{height:6px;border-radius:3px;background:var(--bd);overflow:hidden;margin-top:4px}
@@ -555,7 +555,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
 .pack-section{background:var(--c1);border:1px solid var(--bd);border-radius:12px;padding:14px;margin:8px 0}
 .pack-section h4{font-size:.65rem;font-weight:700;color:var(--ac);margin-bottom:6px}
 .pack-stat{display:inline-block;text-align:center;padding:8px 16px;margin:4px}
-.pack-stat .num{font-size:1.5rem;font-weight:900;color:var(--t1)}.pack-stat .lbl{font-size:.5rem;color:var(--t3)}
+.pack-stat .num{font-size:1.5rem;font-weight:900;color:var(--t1)}.pack-stat .lbl{font-size:.62rem;color:var(--t3)}
 /* V5 — Questionnaire */
 .qa-item{padding:12px;border-bottom:1px solid var(--bd)}.qa-q{font-size:.65rem;font-weight:700;color:var(--t1);margin-bottom:4px}
 .qa-a{font-size:.6rem;color:var(--t2);line-height:1.6;padding:6px 10px;background:var(--c0);border-radius:8px;margin-top:4px}
@@ -567,7 +567,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.5}
   <div class="sb-toggle" onclick="toggleSidebar()" title="Toggle sidebar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg></div>
   <div class="sb-brand"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div><h1>RunbookHQ</h1><p id="sb-fw-label">RunbookHQ // NIST IR</p></div><div class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode"><svg id="theme-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--t3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></div></div>
   <nav id="snav"></nav>
-  <div class="sb-ft"><div class="card" style="cursor:pointer" onclick="fwModal()" title="Click to change framework"><div class="lb">Framework</div><div class="vl" id="sb-fw-name">NIST IR Lifecycle</div><div style="font-size:.5rem;color:var(--t3);margin-top:2px">Click to change</div></div></div>
+  <div class="sb-ft"><div class="card" style="cursor:pointer" onclick="fwModal()" title="Click to change framework"><div class="lb">Framework</div><div class="vl" id="sb-fw-name">NIST IR Lifecycle</div><div style="font-size:.78rem;color:var(--t3);margin-top:2px">Click to change</div></div></div>
 </div>
 <main>
   <div class="page vis" id="pg-dashboard"></div>
@@ -742,7 +742,7 @@ const NAV=[{id:'dashboard',l:'Dashboard',i:'<rect x="3" y="3" width="7" height="
 
 // ===== NAVIGATION =====
 const TIPS={dashboard:'Overview of playbooks, coverage gaps, expiry alerts, and key stats',teams:'Define response teams, roles, phase assignments, and capabilities',tools:'Register security tools and map them to IR phases',scenarios:'Pre-define incident scenarios with severity and escalation triggers',templates:'Clone from 5 pre-built playbooks: Ransomware, Phishing, Data Breach, Insider Threat, DDoS',generate:'AI-powered playbook generation using Claude with full org context (Ctrl+G)',playbooks:'View, edit, execute, and manage all your playbooks',drills:'Run timed tabletop exercises with inject cards and scoring',simulator:'AI-powered choose-your-own-adventure incident simulations',quiz:'Auto-generated questions testing role assignments, tools, and procedures',certs:'Track certifications earned through drills and quizzes',injects:'Create custom inject cards for tabletop exercises',attack:'MITRE ATT&CK coverage heatmap across 60 techniques and 10 tactics',mttr:'Mean Time to Respond tracking with severity breakdown and trends',correlation:'Incident patterns: day-of-week distribution, monthly trends, drill progression',effectiveness:'Playbook performance scores based on execution data and drill results',analytics:'Charts for framework, severity, status distribution, and compliance coverage',maturity:'Automated 1-5 IR maturity scoring across 6 dimensions','compliance-pack':'One-click audit-ready evidence bundle for SOC 2, ISO 27001, NIST CSF',questionnaire:'Auto-generated answers for vendor security questionnaires',audit:'Immutable log of all platform operations with timestamps',webhooks:'Custom outbound webhooks with payload templates and event subscriptions','import':'Import playbooks from JSON or CSV files',branding:'Custom company name, logo, colours, and PDF header/footer','custom-fields':'Define custom metadata fields that appear on every playbook',settings:'API keys, notification webhooks, admin panel',guide:'Full platform user guide'};
-function rNav(a){document.getElementById('snav').innerHTML=NAV.map(n=>{if(n.sep)return`<div style="padding:8px 12px 2px;font-size:.45rem;font-weight:700;color:var(--t4);letter-spacing:1.5px;text-transform:uppercase;margin-top:6px">${n.l}</div>`;return`<div class="ni${n.id===a?' act':''}" onclick="${n.action||`go('${n.id}')`}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${n.i}</svg><span>${n.l}</span>${n.kbd?`<span class="kbd">${n.kbd}</span>`:''}${TIPS[n.id]?`<span class="tip">${TIPS[n.id]}</span>`:''}</div>`}).join('')}
+function rNav(a){document.getElementById('snav').innerHTML=NAV.map(n=>{if(n.sep)return`<div style="padding:8px 12px 2px;font-size:.75rem;font-weight:700;color:var(--t4);letter-spacing:1.5px;text-transform:uppercase;margin-top:6px">${n.l}</div>`;return`<div class="ni${n.id===a?' act':''}" onclick="${n.action||`go('${n.id}')`}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${n.i}</svg><span>${n.l}</span>${n.kbd?`<span class="kbd">${n.kbd}</span>`:''}${TIPS[n.id]?`<span class="tip">${TIPS[n.id]}</span>`:''}</div>`}).join('')}
 function go(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('vis'));document.getElementById('pg-'+id).classList.add('vis');rNav(id);V[id]?.()}
 function toast(m,icon){const t=document.getElementById('tst');t.innerHTML=(icon||sv(IC.ck,13,'var(--grn)'))+' '+m;t.className='toast ok show';setTimeout(()=>t.className='toast',2400)}
 function oModal(h){document.getElementById('mdl').innerHTML=h;document.getElementById('mov').classList.add('open')}
@@ -774,12 +774,12 @@ function updateSidebarFW(){
 }
 function fwModal(){
   oModal(`<h2>Select Framework</h2>
-  <p style="font-size:.72rem;color:var(--t2);margin-bottom:14px">Choose the incident response lifecycle model for new playbooks. Existing playbooks keep their original framework.</p>
+  <p style="font-size:.8rem;color:var(--t2);margin-bottom:14px">Choose the incident response lifecycle model for new playbooks. Existing playbooks keep their original framework.</p>
   <div style="display:flex;flex-direction:column;gap:6px">
   ${Object.values(FRAMEWORKS).map(fw=>`<div class="card" style="padding:12px;cursor:pointer;border:1px solid ${D.framework===fw.id?'var(--ac)':'var(--brd)'};${D.framework===fw.id?'background:var(--acs);':''}" onclick="setFW('${fw.id}')">
-    <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:600;font-size:.82rem">${fw.name}${D.framework===fw.id?' <span class="badge badge-ai">Active</span>':''}</div><span style="font-family:var(--fm);font-size:.55rem;color:var(--t3)">${fw.phases.length} phases</span></div>
-    <div style="font-size:.68rem;color:var(--t2);margin:3px 0 6px;line-height:1.4">${fw.desc}</div>
-    <div style="display:flex;flex-wrap:wrap;gap:2px">${fw.phases.map((p,i)=>`<span class="nt nt-${i%6}" style="font-size:.5rem;cursor:default">${p.emoji} ${p.name}</span>`).join('')}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:600;font-size:.82rem">${fw.name}${D.framework===fw.id?' <span class="badge badge-ai">Active</span>':''}</div><span style="font-family:var(--fm);font-size:.8rem;color:var(--t3)">${fw.phases.length} phases</span></div>
+    <div style="font-size:.78rem;color:var(--t2);margin:3px 0 6px;line-height:1.4">${fw.desc}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:2px">${fw.phases.map((p,i)=>`<span class="nt nt-${i%6}" style="font-size:.78rem;cursor:default">${p.emoji} ${p.name}</span>`).join('')}</div>
   </div>`).join('')}
   </div>
   <div class="fc g2 mt3"><button class="btn btn-s" onclick="cModal()">Close</button></div>`);
@@ -806,7 +806,7 @@ function showGuide(){
   oModal('');
   document.getElementById('mdl').style.width='620px';
   document.getElementById('mdl').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
-    <div><h2 style="margin-bottom:2px">User Guide</h2><p style="font-size:.68rem;color:var(--t3)">How to build incident response playbooks</p></div>
+    <div><h2 style="margin-bottom:2px">User Guide</h2><p style="font-size:.78rem;color:var(--t3)">How to build incident response playbooks</p></div>
     <button class="btn-g" onclick="cModal()" style="margin-top:2px">${sv(IC.x,14)}</button>
   </div>
   <div class="guide-content">
@@ -906,25 +906,25 @@ document.getElementById('pg-dashboard').innerHTML=`
   {l:'Playbooks',v:D.playbooks.length,bg:'var(--grns)',c:'var(--grn)',p:'playbooks'}
 ].map(s=>`<div class="card sc" onclick="go('${s.p}')"><div class="si" style="background:${s.bg}">${sv(NAV.find(n=>n.id===s.p)?.i||'',16,s.c)}</div><div class="sv">${s.v}</div><div class="sl">${s.l}</div></div>`).join('')}</div>
 ${g.length?`<div class="cov-warn" style="margin-bottom:14px">${sv(IC.wn,13,'var(--amb)')} Coverage gaps: ${g.map(x=>`<b>${x.phase.name}</b> missing ${[x.noTools?'tools':null,x.noRoles?'roles':null].filter(Boolean).join(' & ')}`).join('; ')} — <span style="cursor:pointer;text-decoration:underline" onclick="go('generate')">view matrix</span></div>`:''}
-<div class="gb" onclick="go('generate')"><div style="width:42px;height:42px;background:var(--acs);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${sv(IC.sh,20,'var(--ac)')}</div><div style="flex:1"><h3 style="font-size:.9rem;font-weight:700;margin-bottom:1px">Generate New Playbook</h3><p style="font-size:.72rem;color:var(--t2)">Describe an incident — AI builds a <b>${getFW().short}</b> playbook using your ${D.tools.length} tools, ${allRoles().length} roles, and their phase/capability assignments.</p></div><div style="font-family:var(--fm);font-size:.52rem;color:var(--t3);padding:3px 7px;background:var(--bg1);border-radius:6px;border:1px solid var(--brd)">Ctrl+G</div></div>
-<div class="card" style="padding:14px;margin-top:14px"><div class="fb mb3"><h3 style="font-size:.82rem;font-weight:600">Recent Playbooks</h3><div style="display:flex;align-items:center;gap:8px"><div class="search-box" style="margin:0;width:200px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input placeholder="Search playbooks..." oninput="filterPlaybooks(this.value)" value="${searchQuery}"/></div><span style="font-size:.68rem;color:var(--ac);cursor:pointer" onclick="go('playbooks')">View all →</span></div></div>
-${(()=>{const filtered=D.playbooks.filter(pb=>!searchQuery||pb.title.toLowerCase().includes(searchQuery)||(pb.scenario?.t||'').toLowerCase().includes(searchQuery)||(pb.scenario?.s||'').toLowerCase().includes(searchQuery));return filtered.length===0?`<div class="empty">${sv(IC.bk2,32,'var(--t4)')}<p style="font-size:.75rem;margin-top:6px">${searchQuery?'No playbooks match your search.':'No playbooks yet. Generate your first one above.'}</p></div>`:filtered.slice(-5).reverse().map(pb=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;transition:all .15s;border-radius:var(--r)" onmouseover="this.style.background='var(--bg2h)'" onmouseout="this.style.background=''" onclick="detail('${pb.id}')"><div style="font-weight:600;font-size:.78rem;flex:1;display:flex;align-items:center;gap:4px;flex-wrap:wrap">${pb.title} <span class="badge badge-${pb.status}">${pb.status}</span>${pb.isec?'<span class="badge badge-infosec">InfoSec</span>':''}${pb.ai?'<span class="badge badge-ai">AI</span>':''}</div><span style="font-size:.6rem;color:var(--t3)">${pb.date}</span></div>`).join('')})()}</div>
+<div class="gb" onclick="go('generate')"><div style="width:48px;height:48px;background:var(--acs);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${sv(IC.sh,22,'var(--ac)')}</div><div style="flex:1"><h3 style="font-size:1.05rem;font-weight:700;margin-bottom:2px">Generate New Playbook</h3><p style="font-size:.92rem;color:var(--t2)">Describe an incident — AI builds a <b>${getFW().short}</b> playbook using your ${D.tools.length} tools, ${allRoles().length} roles, and their phase/capability assignments.</p></div><div style="font-family:var(--fm);font-size:.72rem;color:var(--t3);padding:4px 8px;background:var(--bg1);border-radius:6px;border:1px solid var(--brd)">Ctrl+G</div></div>
+<div class="card" style="padding:16px;margin-top:14px"><div class="fb mb3"><h3 style="font-size:.95rem;font-weight:600">Recent Playbooks</h3><div style="display:flex;align-items:center;gap:8px"><div class="search-box" style="margin:0;width:200px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input placeholder="Search playbooks..." oninput="filterPlaybooks(this.value)" value="${searchQuery}"/></div><span style="font-size:.88rem;color:var(--ac);cursor:pointer" onclick="go('playbooks')">View all →</span></div></div>
+${(()=>{const filtered=D.playbooks.filter(pb=>!searchQuery||pb.title.toLowerCase().includes(searchQuery)||(pb.scenario?.t||'').toLowerCase().includes(searchQuery)||(pb.scenario?.s||'').toLowerCase().includes(searchQuery));return filtered.length===0?`<div class="empty">${sv(IC.bk2,32,'var(--t4)')}<p style="font-size:.75rem;margin-top:6px">${searchQuery?'No playbooks match your search.':'No playbooks yet. Generate your first one above.'}</p></div>`:filtered.slice(-5).reverse().map(pb=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;transition:all .15s;border-radius:var(--r)" onmouseover="this.style.background='var(--bg2h)'" onmouseout="this.style.background=''" onclick="detail('${pb.id}')"><div style="font-weight:600;font-size:.78rem;flex:1;display:flex;align-items:center;gap:4px;flex-wrap:wrap">${pb.title} <span class="badge badge-${pb.status}">${pb.status}</span>${pb.isec?'<span class="badge badge-infosec">InfoSec</span>':''}${pb.ai?'<span class="badge badge-ai">AI</span>':''}</div><span style="font-size:.75rem;color:var(--t3)">${pb.date}</span></div>`).join('')})()}</div>
 ${D.playbooks.length?`<div class="detail-meta" style="margin-top:14px"><span>📊 ${D.playbooks.length} playbook${D.playbooks.length!==1?'s':''}</span><span class="sep"></span><span>${totalActions} total actions</span><span class="sep"></span><span>${D.playbooks.filter(p=>p.status==='approved').length} approved</span><span class="sep"></span><span>${D.playbooks.filter(p=>p.ai).length} AI-generated</span></div>`:''}`};
 
 // TEAMS
 V.teams=()=>{document.getElementById('pg-teams').innerHTML=`
 <div class="fb mb4"><div><h1 class="pt">${sv(IC.us,22,'var(--blu)')}Teams & Roles</h1><p class="ps" style="margin:0">Assign roles to ${getFW().short} phases and give them capabilities. This directly controls which actions they're assigned in playbooks.</p></div><button class="btn btn-p" onclick="tmModal()">${sv(IC.pl,13)} Add Team</button></div>
-${D.teams.map(t=>`<div class="card" style="margin-bottom:7px"><div style="padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="document.getElementById('tb-${t.id}').classList.toggle('open')"><div><div style="font-weight:600;font-size:.82rem">${t.name} <span style="font-size:.6rem;color:var(--t3);font-weight:400">${t.roles.length} role${t.roles.length!==1?'s':''}</span></div><div style="font-size:.7rem;color:var(--t2)">${t.desc}</div></div><div class="fc g2" onclick="event.stopPropagation()"><button class="btn-g" onclick="tmModal('${t.id}')">${sv(IC.ed,12)}</button><button class="btn-g" style="color:var(--red)" onclick="showConfirm('Delete Team','Delete <b>${t.name}</b> and all its roles? This cannot be undone.',()=>{D.teams=D.teams.filter(x=>x.id!=='${t.id}');persist();toast('Team deleted');V.teams()})">${sv(IC.tr,12)}</button>${sv(IC.ch,13,'var(--t3)')}</div></div>
+${D.teams.map(t=>`<div class="card" style="margin-bottom:7px"><div style="padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center" onclick="document.getElementById('tb-${t.id}').classList.toggle('open')"><div><div style="font-weight:600;font-size:.82rem">${t.name} <span style="font-size:.75rem;color:var(--t3);font-weight:400">${t.roles.length} role${t.roles.length!==1?'s':''}</span></div><div style="font-size:.8rem;color:var(--t2)">${t.desc}</div></div><div class="fc g2" onclick="event.stopPropagation()"><button class="btn-g" onclick="tmModal('${t.id}')">${sv(IC.ed,12)}</button><button class="btn-g" style="color:var(--red)" onclick="showConfirm('Delete Team','Delete <b>${t.name}</b> and all its roles? This cannot be undone.',()=>{D.teams=D.teams.filter(x=>x.id!=='${t.id}');persist();toast('Team deleted');V.teams()})">${sv(IC.tr,12)}</button>${sv(IC.ch,13,'var(--t3)')}</div></div>
 <div id="tb-${t.id}" class="pb"><div style="padding-top:8px"><div class="fb mb2"><div class="lbl" style="margin:0">Roles — phase assignments & capabilities drive playbook actions</div><button class="btn btn-sm btn-p" onclick="rlModal('${t.id}')">${sv(IC.pl,10)} Add Role</button></div>
 ${t.roles.map(r=>`<div class="card" style="padding:10px;margin-bottom:5px;background:var(--bg1)">
 <div class="fb"><div style="font-size:.78rem;font-weight:600">${r.title}</div><div class="fc g2"><button class="btn-g" onclick="rlModal('${t.id}','${r.id}')">${sv(IC.ed,11)}</button><button class="btn-g" style="color:var(--red)" onclick="showConfirm('Delete Role','Delete <b>${r.title}</b>?',()=>{D.teams.find(x=>x.id==='${t.id}').roles=D.teams.find(x=>x.id==='${t.id}').roles.filter(x=>x.id!=='${r.id}');persist();toast('Role deleted');V.teams()})">${sv(IC.tr,11)}</button></div></div>
-<div style="font-size:.65rem;color:var(--t3);margin:2px 0 5px">${r.resp}</div>
+<div style="font-size:.78rem;color:var(--t3);margin:2px 0 5px">${r.resp}</div>
 <div class="lbl mb1">Active In Phases</div>
 <div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:5px">${getPH().map((_,i)=>phTag(i,r.phases.includes(i),`toggleRP('${t.id}','${r.id}',${i})`)).join('')}</div>
 <div class="lbl mb1">Capabilities <span style="font-weight:400;color:var(--t4)">— matched to action types</span></div>
 <div style="display:flex;flex-wrap:wrap;gap:2px">${CAPS.map(c=>`<span class="cap cap-sel${r.caps.includes(c)?' cap-active':' off'}" onclick="toggleRC('${t.id}','${r.id}','${c}')">${c}</span>`).join('')}</div>
 </div>`).join('')}
-${t.roles.length===0?'<p style="font-size:.7rem;color:var(--t3);padding:6px">No roles — add roles to enable action assignment in playbooks.</p>':''}</div></div></div>`).join('')}
+${t.roles.length===0?'<p style="font-size:.8rem;color:var(--t3);padding:6px">No roles — add roles to enable action assignment in playbooks.</p>':''}</div></div></div>`).join('')}
 ${D.teams.length===0?`<div class="empty">${sv(IC.us,32,'var(--t4)')}<p style="font-size:.75rem;margin-top:6px">No teams yet. Add a team to get started.</p></div>`:''}`;};
 
 function toggleRP(tid,rid,pi){const r=D.teams.find(t=>t.id===tid)?.roles.find(r=>r.id===rid);if(!r)return;r.phases.includes(pi)?r.phases=r.phases.filter(p=>p!==pi):r.phases.push(pi);persist();V.teams()}
@@ -947,7 +947,7 @@ V.tools=()=>{document.getElementById('pg-tools').innerHTML=`
 <div class="fb mb4"><div><h1 class="pt">${sv(IC.tl,22,'var(--amb)')}Tool Inventory</h1><p class="ps" style="margin:0">Toggle phase tags and capabilities. Only tools mapped to a phase will appear in that phase's actions.</p></div><button class="btn btn-p" onclick="tlModal()">${sv(IC.pl,13)} Add Tool</button></div>
 <div class="grid2">${D.tools.map(t=>`<div class="card" style="padding:14px">
 <div class="fb mb2"><div><div style="font-size:.85rem;font-weight:600">${t.name}</div><div style="font-family:var(--fm);font-size:.62rem;color:var(--ac)">${t.cat}</div></div><div class="fc g2"><button class="btn-g" onclick="tlModal('${t.id}')">${sv(IC.ed,12)}</button><button class="btn-g" style="color:var(--red)" onclick="showConfirm('Delete Tool','Delete <b>${t.name}</b>?',()=>{D.tools=D.tools.filter(x=>x.id!=='${t.id}');persist();toast('Tool deleted');V.tools()})">${sv(IC.tr,12)}</button></div></div>
-<p style="font-size:.7rem;color:var(--t2);line-height:1.3;margin-bottom:7px">${t.desc}</p>
+<p style="font-size:.8rem;color:var(--t2);line-height:1.3;margin-bottom:7px">${t.desc}</p>
 <div class="lbl mb1">Phase Mapping <span style="color:var(--t4);font-weight:400">(click to toggle)</span></div>
 <div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:5px">${getPH().map((_,i)=>phTag(i,t.phases.includes(i),`toggleTPhase('${t.id}',${i})`)).join('')}</div>
 <div class="lbl mb1">Capabilities</div>
@@ -962,7 +962,7 @@ function saveTl(eid){const n=document.getElementById('m-tln').value.trim(),c=doc
 // SCENARIOS
 V.scenarios=()=>{document.getElementById('pg-scenarios').innerHTML=`
 <div class="fb mb4"><div><h1 class="pt">${sv(IC.wn,22,'var(--red)')}Scenarios</h1><p class="ps" style="margin:0">Auto-saved from generated playbooks. Click "Use" to regenerate with updated team/tool config.</p></div></div>
-${D.scenarios.length===0?`<div class="empty">${sv(IC.wn,32,'var(--t4)')}<p style="font-size:.75rem;margin-top:6px">No scenarios yet. Generate a playbook to create one.</p></div>`:D.scenarios.map(s=>`<div class="card" style="padding:12px;margin-bottom:6px"><div class="fb"><div style="flex:1"><span style="font-weight:600">${s.t}</span> <span class="badge badge-${s.s}">${s.s}</span><div style="font-size:.7rem;color:var(--t2);margin-top:2px">${s.d}</div></div><div class="fc g2" style="flex-shrink:0;margin-left:8px"><button class="btn btn-sm btn-p" onclick="useSc('${s.id}')">${sv(IC.sh,11)} Use</button><button class="btn-g" style="color:var(--red)" onclick="showConfirm('Delete Scenario','Delete this scenario?',()=>{D.scenarios=D.scenarios.filter(x=>x.id!=='${s.id}');persist();toast('Deleted');V.scenarios()})">${sv(IC.tr,11)}</button></div></div></div>`).join('')}`;};
+${D.scenarios.length===0?`<div class="empty">${sv(IC.wn,32,'var(--t4)')}<p style="font-size:.75rem;margin-top:6px">No scenarios yet. Generate a playbook to create one.</p></div>`:D.scenarios.map(s=>`<div class="card" style="padding:12px;margin-bottom:6px"><div class="fb"><div style="flex:1"><span style="font-weight:600">${s.t}</span> <span class="badge badge-${s.s}">${s.s}</span><div style="font-size:.8rem;color:var(--t2);margin-top:2px">${s.d}</div></div><div class="fc g2" style="flex-shrink:0;margin-left:8px"><button class="btn btn-sm btn-p" onclick="useSc('${s.id}')">${sv(IC.sh,11)} Use</button><button class="btn-g" style="color:var(--red)" onclick="showConfirm('Delete Scenario','Delete this scenario?',()=>{D.scenarios=D.scenarios.filter(x=>x.id!=='${s.id}');persist();toast('Deleted');V.scenarios()})">${sv(IC.tr,11)}</button></div></div></div>`).join('')}`;};
 function useSc(id){const s=D.scenarios.find(x=>x.id===id);if(s){go('generate');setTimeout(()=>{document.getElementById('gen-t').value=s.t;document.getElementById('gen-d').value=s.d;setSev(s.s)},50)}}
 
 // GENERATE
@@ -975,23 +975,23 @@ document.getElementById('pg-generate').innerHTML=`
 <h1 class="pt">${sv(IC.sh,22,'var(--ac)')}Generate Playbook</h1>
 <p class="ps">AI generates role-specific, tool-aware actions based on the coverage matrix below. Edit teams/tools to change what appears in playbooks.</p>
 
-<div class="card" style="padding:12px;margin-bottom:14px"><div class="fb"><div><div class="lbl" style="margin:0">Framework</div><div style="font-size:.82rem;font-weight:600;margin-top:2px">${getFW().name} <span style="font-size:.65rem;color:var(--t3);font-weight:400">(${getPH().length} phases)</span></div></div><button class="btn btn-s btn-sm" onclick="fwModal()">${sv(IC.ed,11)} Change</button></div><div style="display:flex;flex-wrap:wrap;gap:2px;margin-top:6px">${getPH().map((p,i)=>`<span class="nt nt-${i%6}" style="font-size:.52rem;cursor:default">${p.emoji} ${p.name}</span>`).join('')}</div></div>
+<div class="card" style="padding:14px;margin-bottom:14px"><div class="fb"><div><div class="lbl" style="margin:0">Framework</div><div style="font-size:.95rem;font-weight:600;margin-top:2px">${getFW().name} <span style="font-size:.88rem;color:var(--t3);font-weight:400">(${getPH().length} phases)</span></div></div><button class="btn btn-s btn-sm" onclick="fwModal()">${sv(IC.ed,11)} Change</button></div><div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:8px">${getPH().map((p,i)=>`<span class="nt nt-${i%6}" style="cursor:default">${p.emoji} ${p.name}</span>`).join('')}</div></div>
 
 <div class="card cov-section mb3">
   <div class="cov-header" onclick="document.getElementById('cov-body').classList.toggle('open')">
-    <h3>${sv('<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',13,'var(--ac)')} Phase Coverage Matrix <span style="font-size:.6rem;color:var(--t3);font-weight:400">${g.length?`⚠ ${g.length} gap${g.length>1?'s':''}`:' ✓ Full coverage'}</span></h3>
-    <span style="font-size:.58rem;color:var(--t3)">click to expand</span>
+    <h3>${sv('<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>',13,'var(--ac)')} Phase Coverage Matrix <span style="font-size:.88rem;color:var(--t3);font-weight:400">${g.length?`⚠ ${g.length} gap${g.length>1?'s':''}`:' ✓ Full coverage'}</span></h3>
+    <span style="font-size:.85rem;color:var(--t3)">click to expand</span>
   </div>
   <div class="cov-body" id="cov-body">
     <div class="lbl mb2 mt2">Tool → Phase Mapping</div>
     <table class="matrix"><tr><th>Tool</th>${getPH().map(p=>`<th class="matrix-header-cell">${p.emoji} ${p.name}</th>`).join('')}</tr>
     ${toolMatrix.map(t=>`<tr><td class="name">${t.name}</td>${t.phases.map(on=>`<td><div class="dot ${on?'dot-on':'dot-off'}">${on?'✓':'−'}</div></td>`).join('')}</tr>`).join('')}
-    <tr style="border-top:2px solid var(--brd)"><td style="font-weight:600;color:var(--t3);font-size:.6rem">TOTAL</td>${getPH().map((_,i)=>{const c=cov[i].tools.length;return`<td><div class="dot ${c?'dot-on':'dot-warn'}">${c}</div></td>`}).join('')}</tr></table>
+    <tr style="border-top:2px solid var(--brd)"><td style="font-weight:600;color:var(--t3);font-size:.85rem">TOTAL</td>${getPH().map((_,i)=>{const c=cov[i].tools.length;return`<td><div class="dot ${c?'dot-on':'dot-warn'}">${c}</div></td>`}).join('')}</tr></table>
 
     <div class="lbl mb2 mt3">Role → Phase Assignment</div>
     <table class="matrix"><tr><th>Role</th>${getPH().map(p=>`<th class="matrix-header-cell">${p.emoji} ${p.name}</th>`).join('')}</tr>
     ${roleMatrix.map(r=>`<tr><td class="name">${r.name}</td>${r.phases.map(on=>`<td><div class="dot ${on?'dot-on':'dot-off'}">${on?'✓':'−'}</div></td>`).join('')}</tr>`).join('')}
-    <tr style="border-top:2px solid var(--brd)"><td style="font-weight:600;color:var(--t3);font-size:.6rem">TOTAL</td>${getPH().map((_,i)=>{const c=cov[i].roles.length;return`<td><div class="dot ${c?'dot-on':'dot-warn'}">${c}</div></td>`}).join('')}</tr></table>
+    <tr style="border-top:2px solid var(--brd)"><td style="font-weight:600;color:var(--t3);font-size:.85rem">TOTAL</td>${getPH().map((_,i)=>{const c=cov[i].roles.length;return`<td><div class="dot ${c?'dot-on':'dot-warn'}">${c}</div></td>`}).join('')}</tr></table>
 
     ${g.length?`<div class="cov-warn">${sv(IC.wn,12,'var(--amb)')} ${g.map(x=>`<b>${x.phase.name}</b>: missing ${[x.noTools?'tools':null,x.noRoles?'roles':null].filter(Boolean).join(' & ')}`).join(' · ')} — <span style="cursor:pointer;text-decoration:underline" onclick="go('${g[0].noTools?'tools':'teams'}')">fix now</span></div>`:`<div class="cov-ok">${sv(IC.ck,12,'var(--grn)')} All 6 phases have both tools and roles assigned. Full coverage.</div>`}
   </div>
@@ -1000,9 +1000,9 @@ document.getElementById('pg-generate').innerHTML=`
 <div class="lbl mb2">Quick Start — click a scenario template</div>
 <div class="eg">${EX.map((e,i)=>`<div class="ec" onclick="fillEx(${i})"><h4>${e.t}</h4><p>${e.d}</p></div>`).join('')}</div>
 
-<div class="card" style="padding:18px">
+<div class="card" style="padding:20px">
   <div class="fr"><div class="lbl">Scenario Title</div><input class="inp" id="gen-t" placeholder="e.g. Ransomware on File Shares"></div>
-  <div class="fr"><div class="lbl">Incident Description</div><textarea class="inp" id="gen-d" style="min-height:90px" placeholder="Describe the incident in plain English. The AI maps this against your tool inventory, role capabilities, and phase assignments to generate targeted actions."></textarea><div class="hint">Mention data breach, PII, supply chain etc. to trigger InfoSec escalation.</div></div>
+  <div class="fr"><div class="lbl">Incident Description</div><textarea class="inp" id="gen-d" style="min-height:100px" placeholder="Describe the incident in plain English. The AI maps this against your tool inventory, role capabilities, and phase assignments to generate targeted actions."></textarea><div class="hint">Mention data breach, PII, supply chain etc. to trigger InfoSec escalation.</div></div>
   <div class="fr"><div class="lbl">Severity</div><div class="sevs">${['low','medium','high','critical'].map(s=>`<div class="sev${D.sev===s?' on':''}" data-s="${s}" onclick="setSev('${s}')">${s[0].toUpperCase()+s.slice(1)}</div>`).join('')}</div></div>
   <div id="gen-prg" style="display:none"></div>
   <button class="genb" id="gen-btn" onclick="genPB()">${sv(IC.bo,17)} Generate ${getFW().short} Playbook</button>
@@ -1153,8 +1153,8 @@ if(search)f=f.filter(p=>p.title.toLowerCase().includes(search.toLowerCase())||p.
 document.getElementById('pg-playbooks').innerHTML=`
 <div class="fb mb4"><div><h1 class="pt">${sv(IC.bk2,22,'var(--grn)')}Playbooks</h1><p class="ps" style="margin:0">${D.playbooks.length} generated</p></div><button class="btn btn-p" onclick="go('generate')">${sv(IC.sh,13)} Generate</button></div>
 <div class="search-bar mb2">${sv(IC.sr,13,'var(--t3)')}<input class="inp" placeholder="Search playbooks..." value="${search}" oninput="D.search=this.value;V.playbooks()"></div>
-<div class="filter-tabs">${['all','draft','review','approved'].map(x=>`<div class="filter-tab${D.filt===x?' active':''}" onclick="D.filt='${x}';V.playbooks()">${x==='all'?'All':x[0].toUpperCase()+x.slice(1)} <span style="font-size:.58rem;opacity:.5">(${c[x]})</span></div>`).join('')}</div>
-${f.length===0?`<div class="empty">${sv(IC.bk2,32,'var(--t4)')}<p style="font-size:.75rem;margin-top:6px">${search?'No playbooks match your search.':'No playbooks in this category.'}</p></div>`:f.slice().reverse().map(pb=>`<div class="card" style="margin-bottom:5px;overflow:hidden"><div style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:all .15s" onmouseover="this.style.background='var(--bg2h)'" onmouseout="this.style.background=''" onclick="detail('${pb.id}')"><div style="width:34px;height:34px;border-radius:8px;background:var(--acs);display:flex;align-items:center;justify-content:center;flex-shrink:0">${sv(IC.bk2,15,'var(--ac)')}</div><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:.78rem;display:flex;align-items:center;gap:4px;flex-wrap:wrap">${pb.title} <span class="badge badge-${pb.status}">${pb.status}</span>${pb.isec?'<span class="badge badge-infosec">InfoSec</span>':''}<span class="badge badge-${pb.scenario.s}">${pb.scenario.s}</span>${pb.ai?'<span class="badge badge-ai">AI</span>':''}<span class="badge-fw">${FRAMEWORKS[pb.framework||'nist']?.short||'NIST'}</span></div><div style="font-size:.65rem;color:var(--t3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pb.scenario.d}</div></div><span style="font-size:.6rem;color:var(--t3);flex-shrink:0">${pb.date}</span></div></div>`).join('')}`;};
+<div class="filter-tabs">${['all','draft','review','approved'].map(x=>`<div class="filter-tab${D.filt===x?' active':''}" onclick="D.filt='${x}';V.playbooks()">${x==='all'?'All':x[0].toUpperCase()+x.slice(1)} <span style="font-size:.8rem;opacity:.5">(${c[x]})</span></div>`).join('')}</div>
+${f.length===0?`<div class="empty">${sv(IC.bk2,32,'var(--t4)')}<p style="font-size:.75rem;margin-top:6px">${search?'No playbooks match your search.':'No playbooks in this category.'}</p></div>`:f.slice().reverse().map(pb=>`<div class="card" style="margin-bottom:5px;overflow:hidden"><div style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:all .15s" onmouseover="this.style.background='var(--bg2h)'" onmouseout="this.style.background=''" onclick="detail('${pb.id}')"><div style="width:34px;height:34px;border-radius:8px;background:var(--acs);display:flex;align-items:center;justify-content:center;flex-shrink:0">${sv(IC.bk2,15,'var(--ac)')}</div><div style="flex:1;min-width:0"><div style="font-weight:600;font-size:.78rem;display:flex;align-items:center;gap:4px;flex-wrap:wrap">${pb.title} <span class="badge badge-${pb.status}">${pb.status}</span>${pb.isec?'<span class="badge badge-infosec">InfoSec</span>':''}<span class="badge badge-${pb.scenario.s}">${pb.scenario.s}</span>${pb.ai?'<span class="badge badge-ai">AI</span>':''}<span class="badge-fw">${FRAMEWORKS[pb.framework||'nist']?.short||'NIST'}</span></div><div style="font-size:.78rem;color:var(--t3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pb.scenario.d}</div></div><span style="font-size:.75rem;color:var(--t3);flex-shrink:0">${pb.date}</span></div></div>`).join('')}`;};
 
 // DETAIL
 function detail(id){
@@ -1165,8 +1165,8 @@ const totalActions=pb.phases.reduce((s,ph)=>s+ph.actions.length,0);
 const wordCount=pb.phases.reduce((s,ph)=>s+ph.actions.join(' ').split(/\s+/).length,0);
 
 document.getElementById('pg-detail').innerHTML=`
-<div style="font-size:.7rem;color:var(--t3);cursor:pointer;display:inline-flex;align-items:center;gap:3px;margin-bottom:10px;transition:color .15s" onmouseover="this.style.color='var(--t1)'" onmouseout="this.style.color=''" onclick="go('playbooks')">${sv(IC.bk,12)} Back to Playbooks</div>
-<div class="fb mb2"><div><h1 style="font-size:1.2rem;font-weight:700;margin-bottom:2px">${pb.title}</h1><div class="fc g3" style="flex-wrap:wrap"><span class="badge badge-${pb.status}">${pb.status}</span><span style="font-size:.65rem;color:var(--t3)">${pb.date}</span><span class="badge-fw">${FRAMEWORKS[pb.framework||'nist']?.short||'NIST IR'}</span>${pb.isec?'<span class="badge badge-infosec">InfoSec Active</span>':''}${pb.ai?'<span class="badge badge-ai">AI Generated</span>':''}</div></div><div class="fc g2">${sb}</div></div>
+<div style="font-size:.8rem;color:var(--t3);cursor:pointer;display:inline-flex;align-items:center;gap:3px;margin-bottom:10px;transition:color .15s" onmouseover="this.style.color='var(--t1)'" onmouseout="this.style.color=''" onclick="go('playbooks')">${sv(IC.bk,12)} Back to Playbooks</div>
+<div class="fb mb2"><div><h1 style="font-size:1.2rem;font-weight:700;margin-bottom:2px">${pb.title}</h1><div class="fc g3" style="flex-wrap:wrap"><span class="badge badge-${pb.status}">${pb.status}</span><span style="font-size:.78rem;color:var(--t3)">${pb.date}</span><span class="badge-fw">${FRAMEWORKS[pb.framework||'nist']?.short||'NIST IR'}</span>${pb.isec?'<span class="badge badge-infosec">InfoSec Active</span>':''}${pb.ai?'<span class="badge badge-ai">AI Generated</span>':''}</div></div><div class="fc g2">${sb}</div></div>
 
 <div class="detail-meta">
   <span>${totalActions} actions</span><span class="sep"></span>
@@ -1195,9 +1195,9 @@ document.getElementById('pg-detail').innerHTML=`
   </div>
 </div>
 
-<div class="card" style="padding:14px;margin-bottom:16px"><h3 style="font-size:.78rem;font-weight:600;display:flex;align-items:center;gap:5px;margin-bottom:4px">${sv(IC.wn,13,'var(--amb)')} Scenario</h3><div style="font-weight:600;margin-bottom:2px">${pb.scenario.t} <span class="badge badge-${pb.scenario.s}">${pb.scenario.s}</span></div><div style="font-size:.75rem;color:var(--t2);line-height:1.5">${pb.scenario.d}</div>${pb.trig?.length?`<div style="margin-top:6px;padding:7px;background:#ef44440a;border:1px solid #ef444418;border-radius:var(--r)"><div style="font-size:.58rem;font-weight:600;color:var(--red);margin-bottom:3px">InfoSec Triggers</div><div style="display:flex;flex-wrap:wrap;gap:2px">${pb.trig.map(t=>`<span style="font-size:.55rem;padding:1px 6px;background:#ef444412;color:#fca5a5;border:1px solid #ef444418;border-radius:14px">${t}</span>`).join('')}</div></div>`:''}
+<div class="card" style="padding:14px;margin-bottom:16px"><h3 style="font-size:.78rem;font-weight:600;display:flex;align-items:center;gap:5px;margin-bottom:4px">${sv(IC.wn,13,'var(--amb)')} Scenario</h3><div style="font-weight:600;margin-bottom:2px">${pb.scenario.t} <span class="badge badge-${pb.scenario.s}">${pb.scenario.s}</span></div><div style="font-size:.75rem;color:var(--t2);line-height:1.5">${pb.scenario.d}</div>${pb.trig?.length?`<div style="margin-top:6px;padding:7px;background:#ef44440a;border:1px solid #ef444418;border-radius:var(--r)"><div style="font-size:.8rem;font-weight:600;color:var(--red);margin-bottom:3px">InfoSec Triggers</div><div style="display:flex;flex-wrap:wrap;gap:2px">${pb.trig.map(t=>`<span style="font-size:.8rem;padding:1px 6px;background:#ef444412;color:#fca5a5;border:1px solid #ef444418;border-radius:14px">${t}</span>`).join('')}</div></div>`:''}
 <div id="compliance-section">${renderComplianceTags(id)}</div></div>
-<div class="mb3"><h2 style="font-size:.92rem;font-weight:600;margin-bottom:1px">${FRAMEWORKS[pb.framework||'nist']?.name||'NIST SP 800-61'} Phases</h2><p style="font-size:.7rem;color:var(--t3)">Actions assigned to roles with matching capabilities. Tools referenced where phase-mapped.</p></div>
+<div class="mb3"><h2 style="font-size:.92rem;font-weight:600;margin-bottom:1px">${FRAMEWORKS[pb.framework||'nist']?.name||'NIST SP 800-61'} Phases</h2><p style="font-size:.8rem;color:var(--t3)">Actions assigned to roles with matching capabilities. Tools referenced where phase-mapped.</p></div>
 ${pb.phases.map(phase=>phaseCard(pb.id,phase)).join('')}`;
 }
 
@@ -1210,14 +1210,14 @@ const fmtAct=(a,i,total)=>{
   const esc=t.includes('ESCALATION');
   return`<div class="ai" id="a-${pbId}-${phase.idx}-${i}"><span class="an">${i+1}</span><span class="at${esc?' esc':''}">${pre}${t}</span><div class="act-btns">${i>0?`<button class="btn-g" onclick="moveAct('${pbId}',${phase.idx},${i},-1)" title="Move up">${sv(IC.up,10)}</button>`:''}${i<total-1?`<button class="btn-g" onclick="moveAct('${pbId}',${phase.idx},${i},1)" title="Move down">${sv(IC.dn,10)}</button>`:''}<button class="btn-g" onclick="showCommentModal('${pbId}','${phase.name}',${i},\`${a.replace(/`/g,"'").replace(/\\/g,"\\\\")}\`)" title="Comments">💬</button><button class="btn-g" onclick="edAct('${pbId}',${phase.idx},${i})" title="Edit">${sv(IC.ed,10)}</button><button class="btn-g" style="color:var(--red)" onclick="rmAct('${pbId}',${phase.idx},${i})" title="Remove">${sv(IC.x,10)}</button></div>${renderComments(pbId,phase.name,i)}</div>`};
 
-return`<div class="card pc" data-p="${phase.idx}"><div class="ph" onclick="this.nextElementSibling.classList.toggle('open')"><div class="phi"><span style="font-size:.95rem">${phase.emoji}</span><div><div class="fc g3"><span class="phn">${phase.name}</span><span class="nt nt-${phase.idx}" style="font-size:.5rem;padding:1px 6px;cursor:default">Phase ${phase.idx+1}</span>${phase.isReq?'<span class="badge badge-infosec" style="font-size:.5rem">InfoSec</span>':''}</div><div class="phm">${phase.actions.length} actions · ${phase.tools.length} tools · ${phase.teams.length} teams</div></div></div>${sv(IC.ch,13,'var(--t3)')}</div>
+return`<div class="card pc" data-p="${phase.idx}"><div class="ph" onclick="this.nextElementSibling.classList.toggle('open')"><div class="phi"><span style="font-size:.95rem">${phase.emoji}</span><div><div class="fc g3"><span class="phn">${phase.name}</span><span class="nt nt-${phase.idx}" style="font-size:.78rem;padding:1px 6px;cursor:default">Phase ${phase.idx+1}</span>${phase.isReq?'<span class="badge badge-infosec" style="font-size:.78rem">InfoSec</span>':''}</div><div class="phm">${phase.actions.length} actions · ${phase.tools.length} tools · ${phase.teams.length} teams</div></div></div>${sv(IC.ch,13,'var(--t3)')}</div>
 <div class="pb${open?' open':''}">
 ${phase.tools.length?`<div class="phs"><div class="st">${sv(IC.tl,10)} Tools (phase-mapped)</div><div style="display:flex;flex-wrap:wrap;gap:2px">${phase.tools.map(t=>`<span class="tc"><b>${t.name}</b><span>${t.cat}</span></span>`).join('')}</div></div>`:'<div class="phs"><div class="st" style="color:var(--amb)">⚠ No tools mapped to this phase</div></div>'}
-<div class="phs"><div class="st">${sv(IC.us,10)} Teams & Roles (phase-assigned)</div><div class="grid2" style="gap:4px">${phase.teams.map(t=>`<div class="tb"><div class="tn">${t.name}</div>${t.roles.map(r=>`<div class="rl">→ <b>${r.title}</b> <span style="font-size:.55rem;color:var(--t3)">[${r.caps.slice(0,3).join(', ')}]</span></div>`).join('')}</div>`).join('')}${phase.teams.length===0?'<div style="font-size:.65rem;color:var(--amb);padding:4px">⚠ No roles assigned to this phase</div>':''}</div></div>
+<div class="phs"><div class="st">${sv(IC.us,10)} Teams & Roles (phase-assigned)</div><div class="grid2" style="gap:4px">${phase.teams.map(t=>`<div class="tb"><div class="tn">${t.name}</div>${t.roles.map(r=>`<div class="rl">→ <b>${r.title}</b> <span style="font-size:.8rem;color:var(--t3)">[${r.caps.slice(0,3).join(', ')}]</span></div>`).join('')}</div>`).join('')}${phase.teams.length===0?'<div style="font-size:.78rem;color:var(--amb);padding:4px">⚠ No roles assigned to this phase</div>':''}</div></div>
 <div class="phs"><div class="st">Response Actions <span style="font-weight:400;color:var(--t4)">— role + tool driven</span></div>${phase.actions.map((a,i)=>fmtAct(a,i,phase.actions.length)).join('')}<button class="btn btn-sm btn-s mt2" onclick="addAct('${pbId}',${phase.idx})">${sv(IC.pl,10)} Add Action</button></div>
 ${phase.isReq&&phase.isActions.length?`<div class="isb"><div class="ist">${sv(IC.sh,10,'var(--red)')} InfoSec Escalation</div>${phase.isActions.map(a=>{let t=a;const rm=a.match(/^\[([^\]]+)\]\s*/);let pre='';if(rm){pre=`<span class="ar ar-is">${rm[1]}</span>`;t=a.slice(rm[0].length)}return`<div class="isi"><span class="isd"></span><p>${pre}${t}</p></div>`}).join('')}</div>`:''}</div></div>`}
 
-function edAct(pbId,pi,idx){const pb=D.playbooks.find(p=>p.id===pbId),phase=pb?.phases.find(p=>p.idx===pi);if(!phase)return;const el=document.getElementById(`a-${pbId}-${pi}-${idx}`),cur=phase.actions[idx];el.innerHTML=`<span class="an">${idx+1}</span><div style="display:flex;gap:3px;align-items:center;flex:1"><input class="inp" id="aed" value="${cur.replace(/"/g,'&quot;')}" style="font-size:.72rem;padding:4px 8px"><button class="btn btn-sm btn-p" onclick="svAct('${pbId}',${pi},${idx})">${sv(IC.sv2,10)}</button><button class="btn-g" onclick="detail('${pbId}')">${sv(IC.x,10)}</button></div>`;document.getElementById('aed').focus();document.getElementById('aed').onkeydown=e=>{if(e.key==='Enter')svAct(pbId,pi,idx);if(e.key==='Escape')detail(pbId)}}
+function edAct(pbId,pi,idx){const pb=D.playbooks.find(p=>p.id===pbId),phase=pb?.phases.find(p=>p.idx===pi);if(!phase)return;const el=document.getElementById(`a-${pbId}-${pi}-${idx}`),cur=phase.actions[idx];el.innerHTML=`<span class="an">${idx+1}</span><div style="display:flex;gap:3px;align-items:center;flex:1"><input class="inp" id="aed" value="${cur.replace(/"/g,'&quot;')}" style="font-size:.8rem;padding:4px 8px"><button class="btn btn-sm btn-p" onclick="svAct('${pbId}',${pi},${idx})">${sv(IC.sv2,10)}</button><button class="btn-g" onclick="detail('${pbId}')">${sv(IC.x,10)}</button></div>`;document.getElementById('aed').focus();document.getElementById('aed').onkeydown=e=>{if(e.key==='Enter')svAct(pbId,pi,idx);if(e.key==='Escape')detail(pbId)}}
 function svAct(pbId,pi,idx){const v=document.getElementById('aed').value.trim();if(!v)return;const pb=D.playbooks.find(p=>p.id===pbId),phase=pb?.phases.find(p=>p.idx===pi);if(phase){phase.actions[idx]=v;persist();toast('Action updated');detail(pbId)}}
 function addAct(pbId,pi){const pb=D.playbooks.find(p=>p.id===pbId),phase=pb?.phases.find(p=>p.idx===pi);if(phase){phase.actions.push('[Role] New action — click edit to customise');persist();detail(pbId)}}
 function rmAct(pbId,pi,idx){const pb=D.playbooks.find(p=>p.id===pbId),phase=pb?.phases.find(p=>p.idx===pi);if(phase){phase.actions.splice(idx,1);persist();toast('Action removed');detail(pbId)}}
@@ -1659,10 +1659,10 @@ V.templates=()=>{
 const el=document.getElementById('pg-templates');
 el.innerHTML=`<div class="sec-head"><h2>📋 Template Library</h2><p>Pre-built playbooks for common incident types. Click to clone and customise.</p></div>
 <div class="tpl-grid">${TEMPLATES.map(t=>`<div class="tpl-card" onclick="cloneTemplate('${t.id}')">
-<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px"><span class="tpl-badge ${t.severity}">${t.severity}</span><span style="font-size:.5rem;color:var(--t3)">${t.category}</span></div>
+<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px"><span class="tpl-badge ${t.severity}">${t.severity}</span><span style="font-size:.78rem;color:var(--t3)">${t.category}</span></div>
 <h3 style="font-size:.75rem;font-weight:700;margin-bottom:4px">${t.title}</h3>
-<p style="font-size:.55rem;color:var(--t3);line-height:1.5">${t.desc}</p>
-<div style="margin-top:10px;font-size:.5rem;color:var(--t3)">${t.phases.length} phases • ${t.phases.reduce((s,p)=>s+p.actions.length,0)} actions</div>
+<p style="font-size:.8rem;color:var(--t3);line-height:1.5">${t.desc}</p>
+<div style="margin-top:10px;font-size:.78rem;color:var(--t3)">${t.phases.length} phases • ${t.phases.reduce((s,p)=>s+p.actions.length,0)} actions</div>
 </div>`).join('')}</div>`;
 };
 
@@ -1698,7 +1698,7 @@ function renderComplianceTags(pbId){
 const pb=D.playbooks.find(p=>p.id===pbId);if(!pb)return'';
 if(!pb.complianceTags)pb.complianceTags=[];
 return `<div style="margin-top:12px"><div class="lb" style="margin-bottom:6px">Compliance Mapping</div>
-${COMPLIANCE_FRAMEWORKS.map(fw=>`<div style="margin-bottom:8px"><span style="font-size:.55rem;font-weight:700;color:var(--t2)">${fw.name}</span>
+${COMPLIANCE_FRAMEWORKS.map(fw=>`<div style="margin-bottom:8px"><span style="font-size:.8rem;font-weight:700;color:var(--t2)">${fw.name}</span>
 <div class="comp-tags">${fw.controls.map(c=>{const tag=fw.id+':'+c;const active=pb.complianceTags.includes(tag);
 return`<span class="comp-tag ${fw.cls} ${active?'active':'inactive'}" onclick="toggleCompliance('${pbId}','${tag}')">${c}</span>`}).join('')}</div></div>`).join('')}</div>`;
 }
@@ -1716,11 +1716,11 @@ if(el)el.innerHTML=renderComplianceTags(pbId);
 
 // ===== RACI MATRIX =====
 function generateRACIHtml(pb){
-if(!pb)return'<p style="color:var(--t3);font-size:.6rem">No playbook data</p>';
+if(!pb)return'<p style="color:var(--t3);font-size:.75rem">No playbook data</p>';
 const roles=new Set();
 pb.phases.forEach(ph=>{ph.actions.forEach(a=>{const m=a.match(/^\[([^\]]+)\]/);if(m)roles.add(m[1])})});
 const roleArr=[...roles];
-if(roleArr.length===0)return'<p style="color:var(--t3);font-size:.6rem">No roles found in actions. Add [Role Name] prefixes to actions.</p>';
+if(roleArr.length===0)return'<p style="color:var(--t3);font-size:.75rem">No roles found in actions. Add [Role Name] prefixes to actions.</p>';
 let html=`<table class="raci-table"><thead><tr><th style="text-align:left">Phase / Action</th>${roleArr.map(r=>`<th>${r}</th>`).join('')}</tr></thead><tbody>`;
 pb.phases.forEach(ph=>{
 html+=`<tr style="background:var(--c1)"><td colspan="${roleArr.length+1}" style="font-weight:700;text-align:left">${ph.emoji} ${ph.name}</td></tr>`;
@@ -1746,7 +1746,7 @@ function showRACIModal(pbId){
 const pb=D.playbooks.find(p=>p.id===pbId);if(!pb)return;
 document.getElementById('m-body').innerHTML=`<div class="sec-head"><h2>RACI Matrix — ${pb.title}</h2><p>Auto-generated from role assignments in playbook actions</p></div>
 <div style="overflow-x:auto">${generateRACIHtml(pb)}</div>
-<div style="margin-top:12px;display:flex;gap:12px;font-size:.5rem"><span><span class="raci-r">R</span> = Responsible</span><span><span class="raci-a">A</span> = Accountable</span><span><span class="raci-c">C</span> = Consulted</span><span><span class="raci-i">I</span> = Informed</span></div>`;
+<div style="margin-top:12px;display:flex;gap:12px;font-size:.78rem"><span><span class="raci-r">R</span> = Responsible</span><span><span class="raci-a">A</span> = Accountable</span><span><span class="raci-c">C</span> = Consulted</span><span><span class="raci-i">I</span> = Informed</span></div>`;
 oModal();
 }
 
@@ -1786,14 +1786,14 @@ el.innerHTML=`<div class="sec-head"><h2>📊 Analytics</h2><p>Overview of your p
 <div class="stat-card"><div class="stat-val">${Object.keys(bySev).length}</div><div class="stat-lbl">Severity Levels</div></div>
 </div>
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px">
-<div class="settings-section"><h3>By Framework</h3><div class="chart-bar">${Object.entries(byFw).map(([k,v])=>`<div class="bar" style="height:${Math.max(10,v/Math.max(...Object.values(byFw))*100)}%;background:${fwColors[k]||'var(--ac)'}" title="${k}: ${v}"><span>${k}</span></div>`).join('')||'<p style="font-size:.55rem;color:var(--t3)">No data yet</p>'}</div></div>
-<div class="settings-section"><h3>By Severity</h3><div class="chart-bar">${Object.entries(bySev).map(([k,v])=>`<div class="bar" style="height:${Math.max(10,v/Math.max(...Object.values(bySev))*100)}%;background:${sevColors[k]||'var(--ac)'}" title="${k}: ${v}"><span>${k}</span></div>`).join('')||'<p style="font-size:.55rem;color:var(--t3)">No data yet</p>'}</div></div>
-<div class="settings-section"><h3>By Status</h3><div class="chart-bar">${Object.entries(byStatus).map(([k,v])=>`<div class="bar" style="height:${Math.max(10,v/Math.max(...Object.values(byStatus))*100)}%;background:${statusColors[k]||'var(--ac)'}" title="${k}: ${v}"><span>${k}</span></div>`).join('')||'<p style="font-size:.55rem;color:var(--t3)">No data yet</p>'}</div></div>
+<div class="settings-section"><h3>By Framework</h3><div class="chart-bar">${Object.entries(byFw).map(([k,v])=>`<div class="bar" style="height:${Math.max(10,v/Math.max(...Object.values(byFw))*100)}%;background:${fwColors[k]||'var(--ac)'}" title="${k}: ${v}"><span>${k}</span></div>`).join('')||'<p style="font-size:.8rem;color:var(--t3)">No data yet</p>'}</div></div>
+<div class="settings-section"><h3>By Severity</h3><div class="chart-bar">${Object.entries(bySev).map(([k,v])=>`<div class="bar" style="height:${Math.max(10,v/Math.max(...Object.values(bySev))*100)}%;background:${sevColors[k]||'var(--ac)'}" title="${k}: ${v}"><span>${k}</span></div>`).join('')||'<p style="font-size:.8rem;color:var(--t3)">No data yet</p>'}</div></div>
+<div class="settings-section"><h3>By Status</h3><div class="chart-bar">${Object.entries(byStatus).map(([k,v])=>`<div class="bar" style="height:${Math.max(10,v/Math.max(...Object.values(byStatus))*100)}%;background:${statusColors[k]||'var(--ac)'}" title="${k}: ${v}"><span>${k}</span></div>`).join('')||'<p style="font-size:.8rem;color:var(--t3)">No data yet</p>'}</div></div>
 </div>
 <div class="settings-section" style="margin-top:12px"><h3>Compliance Coverage</h3><p>Controls mapped across your playbook library</p>
 ${COMPLIANCE_FRAMEWORKS.map(fw=>{const mapped=D.playbooks.reduce((s,p)=>{const tags=(p.complianceTags||[]).filter(t=>t.startsWith(fw.id+':'));return s+tags.length},0);
 const total=fw.controls.length*D.playbooks.length;const pct=total?Math.round(mapped/total*100):0;
-return`<div style="margin-bottom:8px;display:flex;align-items:center;gap:8px"><span style="font-size:.55rem;font-weight:600;width:80px">${fw.name}</span><div style="flex:1;height:8px;background:var(--c0);border-radius:4px;overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--ac);border-radius:4px;transition:width .3s"></div></div><span style="font-size:.55rem;color:var(--t3)">${pct}%</span></div>`}).join('')}
+return`<div style="margin-bottom:8px;display:flex;align-items:center;gap:8px"><span style="font-size:.8rem;font-weight:600;width:80px">${fw.name}</span><div style="flex:1;height:8px;background:var(--c0);border-radius:4px;overflow:hidden"><div style="height:100%;width:${pct}%;background:var(--ac);border-radius:4px;transition:width .3s"></div></div><span style="font-size:.8rem;color:var(--t3)">${pct}%</span></div>`}).join('')}
 </div>`;
 };
 
@@ -1805,7 +1805,7 @@ const el=document.getElementById('pg-settings');
 el.innerHTML=`<div class="sec-head"><h2>⚙️ Settings</h2><p>Configure API keys, integrations, and notification preferences</p></div>
 <div class="settings-section"><h3>🔑 Anthropic API Key (BYOK)</h3><p>Use your own API key for unlimited AI generations. Leave blank to use the shared pool.</p>
 <input type="password" class="settings-input" id="set-api-key" placeholder="sk-ant-..." value="${settingsData.anthropicKey||''}" />
-<div style="margin-top:8px;font-size:.5rem;color:var(--t3)">Your key is stored encrypted and never shared. Using your own key bypasses the shared usage limit.</div></div>
+<div style="margin-top:8px;font-size:.78rem;color:var(--t3)">Your key is stored encrypted and never shared. Using your own key bypasses the shared usage limit.</div></div>
 <div class="settings-section"><h3>💬 Slack Integration</h3><p>Receive notifications when incidents start/complete. Paste your Slack Incoming Webhook URL.</p>
 <input type="url" class="settings-input" id="set-slack" placeholder="https://hooks.slack.com/services/..." value="${settingsData.slackWebhookUrl||''}" />
 <button class="settings-btn" style="margin-top:8px;background:var(--ac);color:white" onclick="testSlack()">Test Webhook</button></div>
@@ -1879,26 +1879,26 @@ rNav('playbooks');
 document.getElementById('pg-execute').innerHTML=`
 <div class="exec-header ${statusCls}">
 <div style="display:flex;justify-content:space-between;align-items:start">
-<div><div style="font-size:.55rem;opacity:.8;text-transform:uppercase;letter-spacing:1px">${currentExecution.status==='COMPLETED'?'✅ Incident Resolved':currentExecution.status==='PAUSED'?'⏸ Paused':'🚨 Live Incident'}</div>
+<div><div style="font-size:.8rem;opacity:.8;text-transform:uppercase;letter-spacing:1px">${currentExecution.status==='COMPLETED'?'✅ Incident Resolved':currentExecution.status==='PAUSED'?'⏸ Paused':'🚨 Live Incident'}</div>
 <h2 style="font-size:1rem;margin:4px 0">${pb.title}</h2>
-<div style="font-size:.55rem;opacity:.7">${currentExecution.incidentRef?'Ref: '+currentExecution.incidentRef+' • ':''}Started: ${new Date(currentExecution.startedAt).toLocaleString()}</div></div>
+<div style="font-size:.8rem;opacity:.7">${currentExecution.incidentRef?'Ref: '+currentExecution.incidentRef+' • ':''}Started: ${new Date(currentExecution.startedAt).toLocaleString()}</div></div>
 <div style="text-align:right"><div class="exec-timer" id="exec-elapsed">${formatDuration(execSeconds)}</div>
-<div style="font-size:.5rem;opacity:.7">Elapsed Time</div></div></div>
+<div style="font-size:.78rem;opacity:.7">Elapsed Time</div></div></div>
 <div style="margin-top:12px;background:rgba(255,255,255,.15);border-radius:8px;height:8px;overflow:hidden"><div style="height:100%;width:${pct}%;background:white;border-radius:8px;transition:width .3s"></div></div>
-<div style="display:flex;justify-content:space-between;margin-top:6px;font-size:.5rem;opacity:.8"><span>${done}/${total} actions completed (${pct}%)</span>
-<div style="display:flex;gap:6px">${currentExecution.status==='RUNNING'?`<button onclick="pauseExecution()" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:white;font-size:.5rem;cursor:pointer">⏸ Pause</button>`:''}
-${currentExecution.status==='PAUSED'?`<button onclick="resumeExecution()" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:white;font-size:.5rem;cursor:pointer">▶ Resume</button>`:''}
-${currentExecution.status!=='COMPLETED'?`<button onclick="completeExecution()" style="padding:4px 12px;border-radius:6px;background:white;color:#16a34a;font-size:.5rem;font-weight:700;border:none;cursor:pointer">✅ Resolve</button>
-<button onclick="abortExecution()" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:white;font-size:.5rem;cursor:pointer">⛔ Abort</button>`:`<button onclick="generatePIR()" style="padding:4px 12px;border-radius:6px;background:white;color:#6366f1;font-size:.5rem;font-weight:700;border:none;cursor:pointer">📄 Post-Incident Report</button>`}
-<button onclick="go('playbooks')" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:white;font-size:.5rem;cursor:pointer">← Back</button></div></div></div>
+<div style="display:flex;justify-content:space-between;margin-top:6px;font-size:.78rem;opacity:.8"><span>${done}/${total} actions completed (${pct}%)</span>
+<div style="display:flex;gap:6px">${currentExecution.status==='RUNNING'?`<button onclick="pauseExecution()" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:white;font-size:.78rem;cursor:pointer">⏸ Pause</button>`:''}
+${currentExecution.status==='PAUSED'?`<button onclick="resumeExecution()" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:white;font-size:.78rem;cursor:pointer">▶ Resume</button>`:''}
+${currentExecution.status!=='COMPLETED'?`<button onclick="completeExecution()" style="padding:4px 12px;border-radius:6px;background:white;color:#16a34a;font-size:.78rem;font-weight:700;border:none;cursor:pointer">✅ Resolve</button>
+<button onclick="abortExecution()" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:white;font-size:.78rem;cursor:pointer">⛔ Abort</button>`:`<button onclick="generatePIR()" style="padding:4px 12px;border-radius:6px;background:white;color:#6366f1;font-size:.78rem;font-weight:700;border:none;cursor:pointer">📄 Post-Incident Report</button>`}
+<button onclick="go('playbooks')" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:white;font-size:.78rem;cursor:pointer">← Back</button></div></div></div>
 ${phases.map(phase=>{
 const phaseActions=currentExecution.actions.filter(a=>a.phase===phase);
 const phaseDone=phaseActions.filter(a=>a.completed).length;
 const slaMin=getSLA(pb,phase);
-return`<div class="exec-phase"><div class="exec-phase-head"><span>${phase}</span><div style="display:flex;align-items:center;gap:8px"><span style="font-size:.5rem;color:var(--t3)">${phaseDone}/${phaseActions.length}</span><span class="exec-sla ${phaseDone===phaseActions.length?'ok':execSeconds>slaMin*60?'breach':'ok'}">SLA: ${slaMin}m</span></div></div>
+return`<div class="exec-phase"><div class="exec-phase-head"><span>${phase}</span><div style="display:flex;align-items:center;gap:8px"><span style="font-size:.78rem;color:var(--t3)">${phaseDone}/${phaseActions.length}</span><span class="exec-sla ${phaseDone===phaseActions.length?'ok':execSeconds>slaMin*60?'breach':'ok'}">SLA: ${slaMin}m</span></div></div>
 ${phaseActions.map(a=>`<div class="exec-action ${a.completed?'done':''}" id="ea-${a.id}">
 <div class="exec-check ${a.completed?'checked':''}" onclick="toggleExecAction('${a.id}')">${a.completed?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
-<div style="flex:1"><div>${a.actionText}</div>${a.completedAt?`<div style="font-size:.45rem;color:var(--t3);margin-top:2px">Completed ${new Date(a.completedAt).toLocaleTimeString()}</div>`:''}</div></div>`).join('')}</div>`}).join('')}`;
+<div style="flex:1"><div>${a.actionText}</div>${a.completedAt?`<div style="font-size:.75rem;color:var(--t3);margin-top:2px">Completed ${new Date(a.completedAt).toLocaleTimeString()}</div>`:''}</div></div>`).join('')}</div>`}).join('')}`;
 }
 
 function toggleExecAction(actionId){
@@ -1969,7 +1969,7 @@ function showVersionHistory(pbId){
 const pb=D.playbooks.find(p=>p.id===pbId);if(!pb)return;
 if(!pb.versions||!pb.versions.length){document.getElementById('m-body').innerHTML=`<div class="sec-head"><h2>Version History</h2><p>No versions saved yet. Click "Save Version" to create a snapshot.</p></div>`;oModal();return}
 document.getElementById('m-body').innerHTML=`<div class="sec-head"><h2>Version History — ${pb.title}</h2><p>${pb.versions.length} versions</p></div>
-<div>${pb.versions.slice().reverse().map(v=>`<div class="ver-item"><div><span class="ver-num">v${v.v}</span> <span style="color:var(--t3);margin-left:8px">${v.changelog}</span></div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:.5rem;color:var(--t3)">${new Date(v.date).toLocaleString()}</span><button class="btn sm" onclick="rollbackVersion('${pbId}',${v.v})">Restore</button></div></div>`).join('')}</div>`;
+<div>${pb.versions.slice().reverse().map(v=>`<div class="ver-item"><div><span class="ver-num">v${v.v}</span> <span style="color:var(--t3);margin-left:8px">${v.changelog}</span></div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:.78rem;color:var(--t3)">${new Date(v.date).toLocaleString()}</span><button class="btn sm" onclick="rollbackVersion('${pbId}',${v.v})">Restore</button></div></div>`).join('')}</div>`;
 oModal();
 }
 
@@ -2088,19 +2088,19 @@ el.innerHTML=`<div class="sec-head"><h2>📈 IR Maturity Assessment</h2><p>Autom
 <div class="settings-section" style="text-align:center">
 <div class="maturity-ring" style="background:conic-gradient(${ringColor} ${overallPct}%, var(--c0) ${overallPct}%)">
 <div style="width:80px;height:80px;border-radius:50%;background:var(--c1);display:flex;align-items:center;justify-content:center"><span class="maturity-val" style="color:${ringColor}">${overall}</span></div></div>
-<div style="font-size:.7rem;font-weight:700">Overall Maturity: ${overall}/5.0</div>
-<div style="font-size:.55rem;color:var(--t3);margin-top:4px">${overall>=4?'Advanced — Strong IR capability':overall>=3?'Established — Good foundation, room to grow':overall>=2?'Developing — Key gaps need attention':'Initial — Significant improvements needed'}</div></div>
+<div style="font-size:.8rem;font-weight:700">Overall Maturity: ${overall}/5.0</div>
+<div style="font-size:.8rem;color:var(--t3);margin-top:4px">${overall>=4?'Advanced — Strong IR capability':overall>=3?'Established — Good foundation, room to grow':overall>=2?'Developing — Key gaps need attention':'Initial — Significant improvements needed'}</div></div>
 <div class="stat-grid">${Object.entries(scores).map(([k,v])=>{const labels={playbooks:'Playbook Library',teams:'Team Coverage',tools:'Tool Inventory',frameworks:'Framework Diversity',compliance:'Compliance Mapping',versioning:'Version Control'};
 const colors=['#ef4444','#f59e0b','#f59e0b','#3b82f6','#22c55e'];
 return`<div class="stat-card"><div class="stat-val" style="background:${colors[v-1]};-webkit-background-clip:text;-webkit-text-fill-color:transparent">${v}/5</div><div class="stat-lbl">${labels[k]||k}</div>
 <div style="margin-top:6px;height:4px;background:var(--c0);border-radius:2px"><div style="height:100%;width:${v*20}%;background:${colors[v-1]};border-radius:2px"></div></div></div>`}).join('')}</div>
 <div class="settings-section"><h3>Improvement Recommendations</h3>
-${scores.playbooks<3?'<div style="font-size:.6rem;color:var(--t2);padding:4px 0">📋 Add more playbooks — use the Template Library to quickly cover common scenarios</div>':''}
-${scores.teams<3?'<div style="font-size:.6rem;color:var(--t2);padding:4px 0">👥 Define more teams and roles with phase assignments and capabilities</div>':''}
-${scores.tools<3?'<div style="font-size:.6rem;color:var(--t2);padding:4px 0">🔧 Add your security tools with phase mappings to improve playbook coverage</div>':''}
-${scores.compliance<3?'<div style="font-size:.6rem;color:var(--t2);padding:4px 0">✅ Map playbook actions to compliance controls (SOC 2, ISO 27001, NIST CSF)</div>':''}
-${scores.versioning<3?'<div style="font-size:.6rem;color:var(--t2);padding:4px 0">📜 Use version snapshots to track playbook changes over time</div>':''}
-${overall>=4?'<div style="font-size:.6rem;color:#22c55e;padding:4px 0;font-weight:600">🌟 Excellent maturity! Consider running regular tabletop drills to maintain readiness.</div>':''}
+${scores.playbooks<3?'<div style="font-size:.75rem;color:var(--t2);padding:4px 0">📋 Add more playbooks — use the Template Library to quickly cover common scenarios</div>':''}
+${scores.teams<3?'<div style="font-size:.75rem;color:var(--t2);padding:4px 0">👥 Define more teams and roles with phase assignments and capabilities</div>':''}
+${scores.tools<3?'<div style="font-size:.75rem;color:var(--t2);padding:4px 0">🔧 Add your security tools with phase mappings to improve playbook coverage</div>':''}
+${scores.compliance<3?'<div style="font-size:.75rem;color:var(--t2);padding:4px 0">✅ Map playbook actions to compliance controls (SOC 2, ISO 27001, NIST CSF)</div>':''}
+${scores.versioning<3?'<div style="font-size:.75rem;color:var(--t2);padding:4px 0">📜 Use version snapshots to track playbook changes over time</div>':''}
+${overall>=4?'<div style="font-size:.75rem;color:#22c55e;padding:4px 0;font-weight:600">🌟 Excellent maturity! Consider running regular tabletop drills to maintain readiness.</div>':''}
 </div>`;
 };
 
@@ -2119,7 +2119,7 @@ logs.sort((a,b)=>new Date(b.time)-new Date(a.time));
 const actionCls=(a)=>{if(a.includes('CREATED')||a.includes('SAVED'))return'create';if(a.includes('UPDATED')||a.includes('APPROVED'))return'update';if(a.includes('DELETED')||a.includes('ABORTED'))return'delete';return'execute'};
 
 el.innerHTML=`<div class="sec-head"><h2>📋 Audit Log</h2><p>Immutable record of all playbook operations and changes</p></div>
-<div class="settings-section">${logs.length===0?'<p style="font-size:.6rem;color:var(--t3)">No activity recorded yet. Create or modify playbooks to generate audit entries.</p>':
+<div class="settings-section">${logs.length===0?'<p style="font-size:.75rem;color:var(--t3)">No activity recorded yet. Create or modify playbooks to generate audit entries.</p>':
 logs.slice(0,50).map(l=>`<div class="audit-row"><span class="audit-action ${actionCls(l.action)}">${l.action.replace(/_/g,' ')}</span><span style="flex:1;color:var(--t2)">${l.target}</span><span style="color:var(--t3)">${l.actor}</span><span style="color:var(--t3);font-family:var(--fm)">${l.time}</span></div>`).join('')}</div>`;
 };
 
@@ -2129,10 +2129,10 @@ V.drills=()=>{
 const el=document.getElementById('pg-drills');
 el.innerHTML=`<div class="sec-head"><h2>🎯 Tabletop Exercises</h2><p>Run timed drills with surprise inject cards to test team readiness and measure performance</p></div>
 <div class="settings-section"><h3>Launch a Drill</h3><p>Select a playbook to run as a tabletop exercise. Injects (surprise complications) will be injected at random intervals.</p>
-${D.playbooks.length===0?'<p style="font-size:.6rem;color:var(--t3)">Create playbooks first to run drills.</p>':
-D.playbooks.map(pb=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd)"><div><span style="font-size:.7rem;font-weight:600">${pb.title}</span> <span class="badge badge-${pb.scenario?.s||'medium'}">${pb.scenario?.s||'medium'}</span></div><button class="btn btn-sm btn-p" onclick="startDrill('${pb.id}')">🎯 Start Drill</button></div>`).join('')}</div>
+${D.playbooks.length===0?'<p style="font-size:.75rem;color:var(--t3)">Create playbooks first to run drills.</p>':
+D.playbooks.map(pb=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd)"><div><span style="font-size:.8rem;font-weight:600">${pb.title}</span> <span class="badge badge-${pb.scenario?.s||'medium'}">${pb.scenario?.s||'medium'}</span></div><button class="btn btn-sm btn-p" onclick="startDrill('${pb.id}')">🎯 Start Drill</button></div>`).join('')}</div>
 ${drillHistory.length?`<div class="settings-section"><h3>Drill History</h3>
-${drillHistory.slice().reverse().map(d=>{const g=getScoreGrade(d.score);return`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd)"><div><span style="font-size:.65rem;font-weight:600">${d.title}</span><span style="font-size:.5rem;color:var(--t3);margin-left:8px">${new Date(d.date).toLocaleDateString()}</span></div><div style="display:flex;align-items:center;gap:8px"><span class="drill-score ${g.cls}" style="font-size:1.2rem;margin:0">${d.score}%</span><span style="font-size:.5rem;color:var(--t3)">${g.label}</span></div></div>`}).join('')}</div>`:''}`;
+${drillHistory.slice().reverse().map(d=>{const g=getScoreGrade(d.score);return`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd)"><div><span style="font-size:.78rem;font-weight:600">${d.title}</span><span style="font-size:.78rem;color:var(--t3);margin-left:8px">${new Date(d.date).toLocaleDateString()}</span></div><div style="display:flex;align-items:center;gap:8px"><span class="drill-score ${g.cls}" style="font-size:1.2rem;margin:0">${d.score}%</span><span style="font-size:.78rem;color:var(--t3)">${g.label}</span></div></div>`}).join('')}</div>`:''}`;
 };
 
 // ===== COMMENTS SYSTEM =====
@@ -2153,8 +2153,8 @@ return`<div class="comment-thread">${comments.map(c=>`<div class="comment-item">
 
 function showCommentModal(pbId,phase,actionIndex,actionText){
 const existing=getComments(pbId).filter(c=>c.phase===phase&&c.actionIndex===actionIndex);
-oModal(`<h2>Comments</h2><div style="font-size:.65rem;color:var(--t2);padding:8px;background:var(--c0);border-radius:8px;margin-bottom:12px">${actionText}</div>
-${existing.length?`<div class="comment-thread" style="margin-bottom:12px">${existing.map(c=>`<div class="comment-item"><span class="comment-author">${c.author}</span><span class="comment-time">${new Date(c.time).toLocaleString()}</span><div class="comment-text">${c.text}</div></div>`).join('')}</div>`:'<p style="font-size:.6rem;color:var(--t3)">No comments yet</p>'}
+oModal(`<h2>Comments</h2><div style="font-size:.78rem;color:var(--t2);padding:8px;background:var(--c0);border-radius:8px;margin-bottom:12px">${actionText}</div>
+${existing.length?`<div class="comment-thread" style="margin-bottom:12px">${existing.map(c=>`<div class="comment-item"><span class="comment-author">${c.author}</span><span class="comment-time">${new Date(c.time).toLocaleString()}</span><div class="comment-text">${c.text}</div></div>`).join('')}</div>`:'<p style="font-size:.75rem;color:var(--t3)">No comments yet</p>'}
 <div class="comment-input"><input id="comment-text" placeholder="Add a comment..." onkeydown="if(event.key==='Enter'){saveComment('${pbId}','${phase}',${actionIndex},this.value);cModal();detail('${pbId}')}"/><button class="btn btn-sm btn-p" onclick="saveComment('${pbId}','${phase}',${actionIndex},document.getElementById('comment-text').value);cModal();detail('${pbId}')">Post</button></div>`);
 }
 
@@ -2166,8 +2166,8 @@ localStorage.setItem('rhq-kb-'+pbId,JSON.stringify(items));toast('Attachment add
 }
 function showKBModal(pbId){
 const items=getKB(pbId);
-oModal(`<h2>Knowledge Base</h2><p style="font-size:.6rem;color:var(--t3);margin-bottom:12px">Attach procedures, links, and reference materials to this playbook</p>
-${items.map(i=>`<div class="kb-item"><div class="kb-icon ${i.type}">${i.type==='doc'?'📄':i.type==='img'?'🖼️':'🔗'}</div><div style="flex:1"><div style="font-weight:600">${i.title}</div><div style="font-size:.5rem;color:var(--t3)">${i.content.slice(0,80)}${i.content.length>80?'...':''}</div></div></div>`).join('')}
+oModal(`<h2>Knowledge Base</h2><p style="font-size:.75rem;color:var(--t3);margin-bottom:12px">Attach procedures, links, and reference materials to this playbook</p>
+${items.map(i=>`<div class="kb-item"><div class="kb-icon ${i.type}">${i.type==='doc'?'📄':i.type==='img'?'🖼️':'🔗'}</div><div style="flex:1"><div style="font-weight:600">${i.title}</div><div style="font-size:.78rem;color:var(--t3)">${i.content.slice(0,80)}${i.content.length>80?'...':''}</div></div></div>`).join('')}
 <div style="margin-top:12px;display:flex;gap:6px">
 <button class="btn btn-sm btn-s" onclick="const t=prompt('Document title:');const c=prompt('Content or description:');if(t)addKBItem('${pbId}','doc',t,c||'');cModal()">📄 Add Doc</button>
 <button class="btn btn-sm btn-s" onclick="const t=prompt('Link title:');const c=prompt('URL:');if(t)addKBItem('${pbId}','link',t,c||'');cModal()">🔗 Add Link</button></div>`);
@@ -2256,9 +2256,9 @@ return D.playbooks.filter(pb=>{const created=new Date(pb.date);return(now-create
 function showChainModal(pbId){
 const pb=D.playbooks.find(p=>p.id===pbId);if(!pb)return;
 const others=D.playbooks.filter(p=>p.id!==pbId);
-oModal(`<h2>Chain Playbook</h2><p style="font-size:.6rem;color:var(--t3);margin-bottom:12px">Link this playbook to trigger another when a specific phase completes</p>
-${pb.chainedTo?`<div style="margin-bottom:12px;padding:8px;background:var(--acs);border-radius:8px;font-size:.6rem">Currently chained to: <b>${D.playbooks.find(p=>p.id===pb.chainedTo)?.title||'Unknown'}</b> <button class="btn btn-sm" onclick="D.playbooks.find(p=>p.id==='${pbId}').chainedTo=null;persist();cModal();toast('Chain removed')">Remove</button></div>`:''}
-${others.length?others.map(o=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bd)"><span style="font-size:.65rem">${o.title}</span><button class="btn btn-sm btn-s" onclick="D.playbooks.find(p=>p.id==='${pbId}').chainedTo='${o.id}';persist();cModal();toast('Chain created')">Chain →</button></div>`).join(''):'<p style="font-size:.6rem;color:var(--t3)">Create more playbooks to enable chaining</p>'}`);
+oModal(`<h2>Chain Playbook</h2><p style="font-size:.75rem;color:var(--t3);margin-bottom:12px">Link this playbook to trigger another when a specific phase completes</p>
+${pb.chainedTo?`<div style="margin-bottom:12px;padding:8px;background:var(--acs);border-radius:8px;font-size:.75rem">Currently chained to: <b>${D.playbooks.find(p=>p.id===pb.chainedTo)?.title||'Unknown'}</b> <button class="btn btn-sm" onclick="D.playbooks.find(p=>p.id==='${pbId}').chainedTo=null;persist();cModal();toast('Chain removed')">Remove</button></div>`:''}
+${others.length?others.map(o=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--bd)"><span style="font-size:.78rem">${o.title}</span><button class="btn btn-sm btn-s" onclick="D.playbooks.find(p=>p.id==='${pbId}').chainedTo='${o.id}';persist();cModal();toast('Chain created')">Chain →</button></div>`).join(''):'<p style="font-size:.75rem;color:var(--t3)">Create more playbooks to enable chaining</p>'}`);
 }
 
 // ===== ENHANCED EXECUTION RENDER (with drill mode, injects, scoring, comments) =====
@@ -2278,15 +2278,15 @@ document.getElementById('pg-execute').classList.add('vis');rNav(isDrill?'drills'
 
 let injectsHtml='';
 if(isDrill&&currentExecution.injects?.length){
-injectsHtml=currentExecution.injects.map(inj=>`<div class="inject-card"><h4>⚡ INJECT — ${new Date(inj.time).toLocaleTimeString()}</h4><div style="font-size:.6rem;color:var(--t2)">${inj.text}</div></div>`).join('');
+injectsHtml=currentExecution.injects.map(inj=>`<div class="inject-card"><h4>⚡ INJECT — ${new Date(inj.time).toLocaleTimeString()}</h4><div style="font-size:.75rem;color:var(--t2)">${inj.text}</div></div>`).join('');
 }
 
 let scoreHtml='';
 if(isDrill&&isComplete){
 const score=currentExecution.score||scoreDrill();
 const g=getScoreGrade(score);
-scoreHtml=`<div class="settings-section" style="text-align:center;margin-bottom:16px"><h3>Drill Results</h3><div class="drill-score ${g.cls}">${score}%</div><div style="font-size:.7rem;font-weight:700;color:var(--t2)">${g.grade} — ${g.label}</div>
-<div style="font-size:.55rem;color:var(--t3);margin-top:4px">${done}/${total} actions completed in ${formatDuration(execSeconds)}</div></div>`;
+scoreHtml=`<div class="settings-section" style="text-align:center;margin-bottom:16px"><h3>Drill Results</h3><div class="drill-score ${g.cls}">${score}%</div><div style="font-size:.8rem;font-weight:700;color:var(--t2)">${g.grade} — ${g.label}</div>
+<div style="font-size:.8rem;color:var(--t3);margin-top:4px">${done}/${total} actions completed in ${formatDuration(execSeconds)}</div></div>`;
 // Save to drill history
 if(!drillHistory.find(d=>d.id===currentExecution.id)){
 drillHistory.push({id:currentExecution.id,title:pb.title,score,date:currentExecution.startedAt,duration:execSeconds});
@@ -2300,28 +2300,28 @@ const headerStyle=isDrill&&!isComplete?'background:linear-gradient(135deg,#6366f
 document.getElementById('pg-execute').innerHTML=`
 <div class="exec-header" style="${headerStyle}">
 <div style="display:flex;justify-content:space-between;align-items:start">
-<div><div style="font-size:.55rem;opacity:.8;text-transform:uppercase;letter-spacing:1px">${isDrill?'🎯 Tabletop Exercise':isComplete?'✅ Incident Resolved':currentExecution.status==='PAUSED'?'⏸ Paused':'🚨 Live Incident'}</div>
+<div><div style="font-size:.8rem;opacity:.8;text-transform:uppercase;letter-spacing:1px">${isDrill?'🎯 Tabletop Exercise':isComplete?'✅ Incident Resolved':currentExecution.status==='PAUSED'?'⏸ Paused':'🚨 Live Incident'}</div>
 <h2 style="font-size:1rem;margin:4px 0">${pb.title}</h2>
-<div style="font-size:.55rem;opacity:.7">${currentExecution.incidentRef?'Ref: '+currentExecution.incidentRef+' • ':''}Started: ${new Date(currentExecution.startedAt).toLocaleString()}</div></div>
+<div style="font-size:.8rem;opacity:.7">${currentExecution.incidentRef?'Ref: '+currentExecution.incidentRef+' • ':''}Started: ${new Date(currentExecution.startedAt).toLocaleString()}</div></div>
 <div style="text-align:right"><div class="exec-timer" id="exec-elapsed">${formatDuration(execSeconds)}</div>
-<div style="font-size:.5rem;opacity:.7">Elapsed</div></div></div>
+<div style="font-size:.78rem;opacity:.7">Elapsed</div></div></div>
 <div style="margin-top:12px;background:rgba(255,255,255,.15);border-radius:8px;height:8px;overflow:hidden"><div style="height:100%;width:${pct}%;background:white;border-radius:8px;transition:width .3s"></div></div>
-<div style="display:flex;justify-content:space-between;margin-top:6px;font-size:.5rem;opacity:.8"><span>${done}/${total} (${pct}%)</span>
-<div style="display:flex;gap:6px">${currentExecution.status==='RUNNING'?`<button onclick="pauseExecution()" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:white;font-size:.5rem;cursor:pointer">⏸ Pause</button>`:''}
-${currentExecution.status==='PAUSED'?`<button onclick="resumeExecution()" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:white;font-size:.5rem;cursor:pointer">▶ Resume</button>`:''}
-${!isComplete&&currentExecution.status!=='ABORTED'?`<button onclick="${isDrill?'completeDrill()':'completeExecution()'}" style="padding:4px 12px;border-radius:6px;background:white;color:#16a34a;font-size:.5rem;font-weight:700;border:none;cursor:pointer">✅ ${isDrill?'End Drill':'Resolve'}</button>
-<button onclick="abortExecution()" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:white;font-size:.5rem;cursor:pointer">⛔ Abort</button>`:`<button onclick="generatePIR()" style="padding:4px 12px;border-radius:6px;background:white;color:#6366f1;font-size:.5rem;font-weight:700;border:none;cursor:pointer">📄 PIR</button>`}
-<button onclick="go('${isDrill?'drills':'playbooks'}')" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:white;font-size:.5rem;cursor:pointer">← Back</button></div></div></div>
+<div style="display:flex;justify-content:space-between;margin-top:6px;font-size:.78rem;opacity:.8"><span>${done}/${total} (${pct}%)</span>
+<div style="display:flex;gap:6px">${currentExecution.status==='RUNNING'?`<button onclick="pauseExecution()" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:white;font-size:.78rem;cursor:pointer">⏸ Pause</button>`:''}
+${currentExecution.status==='PAUSED'?`<button onclick="resumeExecution()" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:white;font-size:.78rem;cursor:pointer">▶ Resume</button>`:''}
+${!isComplete&&currentExecution.status!=='ABORTED'?`<button onclick="${isDrill?'completeDrill()':'completeExecution()'}" style="padding:4px 12px;border-radius:6px;background:white;color:#16a34a;font-size:.78rem;font-weight:700;border:none;cursor:pointer">✅ ${isDrill?'End Drill':'Resolve'}</button>
+<button onclick="abortExecution()" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:white;font-size:.78rem;cursor:pointer">⛔ Abort</button>`:`<button onclick="generatePIR()" style="padding:4px 12px;border-radius:6px;background:white;color:#6366f1;font-size:.78rem;font-weight:700;border:none;cursor:pointer">📄 PIR</button>`}
+<button onclick="go('${isDrill?'drills':'playbooks'}')" style="padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.3);background:transparent;color:white;font-size:.78rem;cursor:pointer">← Back</button></div></div></div>
 ${scoreHtml}${injectsHtml}
 ${phases.map(phase=>{
 const phaseActions=currentExecution.actions.filter(a=>a.phase===phase);
 const phaseDone=phaseActions.filter(a=>a.completed).length;
 const slaMin=getSLA(pb,phase);
 const slaStatus=phaseDone===phaseActions.length?'ok':execSeconds>slaMin*60?'breach':'ok';
-return`<div class="exec-phase"><div class="exec-phase-head"><span>${phase}</span><div style="display:flex;align-items:center;gap:8px"><span style="font-size:.5rem;color:var(--t3)">${phaseDone}/${phaseActions.length}</span><span class="exec-sla ${slaStatus}">SLA: ${slaMin}m</span></div></div>
+return`<div class="exec-phase"><div class="exec-phase-head"><span>${phase}</span><div style="display:flex;align-items:center;gap:8px"><span style="font-size:.78rem;color:var(--t3)">${phaseDone}/${phaseActions.length}</span><span class="exec-sla ${slaStatus}">SLA: ${slaMin}m</span></div></div>
 ${phaseActions.map(a=>`<div class="exec-action ${a.completed?'done':''}">
 <div class="exec-check ${a.completed?'checked':''}" onclick="toggleExecAction('${a.id}')">${a.completed?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
-<div style="flex:1"><div>${a.actionText}</div>${a.completedAt?`<div style="font-size:.45rem;color:var(--t3);margin-top:2px">✓ ${new Date(a.completedAt).toLocaleTimeString()}</div>`:''}</div></div>`).join('')}</div>`}).join('')}`;
+<div style="flex:1"><div>${a.actionText}</div>${a.completedAt?`<div style="font-size:.75rem;color:var(--t3);margin-top:2px">✓ ${new Date(a.completedAt).toLocaleTimeString()}</div>`:''}</div></div>`).join('')}</div>`}).join('')}`;
 };
 
 // ===== ENHANCED DETAIL VIEW — add regulatory exports, chain, KB to export menu =====
@@ -2341,7 +2341,7 @@ expMenu.innerHTML+=`<div class="export-item" onclick="exportExecutivePDF('${id}'
 const expiring=getExpiringPlaybooks();
 if(expiring.find(p=>p.id===id)){
 const backBtn=el.querySelector('[onclick*="go(\'playbooks\')"]');
-if(backBtn)backBtn.insertAdjacentHTML('afterend','<div style="margin-bottom:10px;padding:8px 12px;background:#f59e0b15;border:1px solid #f59e0b30;border-radius:8px;font-size:.6rem;color:#f59e0b;font-weight:600">⚠ This playbook is over 90 days old and may need review</div>');
+if(backBtn)backBtn.insertAdjacentHTML('afterend','<div style="margin-bottom:10px;padding:8px 12px;background:#f59e0b15;border:1px solid #f59e0b30;border-radius:8px;font-size:.75rem;color:#f59e0b;font-weight:600">⚠ This playbook is over 90 days old and may need review</div>');
 }
 };
 
@@ -2354,7 +2354,7 @@ const expiring=getExpiringPlaybooks();
 if(expiring.length){
 const el=document.getElementById('pg-dashboard');
 const genBtn=el?.querySelector('.gb');
-if(genBtn)genBtn.insertAdjacentHTML('beforebegin',`<div style="margin-bottom:14px;padding:12px;background:#f59e0b15;border:1px solid #f59e0b30;border-radius:12px;display:flex;align-items:center;gap:8px"><span style="font-size:1.2rem">⏰</span><div><div style="font-size:.7rem;font-weight:700;color:#f59e0b">${expiring.length} playbook${expiring.length>1?'s':''} due for review</div><div style="font-size:.55rem;color:var(--t3)">These playbooks haven't been updated in 90+ days: ${expiring.map(p=>p.title).join(', ')}</div></div></div>`);
+if(genBtn)genBtn.insertAdjacentHTML('beforebegin',`<div style="margin-bottom:14px;padding:12px;background:#f59e0b15;border:1px solid #f59e0b30;border-radius:12px;display:flex;align-items:center;gap:8px"><span style="font-size:1.2rem">⏰</span><div><div style="font-size:.8rem;font-weight:700;color:#f59e0b">${expiring.length} playbook${expiring.length>1?'s':''} due for review</div><div style="font-size:.8rem;color:var(--t3)">These playbooks haven't been updated in 90+ days: ${expiring.map(p=>p.title).join(', ')}</div></div></div>`);
 }
 };
 
@@ -2385,9 +2385,9 @@ const el=document.getElementById('pg-quiz');
 if(quizState&&quizState.active){renderQuizQuestion();return}
 el.innerHTML=`<div class="sec-head"><h2>🧠 Quiz Mode</h2><p>Test your knowledge of playbook procedures with AI-generated questions</p></div>
 <div class="settings-section"><h3>Select a Playbook</h3>
-${D.playbooks.length===0?'<p style="font-size:.6rem;color:var(--t3)">Create playbooks first.</p>':
-D.playbooks.map(pb=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd)"><div><span style="font-size:.7rem;font-weight:600">${pb.title}</span> <span class="badge badge-${pb.scenario?.s||'medium'}">${pb.scenario?.s||'medium'}</span></div><button class="btn btn-sm btn-p" onclick="startQuiz('${pb.id}')">🧠 Start Quiz</button></div>`).join('')}</div>
-${getQuizHistory().length?`<div class="settings-section"><h3>Recent Attempts</h3>${getQuizHistory().slice(0,10).map(a=>`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:.6rem;border-bottom:1px solid var(--bd)"><span>${a.title}</span><span style="font-weight:700;color:${a.score/a.total>=.7?'#22c55e':'#ef4444'}">${a.score}/${a.total} (${Math.round(a.score/a.total*100)}%)</span></div>`).join('')}</div>`:''}`;
+${D.playbooks.length===0?'<p style="font-size:.75rem;color:var(--t3)">Create playbooks first.</p>':
+D.playbooks.map(pb=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd)"><div><span style="font-size:.8rem;font-weight:600">${pb.title}</span> <span class="badge badge-${pb.scenario?.s||'medium'}">${pb.scenario?.s||'medium'}</span></div><button class="btn btn-sm btn-p" onclick="startQuiz('${pb.id}')">🧠 Start Quiz</button></div>`).join('')}</div>
+${getQuizHistory().length?`<div class="settings-section"><h3>Recent Attempts</h3>${getQuizHistory().slice(0,10).map(a=>`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:.75rem;border-bottom:1px solid var(--bd)"><span>${a.title}</span><span style="font-weight:700;color:${a.score/a.total>=.7?'#22c55e':'#ef4444'}">${a.score}/${a.total} (${Math.round(a.score/a.total*100)}%)</span></div>`).join('')}</div>`:''}`;
 };
 
 function startQuiz(pbId){
@@ -2403,7 +2403,7 @@ const el=document.getElementById('pg-quiz');
 if(quizState.current>=quizState.questions.length){showQuizResults();return}
 const q=quizState.questions[quizState.current];
 const progress=Math.round((quizState.current/quizState.questions.length)*100);
-el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="font-size:.7rem;font-weight:700">Question ${quizState.current+1} of ${quizState.questions.length}</div><div style="font-size:.55rem;color:var(--t3)">${quizState.pbTitle} · ${q.phase}</div></div>
+el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="font-size:.8rem;font-weight:700">Question ${quizState.current+1} of ${quizState.questions.length}</div><div style="font-size:.8rem;color:var(--t3)">${quizState.pbTitle} · ${q.phase}</div></div>
 <div style="height:6px;background:var(--c0);border-radius:4px;margin-bottom:16px;overflow:hidden"><div style="height:100%;width:${progress}%;background:var(--ac);border-radius:4px;transition:width .3s"></div></div>
 <div class="quiz-card"><div class="quiz-q">${q.q}</div>
 ${q.opts.map((o,i)=>`<button class="quiz-opt" onclick="answerQuiz(${i},'${o.replace(/'/g,"\\'")}')">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}</div>`;
@@ -2425,11 +2425,11 @@ const el=document.getElementById('pg-quiz');
 el.innerHTML=`<div class="quiz-result"><div style="font-size:3rem;margin-bottom:8px">${pct>=70?'🏆':'📚'}</div>
 <div class="quiz-score" style="color:${grade.c}">${pct}%</div>
 <div style="font-size:.8rem;font-weight:700;color:var(--t2)">${grade.l}</div>
-<div style="font-size:.6rem;color:var(--t3);margin:8px 0">${quizState.score} of ${quizState.questions.length} correct</div>
+<div style="font-size:.75rem;color:var(--t3);margin:8px 0">${quizState.score} of ${quizState.questions.length} correct</div>
 ${pct>=70?`<button class="btn btn-p" onclick="awardQuizCert()" style="margin:8px">🎓 Claim Certification</button>`:''}
 <button class="btn btn-s" onclick="quizState=null;go('quiz')" style="margin:8px">Try Again</button></div>
 <div class="settings-section"><h3>Review Answers</h3>
-${quizState.answers.map((a,i)=>`<div class="quiz-card ${a.isCorrect?'correct':'wrong'}"><div style="font-size:.6rem;font-weight:600">${i+1}. ${a.q}</div><div style="font-size:.55rem;margin-top:4px">Your answer: <b>${a.answer}</b> ${a.isCorrect?'✅':'❌'}</div>${!a.isCorrect?`<div style="font-size:.55rem;color:#22c55e;margin-top:2px">Correct: <b>${a.correct}</b></div>`:''}</div>`).join('')}</div>`;
+${quizState.answers.map((a,i)=>`<div class="quiz-card ${a.isCorrect?'correct':'wrong'}"><div style="font-size:.75rem;font-weight:600">${i+1}. ${a.q}</div><div style="font-size:.8rem;margin-top:4px">Your answer: <b>${a.answer}</b> ${a.isCorrect?'✅':'❌'}</div>${!a.isCorrect?`<div style="font-size:.8rem;color:#22c55e;margin-top:2px">Correct: <b>${a.correct}</b></div>`:''}</div>`).join('')}</div>`;
 // Save locally
 const history=getQuizHistory();history.unshift({title:quizState.pbTitle,score:quizState.score,total:quizState.questions.length,date:new Date().toISOString()});
 localStorage.setItem('rhq-quizzes',JSON.stringify(history.slice(0,50)));
@@ -2480,10 +2480,10 @@ const el=document.getElementById('pg-simulator');
 if(!simState)return;
 const latest=simState.history[simState.history.length-1];
 const resolved=latest?.resolved;
-el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="font-size:.7rem;font-weight:700">${simState.scenario}</div><div style="font-size:.55rem;color:var(--t3)">Turn ${simState.history.length} · Score: ${simState.totalScore}</div></div>
+el.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><div style="font-size:.8rem;font-weight:700">${simState.scenario}</div><div style="font-size:.8rem;color:var(--t3)">Turn ${simState.history.length} · Score: ${simState.totalScore}</div></div>
 ${simState.history.slice(0,-1).map((h,i)=>`<div class="sim-history"><b>Turn ${i+1}:</b> ${h.narrative?.slice(0,120)}...</div>`).join('')}
 ${latest?`<div class="sim-narrative">${latest.narrative||''}</div>`:''}
-${simState.loading?`<div style="text-align:center;padding:20px"><div class="spinner" style="margin:0 auto"></div><div style="font-size:.6rem;color:var(--t3);margin-top:8px">AI is generating the next scene...</div></div>`:''}
+${simState.loading?`<div style="text-align:center;padding:20px"><div class="spinner" style="margin:0 auto"></div><div style="font-size:.75rem;color:var(--t3);margin-top:8px">AI is generating the next scene...</div></div>`:''}
 ${resolved?`<div class="settings-section" style="text-align:center"><h3>${simState.totalScore>=70?'🏆 Incident Resolved Successfully':'⚠️ Incident Contained'}</h3><div class="drill-score ${simState.totalScore>=80?'excellent':simState.totalScore>=60?'good':'fair'}" style="margin:8px 0">${simState.totalScore}%</div><button class="btn btn-p" onclick="simState=null;go('simulator')">New Scenario</button></div>`:''}
 ${!resolved&&!simState.loading&&latest?.choices?.length?latest.choices.map(c=>`<button class="sim-choice" onclick="simulationStep('The player chose: ${(c.text||c).replace(/'/g,"\\'")}. Continue the simulation with consequences and new choices.')">${c.text||c}</button>`).join(''):''}`;
 }
@@ -2494,7 +2494,7 @@ const el=document.getElementById('pg-certs');
 const certs=JSON.parse(localStorage.getItem('rhq-certs')||'[]');
 const now=new Date();
 el.innerHTML=`<div class="sec-head"><h2>🎓 Certifications</h2><p>Earned through quiz scores of 70% or above. Certifications expire after 90 days.</p></div>
-${certs.length===0?'<div class="settings-section"><p style="font-size:.6rem;color:var(--t3)">No certifications yet. Complete a quiz with 70%+ to earn one.</p></div>':
+${certs.length===0?'<div class="settings-section"><p style="font-size:.75rem;color:var(--t3)">No certifications yet. Complete a quiz with 70%+ to earn one.</p></div>':
 `<div class="tpl-grid">${certs.map(c=>{const exp=new Date(c.expires);const valid=exp>now;
 return`<div class="cert-card ${valid?'valid':'expired'}"><div class="cert-badge">${valid?'🎓':'⏰'}</div><div class="cert-title">${c.title}</div><div class="cert-score" style="color:${valid?'#22c55e':'#ef4444'}">${c.score}%</div><div class="cert-meta">Earned: ${new Date(c.date).toLocaleDateString()}<br>${valid?`Expires: ${exp.toLocaleDateString()}`:'EXPIRED'}</div></div>`}).join('')}</div>`}`;
 };
@@ -2511,8 +2511,8 @@ el.innerHTML=`<div class="sec-head"><h2>🔊 Inject Editor</h2><p>Create custom 
 <textarea id="inj-text" placeholder="Full inject text that appears during the drill..."></textarea>
 <div style="grid-column:1/-1;display:flex;gap:8px"><input id="inj-cat" placeholder="Category (optional)" style="flex:1"/><button class="btn btn-p btn-sm" onclick="saveCustomInject()">💾 Save Inject</button></div></div></div>
 <div class="settings-section"><h3>Inject Library (${INJECT_LIBRARY.length} built-in + ${custom.length} custom)</h3>
-${custom.map((inj,i)=>`<div class="inject-card" style="animation:none"><h4>${inj.title} <span class="badge badge-${inj.severity}">${inj.severity}</span></h4><div style="font-size:.6rem;color:var(--t2)">${inj.text}</div><button class="btn btn-sm" style="margin-top:4px;color:var(--red)" onclick="deleteCustomInject(${i})">Delete</button></div>`).join('')}
-${INJECT_LIBRARY.map(inj=>`<div style="padding:6px 0;border-bottom:1px solid var(--bd);font-size:.6rem;color:var(--t2)">${inj.text} <span style="color:var(--t4)">(built-in, ${inj.timing}s)</span></div>`).join('')}</div>`;
+${custom.map((inj,i)=>`<div class="inject-card" style="animation:none"><h4>${inj.title} <span class="badge badge-${inj.severity}">${inj.severity}</span></h4><div style="font-size:.75rem;color:var(--t2)">${inj.text}</div><button class="btn btn-sm" style="margin-top:4px;color:var(--red)" onclick="deleteCustomInject(${i})">Delete</button></div>`).join('')}
+${INJECT_LIBRARY.map(inj=>`<div style="padding:6px 0;border-bottom:1px solid var(--bd);font-size:.75rem;color:var(--t2)">${inj.text} <span style="color:var(--t4)">(built-in, ${inj.timing}s)</span></div>`).join('')}</div>`;
 };
 function saveCustomInject(){
 const t=document.getElementById('inj-title').value.trim(),txt=document.getElementById('inj-text').value.trim(),sev=document.getElementById('inj-sev').value,cat=document.getElementById('inj-cat').value.trim();
@@ -2535,16 +2535,16 @@ el.innerHTML=`<div class="sec-head"><h2>🔗 Webhook Builder</h2><p>Create custo
 <input class="settings-input" id="wh-name" placeholder="Webhook name (e.g. Jira Ticket Creator)"/>
 <input class="settings-input" id="wh-url" placeholder="Endpoint URL (https://...)"/>
 <select class="settings-input" id="wh-method"><option>POST</option><option>PUT</option><option>PATCH</option></select>
-<div><div style="font-size:.55rem;font-weight:600;margin-bottom:4px">Trigger Events:</div>
-<div style="display:flex;flex-wrap:wrap;gap:4px">${events.map(e=>`<label style="display:flex;align-items:center;gap:3px;font-size:.55rem;cursor:pointer"><input type="checkbox" class="wh-evt-cb" value="${e}"/>${e}</label>`).join('')}</div></div>
+<div><div style="font-size:.8rem;font-weight:600;margin-bottom:4px">Trigger Events:</div>
+<div style="display:flex;flex-wrap:wrap;gap:4px">${events.map(e=>`<label style="display:flex;align-items:center;gap:3px;font-size:.8rem;cursor:pointer"><input type="checkbox" class="wh-evt-cb" value="${e}"/>${e}</label>`).join('')}</div></div>
 <textarea class="settings-input" id="wh-tpl" rows="3" placeholder='{"text":"{{event}}: {{title}} ({{severity}}) — {{ref}}"}'></textarea>
 <button class="btn btn-p btn-sm" onclick="saveWebhook()">Save Webhook</button></div></div>
 <div class="settings-section"><h3>Active Webhooks (${hooks.length})</h3>
-${hooks.length===0?'<p style="font-size:.6rem;color:var(--t3)">No webhooks configured.</p>':''}
+${hooks.length===0?'<p style="font-size:.75rem;color:var(--t3)">No webhooks configured.</p>':''}
 ${hooks.map((h,i)=>`<div class="wh-card"><div class="wh-status ${h.active?'active':'inactive'}"></div><div class="wh-name">${h.name}</div><div class="wh-events">${(h.events||[]).map(e=>`<span class="wh-evt">${e}</span>`).join('')}</div>
 <button class="btn btn-sm btn-s" onclick="testWebhookLocal(${i})">Test</button><button class="btn btn-sm" style="color:var(--red)" onclick="deleteWebhookLocal(${i})">✕</button></div>`).join('')}</div>
 <div class="settings-section"><h3>Payload Variables</h3>
-<div style="font-size:.55rem;color:var(--t3);line-height:1.8">Available template variables: <code>{{event}}</code> <code>{{title}}</code> <code>{{severity}}</code> <code>{{ref}}</code> <code>{{timestamp}}</code> <code>{{data}}</code></div></div>`;
+<div style="font-size:.8rem;color:var(--t3);line-height:1.8">Available template variables: <code>{{event}}</code> <code>{{title}}</code> <code>{{severity}}</code> <code>{{ref}}</code> <code>{{timestamp}}</code> <code>{{data}}</code></div></div>`;
 };
 function saveWebhook(){
 const name=document.getElementById('wh-name').value.trim(),url=document.getElementById('wh-url').value.trim(),method=document.getElementById('wh-method').value;
@@ -2566,10 +2566,10 @@ localStorage.setItem('rhq-iocs-'+execId,JSON.stringify(iocs));toast(`IOC added: 
 }
 function showIOCPanel(execId){
 const iocs=getIOCs(execId);
-oModal(`<h2>IOC Tracker</h2><p style="font-size:.6rem;color:var(--t3);margin-bottom:12px">Log indicators of compromise during this incident</p>
+oModal(`<h2>IOC Tracker</h2><p style="font-size:.75rem;color:var(--t3);margin-bottom:12px">Log indicators of compromise during this incident</p>
 ${iocs.length?`<div style="margin-bottom:12px">${iocs.map(i=>`<span class="ioc-tag ${i.type}">${i.type}: ${i.value}</span>`).join('')}</div>`:''}
-<div style="display:flex;gap:6px;margin-bottom:8px"><select id="ioc-type" style="padding:4px 8px;border-radius:6px;border:1px solid var(--bd);background:var(--c0);color:var(--t1);font-size:.6rem"><option value="ip">IP Address</option><option value="hash">File Hash</option><option value="domain">Domain</option><option value="url">URL</option></select>
-<input id="ioc-val" placeholder="Value..." style="flex:1;padding:4px 8px;border-radius:6px;border:1px solid var(--bd);background:var(--c0);color:var(--t1);font-size:.6rem"/>
+<div style="display:flex;gap:6px;margin-bottom:8px"><select id="ioc-type" style="padding:4px 8px;border-radius:6px;border:1px solid var(--bd);background:var(--c0);color:var(--t1);font-size:.75rem"><option value="ip">IP Address</option><option value="hash">File Hash</option><option value="domain">Domain</option><option value="url">URL</option></select>
+<input id="ioc-val" placeholder="Value..." style="flex:1;padding:4px 8px;border-radius:6px;border:1px solid var(--bd);background:var(--c0);color:var(--t1);font-size:.75rem"/>
 <button class="btn btn-sm btn-p" onclick="addIOC('${execId}',document.getElementById('ioc-type').value,document.getElementById('ioc-val').value);cModal()">Add</button></div>
 <button class="btn btn-sm btn-s" onclick="exportIOCs('${execId}')">📋 Export IOC List</button>`);
 }
@@ -2590,8 +2590,8 @@ function getWarRoom(execId){return localStorage.getItem('rhq-warroom-'+execId)||
 // ===== HANDOFF NOTES =====
 function showHandoff(execId){
 const notes=JSON.parse(localStorage.getItem('rhq-handoff-'+execId)||'[]');
-oModal(`<h2>Shift Handoff</h2><p style="font-size:.6rem;color:var(--t3);margin-bottom:12px">Document what happened during your shift for the next responder</p>
-${notes.map(n=>`<div class="handoff-card"><h4>${n.from} → ${n.to} · ${new Date(n.time).toLocaleString()}</h4><div style="font-size:.6rem;color:var(--t2)">${n.summary}</div>${n.pending?`<div style="font-size:.55rem;color:#f59e0b;margin-top:4px">⏳ Pending: ${n.pending}</div>`:''}</div>`).join('')}
+oModal(`<h2>Shift Handoff</h2><p style="font-size:.75rem;color:var(--t3);margin-bottom:12px">Document what happened during your shift for the next responder</p>
+${notes.map(n=>`<div class="handoff-card"><h4>${n.from} → ${n.to} · ${new Date(n.time).toLocaleString()}</h4><div style="font-size:.75rem;color:var(--t2)">${n.summary}</div>${n.pending?`<div style="font-size:.8rem;color:#f59e0b;margin-top:4px">⏳ Pending: ${n.pending}</div>`:''}</div>`).join('')}
 <div style="display:grid;gap:6px;margin-top:10px">
 <input id="ho-from" placeholder="Your name" class="settings-input"/>
 <input id="ho-to" placeholder="Handing off to..." class="settings-input"/>
@@ -2610,12 +2610,12 @@ toast('Handoff saved');cModal();
 V.import=()=>{
 const el=document.getElementById('pg-import');
 el.innerHTML=`<div class="sec-head"><h2>📥 Import Playbooks</h2><p>Import playbooks from JSON or CSV files</p></div>
-<div class="settings-section"><h3>JSON Import</h3><p style="font-size:.6rem;color:var(--t3);margin-bottom:8px">Accepts RunbookHQ JSON exports or any JSON with title, phases, and actions.</p>
-<div class="import-zone" onclick="document.getElementById('json-file').click()"><div style="font-size:1.5rem;margin-bottom:4px">📄</div><div style="font-size:.65rem;font-weight:600">Click to upload JSON file</div><div style="font-size:.55rem;color:var(--t3);margin-top:4px">Or paste JSON below</div><input type="file" id="json-file" accept=".json" onchange="handleImportFile(this,'json')"/></div>
+<div class="settings-section"><h3>JSON Import</h3><p style="font-size:.75rem;color:var(--t3);margin-bottom:8px">Accepts RunbookHQ JSON exports or any JSON with title, phases, and actions.</p>
+<div class="import-zone" onclick="document.getElementById('json-file').click()"><div style="font-size:1.5rem;margin-bottom:4px">📄</div><div style="font-size:.78rem;font-weight:600">Click to upload JSON file</div><div style="font-size:.8rem;color:var(--t3);margin-top:4px">Or paste JSON below</div><input type="file" id="json-file" accept=".json" onchange="handleImportFile(this,'json')"/></div>
 <textarea class="settings-input" id="json-paste" rows="4" placeholder='{"title":"My Playbook","phases":[...]}'></textarea>
 <button class="btn btn-p btn-sm" onclick="importJSON()" style="margin-top:6px">Import JSON</button></div>
-<div class="settings-section"><h3>CSV Import</h3><p style="font-size:.6rem;color:var(--t3);margin-bottom:8px">CSV must have columns: Phase, Action, Role (optional), Tool (optional)</p>
-<div class="import-zone" onclick="document.getElementById('csv-file').click()"><div style="font-size:1.5rem;margin-bottom:4px">📊</div><div style="font-size:.65rem;font-weight:600">Click to upload CSV file</div><input type="file" id="csv-file" accept=".csv" onchange="handleImportFile(this,'csv')"/></div>
+<div class="settings-section"><h3>CSV Import</h3><p style="font-size:.75rem;color:var(--t3);margin-bottom:8px">CSV must have columns: Phase, Action, Role (optional), Tool (optional)</p>
+<div class="import-zone" onclick="document.getElementById('csv-file').click()"><div style="font-size:1.5rem;margin-bottom:4px">📊</div><div style="font-size:.78rem;font-weight:600">Click to upload CSV file</div><input type="file" id="csv-file" accept=".csv" onchange="handleImportFile(this,'csv')"/></div>
 <textarea class="settings-input" id="csv-paste" rows="4" placeholder="Phase,Action,Role&#10;Detection,Check SIEM alerts,SOC Analyst"></textarea>
 <button class="btn btn-p btn-sm" onclick="importCSV()" style="margin-top:6px">Import CSV</button></div>
 <div class="settings-section"><h3>Bulk JSON Export (All Playbooks)</h3>
@@ -2685,17 +2685,17 @@ const el=document.getElementById('pg-branding');
 el.innerHTML=`<div class="sec-head"><h2>🎨 Branding</h2><p>Customise the platform appearance and PDF exports</p></div>
 <div class="settings-section"><h3>Company Details</h3>
 <div style="display:grid;gap:8px">
-<div><label style="font-size:.55rem;font-weight:600">Company Name</label><input class="settings-input" id="brand-name" value="${brandConfig.companyName}" placeholder="Your Company"/></div>
-<div><label style="font-size:.55rem;font-weight:600">Logo URL</label><input class="settings-input" id="brand-logo" value="${brandConfig.logoUrl||''}" placeholder="https://..."/></div></div></div>
+<div><label style="font-size:.8rem;font-weight:600">Company Name</label><input class="settings-input" id="brand-name" value="${brandConfig.companyName}" placeholder="Your Company"/></div>
+<div><label style="font-size:.8rem;font-weight:600">Logo URL</label><input class="settings-input" id="brand-logo" value="${brandConfig.logoUrl||''}" placeholder="https://..."/></div></div></div>
 <div class="settings-section"><h3>Colours</h3>
 <div style="display:flex;gap:16px;align-items:center">
-<div><label style="font-size:.55rem;font-weight:600">Primary</label><br/><input type="color" id="brand-pc" value="#${brandConfig.primaryColor}" style="width:48px;height:32px;border:none;cursor:pointer"/></div>
-<div><label style="font-size:.55rem;font-weight:600">Accent</label><br/><input type="color" id="brand-ac" value="#${brandConfig.accentColor}" style="width:48px;height:32px;border:none;cursor:pointer"/></div></div></div>
+<div><label style="font-size:.8rem;font-weight:600">Primary</label><br/><input type="color" id="brand-pc" value="#${brandConfig.primaryColor}" style="width:48px;height:32px;border:none;cursor:pointer"/></div>
+<div><label style="font-size:.8rem;font-weight:600">Accent</label><br/><input type="color" id="brand-ac" value="#${brandConfig.accentColor}" style="width:48px;height:32px;border:none;cursor:pointer"/></div></div></div>
 <div class="settings-section"><h3>PDF Export</h3>
 <div style="display:grid;gap:8px">
-<div><label style="font-size:.55rem;font-weight:600">PDF Header Text</label><input class="settings-input" id="brand-pdf-h" value="${brandConfig.pdfHeader||''}" placeholder="COMPANY CONFIDENTIAL"/></div>
-<div><label style="font-size:.55rem;font-weight:600">PDF Footer Text</label><input class="settings-input" id="brand-pdf-f" value="${brandConfig.pdfFooter||''}" placeholder="© 2026 Company Name"/></div></div></div>
-<div class="brand-preview"><div style="font-size:.55rem;font-weight:600;margin-bottom:6px">Preview</div>
+<div><label style="font-size:.8rem;font-weight:600">PDF Header Text</label><input class="settings-input" id="brand-pdf-h" value="${brandConfig.pdfHeader||''}" placeholder="COMPANY CONFIDENTIAL"/></div>
+<div><label style="font-size:.8rem;font-weight:600">PDF Footer Text</label><input class="settings-input" id="brand-pdf-f" value="${brandConfig.pdfFooter||''}" placeholder="© 2026 Company Name"/></div></div></div>
+<div class="brand-preview"><div style="font-size:.8rem;font-weight:600;margin-bottom:6px">Preview</div>
 <div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--c0);border-radius:8px">${brandConfig.logoUrl?`<img src="${brandConfig.logoUrl}" style="height:24px;border-radius:4px"/>`:''}<span style="font-size:.8rem;font-weight:800;color:#${brandConfig.primaryColor}">${brandConfig.companyName}</span></div></div>
 <button class="btn btn-p" onclick="saveBranding()" style="margin-top:10px">💾 Save Branding</button>`;
 };
@@ -2712,13 +2712,13 @@ const fields=JSON.parse(localStorage.getItem('rhq-custom-fields')||'[]');
 el.innerHTML=`<div class="sec-head"><h2>🔧 Custom Fields</h2><p>Define metadata fields that appear on every playbook for org-specific taxonomies</p></div>
 <div class="settings-section"><h3>Create Field</h3>
 <div style="display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:end">
-<div><label style="font-size:.55rem;font-weight:600">Field Name</label><input class="settings-input" id="cf-name" placeholder="e.g. Business Unit"/></div>
-<div><label style="font-size:.55rem;font-weight:600">Type</label><select class="settings-input" id="cf-type"><option value="text">Text</option><option value="select">Dropdown</option><option value="number">Number</option><option value="date">Date</option><option value="checkbox">Checkbox</option></select></div>
+<div><label style="font-size:.8rem;font-weight:600">Field Name</label><input class="settings-input" id="cf-name" placeholder="e.g. Business Unit"/></div>
+<div><label style="font-size:.8rem;font-weight:600">Type</label><select class="settings-input" id="cf-type"><option value="text">Text</option><option value="select">Dropdown</option><option value="number">Number</option><option value="date">Date</option><option value="checkbox">Checkbox</option></select></div>
 <button class="btn btn-p btn-sm" onclick="addCustomField()">Add</button></div>
-<div id="cf-options-wrap" style="margin-top:6px;display:none"><label style="font-size:.55rem;font-weight:600">Options (comma-separated)</label><input class="settings-input" id="cf-options" placeholder="Option A, Option B, Option C"/></div></div>
+<div id="cf-options-wrap" style="margin-top:6px;display:none"><label style="font-size:.8rem;font-weight:600">Options (comma-separated)</label><input class="settings-input" id="cf-options" placeholder="Option A, Option B, Option C"/></div></div>
 <div class="settings-section"><h3>Defined Fields (${fields.length})</h3>
-${fields.length===0?'<p style="font-size:.6rem;color:var(--t3)">No custom fields defined yet.</p>':''}
-${fields.map((f,i)=>`<div class="cf-row"><span class="cf-type">${f.type}</span><span style="flex:1;font-weight:600">${f.name}</span>${f.options?.length?`<span style="font-size:.5rem;color:var(--t3)">${f.options.join(', ')}</span>`:''}${f.required?'<span style="font-size:.45rem;color:#ef4444;font-weight:700">Required</span>':''}<button class="btn-g" style="color:var(--red)" onclick="deleteCustomField(${i})">✕</button></div>`).join('')}</div>`;
+${fields.length===0?'<p style="font-size:.75rem;color:var(--t3)">No custom fields defined yet.</p>':''}
+${fields.map((f,i)=>`<div class="cf-row"><span class="cf-type">${f.type}</span><span style="flex:1;font-weight:600">${f.name}</span>${f.options?.length?`<span style="font-size:.78rem;color:var(--t3)">${f.options.join(', ')}</span>`:''}${f.required?'<span style="font-size:.75rem;color:#ef4444;font-weight:700">Required</span>':''}<button class="btn-g" style="color:var(--red)" onclick="deleteCustomField(${i})">✕</button></div>`).join('')}</div>`;
 document.getElementById('cf-type')?.addEventListener('change',e=>{document.getElementById('cf-options-wrap').style.display=e.target.value==='select'?'block':'none'});
 };
 function addCustomField(){
@@ -2737,11 +2737,11 @@ const pb=D.playbooks.find(p=>p.id===pbId);
 const vals=pb?.customFields||{};
 return`<div class="settings-section" style="margin-top:12px"><h3>Custom Fields</h3>${fields.map(f=>{
 const v=vals[f.name]||'';
-if(f.type==='text')return`<div style="margin:4px 0"><label style="font-size:.55rem;font-weight:600">${f.name}</label><input class="settings-input cf-val" data-field="${f.name}" value="${v}" onchange="updateCustomFieldValue('${pbId}','${f.name}',this.value)"/></div>`;
-if(f.type==='select')return`<div style="margin:4px 0"><label style="font-size:.55rem;font-weight:600">${f.name}</label><select class="settings-input cf-val" data-field="${f.name}" onchange="updateCustomFieldValue('${pbId}','${f.name}',this.value)"><option value="">Select...</option>${f.options.map(o=>`<option ${v===o?'selected':''}>${o}</option>`).join('')}</select></div>`;
-if(f.type==='number')return`<div style="margin:4px 0"><label style="font-size:.55rem;font-weight:600">${f.name}</label><input type="number" class="settings-input cf-val" data-field="${f.name}" value="${v}" onchange="updateCustomFieldValue('${pbId}','${f.name}',this.value)"/></div>`;
-if(f.type==='checkbox')return`<div style="margin:4px 0;display:flex;align-items:center;gap:6px"><input type="checkbox" class="cf-val" data-field="${f.name}" ${v?'checked':''} onchange="updateCustomFieldValue('${pbId}','${f.name}',this.checked)"/><label style="font-size:.55rem;font-weight:600">${f.name}</label></div>`;
-return`<div style="margin:4px 0"><label style="font-size:.55rem;font-weight:600">${f.name}</label><input type="${f.type}" class="settings-input cf-val" data-field="${f.name}" value="${v}" onchange="updateCustomFieldValue('${pbId}','${f.name}',this.value)"/></div>`;
+if(f.type==='text')return`<div style="margin:4px 0"><label style="font-size:.8rem;font-weight:600">${f.name}</label><input class="settings-input cf-val" data-field="${f.name}" value="${v}" onchange="updateCustomFieldValue('${pbId}','${f.name}',this.value)"/></div>`;
+if(f.type==='select')return`<div style="margin:4px 0"><label style="font-size:.8rem;font-weight:600">${f.name}</label><select class="settings-input cf-val" data-field="${f.name}" onchange="updateCustomFieldValue('${pbId}','${f.name}',this.value)"><option value="">Select...</option>${f.options.map(o=>`<option ${v===o?'selected':''}>${o}</option>`).join('')}</select></div>`;
+if(f.type==='number')return`<div style="margin:4px 0"><label style="font-size:.8rem;font-weight:600">${f.name}</label><input type="number" class="settings-input cf-val" data-field="${f.name}" value="${v}" onchange="updateCustomFieldValue('${pbId}','${f.name}',this.value)"/></div>`;
+if(f.type==='checkbox')return`<div style="margin:4px 0;display:flex;align-items:center;gap:6px"><input type="checkbox" class="cf-val" data-field="${f.name}" ${v?'checked':''} onchange="updateCustomFieldValue('${pbId}','${f.name}',this.checked)"/><label style="font-size:.8rem;font-weight:600">${f.name}</label></div>`;
+return`<div style="margin:4px 0"><label style="font-size:.8rem;font-weight:600">${f.name}</label><input type="${f.type}" class="settings-input cf-val" data-field="${f.name}" value="${v}" onchange="updateCustomFieldValue('${pbId}','${f.name}',this.value)"/></div>`;
 }).join('')}</div>`;
 }
 function updateCustomFieldValue(pbId,field,val){const pb=D.playbooks.find(p=>p.id===pbId);if(!pb)return;if(!pb.customFields)pb.customFields={};pb.customFields[field]=val;persist()}
@@ -2767,9 +2767,9 @@ el.innerHTML=`<div class="sec-head"><h2>⏱️ MTTR Metrics</h2><p>Mean Time To 
 <div class="stat-card"><div class="stat-val">${execHistory.length}</div><div class="stat-lbl">Total Executions</div></div></div>
 <div class="settings-section"><h3>MTTR by Severity</h3>
 ${['critical','high','medium','low'].map(s=>{const avg=avgBySev[s]||0;const count=bySev[s]?.length||0;
-return`<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--bd)"><span class="badge badge-${s}" style="min-width:60px;text-align:center">${s}</span><div style="flex:1;height:6px;background:var(--c0);border-radius:3px"><div style="height:100%;width:${Math.min(100,avg/10)}%;background:${s==='critical'?'#ef4444':s==='high'?'#f59e0b':s==='medium'?'#3b82f6':'#22c55e'};border-radius:3px"></div></div><span style="font-size:.6rem;font-weight:700;min-width:60px;text-align:right">${avg?formatMinutes(avg):'—'}</span><span style="font-size:.5rem;color:var(--t3)">(${count})</span></div>`}).join('')}</div>
+return`<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--bd)"><span class="badge badge-${s}" style="min-width:60px;text-align:center">${s}</span><div style="flex:1;height:6px;background:var(--c0);border-radius:3px"><div style="height:100%;width:${Math.min(100,avg/10)}%;background:${s==='critical'?'#ef4444':s==='high'?'#f59e0b':s==='medium'?'#3b82f6':'#22c55e'};border-radius:3px"></div></div><span style="font-size:.75rem;font-weight:700;min-width:60px;text-align:right">${avg?formatMinutes(avg):'—'}</span><span style="font-size:.78rem;color:var(--t3)">(${count})</span></div>`}).join('')}</div>
 ${completed.length>1?`<div class="settings-section"><h3>Response Time Trend</h3><div id="mttr-chart" style="display:flex;align-items:end;gap:2px;height:100px;padding:8px 0">${completed.slice(-20).map(e=>{const dur=(new Date(e.completedAt)-new Date(e.startedAt))/60000;const maxH=100;const h=Math.max(4,Math.min(maxH,dur/5));return`<div style="flex:1;background:var(--ac);border-radius:3px 3px 0 0;height:${h}px;min-width:8px" title="${Math.round(dur)} min — ${new Date(e.startedAt).toLocaleDateString()}"></div>`}).join('')}</div></div>`:''}
-<div class="settings-section"><p style="font-size:.6rem;color:var(--t3)">MTTR data is collected from execution completions. Run more incident executions to build trend data.</p></div>`;
+<div class="settings-section"><p style="font-size:.75rem;color:var(--t3)">MTTR data is collected from execution completions. Run more incident executions to build trend data.</p></div>`;
 };
 function formatMinutes(m){return m>=60?`${Math.floor(m/60)}h ${Math.round(m%60)}m`:`${Math.round(m)}m`}
 
@@ -2822,8 +2822,8 @@ if(compSection){compSection.insertAdjacentHTML('afterend',renderCustomFieldInput
 const statusBtns=el.querySelector('[onclick*="chgSt"]');
 if(statusBtns){
 const reviewSt=getReviewStatus(pb);
-statusBtns.parentElement?.insertAdjacentHTML('afterend',`<div style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:.55rem"><span style="color:var(--t3)">Review cadence:</span>
-<select onchange="setReviewCadence('${id}',parseInt(this.value))" style="padding:2px 6px;border-radius:4px;border:1px solid var(--bd);background:var(--c0);color:var(--t1);font-size:.55rem">
+statusBtns.parentElement?.insertAdjacentHTML('afterend',`<div style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:.8rem"><span style="color:var(--t3)">Review cadence:</span>
+<select onchange="setReviewCadence('${id}',parseInt(this.value))" style="padding:2px 6px;border-radius:4px;border:1px solid var(--bd);background:var(--c0);color:var(--t1);font-size:.8rem">
 <option value="0" ${!pb.reviewCadence?'selected':''}>None</option>
 <option value="30" ${pb.reviewCadence===30?'selected':''}>30 days</option>
 <option value="60" ${pb.reviewCadence===60?'selected':''}>60 days</option>
@@ -2888,18 +2888,18 @@ liveExecs.forEach(e=>{if(e.start){const k=new Date(e.start).toISOString().slice(
 // Phase bottlenecks from drill history
 const drillHistory=JSON.parse(localStorage.getItem('rhq-drill-history')||'[]');
 el.innerHTML=`<h2 style="font-size:.95rem;font-weight:800">🔍 Incident Patterns & Correlation</h2>
-<p style="font-size:.6rem;color:var(--t3)">Insights from ${liveExecs.length} incidents and ${drillHistory.length} drills</p>
+<p style="font-size:.75rem;color:var(--t3)">Insights from ${liveExecs.length} incidents and ${drillHistory.length} drills</p>
 <div class="pattern-card"><h4>📅 Incidents by Day of Week</h4>
 <div style="display:flex;gap:2px">${days.map((d,i)=>`<div class="day-bar" style="background:${dayCount[i]>0?'var(--ac)':'var(--bd)'};height:${Math.max(24,dayCount[i]/maxDay*80)}px;line-height:${Math.max(24,dayCount[i]/maxDay*80)}px">${d}<br>${dayCount[i]}</div>`).join('')}</div></div>
 <div class="pattern-card"><h4>📈 Monthly Trend</h4>
-${Object.keys(months).length?Object.entries(months).sort().map(([m,c])=>`<div style="display:flex;align-items:center;gap:8px;margin:2px 0"><span style="font-size:.5rem;width:60px;color:var(--t3)">${m}</span><div style="background:var(--ac);height:12px;border-radius:3px;width:${c/Math.max(...Object.values(months))*100}%"></div><span style="font-size:.5rem;font-weight:700">${c}</span></div>`).join(''):'<p style="font-size:.55rem;color:var(--t3)">No incidents recorded yet. Execute playbooks to build trend data.</p>'}</div>
+${Object.keys(months).length?Object.entries(months).sort().map(([m,c])=>`<div style="display:flex;align-items:center;gap:8px;margin:2px 0"><span style="font-size:.78rem;width:60px;color:var(--t3)">${m}</span><div style="background:var(--ac);height:12px;border-radius:3px;width:${c/Math.max(...Object.values(months))*100}%"></div><span style="font-size:.78rem;font-weight:700">${c}</span></div>`).join(''):'<p style="font-size:.8rem;color:var(--t3)">No incidents recorded yet. Execute playbooks to build trend data.</p>'}</div>
 <div class="pattern-card"><h4>🎯 Drill Score Trend</h4>
-${drillHistory.length?drillHistory.slice(-10).map(d=>`<div style="display:flex;align-items:center;gap:8px;margin:3px 0"><span style="font-size:.5rem;width:80px;color:var(--t3)">${d.date||'N/A'}</span><div class="eff-bar" style="flex:1"><div class="eff-bar-fill" style="width:${d.score||0}%;background:${(d.score||0)>=90?'#22c55e':(d.score||0)>=70?'#3b82f6':(d.score||0)>=50?'#f59e0b':'#ef4444'}"></div></div><span style="font-size:.55rem;font-weight:700">${d.score||0}%</span></div>`).join(''):'<p style="font-size:.55rem;color:var(--t3)">No drills completed yet.</p>'}</div>
+${drillHistory.length?drillHistory.slice(-10).map(d=>`<div style="display:flex;align-items:center;gap:8px;margin:3px 0"><span style="font-size:.78rem;width:80px;color:var(--t3)">${d.date||'N/A'}</span><div class="eff-bar" style="flex:1"><div class="eff-bar-fill" style="width:${d.score||0}%;background:${(d.score||0)>=90?'#22c55e':(d.score||0)>=70?'#3b82f6':(d.score||0)>=50?'#f59e0b':'#ef4444'}"></div></div><span style="font-size:.8rem;font-weight:700">${d.score||0}%</span></div>`).join(''):'<p style="font-size:.8rem;color:var(--t3)">No drills completed yet.</p>'}</div>
 <div class="pattern-card"><h4>💡 Recommendations</h4>
-${D.playbooks.length<5?'<p style="font-size:.55rem;color:var(--amb);margin:4px 0">⚠ Only '+D.playbooks.length+' playbooks. Enterprise-ready programs typically have 8-15 covering different scenarios.</p>':''}
-${!D.playbooks.some(p=>p.scenario?.s==='critical')?'<p style="font-size:.55rem;color:var(--amb);margin:4px 0">⚠ No critical-severity playbooks. Add ransomware or data breach response.</p>':''}
-${drillHistory.length<3?'<p style="font-size:.55rem;color:var(--amb);margin:4px 0">⚠ Only '+drillHistory.length+' drills completed. Run tabletop exercises quarterly at minimum.</p>':''}
-${D.playbooks.length>=5&&drillHistory.length>=3?'<p style="font-size:.55rem;color:#22c55e;margin:4px 0">✅ Good coverage. Keep drilling regularly and review playbooks after each real incident.</p>':''}
+${D.playbooks.length<5?'<p style="font-size:.8rem;color:var(--amb);margin:4px 0">⚠ Only '+D.playbooks.length+' playbooks. Enterprise-ready programs typically have 8-15 covering different scenarios.</p>':''}
+${!D.playbooks.some(p=>p.scenario?.s==='critical')?'<p style="font-size:.8rem;color:var(--amb);margin:4px 0">⚠ No critical-severity playbooks. Add ransomware or data breach response.</p>':''}
+${drillHistory.length<3?'<p style="font-size:.8rem;color:var(--amb);margin:4px 0">⚠ Only '+drillHistory.length+' drills completed. Run tabletop exercises quarterly at minimum.</p>':''}
+${D.playbooks.length>=5&&drillHistory.length>=3?'<p style="font-size:.8rem;color:#22c55e;margin:4px 0">✅ Good coverage. Keep drilling regularly and review playbooks after each real incident.</p>':''}
 </div>`;
 };
 
@@ -2917,17 +2917,17 @@ const pbStats=D.playbooks.map(pb=>{
   return{id:pb.id,title:pb.title,severity:pb.scenario?.s||'medium',liveCount:live.length,drillCount:drills.length,avgDurationMin:avgDuration,avgDrillScore:avgScore,effectivenessScore:score};
 });
 el.innerHTML=`<h2 style="font-size:.95rem;font-weight:800">📊 Playbook Effectiveness</h2>
-<p style="font-size:.6rem;color:var(--t3)">Performance scores based on execution data, drill results, compliance coverage, and version maturity</p>
+<p style="font-size:.75rem;color:var(--t3)">Performance scores based on execution data, drill results, compliance coverage, and version maturity</p>
 ${pbStats.length?pbStats.sort((a,b)=>b.effectivenessScore-a.effectivenessScore).map(ps=>`<div class="eff-card">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-<div><span style="font-size:.7rem;font-weight:700">${ps.title}</span> <span class="badge badge-${ps.severity}" style="font-size:.45rem">${ps.severity}</span></div>
+<div><span style="font-size:.8rem;font-weight:700">${ps.title}</span> <span class="badge badge-${ps.severity}" style="font-size:.75rem">${ps.severity}</span></div>
 <span style="font-size:1rem;font-weight:900;color:${ps.effectivenessScore>=80?'#22c55e':ps.effectivenessScore>=60?'#3b82f6':ps.effectivenessScore>=40?'#f59e0b':'#ef4444'}">${ps.effectivenessScore}%</span></div>
 <div class="eff-bar"><div class="eff-bar-fill" style="width:${ps.effectivenessScore}%;background:${ps.effectivenessScore>=80?'#22c55e':ps.effectivenessScore>=60?'#3b82f6':ps.effectivenessScore>=40?'#f59e0b':'#ef4444'}"></div></div>
-<div style="display:flex;gap:12px;margin-top:6px;font-size:.5rem;color:var(--t3)">
+<div style="display:flex;gap:12px;margin-top:6px;font-size:.78rem;color:var(--t3)">
 <span>🚨 ${ps.liveCount} incidents</span><span>🎯 ${ps.drillCount} drills</span>
 ${ps.avgDurationMin?`<span>⏱ ${ps.avgDurationMin}m avg</span>`:''}
 ${ps.avgDrillScore?`<span>📊 ${ps.avgDrillScore}% drill avg</span>`:''}
-</div></div>`).join(''):'<p style="font-size:.6rem;color:var(--t3);margin-top:20px">No playbooks yet. Generate or clone from templates to see effectiveness scores.</p>'}`;
+</div></div>`).join(''):'<p style="font-size:.75rem;color:var(--t3);margin-top:20px">No playbooks yet. Generate or clone from templates to see effectiveness scores.</p>'}`;
 };
 
 // ===== V5: COMPLIANCE EVIDENCE PACK =====
@@ -2944,7 +2944,7 @@ const soc2Pct=Math.round(soc2.filter(c=>allTags.some(t=>t.includes(c))).length/s
 const isoPct=Math.round(iso.filter(c=>allTags.some(t=>t.includes(c))).length/iso.length*100);
 const nistPct=Math.round(nist.filter(c=>allTags.some(t=>t.includes(c))).length/nist.length*100);
 el.innerHTML=`<h2 style="font-size:.95rem;font-weight:800">📋 Compliance Evidence Pack</h2>
-<p style="font-size:.6rem;color:var(--t3)">One-click audit-ready evidence bundle for SOC 2, ISO 27001, and NIST CSF</p>
+<p style="font-size:.75rem;color:var(--t3)">One-click audit-ready evidence bundle for SOC 2, ISO 27001, and NIST CSF</p>
 <div style="display:flex;flex-wrap:wrap;margin:12px 0">
 <div class="pack-stat"><div class="num">${pbs.length}</div><div class="lbl">Approved Playbooks</div></div>
 <div class="pack-stat"><div class="num">${D.playbooks.reduce((s,p)=>s+p.phases.reduce((ps,ph)=>ps+ph.actions.length,0),0)}</div><div class="lbl">Total Actions</div></div>
@@ -2952,13 +2952,13 @@ el.innerHTML=`<h2 style="font-size:.95rem;font-weight:800">📋 Compliance Evide
 <div class="pack-stat"><div class="num">${execs.length}</div><div class="lbl">Incidents Resolved</div></div>
 </div>
 <div class="pack-section"><h4>Framework Coverage</h4>
-<div style="margin:6px 0"><span style="font-size:.55rem;font-weight:600">SOC 2 — ${soc2Pct}%</span><div class="eff-bar"><div class="eff-bar-fill" style="width:${soc2Pct}%;background:${soc2Pct>=80?'#22c55e':'#3b82f6'}"></div></div></div>
-<div style="margin:6px 0"><span style="font-size:.55rem;font-weight:600">ISO 27001 — ${isoPct}%</span><div class="eff-bar"><div class="eff-bar-fill" style="width:${isoPct}%;background:${isoPct>=80?'#22c55e':'#3b82f6'}"></div></div></div>
-<div style="margin:6px 0"><span style="font-size:.55rem;font-weight:600">NIST CSF — ${nistPct}%</span><div class="eff-bar"><div class="eff-bar-fill" style="width:${nistPct}%;background:${nistPct>=80?'#22c55e':'#3b82f6'}"></div></div></div></div>
+<div style="margin:6px 0"><span style="font-size:.8rem;font-weight:600">SOC 2 — ${soc2Pct}%</span><div class="eff-bar"><div class="eff-bar-fill" style="width:${soc2Pct}%;background:${soc2Pct>=80?'#22c55e':'#3b82f6'}"></div></div></div>
+<div style="margin:6px 0"><span style="font-size:.8rem;font-weight:600">ISO 27001 — ${isoPct}%</span><div class="eff-bar"><div class="eff-bar-fill" style="width:${isoPct}%;background:${isoPct>=80?'#22c55e':'#3b82f6'}"></div></div></div>
+<div style="margin:6px 0"><span style="font-size:.8rem;font-weight:600">NIST CSF — ${nistPct}%</span><div class="eff-bar"><div class="eff-bar-fill" style="width:${nistPct}%;background:${nistPct>=80?'#22c55e':'#3b82f6'}"></div></div></div></div>
 <div class="pack-section"><h4>Approved Playbooks</h4>
-${pbs.map(p=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--bd);font-size:.55rem"><span style="font-weight:600">${p.title}</span><span class="badge badge-${p.scenario?.s||'medium'}">${p.scenario?.s||'medium'}</span></div>`).join('')||'<p style="font-size:.55rem;color:var(--t3)">No approved playbooks yet.</p>'}</div>
+${pbs.map(p=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--bd);font-size:.8rem"><span style="font-weight:600">${p.title}</span><span class="badge badge-${p.scenario?.s||'medium'}">${p.scenario?.s||'medium'}</span></div>`).join('')||'<p style="font-size:.8rem;color:var(--t3)">No approved playbooks yet.</p>'}</div>
 <div class="pack-section"><h4>Recent Drills</h4>
-${drills.slice(0,5).map(d=>`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:.55rem"><span>${d.title||'Drill'}</span><span style="font-weight:700;color:${(d.score||0)>=70?'#22c55e':'#f59e0b'}">${d.score||0}%</span></div>`).join('')||'<p style="font-size:.55rem;color:var(--t3)">No drills recorded.</p>'}</div>
+${drills.slice(0,5).map(d=>`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:.8rem"><span>${d.title||'Drill'}</span><span style="font-weight:700;color:${(d.score||0)>=70?'#22c55e':'#f59e0b'}">${d.score||0}%</span></div>`).join('')||'<p style="font-size:.8rem;color:var(--t3)">No drills recorded.</p>'}</div>
 <button class="btn btn-p" style="margin-top:12px" onclick="exportCompliancePack()">📦 Export Full Evidence Pack (JSON)</button>`;
 };
 function exportCompliancePack(){
@@ -2988,8 +2988,8 @@ const qa=[
   {q:'Do you maintain certification records for responders?',a:drills.length?`${drills.length} tabletop exercise records maintained. Personnel certifications tracked with expiry dates and re-certification requirements.`:'Certification tracking is configured with scored exercises and expiry management.'},
 ];
 el.innerHTML=`<h2 style="font-size:.95rem;font-weight:800">📝 Vendor Questionnaire Auto-Fill</h2>
-<p style="font-size:.6rem;color:var(--t3)">Pre-generated answers from your platform data. Copy answers directly into security questionnaires.</p>
-<div style="margin-top:12px">${qa.map(item=>`<div class="qa-item"><div class="qa-q">${item.q}</div><div class="qa-a">${item.a} <button class="btn btn-sm" style="margin-left:8px;font-size:.45rem;padding:1px 6px" onclick="navigator.clipboard.writeText(this.parentElement.textContent.replace(' Copy','').trim());toast('Copied!')">Copy</button></div></div>`).join('')}</div>
+<p style="font-size:.75rem;color:var(--t3)">Pre-generated answers from your platform data. Copy answers directly into security questionnaires.</p>
+<div style="margin-top:12px">${qa.map(item=>`<div class="qa-item"><div class="qa-q">${item.q}</div><div class="qa-a">${item.a} <button class="btn btn-sm" style="margin-left:8px;font-size:.75rem;padding:1px 6px" onclick="navigator.clipboard.writeText(this.parentElement.textContent.replace(' Copy','').trim());toast('Copied!')">Copy</button></div></div>`).join('')}</div>
 <button class="btn btn-p" style="margin-top:12px" onclick="exportQuestionnaire()">📄 Export All Answers (Markdown)</button>`;
 };
 function exportQuestionnaire(){
@@ -3011,10 +3011,10 @@ function addTimelineEntry(type,message){
 function renderTimelinePanel(){
   const panel=document.getElementById('exec-timeline');
   if(!panel)return;
-  panel.innerHTML=`<h4 style="font-size:.6rem;font-weight:700;color:var(--ac);margin-bottom:6px">📡 Communication Timeline (${execTimeline.length})</h4>
+  panel.innerHTML=`<h4 style="font-size:.75rem;font-weight:700;color:var(--ac);margin-bottom:6px">📡 Communication Timeline (${execTimeline.length})</h4>
   ${execTimeline.slice().reverse().map(e=>`<div class="tl-entry"><div class="tl-dot ${e.type}"></div><div><div class="tl-msg">${e.message}</div><div class="tl-meta">${e.author} · ${e.time} · ${e.type}</div></div></div>`).join('')}
-  <div class="tl-input"><input class="inp" id="tl-msg" placeholder="Post update, decision, or status..." style="font-size:.55rem" onkeydown="if(event.key==='Enter'){addTimelineEntry(document.getElementById('tl-type').value,this.value);this.value=''}">
-  <select class="inp" id="tl-type" style="width:90px;font-size:.5rem"><option value="update">Update</option><option value="decision">Decision</option><option value="escalation">Escalation</option></select></div>`;
+  <div class="tl-input"><input class="inp" id="tl-msg" placeholder="Post update, decision, or status..." style="font-size:.8rem" onkeydown="if(event.key==='Enter'){addTimelineEntry(document.getElementById('tl-type').value,this.value);this.value=''}">
+  <select class="inp" id="tl-type" style="width:90px;font-size:.78rem"><option value="update">Update</option><option value="decision">Decision</option><option value="escalation">Escalation</option></select></div>`;
 }
 
 // ===== V5: EVIDENCE COLLECTION IN EXECUTION =====
@@ -3028,17 +3028,17 @@ function addEvidence(type,title,content,phase,actionIdx){
 function showAddEvidenceModal(phase,actionIdx){
   oModal(`<h3 style="font-size:.8rem;font-weight:700">📎 Attach Evidence</h3>
   <div style="margin-top:10px">
-  <select class="inp" id="ev-type" style="width:100%;margin-bottom:6px;font-size:.6rem"><option value="screenshot">📸 Screenshot / Image</option><option value="log">📋 Log Snippet</option><option value="email">✉️ Email Header</option><option value="ioc">🔍 IOC</option><option value="note">📝 Note</option></select>
-  <input class="inp" id="ev-title" placeholder="Title / description" style="width:100%;margin-bottom:6px;font-size:.6rem">
-  <textarea class="inp" id="ev-content" placeholder="Paste content, log output, hash, URL, or notes..." style="width:100%;min-height:80px;font-size:.6rem;resize:vertical"></textarea>
+  <select class="inp" id="ev-type" style="width:100%;margin-bottom:6px;font-size:.75rem"><option value="screenshot">📸 Screenshot / Image</option><option value="log">📋 Log Snippet</option><option value="email">✉️ Email Header</option><option value="ioc">🔍 IOC</option><option value="note">📝 Note</option></select>
+  <input class="inp" id="ev-title" placeholder="Title / description" style="width:100%;margin-bottom:6px;font-size:.75rem">
+  <textarea class="inp" id="ev-content" placeholder="Paste content, log output, hash, URL, or notes..." style="width:100%;min-height:80px;font-size:.75rem;resize:vertical"></textarea>
   <button class="btn btn-p" style="margin-top:8px" onclick="addEvidence(document.getElementById('ev-type').value,document.getElementById('ev-title').value,document.getElementById('ev-content').value,'${phase||''}',${actionIdx||0});cModal()">Attach Evidence</button></div>`);
 }
 function renderEvidencePanel(){
   const panel=document.getElementById('exec-evidence');
   if(!panel)return;
   const icons={screenshot:'📸',log:'📋',email:'✉️',ioc:'🔍',note:'📝'};
-  panel.innerHTML=`<h4 style="font-size:.6rem;font-weight:700;color:var(--ac);margin-bottom:6px">📎 Evidence (${execEvidence.length})</h4>
-  ${execEvidence.map(e=>`<div class="ev-card"><div class="ev-type ${e.type}">${icons[e.type]||'📎'}</div><div style="flex:1"><div style="font-size:.6rem;font-weight:700">${e.title}</div><div style="font-size:.5rem;color:var(--t3)">${e.type} · ${e.author} · ${e.time}${e.phase?' · Phase: '+e.phase:''}</div><div style="font-size:.5rem;color:var(--t2);margin-top:2px;max-height:40px;overflow:hidden">${e.content.slice(0,120)}${e.content.length>120?'...':''}</div></div></div>`).join('')}
+  panel.innerHTML=`<h4 style="font-size:.75rem;font-weight:700;color:var(--ac);margin-bottom:6px">📎 Evidence (${execEvidence.length})</h4>
+  ${execEvidence.map(e=>`<div class="ev-card"><div class="ev-type ${e.type}">${icons[e.type]||'📎'}</div><div style="flex:1"><div style="font-size:.75rem;font-weight:700">${e.title}</div><div style="font-size:.78rem;color:var(--t3)">${e.type} · ${e.author} · ${e.time}${e.phase?' · Phase: '+e.phase:''}</div><div style="font-size:.78rem;color:var(--t2);margin-top:2px;max-height:40px;overflow:hidden">${e.content.slice(0,120)}${e.content.length>120?'...':''}</div></div></div>`).join('')}
   <button class="btn btn-sm btn-s" style="margin-top:6px" onclick="showAddEvidenceModal()">+ Add Evidence</button>`;
 }
 
@@ -3095,7 +3095,7 @@ function generateAIAnalysis(){
   if(actions.some(a=>!a.done))analysis.recommendations.push('Review the '+actions.filter(a=>!a.done).length+' incomplete actions — determine if they should be added to future playbook versions');
   currentExecution.aiAnalysis=analysis;
   oModal(`<h3 style="font-size:.8rem;font-weight:700">🤖 AI Post-Incident Analysis</h3>
-  <div style="margin-top:10px;font-size:.6rem;line-height:1.7">
+  <div style="margin-top:10px;font-size:.75rem;line-height:1.7">
   <p style="font-weight:600">${analysis.summary}</p>
   <h4 style="color:#22c55e;margin-top:10px">✅ Strengths</h4>
   ${analysis.strengths.map(s=>'<p>• '+s+'</p>').join('')||'<p style="color:var(--t3)">None identified</p>'}
@@ -3135,8 +3135,8 @@ const _origExecPageRender=setInterval(()=>{
       const btns=document.createElement('div');
       btns.className='v5-btns';
       btns.style.cssText='display:flex;gap:4px;margin-top:6px';
-      btns.innerHTML=`<button class="btn btn-sm" style="font-size:.5rem;background:#6366f115;color:#6366f1;border-color:#6366f125" onclick="showAddEvidenceModal()">📎 Evidence</button>
-      <button class="btn btn-sm" style="font-size:.5rem;background:#22c55e15;color:#22c55e;border-color:#22c55e25" onclick="generateAIAnalysis()">🤖 AI Analysis</button>`;
+      btns.innerHTML=`<button class="btn btn-sm" style="font-size:.78rem;background:#6366f115;color:#6366f1;border-color:#6366f125" onclick="showAddEvidenceModal()">📎 Evidence</button>
+      <button class="btn btn-sm" style="font-size:.78rem;background:#22c55e15;color:#22c55e;border-color:#22c55e25" onclick="generateAIAnalysis()">🤖 AI Analysis</button>`;
       toolbar.appendChild(btns);
     }
     renderTimelinePanel();
@@ -3148,7 +3148,7 @@ const _origExecPageRender=setInterval(()=>{
 const _origShowGuide=typeof showGuide==='function'?showGuide:null;
 showGuide=function(){
 oModal(`<h2 style="font-size:1rem">📖 RunbookHQ v5 — User Guide</h2>
-<div style="font-size:.65rem;line-height:1.8;color:var(--t2);max-height:70vh;overflow-y:auto;padding-right:8px">
+<div style="font-size:.78rem;line-height:1.8;color:var(--t2);max-height:70vh;overflow-y:auto;padding-right:8px">
 <h3 style="color:var(--ac);margin-top:16px">Getting Started</h3>
 <p><b>1. Define Teams & Roles</b> — Create your org structure with role-to-phase assignments and capabilities.</p>
 <p><b>2. Add Tools</b> — Register security tools and map each to IR phases.</p>
