@@ -10,7 +10,7 @@ async function requireAdmin() {
 
 export async function GET() {
   const config = await prisma.brandingConfig.findFirst();
-  return NextResponse.json({ branding: config || { companyName: "SecOpsHQ", primaryColor: "4F6CF7", accentColor: "6366F1", pdfHeader: "RUNBOOKHQ", pdfFooter: "" } });
+  return NextResponse.json({ branding: config || { companyName: "SecOpsHQ", primaryColor: "4F6CF7", accentColor: "6366F1", pdfHeader: "SECOPSHQ", pdfFooter: "" } });
 }
 
 export async function POST(req: NextRequest) {

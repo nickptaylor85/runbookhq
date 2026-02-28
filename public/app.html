@@ -758,9 +758,9 @@ main{padding:20px!important}
   <canvas id="matrix-canvas" style="position:absolute;inset:0;opacity:.15"></canvas>
   <div style="position:relative;z-index:1;text-align:center">
     <div id="boot-logo" style="font-size:3rem;font-weight:900;color:#fff;letter-spacing:-1px;opacity:0;transform:translateY(20px);transition:all .8s">
-      <span style="color:#4f6cf7">Runbook</span><span style="color:#fff">HQ</span>
+      <span style="color:#4f6cf7">SecOps</span><span style="color:#fff">HQ</span>
     </div>
-    <div id="boot-sub" style="color:#4f6cf7;font-size:.85rem;margin-top:8px;opacity:0;transition:opacity .6s .4s;letter-spacing:4px;text-transform:uppercase">Incident Response Platform</div>
+    <div id="boot-sub" style="color:#4f6cf7;font-size:.85rem;margin-top:8px;opacity:0;transition:opacity .6s .4s;letter-spacing:4px;text-transform:uppercase">Security Operations Platform</div>
     <div id="boot-bar" style="width:200px;height:3px;background:#1a1f4a;border-radius:2px;margin:24px auto 0;overflow:hidden;opacity:0;transition:opacity .4s .6s">
       <div id="boot-fill" style="height:100%;width:0;background:linear-gradient(90deg,#4f6cf7,#8b5cf6);border-radius:2px;transition:width 1.2s cubic-bezier(.4,0,.2,1)"></div>
     </div>
@@ -1057,8 +1057,8 @@ let D=loadState()||{
 };
 
 // ===== PERSISTENCE =====
-function saveState(){try{localStorage.setItem('runbookhq-v1',JSON.stringify(D))}catch(e){};try{window.parent.postMessage({type:'PLAYBOOK_DATA_CHANGED',payload:D},'*')}catch(e){}}
-function loadState(){try{const s=localStorage.getItem('runbookhq-v1');if(!s)return null;const d=JSON.parse(s);if(!d.framework)d.framework='nist';d.playbooks?.forEach(p=>{if(!p.framework)p.framework='nist'});return d}catch(e){return null}}
+function saveState(){try{localStorage.setItem('secopshq-v1',JSON.stringify(D))}catch(e){};try{window.parent.postMessage({type:'PLAYBOOK_DATA_CHANGED',payload:D},'*')}catch(e){}}
+function loadState(){try{const s=localStorage.getItem('secopshq-v1');if(!s)return null;const d=JSON.parse(s);if(!d.framework)d.framework='nist';d.playbooks?.forEach(p=>{if(!p.framework)p.framework='nist'});return d}catch(e){return null}}
 function persist(){saveState()}
 // Listen for data from parent frame (server-side load)
 window.addEventListener('message',function(e){
@@ -1068,7 +1068,7 @@ window.addEventListener('message',function(e){
       if(!d.framework)d.framework='nist';
       if(d.playbooks)d.playbooks.forEach(function(p){if(!p.framework)p.framework='nist'});
       D=Object.assign(D,d);
-      localStorage.setItem('runbookhq-v1',JSON.stringify(D));
+      localStorage.setItem('secopshq-v1',JSON.stringify(D));
       rNav('dashboard');V.dashboard();updateSidebarFW();
     }catch(ex){console.warn('Load from parent failed:',ex)}
   }
@@ -1984,7 +1984,7 @@ function checkPage(need){if(y+need>H-MB){doc.addPage();y=MT;drawHeader();return 
 function drawHeader(){
   doc.setFillColor(...C.dark);doc.rect(0,0,W,12,'F');
   doc.setFontSize(7);doc.setTextColor(...C.white);
-  doc.text('RUNBOOKHQ',ML,7.5);
+  doc.text('SECOPSHQ',ML,7.5);
   const fwName=FRAMEWORKS[pb.framework||'nist']?.short||'NIST IR';
   doc.text(fwName.toUpperCase()+' LIFECYCLE',W-MR,7.5,{align:'right'});
   y=MT;
@@ -3372,7 +3372,7 @@ function bulkExport(){const pbs=D.playbooks.filter(p=>bulkSelected.has(p.id));dl
 function bulkTag(){const tag=prompt('Compliance tag to add (e.g. SOC2:CC7.4):');if(!tag)return;D.playbooks.filter(p=>bulkSelected.has(p.id)).forEach(p=>{if(!p.complianceTags)p.complianceTags=[];if(!p.complianceTags.includes(tag))p.complianceTags.push(tag)});persist();toast(`Tagged ${bulkSelected.size} playbooks`);go('playbooks')}
 
 // ===== BRANDING =====
-let brandConfig={companyName:'SecOpsHQ',primaryColor:'4F6CF7',accentColor:'6366F1',pdfHeader:'RUNBOOKHQ',pdfFooter:'',logoUrl:''};
+let brandConfig={companyName:'SecOpsHQ',primaryColor:'4F6CF7',accentColor:'6366F1',pdfHeader:'SECOPSHQ',pdfFooter:'',logoUrl:''};
 try{const saved=localStorage.getItem('rhq-branding');if(saved)brandConfig=JSON.parse(saved)}catch{}
 V.branding=()=>{
 const el=document.getElementById('pg-branding');
@@ -6683,7 +6683,7 @@ function renderMissionCtrl(){
   
   mc.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid rgba(255,255,255,.06)">
     <div style="display:flex;align-items:center;gap:16px">
-      <span style="font-size:1.4rem;font-weight:900"><span style="color:#4f6cf7">Runbook</span>HQ</span>
+      <span style="font-size:1.4rem;font-weight:900"><span style="color:#4f6cf7">SecOps</span>HQ</span>
       <span style="font-size:.72rem;color:#4f6cf780;text-transform:uppercase;letter-spacing:3px">Mission Control</span>
     </div>
     <div style="display:flex;align-items:center;gap:20px">
@@ -7574,7 +7574,7 @@ V['exec-pptx']=()=>{
     </div>
     <div id="exec-slides" style="display:grid;gap:16px">
       <div style="padding:40px;background:linear-gradient(135deg,#1a1d2e,#2a2d3e);border-radius:12px;text-align:center;color:#fff">
-        <div style="font-size:2rem;font-weight:900;margin-bottom:8px"><span style="color:#4f6cf7">Runbook</span>HQ</div>
+        <div style="font-size:2rem;font-weight:900;margin-bottom:8px"><span style="color:#4f6cf7">SecOps</span>HQ</div>
         <div style="font-size:1.2rem;color:#94a3b8">Quarterly Cybersecurity Readiness Report</div>
         <div style="font-size:.88rem;color:#64748b;margin-top:12px">${new Date().toLocaleDateString('en-GB',{month:'long',year:'numeric'})}</div>
       </div>
@@ -8991,6 +8991,191 @@ if(D.theme&&D.theme!=='default')document.documentElement.className='theme-'+D.th
 applyA11y();
 
 rNav('dashboard');V.dashboard();updateSidebarFW();updateThemeIcon();
+
+// ═══════════════════════════════════════════════════════════════
+// LIVE SECOPS SYSTEMS — Server-persisted, multi-user
+// ═══════════════════════════════════════════════════════════════
+
+// ─── API HELPER ──────────────────────────────────────────────
+async function _api(url,opts={}){try{const r=await fetch(url,{headers:{'Content-Type':'application/json',...(opts.headers||{})},...opts,body:opts.body?JSON.stringify(opts.body):undefined});return await r.json()}catch(e){console.error('API:',e);return{error:e.message}}}
+
+// ─── 1. LIVE INCIDENT WORKFLOW ──────────────────────────────
+let _liveIncidents=[];
+const PHASES=['preparation','identification','containment','eradication','recovery','lessons-learned'];
+const PHASE_LABELS={preparation:'Preparation',identification:'Identification',containment:'Containment',eradication:'Eradication',recovery:'Recovery','lessons-learned':'Lessons Learned'};
+
+V['multi-inc']=async()=>{
+  const el=document.getElementById('pg-multi-inc');
+  el.innerHTML='<div style="text-align:center;padding:40px;color:var(--t3)"><div class="ld-spin"></div>Loading incidents...</div>';
+  const data=await _api('/api/incidents');
+  if(data.error){el.innerHTML='<div class="card empty-st">Connect to server for live incidents, or use offline mode below.</div>';_fallbackMultiInc(el);return}
+  _liveIncidents=data.incidents||[];
+  const open=_liveIncidents.filter(i=>i.status!=='closed');
+  const crit=open.filter(i=>i.severity==='critical');
+  el.innerHTML=`<div class="pg-hd"><h2>Incident Command Centre</h2><p class="pg-sub">${open.length} active incidents${crit.length?' • <span style="color:var(--a)">'+crit.length+' critical</span>':''}</p></div>
+  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+    <button class="btn btn-p" onclick="declareIncidentLive()">🚨 Declare Incident</button>
+    <button class="btn" onclick="V['multi-inc']()">↻ Refresh</button></div>
+  <div style="display:grid;gap:8px;grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+    <div class="card v10-card" style="text-align:center"><div style="font-size:1.8rem;font-weight:800;color:var(--p)">${open.length}</div><div style="font-size:.7rem;color:var(--t3)">ACTIVE</div></div>
+    <div class="card v10-card" style="text-align:center"><div style="font-size:1.8rem;font-weight:800;color:var(--a)">${crit.length}</div><div style="font-size:.7rem;color:var(--t3)">CRITICAL</div></div>
+    <div class="card v10-card" style="text-align:center"><div style="font-size:1.8rem;font-weight:800;color:#f59e0b">${open.filter(i=>i.severity==='high').length}</div><div style="font-size:.7rem;color:var(--t3)">HIGH</div></div>
+    <div class="card v10-card" style="text-align:center"><div style="font-size:1.8rem;font-weight:800;color:var(--g)">${_liveIncidents.filter(i=>i.status==='closed').length}</div><div style="font-size:.7rem;color:var(--t3)">CLOSED</div></div></div>
+  ${_liveIncidents.length===0?'<div class="card empty-st">No incidents yet. Click "Declare Incident" to begin tracking.</div>':''}
+  <div style="display:grid;gap:10px">${_liveIncidents.map(inc=>{
+    const elapsed=Math.floor((Date.now()-new Date(inc.createdAt).getTime())/60000);
+    const hrs=Math.floor(elapsed/60);const mins=elapsed%60;
+    const tasks=inc.tasks||[];const done=tasks.filter(t=>t.status==='completed').length;
+    const pct=tasks.length?Math.round(done/tasks.length*100):0;
+    return'<div class="card v10-card" style="border-left:4px solid '+_sev(inc.severity)+';cursor:pointer" onclick="viewIncidentLive(\''+inc.id+'\')"><div style="display:flex;justify-content:space-between;align-items:center"><div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-family:monospace;font-weight:700;color:var(--p)">'+inc.id.slice(-8).toUpperCase()+'</span><span class="badge" style="background:'+_sev(inc.severity)+'22;color:'+_sev(inc.severity)+'">'+inc.severity+'</span><span class="badge" style="background:'+(inc.status==='closed'?'var(--g)':'var(--p)')+'22;color:'+(inc.status==='closed'?'var(--g)':'var(--p)')+'">'+inc.status+'</span><span class="badge" style="background:var(--bg2);color:var(--t2)">'+(PHASE_LABELS[inc.phase]||inc.phase)+'</span></div><h3 style="margin-top:4px">'+inc.title+'</h3><div style="font-size:.78rem;color:var(--t3)">IC: '+(inc.commander||'Unassigned')+' • '+(inc.user?.name||'')+'</div></div><div style="text-align:right;flex-shrink:0"><div style="font-size:1.4rem;font-weight:300;font-variant-numeric:tabular-nums;color:'+(inc.status==='closed'?'var(--g)':'var(--p)')+'">'+(inc.status==='closed'?'✓ Closed':hrs+'h '+mins+'m')+'</div>'+(tasks.length?'<div style="height:4px;width:80px;background:var(--b2);border-radius:2px;margin-top:4px"><div style="height:100%;width:'+pct+'%;background:var(--g);border-radius:2px"></div></div><div style="font-size:.65rem;color:var(--t3)">'+done+'/'+tasks.length+' tasks</div>':'')+'</div></div></div>'}).join('')}</div>`;
+};
+function _fallbackMultiInc(el){/* offline fallback — use localStorage data */
+  if(D.activeIncidents.length===0){D.activeIncidents=[{id:'INC-001',title:'Ransomware — Finance Dept',severity:'Critical',ic:'SOC Lead',phase:'Containment',started:new Date(Date.now()-3*3600000).toISOString(),status:'Active',analysts:2}];_s()}
+  el.innerHTML+='<div class="card" style="margin-top:12px"><h3>Offline Mode</h3><div style="display:grid;gap:8px;margin-top:8px">'+D.activeIncidents.map((inc,i)=>'<div class="card v10-card" style="border-left:4px solid '+_sev(inc.severity)+'"><div style="display:flex;justify-content:space-between"><div><strong>'+inc.id+'</strong> — '+inc.title+'</div><span class="badge" style="background:'+_sev(inc.severity)+'22;color:'+_sev(inc.severity)+'">'+inc.severity+'</span></div></div>').join('')+'</div>';
+}
+
+async function viewIncidentLive(id){
+  const data=await _api('/api/incidents?id='+id);
+  if(!data.incident){toast('Incident not found');return}
+  const inc=data.incident;const tasks=inc.tasks||[];const logs=inc.logs||[];
+  const done=tasks.filter(t=>t.status==='completed').length;
+  let logsHtml=logs.map(l=>'<div style="display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--bd);font-size:.8rem"><span style="color:var(--t3);flex-shrink:0;width:140px;font-variant-numeric:tabular-nums">'+new Date(l.createdAt).toLocaleString()+'</span><span style="font-weight:600;color:var(--p);flex-shrink:0">'+l.actor+'</span><span style="color:var(--t2)">'+(l.details||l.action)+'</span></div>').join('');
+  let tasksHtml=PHASES.map(phase=>{
+    const pTasks=tasks.filter(t=>t.phase===phase);if(!pTasks.length)return'';
+    return'<div style="margin-bottom:12px"><h4 style="font-size:.75rem;color:var(--ac);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">'+PHASE_LABELS[phase]+'</h4>'+pTasks.map(t=>'<div style="display:flex;align-items:center;gap:8px;padding:6px;background:var(--bg2);border-radius:6px;margin-bottom:4px">'+(t.status==='completed'?'<span style="color:var(--g);font-weight:700">✓</span>':'<button class="btn btn-sm btn-p" onclick="completeTaskLive(\''+inc.id+'\',\''+t.id+'\')">✓</button>')+'<span style="flex:1;font-size:.84rem;'+(t.status==='completed'?'text-decoration:line-through;color:var(--t3)':'')+'">'+t.action+'</span><span style="font-size:.72rem;color:var(--t3)">'+(t.assignee||'')+'</span>'+(t.completedBy?'<span style="font-size:.7rem;color:var(--g)">'+t.completedBy+' '+new Date(t.completedAt).toLocaleTimeString()+'</span>':'')+'</div>').join('')+'</div>'}).join('');
+  sModal('<div style="max-height:80vh;overflow-y:auto"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div><h3 style="margin-bottom:4px">'+inc.title+'</h3><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="badge" style="background:'+_sev(inc.severity)+'22;color:'+_sev(inc.severity)+'">'+inc.severity+'</span><span class="badge" style="background:var(--p)22;color:var(--p)">'+inc.status+'</span><span class="badge" style="background:var(--ac)22;color:var(--ac)">'+(PHASE_LABELS[inc.phase]||inc.phase)+'</span></div></div>'+(inc.status!=='closed'?'<div style="display:flex;gap:6px;flex-wrap:wrap"><select id="inc-phase" class="ipt" style="width:auto;font-size:.8rem" onchange="advancePhase(\''+inc.id+'\',this.value)">'+PHASES.map(p=>'<option value="'+p+'" '+(p===inc.phase?'selected':'')+'>'+PHASE_LABELS[p]+'</option>').join('')+'</select><button class="btn btn-sm" style="color:var(--a);border-color:var(--a)" onclick="closeIncLive(\''+inc.id+'\')">Close Incident</button></div>':'')+'</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div><h4 style="font-size:.8rem;margin-bottom:8px">Tasks ('+done+'/'+tasks.length+')</h4>'+(tasksHtml||'<div style="font-size:.82rem;color:var(--t3)">No tasks yet</div>')+'<button class="btn btn-sm" style="margin-top:8px" onclick="addTaskLive(\''+inc.id+'\')">+ Add Task</button></div><div><h4 style="font-size:.8rem;margin-bottom:8px">Activity Log</h4><div style="max-height:300px;overflow-y:auto">'+(logsHtml||'<div style="font-size:.82rem;color:var(--t3)">No logs yet</div>')+'</div><div style="display:flex;gap:6px;margin-top:8px"><input class="ipt" id="inc-log-note" placeholder="Add log entry..." style="flex:1;font-size:.82rem"><button class="btn btn-sm btn-p" onclick="addIncLog(\''+inc.id+'\')">Add</button></div></div></div></div>');
+}
+
+function declareIncidentLive(){
+  const roles=allRoles().map(r=>r.title);const pbs=D.playbooks||[];
+  sModal('<h3>🚨 Declare Incident</h3><label class="lb">Title</label><input class="ipt" id="di-title" placeholder="e.g. Ransomware detected on finance endpoints"><label class="lb">Description</label><textarea class="ipt" id="di-desc" rows="2" placeholder="Brief description"></textarea><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="lb">Severity</label><select class="ipt" id="di-sev"><option value="critical">Critical</option><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select></div><div><label class="lb">Incident Commander</label><select class="ipt" id="di-ic"><option value="">Assign later</option>'+roles.map(r=>'<option>'+r+'</option>').join('')+'</select></div></div><label class="lb">Link Playbook (auto-populate tasks)</label><select class="ipt" id="di-pb"><option value="">None</option>'+pbs.map((p,i)=>'<option value="'+i+'">'+p.name+'</option>').join('')+'</select><div style="margin-top:12px;text-align:right"><button class="btn btn-p" onclick="submitIncLive()">Declare Incident</button></div>');
+}
+
+async function submitIncLive(){
+  const title=_v('di-title');if(!title){toast('Title required');return}
+  const pbIdx=_v('di-pb');let tasks=[];
+  if(pbIdx!==''&&D.playbooks[pbIdx]){const pb=D.playbooks[pbIdx];(pb.phases||[]).forEach(ph=>{(ph.actions||[]).forEach(a=>{tasks.push({phase:ph.name?.toLowerCase().replace(/\s+/g,'-')||'identification',action:typeof a==='string'?a:a.text||a.action||'',assignee:typeof a==='string'?'':a.role||''})})});}
+  const res=await _api('/api/incidents',{method:'POST',body:{action:'create',title,severity:_v('di-sev'),description:_v('di-desc'),commander:_v('di-ic'),playbookRef:pbIdx!==''?D.playbooks[pbIdx]?.name:'',tasks}});
+  cModal();if(res.incident){toast('🚨 Incident declared');V['multi-inc']()}else toast('Error: '+(res.error||'Unknown'));
+}
+async function completeTaskLive(incId,taskId){await _api('/api/incidents',{method:'POST',body:{action:'completeTask',incidentId:incId,taskId}});viewIncidentLive(incId);toast('Task completed')}
+async function advancePhase(incId,phase){await _api('/api/incidents',{method:'POST',body:{action:'updateStatus',incidentId:incId,phase}});toast('Phase → '+PHASE_LABELS[phase])}
+async function closeIncLive(incId){await _api('/api/incidents',{method:'POST',body:{action:'updateStatus',incidentId:incId,status:'closed'}});cModal();V['multi-inc']();toast('Incident closed')}
+async function addTaskLive(incId){const phase=document.getElementById('inc-phase')?.value||'identification';const action=prompt('Task action:');if(!action)return;const assignee=prompt('Assignee (optional):');await _api('/api/incidents',{method:'POST',body:{action:'addTask',incidentId:incId,phase,taskAction:action,assignee:assignee||''}});viewIncidentLive(incId);toast('Task added')}
+async function addIncLog(incId){const note=_v('inc-log-note');if(!note)return;await _api('/api/incidents',{method:'POST',body:{action:'addLog',incidentId:incId,details:note}});viewIncidentLive(incId)}
+
+// ─── 2. ALERT TRIAGE QUEUE ──────────────────────────────────
+let _liveAlerts=[];let _alertFilter={status:'all',severity:'all',source:'all'};
+
+V['auto-route']=async()=>{
+  const el=document.getElementById('pg-auto-route');
+  el.innerHTML='<div style="text-align:center;padding:40px;color:var(--t3)"><div class="ld-spin"></div>Loading alerts...</div>';
+  const q=new URLSearchParams();
+  if(_alertFilter.status!=='all')q.set('status',_alertFilter.status);
+  if(_alertFilter.severity!=='all')q.set('severity',_alertFilter.severity);
+  if(_alertFilter.source!=='all')q.set('source',_alertFilter.source);
+  const data=await _api('/api/alerts?'+q.toString());
+  if(data.error){el.innerHTML='<div class="card empty-st">Server unavailable — showing routing rules instead.</div>';_fallbackAutoRoute(el);return}
+  _liveAlerts=data.alerts||[];const stats=data.stats||{};
+  const sources=Object.keys(stats.sources||{});
+  el.innerHTML='<div class="pg-hd"><h2>Alert Triage Queue</h2><p class="pg-sub">'+(stats.new||0)+' new alerts • '+(stats.claimed||0)+' in progress'+(stats.critical?' • <span style="color:var(--a)">'+stats.critical+' critical</span>':'')+'</p></div><div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"><button class="btn btn-p" onclick="createAlertManual()">+ Manual Alert</button><button class="btn" onclick="syncAlertsLive()">⟳ Sync Integrations</button><button class="btn" onclick="V[\'auto-route\']()">↻ Refresh</button></div><div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap"><select class="ipt" style="width:auto;font-size:.8rem" onchange="_alertFilter.status=this.value;V[\'auto-route\']()"><option value="all">All Status</option><option value="new" '+(_alertFilter.status==='new'?'selected':'')+'>New</option><option value="claimed" '+(_alertFilter.status==='claimed'?'selected':'')+'>Claimed</option><option value="escalated" '+(_alertFilter.status==='escalated'?'selected':'')+'>Escalated</option></select><select class="ipt" style="width:auto;font-size:.8rem" onchange="_alertFilter.severity=this.value;V[\'auto-route\']()"><option value="all">All Severity</option><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>'+(sources.length?'<select class="ipt" style="width:auto;font-size:.8rem" onchange="_alertFilter.source=this.value;V[\'auto-route\']()"><option value="all">All Sources</option>'+sources.map(s=>'<option value="'+s+'">'+s+' ('+stats.sources[s]+')</option>').join('')+'</select>':'')+'</div>'+(_liveAlerts.length===0?'<div class="card empty-st">No alerts matching filters. '+(stats.total===0?'Connect integrations or create alerts manually.':'Adjust filters.')+'</div>':'<div style="display:grid;gap:6px">'+_liveAlerts.map(a=>{
+    const age=Math.floor((Date.now()-new Date(a.createdAt).getTime())/60000);
+    const ageStr=age<60?age+'m':Math.floor(age/60)+'h '+age%60+'m';
+    return'<div class="card v10-card" style="border-left:4px solid '+_sev(a.severity)+';padding:10px 14px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span class="badge" style="background:'+_sev(a.severity)+'22;color:'+_sev(a.severity)+';font-size:.7rem">'+a.severity+'</span><span class="badge" style="background:var(--bg2);color:var(--t2);font-size:.7rem">'+a.source+'</span>'+(a.status==='claimed'?'<span class="badge" style="background:var(--p)22;color:var(--p);font-size:.7rem">👤 '+a.claimedBy+'</span>':'')+(a.status==='escalated'?'<span class="badge" style="background:var(--a)22;color:var(--a);font-size:.7rem">🔺 Escalated</span>':'')+(a.mitreTactic?'<span class="badge" style="background:#8b5cf622;color:#8b5cf6;font-size:.65rem">'+a.mitreTactic+'</span>':'')+'</div><div style="font-weight:600;font-size:.88rem;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+a.title+'</div>'+(a.affectedAsset?'<div style="font-size:.72rem;color:var(--t3)">Asset: '+a.affectedAsset+'</div>':'')+'</div><div style="flex-shrink:0;display:flex;gap:4px;align-items:center"><span style="font-size:.72rem;color:var(--t3);font-variant-numeric:tabular-nums">'+ageStr+'</span>'+(a.status==='new'?'<button class="btn btn-sm btn-p" onclick="claimAlert(\''+a.id+'\')" title="Claim">👤</button>':'')+(a.status==='claimed'?'<button class="btn btn-sm" onclick="resolveAlert(\''+a.id+'\')" title="Resolve">✓</button><button class="btn btn-sm" style="color:var(--a);border-color:var(--a)" onclick="escalateAlertUI(\''+a.id+'\')" title="Escalate">🔺</button>':'')+(a.status==='new'||a.status==='claimed'?'<button class="btn btn-sm" onclick="fpAlert(\''+a.id+'\')" title="False Positive" style="font-size:.72rem">FP</button>':'')+'</div></div></div>'}).join('')+'</div>');
+};
+function _fallbackAutoRoute(el){/* show static routing rules if no server */
+  const rules=[{pattern:'ransomware|encrypted|ransom note',scenario:'Ransomware',sev:'Critical'},{pattern:'phishing|suspicious email',scenario:'Phishing',sev:'High'},{pattern:'brute force|failed login',scenario:'Credential Attack',sev:'High'},{pattern:'data exfiltration|data leak',scenario:'Data Breach',sev:'Critical'}];
+  el.innerHTML+='<div class="card" style="margin-top:12px"><h3>Alert Routing Rules (Offline)</h3><table class="tbl"><thead><tr><th>Pattern</th><th>Routes To</th><th>Severity</th></tr></thead><tbody>'+rules.map(r=>'<tr><td style="font-family:monospace;font-size:.72rem;color:var(--p)">'+r.pattern+'</td><td>'+r.scenario+'</td><td><span class="badge" style="background:'+_sev(r.sev)+'22;color:'+_sev(r.sev)+'">'+r.sev+'</span></td></tr>').join('')+'</tbody></table></div>';
+}
+async function claimAlert(id){await _api('/api/alerts',{method:'POST',body:{action:'claim',alertId:id}});V['auto-route']()}
+async function resolveAlert(id){await _api('/api/alerts',{method:'POST',body:{action:'resolve',alertId:id,resolution:'resolved'}});V['auto-route']();toast('Alert resolved')}
+async function fpAlert(id){await _api('/api/alerts',{method:'POST',body:{action:'resolve',alertId:id,resolution:'false_positive'}});V['auto-route']();toast('Marked false positive')}
+async function escalateAlertUI(id){
+  const incData=await _api('/api/incidents');const open=(incData.incidents||[]).filter(i=>i.status!=='closed');
+  sModal('<h3>Escalate to Incident</h3><label class="lb">Link to existing incident</label><select class="ipt" id="esc-inc"><option value="">Create new incident</option>'+open.map(i=>'<option value="'+i.id+'">'+i.title+'</option>').join('')+'</select><div style="margin-top:12px;text-align:right"><button class="btn btn-p" onclick="submitEscAlert(\''+id+'\')">Escalate</button></div>');
+}
+async function submitEscAlert(alertId){const incId=_v('esc-inc');if(incId){await _api('/api/alerts',{method:'POST',body:{action:'escalate',alertId,incidentId:incId}});cModal();V['auto-route']();toast('Alert escalated')}else{cModal();declareIncidentLive()}}
+function createAlertManual(){
+  sModal('<h3>Create Alert</h3><label class="lb">Title</label><input class="ipt" id="ca-title" placeholder="Alert title"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="lb">Source</label><input class="ipt" id="ca-source" placeholder="e.g. Defender" value="manual"></div><div><label class="lb">Severity</label><select class="ipt" id="ca-sev"><option value="critical">Critical</option><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select></div></div><label class="lb">Description</label><textarea class="ipt" id="ca-desc" rows="2"></textarea><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="lb">MITRE Tactic</label><input class="ipt" id="ca-tactic" placeholder="e.g. Initial Access"></div><div><label class="lb">Affected Asset</label><input class="ipt" id="ca-asset" placeholder="e.g. WS-FIN-042"></div></div><div style="margin-top:12px;text-align:right"><button class="btn btn-p" onclick="submitAlertManual()">Create Alert</button></div>');
+}
+async function submitAlertManual(){const title=_v('ca-title');if(!title){toast('Title required');return}await _api('/api/alerts',{method:'POST',body:{action:'create',title,source:_v('ca-source')||'manual',severity:_v('ca-sev'),description:_v('ca-desc'),mitreTactic:_v('ca-tactic'),affectedAsset:_v('ca-asset')}});cModal();V['auto-route']();toast('Alert created')}
+async function syncAlertsLive(){toast('Syncing from integrations...');const data=await _api('/api/connections');const conns=(data.integrations||[]).filter(i=>i.enabled&&i.status==='connected');if(!conns.length){toast('No connected integrations — configure in Settings');return}let total=0;for(const c of conns){const r=await _api('/api/connections',{method:'POST',body:{action:'sync',name:c.name}});total+=(r.synced||0)}toast('Synced '+total+' alerts from '+conns.length+' integrations');V['auto-route']()}
+
+// ─── 3. SHIFT HANDOFF (SERVER-PERSISTED) ────────────────────
+V.handoff=async()=>{
+  const el=document.getElementById('pg-handoff');
+  el.innerHTML='<div style="text-align:center;padding:40px;color:var(--t3)"><div class="ld-spin"></div>Loading handoffs...</div>';
+  const data=await _api('/api/handoffs');
+  if(data.error){el.innerHTML='<div class="card empty-st">Server unavailable for live handoffs.</div>';return}
+  const handoffs=data.handoffs||[];
+  el.innerHTML='<div class="pg-hd"><h2>Shift Handoff</h2><p class="pg-sub">Server-persisted shift change documents with auto-gathered incident state</p></div><button class="btn btn-p" onclick="createHandoffLive()" style="margin-bottom:16px">📋 Create Handoff</button>'+(handoffs.length===0?'<div class="card empty-st">No handoff documents yet. Create one when handing over to the next shift.</div>':handoffs.map(h=>{
+    const age=Math.floor((Date.now()-new Date(h.createdAt).getTime())/3600000);
+    const activeInc=(h.activeIncidents||[]);const pendAl=(h.pendingAlerts||[]);
+    return'<div class="card v10-card" style="margin-bottom:10px;border-left:4px solid '+(h.acknowledged?'var(--g)':'var(--p)')+'"><div style="display:flex;justify-content:space-between;align-items:start"><div><div style="display:flex;align-items:center;gap:8px"><strong>'+h.fromAnalyst+'</strong><span style="color:var(--t3)">→</span><strong>'+h.toShift+'</strong><span class="badge" style="background:'+(h.priority==='high'?'var(--a)':'var(--p)')+'22;color:'+(h.priority==='high'?'var(--a)':'var(--p)')+'">'+h.priority+'</span>'+(h.acknowledged?'<span class="badge" style="background:var(--g)22;color:var(--g)">✓ Ack by '+h.acknowledgedBy+'</span>':'<span class="badge" style="background:#f59e0b22;color:#f59e0b">Pending ack</span>')+'</div><div style="font-size:.78rem;color:var(--t3)">'+new Date(h.createdAt).toLocaleString()+' ('+age+'h ago)</div><div style="font-size:.82rem;margin-top:6px">'+h.notes+'</div><div style="display:flex;gap:12px;margin-top:6px;font-size:.78rem"><span style="color:'+(activeInc.length?'var(--a)':'var(--g)')+'">🚨 '+activeInc.length+' active incidents</span><span style="color:'+(pendAl.length?'#f59e0b':'var(--g)')+'">🔔 '+pendAl.length+' pending alerts</span></div></div><div style="display:flex;gap:6px">'+(!h.acknowledged?'<button class="btn btn-sm btn-p" onclick="ackHandoff(\''+h.id+'\')">✓ Acknowledge</button>':'')+'<button class="btn btn-sm" onclick="viewHandoffDetail(\''+h.id+'\')">View</button></div></div></div>'}).join(''));
+};
+function createHandoffLive(){sModal('<h3>📋 Create Shift Handoff</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><label class="lb">Current Shift</label><input class="ipt" id="ho-from" value="Day Shift"></div><div><label class="lb">Incoming Shift</label><input class="ipt" id="ho-to" value="Night Shift"></div></div><label class="lb">Priority</label><select class="ipt" id="ho-pri"><option value="normal">Normal</option><option value="high">High — Active Incidents</option></select><label class="lb">Handoff Notes</label><textarea class="ipt" id="ho-notes" rows="4" placeholder="Key items for incoming shift..."></textarea><div style="font-size:.78rem;color:var(--t3);margin-top:6px">Active incidents and pending alerts are automatically gathered.</div><div style="margin-top:12px;text-align:right"><button class="btn btn-p" onclick="submitHandoff()">Create Handoff</button></div>')}
+async function submitHandoff(){const notes=_v('ho-notes');if(!notes){toast('Notes required');return}await _api('/api/handoffs',{method:'POST',body:{action:'create',fromShift:_v('ho-from'),toShift:_v('ho-to'),priority:_v('ho-pri'),notes}});cModal();V.handoff();toast('Handoff created with live data');awardXP(10,'Created handoff')}
+async function ackHandoff(id){await _api('/api/handoffs',{method:'POST',body:{action:'acknowledge',handoffId:id}});V.handoff();toast('Handoff acknowledged')}
+async function viewHandoffDetail(id){
+  const data=await _api('/api/handoffs');const h=(data.handoffs||[]).find(x=>x.id===id);if(!h)return;
+  const incs=(h.activeIncidents||[]);const alerts=(h.pendingAlerts||[]);
+  sModal('<h3>Shift Handoff — '+h.fromAnalyst+'</h3><div style="display:grid;gap:12px;margin:12px 0;max-height:60vh;overflow-y:auto"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="card" style="padding:10px"><div style="font-size:.7rem;color:var(--t3)">FROM</div><strong>'+h.fromAnalyst+'</strong> ('+h.fromShift+')</div><div class="card" style="padding:10px"><div style="font-size:.7rem;color:var(--t3)">TO</div><strong>'+h.toShift+'</strong></div></div><div><strong>Notes:</strong><div style="background:var(--bg2);padding:10px;border-radius:8px;margin-top:4px;font-size:.88rem;white-space:pre-wrap">'+h.notes+'</div></div><div><strong>Active Incidents ('+incs.length+')</strong>'+(incs.length?incs.map(i=>'<div class="card" style="padding:8px;margin-top:4px;border-left:3px solid '+_sev(i.severity)+'"><strong>'+i.title+'</strong> <span class="badge" style="background:'+_sev(i.severity)+'22;color:'+_sev(i.severity)+'">'+i.severity+'</span><div style="font-size:.78rem;color:var(--t3)">Phase: '+i.phase+' • IC: '+(i.commander||'N/A')+'</div></div>').join(''):'<div style="color:var(--g);font-size:.82rem;margin-top:4px">✓ No active incidents</div>')+'</div><div><strong>Pending Alerts ('+alerts.length+')</strong>'+(alerts.length?'<div style="max-height:200px;overflow-y:auto">'+alerts.slice(0,20).map(a=>'<div style="display:flex;gap:8px;padding:4px 0;font-size:.82rem;border-bottom:1px solid var(--bd)"><span class="badge" style="background:'+_sev(a.severity)+'22;color:'+_sev(a.severity)+';font-size:.68rem">'+a.severity+'</span><span>'+a.title+'</span><span style="color:var(--t3)">'+a.source+'</span></div>').join('')+'</div>':'<div style="color:var(--g);font-size:.82rem;margin-top:4px">✓ No pending alerts</div>')+'</div></div>');
+}
+
+// ─── 4. ON-CALL ROTATION MANAGEMENT ─────────────────────────
+V['esc-matrix']=async()=>{
+  const el=document.getElementById('pg-esc-matrix');
+  el.innerHTML='<div style="text-align:center;padding:40px;color:var(--t3)"><div class="ld-spin"></div>Loading...</div>';
+  const data=await _api('/api/oncall');
+  const schedules=data.schedules||[];
+  const rules=D.escalationRules||[];
+  el.innerHTML='<div class="pg-hd"><h2>On-Call & Escalation</h2><p class="pg-sub">Rotation schedules, escalation chains, and on-call management</p></div><div style="display:flex;gap:8px;margin-bottom:16px"><button class="btn btn-p" onclick="createOnCall()">+ New Schedule</button><button class="btn" onclick="V[\'esc-matrix\']()">↻ Refresh</button></div>'+(schedules.length?'<div style="display:grid;gap:12px;margin-bottom:24px">'+schedules.map(s=>{
+    const members=(s.schedule?.members||[]);const chain=(s.escalationChain||[]);
+    return'<div class="card v10-card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div><h3>'+s.name+'</h3><div style="font-size:.78rem;color:var(--t3)">'+s.rotationType+' rotation • '+members.length+' members'+(s.nextRotation?' • Next: '+new Date(s.nextRotation).toLocaleDateString():'')+'</div></div><div style="display:flex;gap:6px"><button class="btn btn-sm btn-p" onclick="rotateOC(\''+s.id+'\')">⟳ Rotate</button><button class="btn btn-sm" style="color:var(--a);border-color:var(--a)" onclick="deleteOC(\''+s.id+'\')">✗</button></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div style="padding:12px;background:var(--bg2);border-radius:8px;text-align:center;border:2px solid var(--p)"><div style="font-size:.7rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px">PRIMARY ON-CALL</div><div style="font-size:1.1rem;font-weight:700;margin-top:4px;color:var(--p)">'+s.currentPrimary+'</div></div><div style="padding:12px;background:var(--bg2);border-radius:8px;text-align:center;border:1px solid var(--bd)"><div style="font-size:.7rem;color:var(--t3);text-transform:uppercase;letter-spacing:1px">SECONDARY</div><div style="font-size:1.1rem;font-weight:700;margin-top:4px">'+(s.currentSecondary||'None')+'</div></div></div>'+(chain.length?'<div style="margin-top:10px"><div style="font-size:.72rem;color:var(--t3);font-weight:600;margin-bottom:6px">ESCALATION CHAIN</div><div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">'+chain.map((c,i)=>'<span style="padding:4px 10px;background:var(--bg2);border-radius:6px;font-size:.8rem;font-weight:600">'+(c.name||c)+'</span>'+(i<chain.length-1?'<span style="color:var(--t3)">→</span>':'')).join('')+'</div></div>':'')+'<div style="margin-top:10px;display:flex;gap:4px;flex-wrap:wrap">'+members.map(m=>'<span style="padding:3px 8px;background:var(--p)12;color:var(--p);border-radius:12px;font-size:.78rem">'+m+'</span>').join('')+'</div></div>'}).join('')+'</div>':'')+
+  '<h3 style="margin-bottom:10px">Time-Based Escalation Rules</h3><div class="card"><table class="tbl"><thead><tr><th>Severity</th><th>T+0</th><th>T+15 min</th><th>T+30 min</th><th>T+60 min</th></tr></thead><tbody>'+rules.map(r=>{const col=_sev(r.severity);return'<tr><td><span class="badge" style="background:'+col+'22;color:'+col+'">'+r.severity+'</span></td>'+r.chain.map(c=>'<td style="font-size:.82rem">'+c+'</td>').join('')+'</tr>'}).join('')+'</tbody></table></div>';
+};
+function createOnCall(){sModal('<h3>New On-Call Schedule</h3><label class="lb">Schedule Name</label><input class="ipt" id="oc-name" placeholder="e.g. SOC Tier 1 On-Call"><label class="lb">Rotation Type</label><select class="ipt" id="oc-type"><option value="weekly">Weekly</option><option value="daily">Daily</option><option value="biweekly">Bi-weekly</option></select><label class="lb">Team Members (comma-separated)</label><input class="ipt" id="oc-members" placeholder="e.g. Alice, Bob, Charlie"><label class="lb">Escalation Chain (comma-separated)</label><input class="ipt" id="oc-chain" placeholder="e.g. SOC Lead, IR Manager, CISO"><div style="margin-top:12px;text-align:right"><button class="btn btn-p" onclick="submitOC()">Create Schedule</button></div>')}
+async function submitOC(){const name=_v('oc-name');if(!name){toast('Name required');return}const members=_v('oc-members').split(',').map(m=>m.trim()).filter(Boolean);const chain=_v('oc-chain').split(',').map(c=>c.trim()).filter(Boolean);if(members.length<2){toast('Need 2+ members');return}await _api('/api/oncall',{method:'POST',body:{action:'create',name,rotationType:_v('oc-type'),currentPrimary:members[0],currentSecondary:members[1]||null,schedule:{members},escalationChain:chain}});cModal();V['esc-matrix']();toast('Schedule created')}
+async function rotateOC(id){await _api('/api/oncall',{method:'POST',body:{action:'rotate',id}});V['esc-matrix']();toast('Rotation advanced')}
+async function deleteOC(id){if(!confirm('Delete this schedule?'))return;await _api('/api/oncall?id='+id,{method:'DELETE'});V['esc-matrix']();toast('Deleted')}
+
+// ─── 5. SETTINGS + TOOL CONNECTIONS HUB ─────────────────────
+const _origSettings=V.settings;
+V.settings=async()=>{
+  const el=document.getElementById('pg-settings');
+  let intHtml='<div class="card empty-st">Loading integrations...</div>';
+  try{
+    const data=await _api('/api/connections');
+    const integrations=data.integrations||[];const supported=data.supported||[];
+    intHtml='<div style="display:grid;gap:8px">'+supported.map(s=>{
+      const ext=integrations.find(i=>i.type===s.type);const connected=ext?.status==='connected';const configured=!!ext;
+      return'<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--bg2);border-radius:8px;border-left:3px solid '+(connected?'var(--g)':configured?'#f59e0b':'var(--bd)')+'"><div><strong>'+s.name+'</strong><div style="font-size:.78rem;color:var(--t3)">'+s.desc+'</div>'+(ext?.lastSync?'<div style="font-size:.72rem;color:var(--g);margin-top:2px">Last sync: '+new Date(ext.lastSync).toLocaleString()+'</div>':'')+(ext?.lastError?'<div style="font-size:.72rem;color:var(--a);margin-top:2px">Error: '+ext.lastError+'</div>':'')+'</div><div style="display:flex;gap:6px">'+(connected?'<button class="btn btn-sm" onclick="syncInt(\''+s.name+'\')">⟳ Sync</button>':'')+'<button class="btn btn-sm '+(configured?'':'btn-p')+'" onclick="cfgInt(\''+s.type+'\',\''+s.name+'\')">'+(configured?'Edit':'Connect')+'</button></div></div>'}).join('')+'</div>';
+  }catch(e){intHtml='<div class="card empty-st">Could not load integrations.</div>'}
+  const apiKey=D.apiKey||'';
+  el.innerHTML='<div class="pg-hd"><h2>Settings & Integrations</h2><p class="pg-sub">API keys, tool connections, and platform configuration</p></div><div style="display:grid;gap:16px"><div class="card"><h3 style="margin-bottom:10px">🔑 AI Configuration</h3><label class="lb">Anthropic API Key</label><input class="ipt" type="password" id="s-api" value="'+apiKey+'" placeholder="sk-ant-..."><button class="btn btn-p" style="margin-top:8px" onclick="D.apiKey=_v(\'s-api\');_s();toast(\'Saved\')">Save Settings</button></div><div class="card"><h3 style="margin-bottom:10px">🔗 Security Tool Connections</h3><p style="font-size:.82rem;color:var(--t3);margin-bottom:12px">Connect your security stack to pull live alerts and data into SecOpsHQ.</p>'+intHtml+'</div><div class="card"><h3 style="margin-bottom:10px">👤 Admin</h3><button class="btn" onclick="window.open(\'/admin\',\'_blank\')">Open Admin Portal</button></div></div>';
+};
+function cfgInt(type,name){
+  const FIELDS={defender:'<label class="lb">Tenant ID</label><input class="ipt" id="int-tenantId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"><label class="lb">Client ID</label><input class="ipt" id="int-clientId" placeholder="App registration client ID"><label class="lb">Client Secret</label><input class="ipt" type="password" id="int-clientSecret" placeholder="Client secret">',tenable:'<label class="lb">API Keys (accessKey;secretKey)</label><input class="ipt" id="int-apiKey" placeholder="accessKey;secretKey">',sentinel:'<label class="lb">Tenant ID</label><input class="ipt" id="int-tenantId"><label class="lb">Client ID</label><input class="ipt" id="int-clientId"><label class="lb">Client Secret</label><input class="ipt" type="password" id="int-clientSecret">',crowdstrike:'<label class="lb">Client ID</label><input class="ipt" id="int-clientId"><label class="lb">Client Secret</label><input class="ipt" type="password" id="int-clientSecret">',zscaler:'<label class="lb">API URL</label><input class="ipt" id="int-apiUrl" placeholder="https://zsapi.zscaler.net"><label class="lb">API Key</label><input class="ipt" id="int-apiKey">',splunk:'<label class="lb">Splunk URL</label><input class="ipt" id="int-apiUrl" placeholder="https://splunk:8089"><label class="lb">Auth Token</label><input class="ipt" id="int-apiKey">',pagerduty:'<label class="lb">API Token</label><input class="ipt" id="int-apiKey" placeholder="REST API v2 token">',jira:'<label class="lb">Jira URL</label><input class="ipt" id="int-apiUrl" placeholder="https://company.atlassian.net"><label class="lb">API Token</label><input class="ipt" id="int-apiKey">',slack:'<label class="lb">Webhook URL</label><input class="ipt" id="int-apiUrl" placeholder="https://hooks.slack.com/services/...">',teams:'<label class="lb">Webhook URL</label><input class="ipt" id="int-apiUrl" placeholder="https://outlook.office.com/webhook/...">'};
+  sModal('<h3>Configure '+name+'</h3>'+(FIELDS[type]||'<p>No configuration needed.</p>')+'<div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end"><button class="btn" onclick="testInt(\''+name+'\')">Test Connection</button><button class="btn btn-p" onclick="saveInt(\''+type+'\',\''+name+'\')">Save & Connect</button></div>');
+}
+async function saveInt(type,name){const body={action:'configure',type,name,tenantId:document.getElementById('int-tenantId')?.value,clientId:document.getElementById('int-clientId')?.value,clientSecret:document.getElementById('int-clientSecret')?.value,apiKey:document.getElementById('int-apiKey')?.value,apiUrl:document.getElementById('int-apiUrl')?.value,enabled:true};const res=await _api('/api/connections',{method:'POST',body});if(res.error)toast('Error: '+res.error);else{cModal();V.settings();toast(name+' configured')}}
+async function testInt(name){toast('Testing...');const res=await _api('/api/connections',{method:'POST',body:{action:'test',name}});if(res.result?.ok)toast('✓ '+res.result.message);else toast('✗ '+(res.result?.message||'Failed'))}
+async function syncInt(name){toast('Syncing...');const res=await _api('/api/connections',{method:'POST',body:{action:'sync',name}});if(res.error)toast('Error: '+res.error);else toast('Synced '+(res.synced||0)+' alerts')}
+
+// ─── 6. LIVE DASHBOARD OVERLAY ──────────────────────────────
+const _origDash=V.dashboard;
+V.dashboard=async function(){if(_origDash)_origDash();try{
+  const[incD,alD]=await Promise.all([_api('/api/incidents'),_api('/api/alerts?status=new')]);
+  const openI=(incD.incidents||[]).filter(i=>i.status!=='closed').length;const newA=alD.stats?.new||0;const critA=alD.stats?.critical||0;
+  const el=document.getElementById('pg-dashboard');
+  if(el&&(openI||newA)){const bar=document.createElement('div');bar.style.cssText='display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap';
+    bar.innerHTML=(openI?'<div onclick="nav(\'multi-inc\')" style="cursor:pointer;flex:1;min-width:140px;padding:10px 14px;background:linear-gradient(135deg,#ef444420,#ef444408);border:1px solid #ef444430;border-radius:10px"><div style="font-size:.7rem;color:#ef4444;text-transform:uppercase;letter-spacing:1px;font-weight:600">Active Incidents</div><div style="font-size:1.6rem;font-weight:800;color:#ef4444">'+openI+'</div></div>':'')+(newA?'<div onclick="nav(\'auto-route\')" style="cursor:pointer;flex:1;min-width:140px;padding:10px 14px;background:linear-gradient(135deg,#f59e0b20,#f59e0b08);border:1px solid #f59e0b30;border-radius:10px"><div style="font-size:.7rem;color:#f59e0b;text-transform:uppercase;letter-spacing:1px;font-weight:600">Pending Alerts</div><div style="font-size:1.6rem;font-weight:800;color:#f59e0b">'+newA+(critA?' <span style="font-size:.8rem">('+critA+' crit)</span>':'')+'</div></div>':'');
+    const anchor=el.querySelector('.v10-kpi')||el.children[1];if(anchor)el.insertBefore(bar,anchor);else el.prepend(bar)}
+}catch(e){/* live stats optional */}};
+
+// ─── LOADING SPINNER CSS ─────────────────────────────────────
+(function(){if(!document.getElementById('live-ops-css')){const s=document.createElement('style');s.id='live-ops-css';s.textContent='.ld-spin{width:24px;height:24px;border:3px solid var(--bd);border-top-color:var(--p);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto}';document.head.appendChild(s)}})();
+
 </script>
 </body>
 </html>

@@ -126,6 +126,7 @@ model User {
   timelineEntries TimelineEntry[]
   evidence        Evidence[]
   invites         Invite[]
+  incidents       Incident[]
   @@index([email])
   @@index([role])
 }
@@ -444,4 +445,136 @@ model Invite {
   createdAt   DateTime  @default(now())
   @@index([token])
   @@index([email])
+}
+
+// ═══ LIVE SECOPS MODELS ═══════════════════════════════════════
+
+model Incident {
+  id            String          @id @default(cuid())
+  title         String
+  severity      String          @default("medium")
+  status        String          @default("open")
+  phase         String          @default("identification")
+  playbookRef   String?
+  commander     String?
+  description   String?
+  source        String?
+  affectedAssets String[]       @default([])
+  tags          String[]        @default([])
+  slaDeadline   DateTime?
+  closedAt      DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  userId        String
+  user          User            @relation(fields: [userId], references: [id])
+  tasks         IncidentTask[]
+  logs          IncidentLog[]
+  alerts        Alert[]
+  @@index([userId])
+  @@index([status])
+  @@index([severity])
+}
+
+model IncidentTask {
+  id          String    @id @default(cuid())
+  incidentId  String
+  incident    Incident  @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  phase       String
+  action      String
+  assignee    String?
+  status      String    @default("pending")
+  priority    Int       @default(0)
+  completedAt DateTime?
+  completedBy String?
+  notes       String?
+  createdAt   DateTime  @default(now())
+  @@index([incidentId])
+}
+
+model IncidentLog {
+  id          String   @id @default(cuid())
+  incidentId  String
+  incident    Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  action      String
+  actor       String
+  phase       String?
+  details     String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  @@index([incidentId])
+  @@index([createdAt])
+}
+
+model Alert {
+  id          String   @id @default(cuid())
+  title       String
+  source      String
+  severity    String   @default("medium")
+  status      String   @default("new")
+  claimedBy   String?
+  incidentId  String?
+  incident    Incident? @relation(fields: [incidentId], references: [id])
+  description String?
+  rawData     Json?
+  mitreTactic String?
+  mitreTech   String?
+  affectedAsset String?
+  resolvedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@index([status])
+  @@index([severity])
+  @@index([source])
+  @@index([claimedBy])
+}
+
+model ShiftHandoff {
+  id              String   @id @default(cuid())
+  fromAnalyst     String
+  fromShift       String
+  toShift         String
+  activeIncidents Json?
+  pendingAlerts   Json?
+  notes           String
+  priority        String   @default("normal")
+  acknowledged    Boolean  @default(false)
+  acknowledgedBy  String?
+  acknowledgedAt  DateTime?
+  createdAt       DateTime @default(now())
+  @@index([createdAt])
+  @@index([acknowledged])
+}
+
+model OnCallSchedule {
+  id          String   @id @default(cuid())
+  name        String
+  teamId      String?
+  schedule    Json
+  currentPrimary   String
+  currentSecondary String?
+  escalationChain  Json?
+  rotationType     String  @default("weekly")
+  nextRotation     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Integration {
+  id          String   @id @default(cuid())
+  name        String
+  type        String
+  apiUrl      String?
+  apiKey      String?
+  tenantId    String?
+  clientId    String?
+  clientSecret String?
+  extraConfig Json?
+  enabled     Boolean  @default(false)
+  lastSync    DateTime?
+  lastError   String?
+  syncInterval Int     @default(300)
+  status      String   @default("disconnected")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@unique([name])
 }
