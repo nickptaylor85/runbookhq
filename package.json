@@ -1,6 +1,6 @@
 {
   "name": "secops-dashboard",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -10,7 +10,8 @@
   "dependencies": {
     "next": "^15.1.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "@vercel/kv": "^2.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
