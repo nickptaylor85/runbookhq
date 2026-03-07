@@ -89,6 +89,200 @@ function ExportBtn({data,filename,label='Export'}:{data:()=>any[];filename:strin
 }
 
 
+
+/* ═══ MITRE ATT&CK HEATMAP ═══ */
+const TACTICS=[{id:'TA0001',n:'Initial Access',t:['T1566','T1190','T1078']},{id:'TA0002',n:'Execution',t:['T1059.001','T1569.002']},{id:'TA0003',n:'Persistence',t:['T1053.005','T1547.001']},{id:'TA0004',n:'Priv Esc',t:['T1078']},{id:'TA0005',n:'Def Evasion',t:['T1027','T1070','T1036','T1562.001']},{id:'TA0006',n:'Cred Access',t:['T1003.001','T1110']},{id:'TA0007',n:'Discovery',t:['T1018','T1082']},{id:'TA0008',n:'Lateral Mvmt',t:['T1021.002']},{id:'TA0009',n:'Collection',t:[]},{id:'TA0010',n:'Exfiltration',t:['T1048','T1567.002']},{id:'TA0011',n:'C2',t:['T1071.001','T1572']}];
+
+function MitreHeatmap({alerts}:{alerts:Al[]}){
+  // Build technique counts from alerts
+  const techCounts:Record<string,{count:number;sev:string}>={};
+  alerts.forEach(a=>{if(a.mitre){const existing=techCounts[a.mitre];if(!existing||SO[a.severity]<SO[existing.sev])techCounts[a.mitre]={count:(existing?.count||0)+1,sev:a.severity};else if(existing)existing.count++}});
+  // Add demo data for techniques not in alerts
+  const demoTechs:Record<string,{count:number;sev:string}>={'T1566':{count:4,sev:'high'},'T1059.001':{count:3,sev:'critical'},'T1003.001':{count:2,sev:'critical'},'T1071.001':{count:3,sev:'high'},'T1021.002':{count:2,sev:'high'},'T1053.005':{count:1,sev:'medium'},'T1110':{count:5,sev:'high'},'T1048':{count:1,sev:'medium'},'T1572':{count:2,sev:'high'},'T1190':{count:1,sev:'critical'},'T1078':{count:3,sev:'high'},'T1027':{count:1,sev:'medium'},'T1070':{count:1,sev:'medium'},'T1018':{count:2,sev:'low'},'T1082':{count:3,sev:'low'},'T1569.002':{count:1,sev:'high'},'T1036':{count:2,sev:'medium'},'T1547.001':{count:1,sev:'high'},'T1562.001':{count:1,sev:'critical'},'T1567.002':{count:1,sev:'high'}};
+  Object.entries(demoTechs).forEach(([k,v])=>{if(!techCounts[k])techCounts[k]=v});
+  const sevColor=(s:string)=>s==='critical'?'var(--red)':s==='high'?'#f97316':s==='medium'?'var(--amber)':'var(--blue)';
+  return<div className="panel"><div className="panel-hd"><h3>🗺 MITRE ATT&CK Coverage</h3><span className="count">{Object.keys(techCounts).length} techniques</span></div>
+    <div style={{padding:'10px',overflowX:'auto'}}>
+      <div style={{display:'grid',gridTemplateColumns:`repeat(${TACTICS.length},1fr)`,gap:3,minWidth:700}}>
+        {TACTICS.map(tac=>(<div key={tac.id}>
+          <div style={{fontSize:'.52rem',fontWeight:700,color:'var(--t3)',textAlign:'center',padding:'4px 2px',textTransform:'uppercase',letterSpacing:'.3px',borderBottom:'1px solid var(--brd)',marginBottom:3}}>{tac.n}</div>
+          {tac.t.map(tech=>{const d=techCounts[tech];return<div key={tech} style={{background:d?sevColor(d.sev)+'18':'var(--bg3)',border:`1px solid ${d?sevColor(d.sev)+'30':'var(--brd)'}`,borderRadius:4,padding:'4px 3px',marginBottom:2,textAlign:'center',cursor:'default',transition:'all .15s'}} title={`${tech}: ${d?.count||0} alerts (${d?.sev||'none'})`}>
+            <div style={{fontSize:'.52rem',fontFamily:'var(--fm)',fontWeight:600,color:d?sevColor(d.sev):'var(--t4)'}}>{tech.replace('T','')}</div>
+            {d&&<div style={{fontSize:'.62rem',fontWeight:800,fontFamily:'var(--fm)',color:sevColor(d.sev)}}>{d.count}</div>}
+          </div>})}
+          {tac.t.length===0&&<div style={{fontSize:'.55rem',color:'var(--t4)',textAlign:'center',padding:8}}>—</div>}
+        </div>))}
+      </div>
+      <div style={{display:'flex',gap:12,justifyContent:'center',marginTop:8,fontSize:'.55rem',color:'var(--t3)'}}>
+        <span><span style={{display:'inline-block',width:8,height:8,borderRadius:2,background:'var(--red)',opacity:.6,marginRight:3}}/>Critical</span>
+        <span><span style={{display:'inline-block',width:8,height:8,borderRadius:2,background:'#f97316',opacity:.6,marginRight:3}}/>High</span>
+        <span><span style={{display:'inline-block',width:8,height:8,borderRadius:2,background:'var(--amber)',opacity:.6,marginRight:3}}/>Medium</span>
+        <span><span style={{display:'inline-block',width:8,height:8,borderRadius:2,background:'var(--blue)',opacity:.6,marginRight:3}}/>Low</span>
+        <span><span style={{display:'inline-block',width:8,height:8,borderRadius:2,background:'var(--bg3)',border:'1px solid var(--brd)',marginRight:3}}/>No alerts</span>
+      </div>
+    </div>
+  </div>;
+}
+
+/* ═══ TREND CHARTS ═══ */
+function TrendCharts(){
+  const[period,setPeriod]=useState<'7d'|'30d'|'90d'>('7d');
+  const[data]=useState({
+    mttr:{'7d':[38,35,42,31,28,33,32],'30d':[45,42,40,38,41,39,36,38,35,33,37,34,32,35,33,31,34,32,30,33,31,29,32,30,28,31,29,32,30,32],'90d':[52,48,45,42,40,38,36,35,33,32,31,32]},
+    mttd:{'7d':[12,10,11,9,8,9,8.5],'30d':[15,14,13,12,13,11,12,10,11,10,9,10,9,8,9,8,9,8,8.5,9,8,8.5,8,9,8,8.5,8,8.5,8,8.5],'90d':[18,16,14,13,12,11,10,9.5,9,8.5,8.5,8.5]},
+    alerts:{'7d':[142,158,134,167,155,128,147],'30d':[120,132,145,138,142,158,134,167,155,128,147,162,138,145,152,148,135,142,155,160,148,138,145,150,142,138,155,148,142,147],'90d':[1020,1150,1080,1200,1100,1050,980,1020,1080,1050,1020,1040]},
+    vulns:{'7d':[28,26,25,24,24,23,24],'30d':[35,34,32,31,30,29,28,27,28,26,25,26,25,24,25,24,24,23,24,23,24,23,24,24,23,24,24,23,24,24],'90d':[48,45,42,38,35,32,30,28,26,25,24,24]},
+  });
+  const charts=[{label:'MTTR (min)',data:data.mttr[period],color:'var(--amber)',target:30},{label:'MTTD (min)',data:data.mttd[period],color:'var(--green)',target:10},{label:'Alert Volume',data:data.alerts[period],color:'var(--accent)'},{label:'Critical Vulns',data:data.vulns[period],color:'var(--red)'}];
+  return<div className="panel"><div className="panel-hd"><h3>📈 Trends</h3><div className="pills" style={{margin:0}}>{(['7d','30d','90d'] as const).map(p=>(<button key={p} className={`pill ${period===p?'on':''}`} onClick={()=>setPeriod(p)}>{p}</button>))}</div></div>
+    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:8,padding:12}}>
+      {charts.map(ch=>{const last=ch.data[ch.data.length-1];const first=ch.data[0];const change=((last-first)/first*100).toFixed(1);const isGood=(ch.label.includes('MTT')&&last<first)||(ch.label.includes('Vuln')&&last<first);
+        return<div key={ch.label} style={{padding:'8px 10px',background:'var(--bg2)',borderRadius:'var(--r)',border:'1px solid var(--brd)'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
+            <span style={{fontSize:'.68rem',fontWeight:700,color:'var(--t2)'}}>{ch.label}</span>
+            <span style={{fontSize:'.6rem',fontWeight:700,color:isGood?'var(--green)':Number(change)>0&&ch.label!=='Alert Volume'?'var(--red)':'var(--t3)'}}>{Number(change)>0?'+':''}{change}%</span>
+          </div>
+          <Spark data={ch.data} color={ch.color} w={200} h={40}/>
+          <div style={{display:'flex',justifyContent:'space-between',fontSize:'.52rem',color:'var(--t3)',fontFamily:'var(--fm)',marginTop:4}}>
+            <span>{period==='7d'?'Mon':'Start'}</span>
+            <span style={{fontWeight:700,color:'var(--t1)'}}>{last}</span>
+            <span>Now</span>
+          </div>
+        </div>})}
+    </div>
+  </div>;
+}
+
+/* ═══ AI CO-PILOT PANEL ═══ */
+function AICopilot({alert,onClose}:{alert:Al|null;onClose:()=>void}){
+  const[response,setResponse]=useState('');const[loading,setLoading]=useState(false);const[question,setQuestion]=useState('');
+  async function ask(q?:string){setLoading(true);setResponse('');try{const r=await fetch('/api/ai-copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alert,question:q||question||undefined})});const d=await r.json();setResponse(d.response)}catch{setResponse('Failed to get response.')}setLoading(false)}
+  useEffect(()=>{if(alert)ask()},[]);
+  if(!alert)return null;
+  return<div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:600}}>
+    <div className="modal-hd"><div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:'1.2rem'}}>🤖</span><div><h3 style={{fontSize:'.9rem'}}>AI Co-Pilot</h3><p className="muted" style={{fontSize:'.62rem'}}>{alert.title}</p></div></div><button className="modal-close" onClick={onClose}>✕</button></div>
+    <div className="modal-body">
+      <div style={{display:'flex',gap:4,marginBottom:10,flexWrap:'wrap'}}><span className={`sev sev-${alert.severity}`}>{alert.severity}</span><span className={`src ${sc(alert.source)}`}>{alert.source}</span>{alert.mitre&&<span className="mitre">{alert.mitre}</span>}{alert.device&&<span className="device">{alert.device}</span>}</div>
+      {loading?<div style={{padding:20,textAlign:'center'}}><span className="spin" style={{display:'inline-block'}}/> Analysing alert...</div>
+      :response?<div className="ai-response">{response.split('\n').map((line,i)=>line?<p key={i} style={{marginBottom:6}} dangerouslySetInnerHTML={{__html:line.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')}}/>:null)}</div>
+      :null}
+      <div style={{display:'flex',gap:4,marginTop:10}}><input className="field-input" placeholder="Ask a follow-up question..." value={question} onChange={e=>setQuestion(e.target.value)} onKeyDown={e=>e.key==='Enter'&&ask()} style={{flex:1}}/><button className="tc-btn tc-btn-primary" onClick={()=>ask()} disabled={loading}>Ask</button></div>
+      <div style={{display:'flex',gap:4,marginTop:6,flexWrap:'wrap'}}>{['What should I check first?','Is this related to other alerts?','Write me a containment plan','How do I investigate this in Splunk?'].map(q=>(<button key={q} className="tc-btn" style={{fontSize:'.58rem',padding:'2px 6px'}} onClick={()=>{setQuestion(q);ask(q)}}>{q}</button>))}</div>
+    </div>
+  </div></div>;
+}
+
+/* ═══ EXEC SUMMARY ═══ */
+function ExecSummary({metrics,alerts,coverage}:{metrics:any;alerts:Al[];coverage:any}){
+  const[open,setOpen]=useState(false);const[summary,setSummary]=useState('');const[loading,setLoading]=useState(false);
+  async function generate(){setOpen(true);setLoading(true);try{const r=await fetch('/api/exec-summary',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({metrics,alerts:alerts.slice(0,10),coverage,vulns:null})});const d=await r.json();setSummary(d.summary)}catch{setSummary('Failed to generate summary.')}setLoading(false)}
+  return<><button className="tc-btn" onClick={generate} style={{fontSize:'.66rem',padding:'3px 8px'}}>📋 Exec Summary</button>
+    {open&&<div className="modal-overlay" onClick={()=>setOpen(false)}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:640}}>
+      <div className="modal-hd"><h3>📋 Executive Security Summary</h3><button className="modal-close" onClick={()=>setOpen(false)}>✕</button></div>
+      <div className="modal-body">{loading?<div style={{padding:20,textAlign:'center'}}><span className="spin" style={{display:'inline-block'}}/> Generating...</div>:<div className="ai-response" style={{lineHeight:1.7}}>{summary.split('\n\n').map((p,i)=><p key={i} style={{marginBottom:12,fontSize:'.82rem'}}>{p}</p>)}</div>}</div>
+      <div className="modal-ft"><button className="tc-btn" onClick={()=>{const b=new Blob([summary],{type:'text/plain'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='exec-summary.txt';a.click()}}>📥 Download</button><button className="tc-btn" onClick={()=>setOpen(false)}>Close</button></div>
+    </div></div>}
+  </>;
+}
+
+
+
+/* ═══ USER GUIDE ═══ */
+function UserGuide({open,onClose}:{open:boolean;onClose:()=>void}){
+  if(!open)return null;
+  const sections=[
+    {title:'Overview Tab',icon:'◉',items:['KPI cards with sparkline trends (Alerts, MTTR, MTTD, Incidents, ZIA Blocked, Devices)','Threat Radar — animated SVG showing active threat blips by severity','Severity Ring — donut breakdown of alert severities with total count','Hourly Alert Chart — bar chart of alert volume over 24 hours','Tool Health — circular progress for each connected tool\'s coverage','Connected Tools — shows which integrations are active','Critical & High alerts table with source badges and time','Alert Sources — bar chart showing which tools generate most alerts','Activity Timeline — chronological feed of events across all tools','MITRE ATT&CK Heatmap — 11-tactic grid with technique hit counts','Trend Charts — 7/30/90 day sparklines for MTTR, MTTD, alerts, vulns','Executive Summary — AI-generated board-ready posture report']},
+    {title:'Alerts Tab',icon:'⚡',items:['Unified alert feed from all connected tools','Filter by severity (Critical/High/Medium/Low)','Filter by source tool','Alert Correlation — groups related alerts by device/user','One-click response actions (Isolate, Block IP, Disable User, etc.)','AI Co-pilot — click 🤖 for instant analysis and recommendations','Investigation notes — attach notes to any alert','Export to CSV']},
+    {title:'Coverage Tab',icon:'🛡',items:['Device count per tool with version info','Coverage gaps table — which devices are missing which agents','Agent health breakdown (Healthy/Degraded/Offline) per tool','Coverage percentage bars']},
+    {title:'Vulnerabilities Tab',icon:'🔓',items:['Tenable.io vulnerability summary (Critical/High/Medium/Low)','Asset risk donuts — % of assets with critical/high vulns','Severity ring chart','Top critical CVEs with CVSS, EPSS scores, host counts, exploitability']},
+    {title:'Tools Tab',icon:'🔌',items:['18 supported integrations across EDR, XDR, SIEM, NDR, Vuln, ZTNA, Threat Intel, Cloud, Email','Add credentials directly from the UI','Toggle tools on/off','Filter by category','Connection status indicators','Credentials stored in Upstash Redis']},
+    {title:'IOC Search',icon:'🔍',items:['Click 🔍 in topbar or press /','Search IPs, domains, hashes, CVEs, hostnames, usernames','Searches across ALL connected tools simultaneously','Results grouped by tool with severity and detail']},
+    {title:'AI Features',icon:'🤖',items:['Alert Co-pilot — instant analysis of any alert with follow-up questions','Executive Summary — AI-generated CISO-ready security posture report','Powered by Claude (set ANTHROPIC_API_KEY in env vars)','Works with demo responses when no API key set']},
+  ];
+  const shortcuts=[['/','\'IOC Search'],['?','Help / User Guide'],['f','Toggle Fullscreen'],['k','Command Palette (Cmd/Ctrl+K)'],['Esc','Close modals']];
+  const setup=[
+    {label:'Dashboard Password',key:'DASHBOARD_PASSWORD',desc:'Enables login gate (30-day cookie)'},
+    {label:'Upstash Redis',key:'UPSTASH_REDIS_REST_URL + TOKEN',desc:'Enables in-app credential storage + alert notes'},
+    {label:'Anthropic API',key:'ANTHROPIC_API_KEY',desc:'Enables AI co-pilot and executive summaries'},
+    {label:'Tool credentials',key:'Via Tools tab or env vars',desc:'Connect Defender, CrowdStrike, Tenable, Zscaler, etc.'},
+  ];
+  return<div className="guide-overlay" onClick={onClose}><div className="guide-panel" onClick={e=>e.stopPropagation()}>
+    <div className="guide-hd"><div><h2 style={{fontSize:'1.05rem',fontWeight:800}}>📖 SecOps Dashboard Guide</h2><p className="muted" style={{fontSize:'.7rem'}}>v7 — Single pane of glass for your SOC</p></div><button className="modal-close" onClick={onClose}>✕</button></div>
+    <div className="guide-body">
+      {sections.map(s=>(<div key={s.title} className="guide-section"><h3><span style={{marginRight:6}}>{s.icon}</span>{s.title}</h3><ul>{s.items.map((item,i)=>(<li key={i}>{item}</li>))}</ul></div>))}
+      <div className="guide-section"><h3>⌨️ Keyboard Shortcuts</h3><div className="shortcut-grid">{shortcuts.map(([key,desc])=>(<div key={key} className="shortcut-row"><kbd>{key}</kbd><span>{desc}</span></div>))}</div></div>
+      <div className="guide-section"><h3>⚙️ Setup</h3><div style={{fontSize:'.76rem'}}>{setup.map(s=>(<div key={s.label} style={{marginBottom:8}}><div style={{fontWeight:600}}>{s.label}</div><div className="muted" style={{fontSize:'.68rem'}}><span className="mono" style={{color:'var(--accent)'}}>{s.key}</span> — {s.desc}</div></div>))}</div></div>
+      <div className="guide-section"><h3>🔒 Security</h3><p style={{fontSize:'.76rem',color:'var(--t2)'}}>All credentials are stored encrypted in your Upstash Redis instance. The dashboard password uses httpOnly secure cookies. No data is sent to external services except when calling tool APIs and (optionally) the Anthropic API for AI features. All processing happens in your Vercel serverless functions.</p></div>
+    </div>
+  </div></div>;
+}
+
+/* ═══ COMMAND PALETTE ═══ */
+function CmdPalette({open,onClose,onSelect}:{open:boolean;onClose:()=>void;onSelect:(tab:string)=>void}){
+  const[q,setQ]=useState('');
+  const items=[
+    {id:'overview',icon:'◉',label:'Overview Dashboard',keywords:'home main kpi metrics'},
+    {id:'alerts',icon:'⚡',label:'Alert Feed',keywords:'alerts incidents detections'},
+    {id:'coverage',icon:'🛡',label:'Agent Coverage',keywords:'devices endpoints agents gaps'},
+    {id:'vulns',icon:'🔓',label:'Vulnerabilities',keywords:'cve tenable vulns patching'},
+    {id:'tools',icon:'🔌',label:'Tool Integrations',keywords:'settings config credentials api'},
+    {id:'ioc',icon:'🔍',label:'IOC Search',keywords:'search ip domain hash indicator'},
+    {id:'guide',icon:'📖',label:'User Guide',keywords:'help documentation guide shortcuts'},
+    {id:'exec',icon:'📋',label:'Executive Summary',keywords:'report ciso board summary'},
+    {id:'fullscreen',icon:'⛶',label:'Toggle Fullscreen',keywords:'fullscreen wall tv display'},
+    {id:'theme',icon:'🌓',label:'Toggle Theme',keywords:'dark light theme mode'},
+  ];
+  const filtered=q?items.filter(i=>(i.label+' '+i.keywords).toLowerCase().includes(q.toLowerCase())):items;
+  if(!open)return null;
+  return<div className="modal-overlay" onClick={onClose}><div className="cmd-palette" onClick={e=>e.stopPropagation()}>
+    <div className="cmd-input-wrap"><span style={{color:'var(--t3)'}}>⌘</span><input className="cmd-input" placeholder="Jump to..." value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>{if(e.key==='Escape')onClose();if(e.key==='Enter'&&filtered.length>0){onSelect(filtered[0].id);onClose();setQ('')}}} autoFocus/></div>
+    <div className="cmd-list">{filtered.map(i=>(<button key={i.id} className="cmd-item" onClick={()=>{onSelect(i.id);onClose();setQ('')}}><span className="cmd-icon">{i.icon}</span>{i.label}</button>))}</div>
+  </div></div>;
+}
+
+/* ═══ THREAT INTEL TICKER ═══ */
+function ThreatTicker(){
+  const items=['🔴 CVE-2024-3400: PAN-OS RCE actively exploited — patch immediately','🟠 Volt Typhoon targeting critical infrastructure VPN appliances','🔴 BlackSuit ransomware campaign targeting healthcare sector','🟡 AI-generated spear phishing surge in financial services','🟠 NPM typosquatting supply chain campaign detected','🔴 FortiManager CVE-2024-47575 missing auth — CVSS 9.8','🟡 QR code phishing (quishing) campaigns increasing','🟠 DNS tunnelling via legitimate cloud services on the rise'];
+  return<div className="ticker-bar"><div className="ticker-track">{[...items,...items].map((t,i)=>(<span key={i} className="ticker-item">{t}</span>))}</div></div>;
+}
+
+/* ═══ DEVICE DEEP-DIVE ═══ */
+function DeviceDrawer({hostname,alerts,onClose}:{hostname:string|null;alerts:any[];onClose:()=>void}){
+  if(!hostname)return null;
+  const deviceAlerts=alerts.filter((a:any)=>a.device===hostname);
+  const sources=[...new Set(deviceAlerts.map((a:any)=>a.source))];
+  return<div className="drawer-overlay" onClick={onClose}><div className="drawer" onClick={e=>e.stopPropagation()}>
+    <div className="guide-hd"><div><h2 style={{fontSize:'.95rem',fontWeight:800,fontFamily:'var(--fm)'}}>{hostname}</h2><p className="muted" style={{fontSize:'.68rem'}}>{deviceAlerts.length} alerts from {sources.length} sources</p></div><button className="modal-close" onClick={onClose}>✕</button></div>
+    <div className="guide-body">
+      <div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:12}}>{sources.map(s=>(<span key={s} className={`src ${sc(s)}`}>{s}</span>))}</div>
+      {deviceAlerts.length===0?<div style={{textAlign:'center',padding:20,color:'var(--t3)'}}>No alerts for this device</div>
+      :deviceAlerts.map((a:any)=>(<div key={a.id} className="device-alert-card">
+        <div style={{display:'flex',gap:4,alignItems:'center',marginBottom:3}}><span className={`sev sev-${a.severity}`}>{a.severity}</span><span className={`src ${sc(a.source)}`}>{a.source}</span><span className="ts">{ago(a.timestamp)}</span></div>
+        <div style={{fontSize:'.8rem',fontWeight:600}}>{a.title}</div>
+        {a.mitre&&<span className="mitre" style={{marginTop:3,display:'inline-block'}}>{a.mitre}</span>}
+        {a.user&&<div style={{fontSize:'.7rem',color:'var(--t3)',marginTop:2}}>User: {a.user}</div>}
+      </div>))}
+    </div>
+  </div></div>;
+}
+
+/* ═══ ALERT NOTES ═══ */
+function AlertNotes({alertId,onClose}:{alertId:string|null;onClose:()=>void}){
+  const[notes,setNotes]=useState<any[]>([]);const[text,setText]=useState('');const[loading,setLoading]=useState(false);
+  useEffect(()=>{if(alertId)fetch(`/api/alert-notes?alertId=${alertId}`).then(r=>r.json()).then(d=>setNotes(d.notes||[]))},[alertId]);
+  async function addNote(){if(!text.trim()||!alertId)return;setLoading(true);try{const r=await fetch('/api/alert-notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alertId,note:text})});const d=await r.json();if(d.notes)setNotes(d.notes);setText('')}catch{}setLoading(false)}
+  if(!alertId)return null;
+  return<div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:480}}>
+    <div className="modal-hd"><h3 style={{fontSize:'.9rem'}}>📝 Investigation Notes</h3><button className="modal-close" onClick={onClose}>✕</button></div>
+    <div className="modal-body">
+      <div style={{display:'flex',gap:4,marginBottom:10}}><input className="field-input" placeholder="Add a note..." value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addNote()} style={{flex:1}}/><button className="tc-btn tc-btn-primary" onClick={addNote} disabled={loading}>{loading?'...':'Add'}</button></div>
+      {notes.length===0?<div style={{textAlign:'center',padding:16,color:'var(--t3)',fontSize:'.78rem'}}>No notes yet</div>
+      :notes.map((n:any)=>(<div key={n.id} style={{padding:'8px 0',borderBottom:'1px solid var(--brd)'}}><div style={{display:'flex',justifyContent:'space-between',fontSize:'.65rem',color:'var(--t3)',marginBottom:2}}><span>{n.analyst}</span><span>{ago(n.time)}</span></div><div style={{fontSize:'.8rem'}}>{n.text}</div></div>))}
+    </div>
+  </div></div>;
+}
+
+
 /* ═══ MAIN ═══ */
 export default function Dashboard(){
   const[tab,setTab]=useState<Tab>('overview');
@@ -101,11 +295,26 @@ export default function Dashboard(){
   const[mobileNav,setMobileNav]=useState(false);
   const[clock,setClock]=useState('');
   const[sparks]=useState({al:gen(6,3),mttr:gen(35,8),mttd:gen(9,3),thr:gen(180,40),hourly:gen(12,5)});
-  const[iocOpen,setIocOpen]=useState(false);
+  const[iocOpen,setIocOpen]=useState(false);const[aiAlert,setAiAlert]=useState<Al|null>(null);
+  const[guideOpen,setGuideOpen]=useState(false);
+  const[cmdOpen,setCmdOpen]=useState(false);
+  const[deviceDrill,setDeviceDrill]=useState<string|null>(null);
+  const[notesAlert,setNotesAlert]=useState<string|null>(null);
   const[isFullscreen,setIsFullscreen]=useState(false);
   const[prevCritCount,setPrevCritCount]=useState(0);
   const audioRef=typeof window!=='undefined'?{current:null as AudioContext|null}:{current:null};
 
+  useEffect(()=>{
+    function onKey(e:KeyboardEvent){
+      if(e.target instanceof HTMLInputElement||e.target instanceof HTMLTextAreaElement)return;
+      if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();setCmdOpen(true);return}
+      if(e.key==='/'){{e.preventDefault();setIocOpen(true)}}
+      if(e.key==='?')setGuideOpen(true);
+      if(e.key==='f'&&!e.metaKey&&!e.ctrlKey)toggleFullscreen();
+      if(e.key==='Escape'){setGuideOpen(false);setCmdOpen(false);setIocOpen(false);setAiAlert(null);setDeviceDrill(null);setNotesAlert(null)}
+    }
+    window.addEventListener('keydown',onKey);return()=>window.removeEventListener('keydown',onKey);
+  },[]);
   useEffect(()=>{const tick=()=>setClock(new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'}));tick();const i=setInterval(tick,1000);return()=>clearInterval(i)},[]);
 
   const refresh=useCallback(async()=>{
@@ -142,36 +351,46 @@ export default function Dashboard(){
   },[alerts]);
   function toggleFullscreen(){if(!document.fullscreenElement){document.documentElement.requestFullscreen();setIsFullscreen(true)}else{document.exitFullscreen();setIsFullscreen(false)}}
   useEffect(()=>{document.documentElement.setAttribute('data-theme',theme)},[theme]);
+  function cmdSelect(id:string){if(id==='ioc')setIocOpen(true);else if(id==='guide')setGuideOpen(true);else if(id==='exec'){/* trigger from overview */}else if(id==='fullscreen')toggleFullscreen();else if(id==='theme')setTheme(t=>t==='dark'?'light':'dark');else setTab(id as Tab)}
 
   const m=data?.metrics,cov=data?.coverage,zsc=data?.zscaler;
   const hasCrit=alerts.filter(a=>a.severity==='critical'&&a.status==='new').length>0;
   const enabledTools=toolsData?.tools?.filter((t:any)=>t.enabled)||[];
-  const tabs:{k:Tab;l:string;i:string}[]=[{k:'overview',l:'Overview',i:'◉'},{k:'alerts',l:'Alerts',i:'⚡'},{k:'coverage',l:'Coverage',i:'🛡'},{k:'vulns',l:'Vulns',i:'🔓'},{k:'tools',l:`Tools (${enabledTools.length})`,i:'🔌'}];
+  const critCount=alerts.filter(a=>a.severity==='critical'&&a.status==='new').length;
+  const highCount=alerts.filter(a=>a.severity==='high').length;
+  const tabs:{k:Tab;l:string;i:string;badge?:number}[]=[{k:'overview',l:'Overview',i:'◉'},{k:'alerts',l:'Alerts',i:'⚡',badge:critCount+highCount},{k:'coverage',l:'Coverage',i:'🛡'},{k:'vulns',l:'Vulns',i:'🔓'},{k:'tools',l:`Tools (${enabledTools.length})`,i:'🔌'}];
 
   return(<><style dangerouslySetInnerHTML={{__html:CSS}}/><div className={`shell ${hasCrit?'crit-flash':''}`}>
     <div className="topbar">
       <div className="logo"><div className="logo-icon">S</div><span>Sec</span>Ops</div>
-      <div className="tabs desk-only">{tabs.map(t=>(<button key={t.k} className={`tab ${tab===t.k?'active':''}`} onClick={()=>setTab(t.k)}>{t.i} {t.l}</button>))}</div>
+      <div className="tabs desk-only">{tabs.map(t=>(<button key={t.k} className={`tab ${tab===t.k?'active':''}`} onClick={()=>setTab(t.k)}>{t.i} {t.l}{t.badge&&t.badge>0?<span className="tab-badge">{t.badge}</span>:null}</button>))}</div>
       <button className="mob-menu mob-only" onClick={()=>setMobileNav(!mobileNav)}>☰</button>
-      <div className="topbar-right"><button className="search-trigger desk-only" onClick={()=>setIocOpen(true)}>🔍 <span className="desk-only">IOC Search</span></button><span className="clock desk-only">{clock}</span><div className="live-dot"/>{demo&&<div className="demo-pill desk-only">DEMO</div>}<button className="theme-btn desk-only" onClick={toggleFullscreen} title="Fullscreen">{isFullscreen?'⊡':'⛶'}</button><button className="theme-btn" onClick={()=>setTheme(t=>t==='dark'?'light':'dark')}>{theme==='dark'?'☀':'🌙'}</button><button className="refresh-btn desk-only" onClick={refresh}>↻</button></div>
+      <div className="topbar-right"><button className="search-trigger desk-only" onClick={()=>setIocOpen(true)}>🔍 <span className="desk-only">IOC Search</span></button><span className="clock desk-only">{clock}</span><div className="live-dot"/>{demo&&<div className="demo-pill desk-only">DEMO</div>}<button className="theme-btn desk-only" onClick={toggleFullscreen} title="Fullscreen">{isFullscreen?'⊡':'⛶'}</button><button className="theme-btn" onClick={()=>setTheme(t=>t==='dark'?'light':'dark')}>{theme==='dark'?'☀':'🌙'}</button><button className="theme-btn desk-only" onClick={()=>setGuideOpen(true)} title="Help">?</button><button className="refresh-btn desk-only" onClick={refresh}>↻</button></div>
     </div>
     {mobileNav&&<div className="mob-nav">{tabs.map(t=>(<button key={t.k} className={`mnav-btn ${tab===t.k?'active':''}`} onClick={()=>{setTab(t.k);setMobileNav(false)}}>{t.i} {t.l}</button>))}</div>}
     <div className="main">
       {iocOpen&&<IOCSearch open={iocOpen} onClose={()=>setIocOpen(false)}/>}
+      {aiAlert&&<AICopilot alert={aiAlert} onClose={()=>setAiAlert(null)}/>}
+      <UserGuide open={guideOpen} onClose={()=>setGuideOpen(false)}/>
+      <CmdPalette open={cmdOpen} onClose={()=>setCmdOpen(false)} onSelect={cmdSelect}/>
+      <DeviceDrawer hostname={deviceDrill} alerts={alerts} onClose={()=>setDeviceDrill(null)}/>
+      <AlertNotes alertId={notesAlert} onClose={()=>setNotesAlert(null)}/>
       {loading?<div className="loading"><span className="spin"/>Loading...</div>
-        :tab==='overview'?<Ov m={m} cov={cov} alerts={alerts} zsc={zsc} sparks={sparks} enabledTools={enabledTools}/>
-        :tab==='alerts'?<Als alerts={alerts}/>
+        :tab==='overview'?<Ov m={m} cov={cov} alerts={alerts} zsc={zsc} sparks={sparks} enabledTools={enabledTools} onAskAI={(a:Al)=>setAiAlert(a)}/>
+        :tab==='alerts'?<Als alerts={alerts} onAskAI={(a:Al)=>setAiAlert(a)} onDeviceDrill={(h:string)=>setDeviceDrill(h)} onNotes={(id:string)=>setNotesAlert(id)}/>
         :tab==='coverage'?<CovTab cov={cov}/>
         :tab==='vulns'?<Vul/>
         :<ToolsManager toolsData={toolsData} onRefresh={refresh}/>}
     </div>
+    <ThreatTicker/>
   </div></>);
 }
 
 /* ═══ OVERVIEW ═══ */
-function Ov({m,cov,alerts,zsc,sparks,enabledTools}:any){
+function Ov({m,cov,alerts,zsc,sparks,enabledTools,onAskAI}:any){
   if(!m)return null;
   return(<>
+    <div style={{display:'flex',justifyContent:'flex-end',gap:6,marginBottom:8}}><ExecSummary metrics={m} alerts={alerts} coverage={cov}/></div>
     <div className="kpi-grid">
       <div className="kpi"><div className="kpi-top"><div className="kpi-label">Alerts 24h</div></div><div className="kpi-val">{m.alertsLast24h.total}</div><div className="kpi-sub"><span style={{color:'var(--red)'}}>{m.alertsLast24h.critical} crit</span> · <span style={{color:'#f97316'}}>{m.alertsLast24h.high} high</span></div><div className="kpi-spark"><Spark data={sparks.al} color="var(--accent)"/></div></div>
       <div className="kpi"><div className="kpi-top"><div className="kpi-label">MTTR</div><span className={`kpi-trend ${m.mttr.current<=m.mttr.target?'good':'bad'}`}>{m.mttr.current<m.mttr.previous?'↓':'↑'}{Math.abs(m.mttr.current-m.mttr.previous)}m</span></div><div className="kpi-val" style={{color:m.mttr.current<=m.mttr.target?'var(--green)':'var(--amber)'}}>{m.mttr.current}<span className="kpi-unit">min</span></div><div className="kpi-sub">Target {m.mttr.target}m</div><div className="kpi-spark"><Spark data={sparks.mttr} color={m.mttr.current<=m.mttr.target?'var(--green)':'var(--amber)'}/></div></div>
@@ -193,11 +412,13 @@ function Ov({m,cov,alerts,zsc,sparks,enabledTools}:any){
       </div>
       <div className="panel" style={{overflow:'hidden'}}><div className="panel-hd"><h3>🕐 Timeline</h3></div><div style={{overflowY:'auto',maxHeight:460,padding:'6px 14px'}}>{TL.map(t=>(<div key={t.id} className="tl-item"><div className="tl-icon">{t.icon}</div><div className="tl-body"><div className="tl-title">{t.title}</div><div className="tl-meta"><span className={`src ${sc(t.source)}`}>{t.source}</span><span className="ts">{ago(t.time)}</span></div></div></div>))}</div></div>
     </div>
+    <MitreHeatmap alerts={alerts}/>
+    <TrendCharts/>
   </>);
 }
 
 /* ═══ ALERTS ═══ */
-function Als({alerts}:{alerts:Al[]}){
+function Als({alerts,onAskAI,onDeviceDrill,onNotes}:{alerts:Al[];onAskAI?:(a:Al)=>void;onDeviceDrill?:(h:string)=>void;onNotes?:(id:string)=>void}){
   const[sev,setSev]=useState('all');const[src,setSrc]=useState('all');const[grouped,setGrouped]=useState(false);
   const sources=[...new Set(alerts.map(a=>a.source))];
   const f=alerts.filter(a=>sev==='all'||a.severity===sev).filter(a=>src==='all'||a.source===src);
@@ -208,12 +429,12 @@ function Als({alerts}:{alerts:Al[]}){
       <ExportBtn data={()=>f.map(a=>({title:a.title,source:a.source,severity:a.severity,status:a.status,device:a.device,user:a.user,mitre:a.mitre,time:a.timestamp}))} filename="secops-alerts"/>
     </div>
     <div className="panel"><div className="tbl-wrap" style={{maxHeight:'calc(100vh - 170px)'}}><table className="tbl"><thead><tr><th>Alert</th><th>Source</th><th>Sev</th><th className="desk-only">Status</th><th className="desk-only">Device</th><th className="desk-only">MITRE</th><th>Time</th><th className="desk-only">Actions</th></tr></thead><tbody>{(()=>{
-        if(!grouped)return f.map(a=>(<tr key={a.id}><td style={{fontWeight:600,maxWidth:280}}>{a.title}</td><td><span className={`src ${sc(a.source)}`}>{a.source}</span></td><td><span className={`sev sev-${a.severity}`}>{a.severity}</span></td><td className="desk-only"><span className={`status status-${a.status}`}>{a.status}</span></td><td className="device desk-only">{a.device||'—'}</td><td className="desk-only">{a.mitre?<span className="mitre">{a.mitre}</span>:<span className="muted">—</span>}</td><td className="ts">{ago(a.timestamp)}</td><td className="desk-only"><ActionMenu alert={a} onDone={()=>{}}/></td></tr>));
+        if(!grouped)return f.map(a=>(<tr key={a.id}><td style={{fontWeight:600,maxWidth:280}}>{a.title}</td><td><span className={`src ${sc(a.source)}`}>{a.source}</span></td><td><span className={`sev sev-${a.severity}`}>{a.severity}</span></td><td className="desk-only"><span className={`status status-${a.status}`}>{a.status}</span></td><td className="device desk-only">{a.device?<span style={{cursor:"pointer",textDecoration:"underline dotted",textUnderlineOffset:2}} onClick={()=>onDeviceDrill?.(a.device)}>{a.device}</span>:"—"}</td><td className="desk-only">{a.mitre?<span className="mitre">{a.mitre}</span>:<span className="muted">—</span>}</td><td className="ts">{ago(a.timestamp)}</td><td className="desk-only"><ActionMenu alert={a} onDone={()=>{}}/><button className="tc-btn" onClick={()=>onAskAI?.(a)} style={{fontSize:'.58rem',padding:'2px 5px'}}>🤖</button><button className="tc-btn" onClick={()=>onNotes?.(a.id)} style={{fontSize:'.58rem',padding:'2px 5px'}}>📝</button></td></tr>));
         // Correlate: group by device within 30min windows
         const groups:Record<string,Al[]>={};
         f.forEach(a=>{const key=a.device||a.user||a.id;if(!groups[key])groups[key]=[];groups[key].push(a)});
         return Object.entries(groups).flatMap(([key,als])=>{
-          if(als.length===1)return als.map(a=>(<tr key={a.id}><td style={{fontWeight:600,maxWidth:280}}>{a.title}</td><td><span className={`src ${sc(a.source)}`}>{a.source}</span></td><td><span className={`sev sev-${a.severity}`}>{a.severity}</span></td><td className="desk-only"><span className={`status status-${a.status}`}>{a.status}</span></td><td className="device desk-only">{a.device||'—'}</td><td className="desk-only">{a.mitre?<span className="mitre">{a.mitre}</span>:<span className="muted">—</span>}</td><td className="ts">{ago(a.timestamp)}</td><td className="desk-only"><ActionMenu alert={a} onDone={()=>{}}/></td></tr>));
+          if(als.length===1)return als.map(a=>(<tr key={a.id}><td style={{fontWeight:600,maxWidth:280}}>{a.title}</td><td><span className={`src ${sc(a.source)}`}>{a.source}</span></td><td><span className={`sev sev-${a.severity}`}>{a.severity}</span></td><td className="desk-only"><span className={`status status-${a.status}`}>{a.status}</span></td><td className="device desk-only">{a.device?<span style={{cursor:"pointer",textDecoration:"underline dotted",textUnderlineOffset:2}} onClick={()=>onDeviceDrill?.(a.device)}>{a.device}</span>:"—"}</td><td className="desk-only">{a.mitre?<span className="mitre">{a.mitre}</span>:<span className="muted">—</span>}</td><td className="ts">{ago(a.timestamp)}</td><td className="desk-only"><ActionMenu alert={a} onDone={()=>{}}/><button className="tc-btn" onClick={()=>onAskAI?.(a)} style={{fontSize:'.58rem',padding:'2px 5px'}}>🤖</button><button className="tc-btn" onClick={()=>onNotes?.(a.id)} style={{fontSize:'.58rem',padding:'2px 5px'}}>📝</button></td></tr>));
           const top=als.sort((a,b)=>SO[a.severity]-SO[b.severity])[0];
           return[<tr key={key} className="corr-group"><td colSpan={8} style={{padding:'6px 10px',background:'var(--accent-s)',borderLeft:'3px solid var(--accent)'}}><div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:'.7rem',fontWeight:700,color:'var(--accent)'}}>🔗 Correlated ({als.length} alerts)</span><span className="device">{key}</span><span className="muted" style={{fontSize:'.62rem'}}>Highest: <span className={`sev sev-${top.severity}`}>{top.severity}</span></span>{als.map(a=>(<span key={a.id} className={`src ${sc(a.source)}`} style={{marginLeft:2}}>{a.source}</span>))}<span style={{marginLeft:'auto'}}><ActionMenu alert={top} onDone={()=>{}}/></span></div><div style={{fontSize:'.68rem',color:'var(--t2)',marginTop:3}}>{als.map(a=>a.title).join(' → ')}</div></td></tr>];
         });
@@ -348,7 +569,7 @@ body{background:var(--bg0);color:var(--t1);font-family:var(--fs);font-size:14px;
 .tabs{display:flex;gap:1px;margin-left:16px;background:var(--bg3);border-radius:var(--r);padding:2px}.tab{padding:4px 11px;border-radius:6px;cursor:pointer;font-size:.74rem;font-weight:500;color:var(--t3);transition:all .15s;border:none;background:none;font-family:var(--fs);white-space:nowrap}.tab:hover{color:var(--t2)}.tab.active{color:var(--t1);background:var(--bg1);box-shadow:var(--shadow)}
 .topbar-right{margin-left:auto;display:flex;align-items:center;gap:6px}.clock{font-family:var(--fm);font-size:.72rem;color:var(--t3);letter-spacing:.5px}.demo-pill{font-size:.58rem;font-family:var(--fm);color:var(--amber);background:var(--ambers);padding:2px 7px;border-radius:20px;letter-spacing:.5px;border:1px solid rgba(237,160,51,.1);font-weight:600}.theme-btn{width:30px;height:30px;border-radius:var(--r);border:1px solid var(--brd);background:var(--bg2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.82rem;transition:all .15s}.theme-btn:hover{border-color:var(--accent);background:var(--accent-s)}.refresh-btn{height:30px;padding:0 10px;border-radius:var(--r);border:1px solid var(--brd);background:var(--bg2);cursor:pointer;font-size:.72rem;font-family:var(--fs);color:var(--t2);transition:all .15s}.refresh-btn:hover{border-color:var(--accent);color:var(--accent)}
 .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;flex-shrink:0}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.main{flex:1;padding:14px 16px 24px;max-width:1480px;margin:0 auto;width:100%}
+.main{flex:1;padding:14px 16px 40px;max-width:1480px;margin:0 auto;width:100%}
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:7px;margin-bottom:10px}.kpi{background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2);padding:12px 14px;position:relative;overflow:hidden;transition:border-color .2s,box-shadow .2s}.kpi:hover{border-color:var(--brd2);box-shadow:var(--glow)}.kpi-top{display:flex;justify-content:space-between;align-items:flex-start}.kpi-label{font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;font-weight:700}.kpi-val{font-size:1.6rem;font-weight:800;font-family:var(--fm);letter-spacing:-1.5px;margin-top:3px;line-height:1}.kpi-unit{font-size:.65rem;color:var(--t3);font-weight:500}.kpi-sub{font-size:.64rem;color:var(--t3);margin-top:5px}.kpi-trend{font-size:.6rem;font-weight:700;padding:1px 5px;border-radius:3px}.kpi-trend.good{color:var(--green);background:var(--greens)}.kpi-trend.bad{color:var(--red);background:var(--reds)}.kpi-trend.warn{color:var(--amber);background:var(--ambers)}.kpi-spark{position:absolute;bottom:0;right:0;opacity:.4}
 .hero-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}.hero-panel{min-height:0}
 .panel{background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2);margin-bottom:8px;overflow:hidden;transition:border-color .2s}.panel:hover{border-color:var(--brd2)}.panel-hd{padding:9px 14px;border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center}.panel-hd h3{font-size:.76rem;font-weight:700;display:flex;align-items:center;gap:5px}.panel-hd .count{font-size:.62rem;color:var(--t3);font-family:var(--fm);background:var(--bg3);padding:1px 6px;border-radius:10px}
@@ -395,4 +616,35 @@ body{background:var(--bg0);color:var(--t1);font-family:var(--fs);font-size:14px;
 .action-item{display:block;width:100%;text-align:left;padding:6px 10px;border:none;background:none;color:var(--t1);font-size:.72rem;font-family:var(--fs);cursor:pointer;border-radius:5px;transition:all .15s}.action-item:hover{background:var(--bg2)}.action-item:disabled{opacity:.5}
 .action-result{padding:6px 8px;margin:4px;border-radius:5px;font-size:.68rem}.action-result.ok{background:var(--greens);color:var(--green)}.action-result.err{background:var(--reds);color:var(--red)}
 /* Correlation */
-.corr-group td{background:var(--accent-s)!important}`;
+.corr-group td{background:var(--accent-s)!important}
+.ai-response{font-size:.8rem;color:var(--t1);line-height:1.6;white-space:pre-wrap}.ai-response strong{color:var(--accent);font-weight:700}.ai-response p{margin-bottom:6px}
+/* User Guide */
+.guide-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:200;display:flex;justify-content:flex-end}
+.guide-panel{width:420px;max-width:90vw;background:var(--bg1);border-left:1px solid var(--brd);display:flex;flex-direction:column;animation:slideIn .2s ease}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+.guide-hd{display:flex;justify-content:space-between;align-items:flex-start;padding:16px;border-bottom:1px solid var(--brd)}
+.guide-body{flex:1;overflow-y:auto;padding:16px}
+.guide-section{margin-bottom:16px}.guide-section h3{font-size:.82rem;font-weight:700;margin-bottom:6px;color:var(--t1)}
+.guide-section ul{list-style:none;padding:0}.guide-section li{font-size:.72rem;color:var(--t2);padding:3px 0;padding-left:12px;position:relative;line-height:1.5}.guide-section li::before{content:'›';position:absolute;left:0;color:var(--accent);font-weight:700}
+.guide-section p{font-size:.72rem;color:var(--t2);line-height:1.6}
+.shortcut-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}.shortcut-row{display:flex;align-items:center;gap:8px;font-size:.72rem;padding:3px 0}.shortcut-row kbd{background:var(--bg3);border:1px solid var(--brd);padding:1px 6px;border-radius:4px;font-family:var(--fm);font-size:.65rem;color:var(--t1);min-width:20px;text-align:center}.shortcut-row span{color:var(--t2)}
+/* Command Palette */
+.cmd-palette{width:480px;max-width:90vw;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2);box-shadow:0 20px 60px rgba(0,0,0,.5);margin-top:80px;align-self:flex-start}
+.cmd-input-wrap{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--brd)}
+.cmd-input{flex:1;background:none;border:none;color:var(--t1);font-size:.88rem;font-family:var(--fs);outline:none}
+.cmd-input::placeholder{color:var(--t4)}
+.cmd-list{max-height:300px;overflow-y:auto;padding:4px}
+.cmd-item{display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;border:none;background:none;color:var(--t1);font-size:.82rem;font-family:var(--fs);cursor:pointer;border-radius:6px;text-align:left;transition:all .1s}
+.cmd-item:hover{background:var(--accent-s);color:var(--accent)}
+.cmd-icon{font-size:1rem;width:24px;text-align:center}
+/* Tab badges */
+.tab-badge{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;background:var(--red);color:#fff;font-size:.55rem;font-weight:700;font-family:var(--fm);margin-left:4px;padding:0 4px}
+/* Threat Ticker */
+.ticker-bar{position:fixed;bottom:0;left:0;right:0;height:28px;background:var(--bg1);border-top:1px solid var(--brd);overflow:hidden;z-index:90;display:flex;align-items:center}
+.ticker-track{display:flex;gap:40px;animation:ticker 60s linear infinite;white-space:nowrap}
+.ticker-item{font-size:.68rem;color:var(--t2);flex-shrink:0}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+/* Device Drawer */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:200;display:flex;justify-content:flex-end}
+.drawer{width:400px;max-width:90vw;background:var(--bg1);border-left:1px solid var(--brd);display:flex;flex-direction:column;animation:slideIn .2s ease}
+.device-alert-card{padding:10px;border:1px solid var(--brd);border-radius:var(--r);margin-bottom:6px;background:var(--bg2)}`;

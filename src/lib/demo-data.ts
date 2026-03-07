@@ -111,3 +111,50 @@ export const DEMO_TIMELINE = [
   { id: 't11', time: new Date(Date.now() - 7200000).toISOString(), type: 'posture', severity: 'warning', title: 'ZPA: 23 devices failing posture checks', source: 'Zscaler ZPA', icon: '⚠️' },
   { id: 't12', time: new Date(Date.now() - 10800000).toISOString(), type: 'action', severity: 'info', title: 'Night shift handover — 82 alerts cleared', source: 'SOC Ops', icon: '📋' },
 ];
+
+export const DEMO_MITRE_MAP: Record<string, { count: number; severity: string }> = {
+  'T1566': { count: 4, severity: 'high' },      // Phishing
+  'T1059.001': { count: 3, severity: 'critical' }, // PowerShell
+  'T1003.001': { count: 2, severity: 'critical' }, // LSASS
+  'T1071.001': { count: 3, severity: 'high' },   // Web Protocols C2
+  'T1021.002': { count: 2, severity: 'high' },   // SMB Lateral
+  'T1053.005': { count: 1, severity: 'medium' }, // Scheduled Task
+  'T1110': { count: 5, severity: 'high' },       // Brute Force
+  'T1048': { count: 1, severity: 'medium' },     // Exfiltration
+  'T1572': { count: 2, severity: 'high' },       // DNS Tunnel
+  'T1190': { count: 1, severity: 'critical' },   // Exploit Public App
+  'T1078': { count: 3, severity: 'high' },       // Valid Accounts
+  'T1027': { count: 1, severity: 'medium' },     // Obfuscated Files
+  'T1070': { count: 1, severity: 'medium' },     // Indicator Removal
+  'T1018': { count: 2, severity: 'low' },        // Remote System Discovery
+  'T1082': { count: 3, severity: 'low' },        // System Info Discovery
+  'T1569.002': { count: 1, severity: 'high' },   // Service Execution
+  'T1036': { count: 2, severity: 'medium' },     // Masquerading
+  'T1547.001': { count: 1, severity: 'high' },   // Registry Run Keys
+  'T1562.001': { count: 1, severity: 'critical' }, // Disable Security Tools
+  'T1567.002': { count: 1, severity: 'high' },   // Exfil to Cloud
+};
+
+export const MITRE_TACTICS = [
+  { id: 'TA0001', name: 'Initial Access', techs: ['T1566','T1190','T1078'] },
+  { id: 'TA0002', name: 'Execution', techs: ['T1059.001','T1569.002'] },
+  { id: 'TA0003', name: 'Persistence', techs: ['T1053.005','T1547.001'] },
+  { id: 'TA0004', name: 'Privilege Esc', techs: ['T1078'] },
+  { id: 'TA0005', name: 'Defense Evasion', techs: ['T1027','T1070','T1036','T1562.001'] },
+  { id: 'TA0006', name: 'Credential Access', techs: ['T1003.001','T1110'] },
+  { id: 'TA0007', name: 'Discovery', techs: ['T1018','T1082'] },
+  { id: 'TA0008', name: 'Lateral Movement', techs: ['T1021.002'] },
+  { id: 'TA0009', name: 'Collection', techs: [] },
+  { id: 'TA0010', name: 'Exfiltration', techs: ['T1048','T1567.002'] },
+  { id: 'TA0011', name: 'Command & Control', techs: ['T1071.001','T1572'] },
+];
+
+export const DEMO_TRENDS = {
+  labels_7d: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+  labels_30d: Array.from({length:30},(_,i)=>`D${i+1}`),
+  labels_90d: Array.from({length:12},(_,i)=>`W${i+1}`),
+  mttr: { '7d':[38,35,42,31,28,33,32], '30d':[45,42,40,38,41,39,36,38,35,33,37,34,32,35,33,31,34,32,30,33,31,29,32,30,28,31,29,32,30,32], '90d':[52,48,45,42,40,38,36,35,33,32,31,32] },
+  mttd: { '7d':[12,10,11,9,8,9,8.5], '30d':[15,14,13,12,13,11,12,10,11,10,9,10,9,8,9,8,9,8,8.5,9,8,8.5,8,9,8,8.5,8,8.5,8,8.5], '90d':[18,16,14,13,12,11,10,9.5,9,8.5,8.5,8.5] },
+  alerts: { '7d':[142,158,134,167,155,128,147], '30d':[120,132,145,138,142,158,134,167,155,128,147,162,138,145,152,148,135,142,155,160,148,138,145,150,142,138,155,148,142,147], '90d':[1020,1150,1080,1200,1100,1050,980,1020,1080,1050,1020,1040] },
+  vulns_critical: { '7d':[28,26,25,24,24,23,24], '30d':[35,34,32,31,30,29,28,27,28,26,25,26,25,24,25,24,24,23,24,23,24,23,24,24,23,24,24,23,24,24], '90d':[48,45,42,38,35,32,30,28,26,25,24,24] },
+};
