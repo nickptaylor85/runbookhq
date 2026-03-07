@@ -8,7 +8,7 @@ export async function GET(){
 }
 export async function POST(req:Request){
   const b=await req.json();const kv=await hasKVStore();
-  if(!kv)return NextResponse.json({error:'Vercel KV not configured. Go to Vercel Dashboard → Storage → Create KV Store → Link to Project.',hint:'Add KV_REST_API_URL and KV_REST_API_TOKEN'},{status:400});
+  if(!kv)return NextResponse.json({error:'Redis not configured. Sign up at upstash.com (free), create a database, then add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN to your Vercel env vars.',hint:'Add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN to Vercel env vars'},{status:400});
   const c=await loadToolConfigs();
   if(b.action==='save_credentials'){c.tools[b.toolId]={id:b.toolId,enabled:true,credentials:b.credentials,status:'untested'};c.updatedAt=new Date().toISOString();const ok=await saveToolConfigs(c);return NextResponse.json({ok})}
   if(b.action==='toggle'){if(c.tools[b.toolId]){c.tools[b.toolId].enabled=b.enabled;c.updatedAt=new Date().toISOString();await saveToolConfigs(c)}return NextResponse.json({ok:true})}

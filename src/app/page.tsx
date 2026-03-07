@@ -14,7 +14,7 @@ function SevRing({ c, h, m, l, size = 100 }: { c: number; h: number; m: number; 
   const total = c + h + m + l || 1, r = (size - 12) / 2, circ = 2 * Math.PI * r;
   const segs = [{p:c/total,co:'var(--red)'},{p:h/total,co:'#f97316'},{p:m/total,co:'var(--amber)'},{p:l/total,co:'var(--blue)'}];
   let off = 0;
-  return <svg width={size} height={size} style={{transform:'rotate(-90deg)'}}><circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--bg3)" strokeWidth="8"/>{segs.map((s,i)=>{const dash=s.p*circ;const el=<circle key={i} cx={size/2} cy={size/2} r={r} fill="none" stroke={s.co} strokeWidth="8" strokeDasharray={`${dash} ${circ-dash}`} strokeDashoffset={-off} strokeLinecap="round"/>;off+=dash;return el;})}</svg>;
+  return <div style={{position:'relative',width:size,height:size}}><svg width={size} height={size} style={{transform:'rotate(-90deg)'}}><circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--bg3)" strokeWidth="8"/>{segs.map((s,i)=>{const dash=s.p*circ;const el=<circle key={i} cx={size/2} cy={size/2} r={r} fill="none" stroke={s.co} strokeWidth="8" strokeDasharray={`${dash} ${circ-dash}`} strokeDashoffset={-off} strokeLinecap="round"/>;off+=dash;return el;})}</svg><div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',textAlign:'center'}}><div style={{fontSize:'.95rem',fontWeight:800,fontFamily:'var(--fm)',color:'var(--t1)'}}>{total}</div><div style={{fontSize:'.48rem',color:'var(--t3)',fontWeight:600,textTransform:'uppercase',letterSpacing:'.5px'}}>Total</div></div></div>;
 }
 function ThreatPulse({ size = 140 }: { size?: number }) {
   const c = size/2;
@@ -38,6 +38,57 @@ const TL=[{id:'t1',time:new Date(Date.now()-300000).toISOString(),title:'Credent
 type Tab='overview'|'alerts'|'coverage'|'vulns'|'tools';
 type Al={id:string;title:string;severity:string;status:string;source:string;category:string;device:string;user:string;timestamp:string;mitre:string};
 
+
+/* ═══ IOC SEARCH ═══ */
+function IOCSearch({open,onClose}:{open:boolean;onClose:()=>void}){
+  const[q,setQ]=useState('');const[results,setResults]=useState<any>(null);const[searching,setSearching]=useState(false);
+  async function search(){if(q.length<3)return;setSearching(true);try{const r=await fetch('/api/ioc-search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ioc:q})});setResults(await r.json())}catch(e){setResults({error:'Search failed'})}setSearching(false)}
+  if(!open)return null;
+  return<div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:640}}>
+    <div className="modal-hd"><h3 style={{fontSize:'.95rem'}}>🔍 IOC Search — All Tools</h3><button className="modal-close" onClick={onClose}>✕</button></div>
+    <div className="modal-body">
+      <div style={{display:'flex',gap:6,marginBottom:12}}><input className="field-input" placeholder="IP, domain, hash, CVE, hostname, username..." value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>e.key==='Enter'&&search()} autoFocus style={{flex:1}}/><button className="tc-btn tc-btn-primary" onClick={search} disabled={searching}>{searching?'Searching...':'Search'}</button></div>
+      <div style={{fontSize:'.65rem',color:'var(--t3)',marginBottom:12}}>Searches across: Defender MDE/XDR, Taegis, Tenable, Zscaler ZIA, CrowdStrike, SentinelOne, Darktrace, Recorded Future</div>
+      {results&&<>
+        <div style={{fontSize:'.78rem',fontWeight:700,marginBottom:8}}>{results.resultCount||0} results for <span className="mono" style={{color:'var(--accent)'}}>{results.ioc}</span></div>
+        {results.results?.map((r:any,i:number)=>(<div key={i} className="ioc-result">
+          <div style={{display:'flex',gap:6,alignItems:'center',marginBottom:3}}><span className={`src ${sc(r.tool)}`}>{r.tool}</span><span className={`sev sev-${r.severity}`}>{r.severity}</span><span style={{fontSize:'.62rem',color:'var(--t3)',background:'var(--bg3)',padding:'1px 5px',borderRadius:3}}>{r.type.replace(/_/g,' ')}</span></div>
+          <div style={{fontSize:'.82rem',fontWeight:600}}>{r.match}</div>
+          <div style={{fontSize:'.72rem',color:'var(--t2)'}}>{r.detail}</div>
+        </div>))}
+        {results.resultCount===0&&<div style={{textAlign:'center',padding:20,color:'var(--t3)'}}>No matches found across connected tools</div>}
+      </>}
+    </div>
+  </div></div>;
+}
+
+/* ═══ RESPONSE ACTIONS ═══ */
+function ActionMenu({alert,onDone}:{alert:any;onDone:()=>void}){
+  const[open,setOpen]=useState(false);const[loading,setLoading]=useState('');const[result,setResult]=useState<any>(null);
+  const actions=[
+    {id:'isolate_device',label:'🔒 Isolate Device',target:alert.device,tool:alert.source,show:!!alert.device},
+    {id:'block_ip',label:'🚫 Block IP',target:'185.220.101.42',tool:'Zscaler ZIA',show:true},
+    {id:'disable_user',label:'👤 Disable User',target:alert.user,tool:'Azure AD',show:!!alert.user},
+    {id:'quarantine_file',label:'📦 Quarantine File',target:alert.device,tool:alert.source,show:!!alert.device},
+    {id:'run_scan',label:'🔍 Run AV Scan',target:alert.device,tool:alert.source,show:!!alert.device},
+    {id:'collect_evidence',label:'🧲 Collect Evidence',target:alert.device,tool:alert.source,show:!!alert.device},
+  ].filter(a=>a.show);
+  async function exec(a:any){setLoading(a.id);try{const r=await fetch('/api/response-actions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:a.id,target:a.target,tool:a.tool,alertId:alert.id})});setResult(await r.json())}catch{setResult({error:'Action failed'})}setLoading('')}
+  return<div style={{position:'relative'}}><button className="tc-btn" onClick={()=>setOpen(!open)} style={{fontSize:'.6rem',padding:'2px 6px'}}>⚡ Act</button>
+    {open&&<div className="action-dropdown">{actions.map(a=>(<button key={a.id} className="action-item" onClick={()=>exec(a)} disabled={!!loading}>{loading===a.id?'Running...':a.label}<span className="muted" style={{fontSize:'.55rem',marginLeft:4}}>{a.target}</span></button>))}
+    {result&&<div className={`action-result ${result.ok?'ok':'err'}`}>{result.ok?`✓ ${result.message}`:result.error}</div>}
+    </div>}
+  </div>;
+}
+
+/* ═══ EXPORT ═══ */
+function ExportBtn({data,filename,label='Export'}:{data:()=>any[];filename:string;label?:string}){
+  function toCSV(){const rows=data();if(!rows.length)return;const keys=Object.keys(rows[0]);const csv=[keys.join(','),...rows.map(r=>keys.map(k=>JSON.stringify(r[k]??'')).join(','))].join('\n');dl(csv,'text/csv',filename+'.csv')}
+  function dl(content:string,mime:string,name:string){const b=new Blob([content],{type:mime});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;a.click();URL.revokeObjectURL(u)}
+  return<div style={{display:'flex',gap:4}}><button className="tc-btn" onClick={toCSV} style={{fontSize:'.62rem',padding:'2px 8px'}}>📥 CSV</button></div>;
+}
+
+
 /* ═══ MAIN ═══ */
 export default function Dashboard(){
   const[tab,setTab]=useState<Tab>('overview');
@@ -50,6 +101,10 @@ export default function Dashboard(){
   const[mobileNav,setMobileNav]=useState(false);
   const[clock,setClock]=useState('');
   const[sparks]=useState({al:gen(6,3),mttr:gen(35,8),mttd:gen(9,3),thr:gen(180,40),hourly:gen(12,5)});
+  const[iocOpen,setIocOpen]=useState(false);
+  const[isFullscreen,setIsFullscreen]=useState(false);
+  const[prevCritCount,setPrevCritCount]=useState(0);
+  const audioRef=typeof window!=='undefined'?{current:null as AudioContext|null}:{current:null};
 
   useEffect(()=>{const tick=()=>setClock(new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'}));tick();const i=setInterval(tick,1000);return()=>clearInterval(i)},[]);
 
@@ -63,6 +118,29 @@ export default function Dashboard(){
   },[]);
 
   useEffect(()=>{refresh();const i=setInterval(refresh,120000);return()=>clearInterval(i)},[refresh]);
+  // Critical alert notification sound
+  useEffect(()=>{
+    const critCount=alerts.filter(a=>a.severity==='critical'&&a.status==='new').length;
+    if(critCount>prevCritCount&&prevCritCount>=0&&alerts.length>0){
+      try{
+        if(!audioRef.current)audioRef.current=new AudioContext();
+        const ctx=audioRef.current;const o=ctx.createOscillator();const g=ctx.createGain();
+        o.connect(g);g.connect(ctx.destination);o.frequency.value=880;o.type='sine';
+        g.gain.setValueAtTime(0.3,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.5);
+        o.start(ctx.currentTime);o.stop(ctx.currentTime+0.5);
+        // Second beep
+        const o2=ctx.createOscillator();const g2=ctx.createGain();
+        o2.connect(g2);g2.connect(ctx.destination);o2.frequency.value=1100;o2.type='sine';
+        g2.gain.setValueAtTime(0.3,ctx.currentTime+0.15);g2.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.65);
+        o2.start(ctx.currentTime+0.15);o2.stop(ctx.currentTime+0.65);
+        // Browser notification
+        if(typeof Notification!=='undefined'&&Notification.permission==='granted'){new Notification('🔴 Critical Alert',{body:`${critCount} new critical alert(s)`,icon:'/favicon.ico'})}
+        else if(typeof Notification!=='undefined'&&Notification.permission!=='denied'){Notification.requestPermission()}
+      }catch(e){}
+    }
+    setPrevCritCount(critCount);
+  },[alerts]);
+  function toggleFullscreen(){if(!document.fullscreenElement){document.documentElement.requestFullscreen();setIsFullscreen(true)}else{document.exitFullscreen();setIsFullscreen(false)}}
   useEffect(()=>{document.documentElement.setAttribute('data-theme',theme)},[theme]);
 
   const m=data?.metrics,cov=data?.coverage,zsc=data?.zscaler;
@@ -75,10 +153,11 @@ export default function Dashboard(){
       <div className="logo"><div className="logo-icon">S</div><span>Sec</span>Ops</div>
       <div className="tabs desk-only">{tabs.map(t=>(<button key={t.k} className={`tab ${tab===t.k?'active':''}`} onClick={()=>setTab(t.k)}>{t.i} {t.l}</button>))}</div>
       <button className="mob-menu mob-only" onClick={()=>setMobileNav(!mobileNav)}>☰</button>
-      <div className="topbar-right"><span className="clock desk-only">{clock}</span><div className="live-dot"/>{demo&&<div className="demo-pill desk-only">DEMO</div>}<button className="theme-btn" onClick={()=>setTheme(t=>t==='dark'?'light':'dark')}>{theme==='dark'?'☀':'🌙'}</button><button className="refresh-btn desk-only" onClick={refresh}>↻</button></div>
+      <div className="topbar-right"><button className="search-trigger desk-only" onClick={()=>setIocOpen(true)}>🔍 <span className="desk-only">IOC Search</span></button><span className="clock desk-only">{clock}</span><div className="live-dot"/>{demo&&<div className="demo-pill desk-only">DEMO</div>}<button className="theme-btn desk-only" onClick={toggleFullscreen} title="Fullscreen">{isFullscreen?'⊡':'⛶'}</button><button className="theme-btn" onClick={()=>setTheme(t=>t==='dark'?'light':'dark')}>{theme==='dark'?'☀':'🌙'}</button><button className="refresh-btn desk-only" onClick={refresh}>↻</button></div>
     </div>
     {mobileNav&&<div className="mob-nav">{tabs.map(t=>(<button key={t.k} className={`mnav-btn ${tab===t.k?'active':''}`} onClick={()=>{setTab(t.k);setMobileNav(false)}}>{t.i} {t.l}</button>))}</div>}
     <div className="main">
+      {iocOpen&&<IOCSearch open={iocOpen} onClose={()=>setIocOpen(false)}/>}
       {loading?<div className="loading"><span className="spin"/>Loading...</div>
         :tab==='overview'?<Ov m={m} cov={cov} alerts={alerts} zsc={zsc} sparks={sparks} enabledTools={enabledTools}/>
         :tab==='alerts'?<Als alerts={alerts}/>
@@ -102,9 +181,9 @@ function Ov({m,cov,alerts,zsc,sparks,enabledTools}:any){
       <div className="kpi"><div className="kpi-top"><div className="kpi-label">Tools Active</div></div><div className="kpi-val" style={{color:'var(--accent)'}}>{enabledTools.length}<span className="kpi-unit">/{TOOLS.length}</span></div><div className="kpi-sub">{cov?.totalDevices?.toLocaleString()} devices</div></div>
     </div>
     <div className="hero-grid">
-      <div className="panel hero-panel"><div className="panel-hd"><h3>📡 Threat Radar</h3></div><div style={{display:'flex',justifyContent:'center',padding:'10px 0'}}><ThreatPulse size={130}/></div></div>
+      <div className="panel hero-panel"><div className="panel-hd"><h3>📡 Threat Radar</h3></div><div style={{display:'flex',justifyContent:'center',padding:'10px 0'}}><ThreatPulse size={130}/></div><div style={{textAlign:'center',fontSize:'.6rem',color:'var(--t3)',paddingBottom:8,display:'flex',justifyContent:'center',gap:10}}><span><span style={{color:'var(--red)'}}>●</span> Critical</span><span><span style={{color:'var(--amber)'}}>●</span> High</span><span><span style={{color:'var(--green)'}}>●</span> Resolved</span></div></div>
       <div className="panel hero-panel"><div className="panel-hd"><h3>🎯 Severity</h3></div><div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:14,padding:'14px 10px'}}><SevRing c={m.alertsLast24h.critical} h={m.alertsLast24h.high} m={m.alertsLast24h.medium} l={m.alertsLast24h.low} size={90}/><div style={{fontSize:'.7rem',lineHeight:2}}><div><span className="sev sev-critical">{m.alertsLast24h.critical}</span> Crit</div><div><span className="sev sev-high">{m.alertsLast24h.high}</span> High</div><div><span className="sev sev-medium">{m.alertsLast24h.medium}</span> Med</div><div><span className="sev sev-low">{m.alertsLast24h.low}</span> Low</div></div></div></div>
-      <div className="panel hero-panel"><div className="panel-hd"><h3>📈 Hourly</h3></div><div style={{padding:'14px 10px',display:'flex',justifyContent:'center'}}><HourlyChart data={sparks.hourly} w={200} h={60}/></div></div>
+      <div className="panel hero-panel"><div className="panel-hd"><h3>📈 Hourly Alerts</h3></div><div style={{padding:'14px 10px',display:'flex',flexDirection:'column',alignItems:'center',gap:4}}><HourlyChart data={sparks.hourly} w={200} h={60}/><div style={{display:'flex',justifyContent:'space-between',width:200,fontSize:'.52rem',color:'var(--t3)',fontFamily:'var(--fm)'}}><span>24h ago</span><span>12h</span><span>Now</span></div></div></div>
       <div className="panel hero-panel"><div className="panel-hd"><h3>🔌 Connected</h3></div><div style={{padding:'10px',display:'flex',flexWrap:'wrap',gap:6,justifyContent:'center'}}>{enabledTools.map((t:any)=>(<div key={t.id} className="tool-chip" style={{borderColor:t.color+'33',color:t.color}}><span>{t.icon}</span>{t.shortName}</div>))}{enabledTools.length===0&&<div style={{fontSize:'.72rem',color:'var(--t3)',padding:12}}>No tools connected — go to Tools tab</div>}</div></div>
     </div>
     <div className="g23">
@@ -119,12 +198,26 @@ function Ov({m,cov,alerts,zsc,sparks,enabledTools}:any){
 
 /* ═══ ALERTS ═══ */
 function Als({alerts}:{alerts:Al[]}){
-  const[sev,setSev]=useState('all');const[src,setSrc]=useState('all');
+  const[sev,setSev]=useState('all');const[src,setSrc]=useState('all');const[grouped,setGrouped]=useState(false);
   const sources=[...new Set(alerts.map(a=>a.source))];
   const f=alerts.filter(a=>sev==='all'||a.severity===sev).filter(a=>src==='all'||a.source===src);
   return(<>
-    <div className="filter-row"><div className="pills">{['all','critical','high','medium','low'].map(s=>(<button key={s} className={`pill ${sev===s?'on':''}`} onClick={()=>setSev(s)}>{s==='all'?`All (${alerts.length})`:`${s.charAt(0).toUpperCase()+s.slice(1)} (${alerts.filter(a=>a.severity===s).length})`}</button>))}</div></div>
-    <div className="panel"><div className="tbl-wrap" style={{maxHeight:'calc(100vh - 170px)'}}><table className="tbl"><thead><tr><th>Alert</th><th>Source</th><th>Sev</th><th className="desk-only">Status</th><th className="desk-only">Device</th><th className="desk-only">MITRE</th><th>Time</th></tr></thead><tbody>{f.map(a=>(<tr key={a.id}><td style={{fontWeight:600,maxWidth:280}}>{a.title}</td><td><span className={`src ${sc(a.source)}`}>{a.source}</span></td><td><span className={`sev sev-${a.severity}`}>{a.severity}</span></td><td className="desk-only"><span className={`status status-${a.status}`}>{a.status}</span></td><td className="device desk-only">{a.device||'—'}</td><td className="desk-only">{a.mitre?<span className="mitre">{a.mitre}</span>:<span className="muted">—</span>}</td><td className="ts">{ago(a.timestamp)}</td></tr>))}</tbody></table></div></div>
+    <div className="filter-row">
+      <div className="pills">{['all','critical','high','medium','low'].map(s=>(<button key={s} className={`pill ${sev===s?'on':''}`} onClick={()=>setSev(s)}>{s==='all'?`All (${alerts.length})`:`${s.charAt(0).toUpperCase()+s.slice(1)} (${alerts.filter(a=>a.severity===s).length})`}</button>))}</div>
+      <button className={`tc-btn ${grouped?'tc-btn-primary':''}`} onClick={()=>setGrouped(!grouped)} style={{fontSize:'.66rem',padding:'3px 8px'}}>{grouped?'🔗 Correlated':'🔗 Correlate'}</button>
+      <ExportBtn data={()=>f.map(a=>({title:a.title,source:a.source,severity:a.severity,status:a.status,device:a.device,user:a.user,mitre:a.mitre,time:a.timestamp}))} filename="secops-alerts"/>
+    </div>
+    <div className="panel"><div className="tbl-wrap" style={{maxHeight:'calc(100vh - 170px)'}}><table className="tbl"><thead><tr><th>Alert</th><th>Source</th><th>Sev</th><th className="desk-only">Status</th><th className="desk-only">Device</th><th className="desk-only">MITRE</th><th>Time</th><th className="desk-only">Actions</th></tr></thead><tbody>{(()=>{
+        if(!grouped)return f.map(a=>(<tr key={a.id}><td style={{fontWeight:600,maxWidth:280}}>{a.title}</td><td><span className={`src ${sc(a.source)}`}>{a.source}</span></td><td><span className={`sev sev-${a.severity}`}>{a.severity}</span></td><td className="desk-only"><span className={`status status-${a.status}`}>{a.status}</span></td><td className="device desk-only">{a.device||'—'}</td><td className="desk-only">{a.mitre?<span className="mitre">{a.mitre}</span>:<span className="muted">—</span>}</td><td className="ts">{ago(a.timestamp)}</td><td className="desk-only"><ActionMenu alert={a} onDone={()=>{}}/></td></tr>));
+        // Correlate: group by device within 30min windows
+        const groups:Record<string,Al[]>={};
+        f.forEach(a=>{const key=a.device||a.user||a.id;if(!groups[key])groups[key]=[];groups[key].push(a)});
+        return Object.entries(groups).flatMap(([key,als])=>{
+          if(als.length===1)return als.map(a=>(<tr key={a.id}><td style={{fontWeight:600,maxWidth:280}}>{a.title}</td><td><span className={`src ${sc(a.source)}`}>{a.source}</span></td><td><span className={`sev sev-${a.severity}`}>{a.severity}</span></td><td className="desk-only"><span className={`status status-${a.status}`}>{a.status}</span></td><td className="device desk-only">{a.device||'—'}</td><td className="desk-only">{a.mitre?<span className="mitre">{a.mitre}</span>:<span className="muted">—</span>}</td><td className="ts">{ago(a.timestamp)}</td><td className="desk-only"><ActionMenu alert={a} onDone={()=>{}}/></td></tr>));
+          const top=als.sort((a,b)=>SO[a.severity]-SO[b.severity])[0];
+          return[<tr key={key} className="corr-group"><td colSpan={8} style={{padding:'6px 10px',background:'var(--accent-s)',borderLeft:'3px solid var(--accent)'}}><div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:'.7rem',fontWeight:700,color:'var(--accent)'}}>🔗 Correlated ({als.length} alerts)</span><span className="device">{key}</span><span className="muted" style={{fontSize:'.62rem'}}>Highest: <span className={`sev sev-${top.severity}`}>{top.severity}</span></span>{als.map(a=>(<span key={a.id} className={`src ${sc(a.source)}`} style={{marginLeft:2}}>{a.source}</span>))}<span style={{marginLeft:'auto'}}><ActionMenu alert={top} onDone={()=>{}}/></span></div><div style={{fontSize:'.68rem',color:'var(--t2)',marginTop:3}}>{als.map(a=>a.title).join(' → ')}</div></td></tr>];
+        });
+      })()}</tbody></table></div></div>
   </>);
 }
 
@@ -200,7 +293,7 @@ function ToolsManager({toolsData,onRefresh}:{toolsData:any;onRefresh:()=>void}){
   return(<div style={{maxWidth:900}}>
     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12,flexWrap:'wrap',gap:8}}>
       <div><h2 style={{fontSize:'1.1rem',fontWeight:800}}>🔌 Tool Integrations</h2><p className="muted" style={{fontSize:'.76rem'}}>{toolsData?.enabledCount||0} connected · {TOOLS.length} available</p></div>
-      {!toolsData?.kvAvailable&&<div className="kv-warn">⚠ Vercel KV not configured — credentials won't persist. <a href="https://vercel.com/docs/storage/vercel-kv" target="_blank" rel="noopener" style={{color:'var(--accent)'}}>Set up KV →</a></div>}
+      {!toolsData?.kvAvailable&&<div className="kv-warn">⚠ Redis not configured — credentials won't persist. <a href="https://upstash.com" target="_blank" rel="noopener" style={{color:'var(--accent)'}}>Set up Upstash Redis (free) →</a></div>}
     </div>
 
     <div className="pills" style={{marginBottom:12}}><button className={`pill ${catFilter==='all'?'on':''}`} onClick={()=>setCatFilter('all')}>All ({TOOLS.length})</button>{categories.map(c=>(<button key={c} className={`pill ${catFilter===c?'on':''}`} onClick={()=>setCatFilter(c)}>{c} ({TOOLS.filter(t=>t.categoryLabel===c).length})</button>))}</div>
@@ -294,3 +387,13 @@ body{background:var(--bg0);color:var(--t1);font-family:var(--fs);font-size:14px;
 .desk-only{}.mob-only{display:none!important}
 @media(max-width:768px){.desk-only{display:none!important}.mob-only{display:flex!important}.mob-menu{display:block}.mob-nav{display:flex}.topbar{padding:0 12px;gap:8px}.main{padding:10px 10px 20px}.kpi-grid{grid-template-columns:repeat(2,1fr);gap:5px}.hero-grid{grid-template-columns:1fr 1fr;gap:6px}.g2r,.g23{grid-template-columns:1fr}.tool-grid{grid-template-columns:1fr}}
 @media(max-width:480px){.kpi-grid{grid-template-columns:1fr 1fr}.hero-grid{grid-template-columns:1fr}.kpi{padding:10px 12px}.kpi-val{font-size:1.2rem}}`;
+/* IOC Search */
+.search-trigger{height:30px;padding:0 10px;border-radius:var(--r);border:1px solid var(--brd);background:var(--bg2);cursor:pointer;font-size:.72rem;font-family:var(--fs);color:var(--t2);display:flex;align-items:center;gap:4px;transition:all .15s}.search-trigger:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-s)}
+.ioc-result{padding:8px 10px;border:1px solid var(--brd);border-radius:var(--r);margin-bottom:6px;background:var(--bg2);transition:border-color .15s}.ioc-result:hover{border-color:var(--brd2)}
+/* Response Actions */
+.action-dropdown{position:absolute;right:0;top:100%;margin-top:4px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2);box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:50;min-width:220px;padding:4px}
+.action-item{display:block;width:100%;text-align:left;padding:6px 10px;border:none;background:none;color:var(--t1);font-size:.72rem;font-family:var(--fs);cursor:pointer;border-radius:5px;transition:all .15s}.action-item:hover{background:var(--bg2)}.action-item:disabled{opacity:.5}
+.action-result{padding:6px 8px;margin:4px;border-radius:5px;font-size:.68rem}.action-result.ok{background:var(--greens);color:var(--green)}.action-result.err{background:var(--reds);color:var(--red)}
+/* Correlation */
+.corr-group td{background:var(--accent-s)!important}
+`;
