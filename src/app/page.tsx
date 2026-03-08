@@ -44,22 +44,7 @@ function IOCSearch({open,onClose}:{open:boolean;onClose:()=>void}){
   const[q,setQ]=useState('');const[results,setResults]=useState<any>(null);const[searching,setSearching]=useState(false);
   async function search(){if(q.length<3)return;setSearching(true);try{const r=await fetch('/api/ioc-search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ioc:q})});setResults(await r.json())}catch(e){setResults({error:'Search failed'})}setSearching(false)}
   if(!open)return null;
-  return(<div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:640}}>
-    <div className="modal-hd"><h3 style={{fontSize:'.95rem'}}>🔍 IOC Search — All Tools</h3><button className="modal-close" onClick={onClose}>✕</button></div>
-    <div className="modal-body">
-      <div style={{display:'flex',gap:6,marginBottom:12}}><input className="field-input" placeholder="IP, domain, hash, CVE, hostname, username..." value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>e.key==='Enter'&&search()} autoFocus style={{flex:1}}/><button className="tc-btn tc-btn-primary" onClick={search} disabled={searching}>{searching?'Searching...':'Search'}</button></div>
-      <div style={{fontSize:'.65rem',color:'var(--t3)',marginBottom:12}}>Searches across: Defender MDE/XDR, Taegis, Tenable, Zscaler ZIA, CrowdStrike, SentinelOne, Darktrace, Recorded Future</div>
-      {results&&<>
-        <div style={{fontSize:'.78rem',fontWeight:700,marginBottom:8}}>{results.resultCount||0} results for <span className="mono" style={{color:'var(--accent)'}}>{results.ioc}</span></div>
-        {results.results?.map((r:any,i:number)=>(<div key={i} className="ioc-result">
-          <div style={{display:'flex',gap:6,alignItems:'center',marginBottom:3}}><span className={`src ${sc(r.tool)}`}>{r.tool}</span><span className={`sev sev-${r.severity}`}>{r.severity}</span><span style={{fontSize:'.62rem',color:'var(--t3)',background:'var(--bg3)',padding:'1px 5px',borderRadius:3}}>{r.type.replace(/_/g,' ')}</span></div>
-          <div style={{fontSize:'.82rem',fontWeight:600}}>{r.match}</div>
-          <div style={{fontSize:'.72rem',color:'var(--t2)'}}>{r.detail}</div>
-        </div>))}
-        {results.resultCount===0&&<div style={{textAlign:'center',padding:20,color:'var(--t3)'}}>No matches found across connected tools</div>}
-      </>}
-    </div>
-  </div></div>);
+  return(<div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:640}}><div className="modal-hd"><h3 style={{fontSize:'.95rem'}}>🔍 IOC Search — All Tools</h3><button className="modal-close" onClick={onClose}>✕</button></div><div className="modal-body"><div style={{display:'flex',gap:6,marginBottom:12}}><input className="field-input" placeholder="IP, domain, hash, CVE, hostname, username..." value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>e.key==='Enter'&&search()} autoFocus style={{flex:1}}/><button className="tc-btn tc-btn-primary" onClick={search} disabled={searching}>{searching?'Searching...':'Search'}</button></div><div style={{fontSize:'.65rem',color:'var(--t3)',marginBottom:12}}>Searches across: Defender MDE/XDR, Taegis, Tenable, Zscaler ZIA, CrowdStrike, SentinelOne, Darktrace, Recorded Future</div>{results&&<><div style={{fontSize:'.78rem',fontWeight:700,marginBottom:8}}>{results.resultCount||0} results for <span className="mono" style={{color:'var(--accent)'}}>{results.ioc}</span></div>{results.results?.map((r:any,i:number)=>(<div key={i} className="ioc-result"><div style={{display:'flex',gap:6,alignItems:'center',marginBottom:3}}><span className={`src ${sc(r.tool)}`}>{r.tool}</span><span className={`sev sev-${r.severity}`}>{r.severity}</span><span style={{fontSize:'.62rem',color:'var(--t3)',background:'var(--bg3)',padding:'1px 5px',borderRadius:3}}>{r.type.replace(/_/g,' ')}</span></div><div style={{fontSize:'.82rem',fontWeight:600}}>{r.match}</div><div style={{fontSize:'.72rem',color:'var(--t2)'}}>{r.detail}</div></div>))}{results.resultCount===0&&<div style={{textAlign:'center',padding:20,color:'var(--t3)'}}>No matches found across connected tools</div>}</>}</div></div></div>);
 }
 
 /* ═══ RESPONSE ACTIONS ═══ */
@@ -74,11 +59,7 @@ function ActionMenu({alert,onDone}:{alert:any;onDone:()=>void}){
     {id:'collect_evidence',label:'🧲 Collect Evidence',target:alert.device,tool:alert.source,show:!!alert.device},
   ].filter(a=>a.show);
   async function exec(a:any){setLoading(a.id);try{const r=await fetch('/api/response-actions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:a.id,target:a.target,tool:a.tool,alertId:alert.id})});setResult(await r.json())}catch(e){setResult({error:'Action failed'})}setLoading('')}
-  return(<div style={{position:'relative'}}><button className="tc-btn" onClick={()=>setOpen(!open)} style={{fontSize:'.6rem',padding:'2px 6px'}}>⚡ Act</button>
-    {open&&<div className="action-dropdown">{actions.map(a=>(<button key={a.id} className="action-item" onClick={()=>exec(a)} disabled={!!loading}>{loading===a.id?'Running...':a.label}<span className="muted" style={{fontSize:'.55rem',marginLeft:4}}>{a.target}</span></button>))}
-    {result&&<div className={`action-result ${result.ok?'ok':'err'}`}>{result.ok?`✓ ${result.message}`:result.error}</div>}
-    </div>}
-  </div>);
+  return(<div style={{position:'relative'}}><button className="tc-btn" onClick={()=>setOpen(!open)} style={{fontSize:'.6rem',padding:'2px 6px'}}>⚡ Act</button>{open&&<div className="action-dropdown">{actions.map(a=>(<button key={a.id} className="action-item" onClick={()=>exec(a)} disabled={!!loading}>{loading===a.id?'Running...':a.label}<span className="muted" style={{fontSize:'.55rem',marginLeft:4}}>{a.target}</span></button>))}{result&&<div className={`action-result ${result.ok?'ok':'err'}`}>{result.ok?`✓ ${result.message}`:result.error}</div>}</div>}</div>);
 }
 
 /* ═══ EXPORT ═══ */
@@ -101,27 +82,7 @@ function MitreHeatmap({alerts}:{alerts:Al[]}){
   const demoTechs:Record<string,{count:number;sev:string}>={'T1566':{count:4,sev:'high'},'T1059.001':{count:3,sev:'critical'},'T1003.001':{count:2,sev:'critical'},'T1071.001':{count:3,sev:'high'},'T1021.002':{count:2,sev:'high'},'T1053.005':{count:1,sev:'medium'},'T1110':{count:5,sev:'high'},'T1048':{count:1,sev:'medium'},'T1572':{count:2,sev:'high'},'T1190':{count:1,sev:'critical'},'T1078':{count:3,sev:'high'},'T1027':{count:1,sev:'medium'},'T1070':{count:1,sev:'medium'},'T1018':{count:2,sev:'low'},'T1082':{count:3,sev:'low'},'T1569.002':{count:1,sev:'high'},'T1036':{count:2,sev:'medium'},'T1547.001':{count:1,sev:'high'},'T1562.001':{count:1,sev:'critical'},'T1567.002':{count:1,sev:'high'}};
   Object.entries(demoTechs).forEach(([k,v])=>{if(!techCounts[k])techCounts[k]=v});
   const sevColor=(s:string)=>s==='critical'?'var(--red)':s==='high'?'#f97316':s==='medium'?'var(--amber)':'var(--blue)';
-  return(<div className="panel"><div className="panel-hd"><h3>🗺 MITRE ATT&CK Coverage</h3><span className="count">{Object.keys(techCounts).length} techniques</span></div>
-    <div style={{padding:'10px',overflowX:'auto'}}>
-      <div style={{display:'grid',gridTemplateColumns:`repeat(${TACTICS.length},1fr)`,gap:3,minWidth:700}}>
-        {TACTICS.map(tac=>(<div key={tac.id}>
-          <div style={{fontSize:'.52rem',fontWeight:700,color:'var(--t3)',textAlign:'center',padding:'4px 2px',textTransform:'uppercase',letterSpacing:'.3px',borderBottom:'1px solid var(--brd)',marginBottom:3}}>{tac.n}</div>
-          {tac.t.map(tech=>{const d=techCounts[tech];return <div key={tech} style={{background:d?sevColor(d.sev)+'18':'var(--bg3)',border:`1px solid ${d?sevColor(d.sev)+'30':'var(--brd)'}`,borderRadius:4,padding:'4px 3px',marginBottom:2,textAlign:'center',cursor:'default',transition:'all .15s'}} title={`${tech}: ${d?.count||0} alerts (${d?.sev||'none'})`}>
-            <div style={{fontSize:'.52rem',fontFamily:'var(--fm)',fontWeight:600,color:d?sevColor(d.sev):'var(--t4)'}}>{tech.replace('T','')}</div>
-            {d&&<div style={{fontSize:'.62rem',fontWeight:800,fontFamily:'var(--fm)',color:sevColor(d.sev)}}>{d.count}</div>}
-          </div>})}
-          {tac.t.length===0&&<div style={{fontSize:'.55rem',color:'var(--t4)',textAlign:'center',padding:8}}>—</div>}
-        </div>))}
-      </div>
-      <div style={{display:'flex',gap:12,justifyContent:'center',marginTop:8,fontSize:'.55rem',color:'var(--t3)'}}>
-        <span><span style={{display:'inline-block',width:8,height:8,borderRadius:2,background:'var(--red)',opacity:.6,marginRight:3}}/>Critical</span>
-        <span><span style={{display:'inline-block',width:8,height:8,borderRadius:2,background:'#f97316',opacity:.6,marginRight:3}}/>High</span>
-        <span><span style={{display:'inline-block',width:8,height:8,borderRadius:2,background:'var(--amber)',opacity:.6,marginRight:3}}/>Medium</span>
-        <span><span style={{display:'inline-block',width:8,height:8,borderRadius:2,background:'var(--blue)',opacity:.6,marginRight:3}}/>Low</span>
-        <span><span style={{display:'inline-block',width:8,height:8,borderRadius:2,background:'var(--bg3)',border:'1px solid var(--brd)',marginRight:3}}/>No alerts</span>
-      </div>
-    </div>
-  </div>);
+  return(<div className="panel"><div className="panel-hd"><h3>🗺 MITRE ATT&CK Coverage</h3><span className="count">{Object.keys(techCounts).length} techniques</span></div><div style={{padding:'10px',overflowX:'auto'}}><div style={{display:'grid',gridTemplateColumns:`repeat(${TACTICS.length},1fr)`,gap:3,minWidth:700}}>{TACTICS.map(tac=>(<div key={tac.id}><div style={{fontSize:'.52rem',fontWeight:700,color:'var(--t3)',textAlign:'center',padding:'4px 2px',textTransform:'uppercase',letterSpacing:'.3px',borderBottom:'1px solid var(--brd)',marginBottom:3}}>{tac.n}</div>{tac.t.map(tech=>{const d=techCounts[tech];return <div key={tech} style={{background:d?sevColor(d.sev)+'18':'var(--bg3)',border:`1px solid ${d?sevColor(d.sev)+'30':'var(--brd)'}`,borderRadius:4,padding:'4px 3px',marginBottom:2,textAlign:'center',cursor:'default',transition:'all .15s'}} title={`${tech}: ${d?.count||0} alerts (${d?.sev||'none'})`}><div style={{fontSize:'.52rem',fontFamily:'var(--fm)',fontWeight:600,color:d?sevColor(d.sev):'var(--t4)'}}>{tech.replace('T','')}</div>{d&&<div style={{fontSize:'.62rem',fontWeight:800,fontFamily:'var(--fm)',color:sevColor(d.sev)}}>{d.count}</div>}</div>})}{tac.t.length===0&&<div style={{fontSize:'.55rem',color:'var(--t4)',textAlign:'center',padding:8}}>—</div>}</div>))}</div><div style={{display:'flex',gap:12,justifyContent:'center',marginTop:8,fontSize:'.55rem',color:'var(--t3)'}}><span><span style={{display:'inline-block',width:8,height:8,borderRadius:2,background:'var(--red)',opacity:.6,marginRight:3}}/>Critical</span><span><span style={{display:'inline-block',width:8,height:8,borderRadius:2,background:'#f97316',opacity:.6,marginRight:3}}/>High</span><span><span style={{display:'inline-block',width:8,height:8,borderRadius:2,background:'var(--amber)',opacity:.6,marginRight:3}}/>Medium</span><span><span style={{display:'inline-block',width:8,height:8,borderRadius:2,background:'var(--blue)',opacity:.6,marginRight:3}}/>Low</span><span><span style={{display:'inline-block',width:8,height:8,borderRadius:2,background:'var(--bg3)',border:'1px solid var(--brd)',marginRight:3}}/>No alerts</span></div></div></div>);
 }
 
 /* ═══ TREND CHARTS ═══ */
@@ -139,17 +100,7 @@ function AICopilot({alert,onClose}:{alert:Al|null;onClose:()=>void}){
   async function ask(q?:string){setLoading(true);setResponse('');try{const r=await fetch('/api/ai-copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alert,question:q||question||undefined})});const d=await r.json();setResponse(d.response)}catch(e){setResponse('Failed to get response.')}setLoading(false)}
   useEffect(()=>{if(alert)ask()},[]);
   if(!alert)return null;
-  return(<div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:600}}>
-    <div className="modal-hd"><div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:'1.2rem'}}>🤖</span><div><h3 style={{fontSize:'.9rem'}}>AI Co-Pilot</h3><p className="muted" style={{fontSize:'.62rem'}}>{alert.title}</p></div></div><button className="modal-close" onClick={onClose}>✕</button></div>
-    <div className="modal-body">
-      <div style={{display:'flex',gap:4,marginBottom:10,flexWrap:'wrap'}}><span className={`sev sev-${alert.severity}`}>{alert.severity}</span><span className={`src ${sc(alert.source)}`}>{alert.source}</span>{alert.mitre&&<span className="mitre">{alert.mitre}</span>}{alert.device&&<span className="device">{alert.device}</span>}</div>
-      {loading?<div style={{padding:20,textAlign:'center'}}><span className="spin" style={{display:'inline-block'}}/> Analysing alert...</div>
-      :response?<div className="ai-response">{response.split('\n').map((line,i)=>line?<p key={i} style={{marginBottom:6}} dangerouslySetInnerHTML={{__html:line.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')}}/>:null)}</div>
-      :null}
-      <div style={{display:'flex',gap:4,marginTop:10}}><input className="field-input" placeholder="Ask a follow-up question..." value={question} onChange={e=>setQuestion(e.target.value)} onKeyDown={e=>e.key==='Enter'&&ask()} style={{flex:1}}/><button className="tc-btn tc-btn-primary" onClick={()=>ask()} disabled={loading}>Ask</button></div>
-      <div style={{display:'flex',gap:4,marginTop:6,flexWrap:'wrap'}}>{['What should I check first?','Is this related to other alerts?','Write me a containment plan','How do I investigate this in Splunk?'].map(q=>(<button key={q} className="tc-btn" style={{fontSize:'.58rem',padding:'2px 6px'}} onClick={()=>{setQuestion(q);ask(q)}}>{q}</button>))}</div>
-    </div>
-  </div></div>);
+  return(<div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:600}}><div className="modal-hd"><div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:'1.2rem'}}>🤖</span><div><h3 style={{fontSize:'.9rem'}}>AI Co-Pilot</h3><p className="muted" style={{fontSize:'.62rem'}}>{alert.title}</p></div></div><button className="modal-close" onClick={onClose}>✕</button></div><div className="modal-body"><div style={{display:'flex',gap:4,marginBottom:10,flexWrap:'wrap'}}><span className={`sev sev-${alert.severity}`}>{alert.severity}</span><span className={`src ${sc(alert.source)}`}>{alert.source}</span>{alert.mitre&&<span className="mitre">{alert.mitre}</span>}{alert.device&&<span className="device">{alert.device}</span>}</div>{loading?<div style={{padding:20,textAlign:'center'}}><span className="spin" style={{display:'inline-block'}}/> Analysing alert...</div>:response?<div className="ai-response">{response.split('\n').map((line,i)=>line?<p key={i} style={{marginBottom:6}} dangerouslySetInnerHTML={{__html:line.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')}}/>:null)}</div>:null}<div style={{display:'flex',gap:4,marginTop:10}}><input className="field-input" placeholder="Ask a follow-up question..." value={question} onChange={e=>setQuestion(e.target.value)} onKeyDown={e=>e.key==='Enter'&&ask()} style={{flex:1}}/><button className="tc-btn tc-btn-primary" onClick={()=>ask()} disabled={loading}>Ask</button></div><div style={{display:'flex',gap:4,marginTop:6,flexWrap:'wrap'}}>{['What should I check first?','Is this related to other alerts?','Write me a containment plan','How do I investigate this in Splunk?'].map(q=>(<button key={q} className="tc-btn" style={{fontSize:'.58rem',padding:'2px 6px'}} onClick={()=>{setQuestion(q);ask(q)}}>{q}</button>))}</div></div></div></div>);
 }
 
 /* ═══ EXEC SUMMARY ═══ */
@@ -187,15 +138,7 @@ function UserGuide({open,onClose}:{open:boolean;onClose:()=>void}){
     {label:'Tool credentials',key:'Via Tools tab or env vars',desc:'Connect Defender, CrowdStrike, Tenable, Zscaler, etc.'},
     {label:'Slack/Teams Alerts',key:'SLACK_WEBHOOK_URL or TEAMS_WEBHOOK_URL',desc:'Send critical alerts to a channel. Click 💬 on any alert to push it.'},
   ];
-  return(<div className="guide-overlay" onClick={onClose}><div className="guide-panel" onClick={e=>e.stopPropagation()}>
-    <div className="guide-hd"><div><h2 style={{fontSize:'1.05rem',fontWeight:800}}>📖 SecOps Dashboard Guide</h2><p className="muted" style={{fontSize:'.7rem'}}>v7 — Single pane of glass for your SOC</p></div><button className="modal-close" onClick={onClose}>✕</button></div>
-    <div className="guide-body">
-      {sections.map(s=>(<div key={s.title} className="guide-section"><h3><span style={{marginRight:6}}>{s.icon}</span>{s.title}</h3><ul>{s.items.map((item,i)=>(<li key={i}>{item}</li>))}</ul></div>))}
-      <div className="guide-section"><h3>⌨️ Keyboard Shortcuts</h3><div className="shortcut-grid">{shortcuts.map(([key,desc])=>(<div key={key} className="shortcut-row"><kbd>{key}</kbd><span>{desc}</span></div>))}</div></div>
-      <div className="guide-section"><h3>⚙️ Setup</h3><div style={{fontSize:'.76rem'}}>{setup.map(s=>(<div key={s.label} style={{marginBottom:8}}><div style={{fontWeight:600}}>{s.label}</div><div className="muted" style={{fontSize:'.68rem'}}><span className="mono" style={{color:'var(--accent)'}}>{s.key}</span> — {s.desc}</div></div>))}</div></div>
-      <div className="guide-section"><h3>🔒 Security</h3><p style={{fontSize:'.76rem',color:'var(--t2)'}}>All credentials are stored encrypted in your Upstash Redis instance. The dashboard password uses httpOnly secure cookies. No data is sent to external services except when calling tool APIs and (optionally) the Anthropic API for AI features. All processing happens in your Vercel serverless functions.</p></div>
-    </div>
-  </div></div>);
+  return(<div className="guide-overlay" onClick={onClose}><div className="guide-panel" onClick={e=>e.stopPropagation()}><div className="guide-hd"><div><h2 style={{fontSize:'1.05rem',fontWeight:800}}>📖 SecOps Dashboard Guide</h2><p className="muted" style={{fontSize:'.7rem'}}>v7 — Single pane of glass for your SOC</p></div><button className="modal-close" onClick={onClose}>✕</button></div><div className="guide-body">{sections.map(s=>(<div key={s.title} className="guide-section"><h3><span style={{marginRight:6}}>{s.icon}</span>{s.title}</h3><ul>{s.items.map((item,i)=>(<li key={i}>{item}</li>))}</ul></div>))}<div className="guide-section"><h3>⌨️ Keyboard Shortcuts</h3><div className="shortcut-grid">{shortcuts.map(([key,desc])=>(<div key={key} className="shortcut-row"><kbd>{key}</kbd><span>{desc}</span></div>))}</div></div><div className="guide-section"><h3>⚙️ Setup</h3><div style={{fontSize:'.76rem'}}>{setup.map(s=>(<div key={s.label} style={{marginBottom:8}}><div style={{fontWeight:600}}>{s.label}</div><div className="muted" style={{fontSize:'.68rem'}}><span className="mono" style={{color:'var(--accent)'}}>{s.key}</span> — {s.desc}</div></div>))}</div></div><div className="guide-section"><h3>🔒 Security</h3><p style={{fontSize:'.76rem',color:'var(--t2)'}}>All credentials are stored encrypted in your Upstash Redis instance. The dashboard password uses httpOnly secure cookies. No data is sent to external services except when calling tool APIs and (optionally) the Anthropic API for AI features. All processing happens in your Vercel serverless functions.</p></div></div></div></div>);
 }
 
 /* ═══ COMMAND PALETTE ═══ */
@@ -215,10 +158,7 @@ function CmdPalette({open,onClose,onSelect}:{open:boolean;onClose:()=>void;onSel
   ];
   const filtered=q?items.filter(i=>(i.label+' '+i.keywords).toLowerCase().includes(q.toLowerCase())):items;
   if(!open)return null;
-  return(<div className="modal-overlay" onClick={onClose}><div className="cmd-palette" onClick={e=>e.stopPropagation()}>
-    <div className="cmd-input-wrap"><span style={{color:'var(--t3)'}}>⌘</span><input className="cmd-input" placeholder="Jump to..." value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>{if(e.key==='Escape')onClose();if(e.key==='Enter'&&filtered.length>0){onSelect(filtered[0].id);onClose();setQ('')}}} autoFocus/></div>
-    <div className="cmd-list">{filtered.map(i=>(<button key={i.id} className="cmd-item" onClick={()=>{onSelect(i.id);onClose();setQ('')}}><span className="cmd-icon">{i.icon}</span>{i.label}</button>))}</div>
-  </div></div>);
+  return(<div className="modal-overlay" onClick={onClose}><div className="cmd-palette" onClick={e=>e.stopPropagation()}><div className="cmd-input-wrap"><span style={{color:'var(--t3)'}}>⌘</span><input className="cmd-input" placeholder="Jump to..." value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>{if(e.key==='Escape')onClose();if(e.key==='Enter'&&filtered.length>0){onSelect(filtered[0].id);onClose();setQ('')}}} autoFocus/></div><div className="cmd-list">{filtered.map(i=>(<button key={i.id} className="cmd-item" onClick={()=>{onSelect(i.id);onClose();setQ('')}}><span className="cmd-icon">{i.icon}</span>{i.label}</button>))}</div></div></div>);
 }
 
 /* ═══ THREAT INTEL TICKER ═══ */
@@ -232,19 +172,7 @@ function DeviceDrawer({hostname,alerts,onClose}:{hostname:string|null;alerts:any
   if(!hostname)return null;
   const deviceAlerts=alerts.filter((a:any)=>a.device===hostname);
   const sources=[...new Set(deviceAlerts.map((a:any)=>a.source))];
-  return(<div className="drawer-overlay" onClick={onClose}><div className="drawer" onClick={e=>e.stopPropagation()}>
-    <div className="guide-hd"><div><h2 style={{fontSize:'.95rem',fontWeight:800,fontFamily:'var(--fm)'}}>{hostname}</h2><p className="muted" style={{fontSize:'.68rem'}}>{deviceAlerts.length} alerts from {sources.length} sources</p></div><button className="modal-close" onClick={onClose}>✕</button></div>
-    <div className="guide-body">
-      <div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:12}}>{sources.map(s=>(<span key={s} className={`src ${sc(s)}`}>{s}</span>))}</div>
-      {deviceAlerts.length===0?<div style={{textAlign:'center',padding:20,color:'var(--t3)'}}>No alerts for this device</div>
-      :deviceAlerts.map((a:any)=>(<div key={a.id} className="device-alert-card">
-        <div style={{display:'flex',gap:4,alignItems:'center',marginBottom:3}}><span className={`sev sev-${a.severity}`}>{a.severity}</span><span className={`src ${sc(a.source)}`}>{a.source}</span><span className="ts">{ago(a.timestamp)}</span></div>
-        <div style={{fontSize:'.8rem',fontWeight:600}}>{a.title}</div>
-        {a.mitre&&<span className="mitre" style={{marginTop:3,display:'inline-block'}}>{a.mitre}</span>}
-        {a.user&&<div style={{fontSize:'.7rem',color:'var(--t3)',marginTop:2}}>User: {a.user}</div>}
-      </div>))}
-    </div>
-  </div></div>);
+  return(<div className="drawer-overlay" onClick={onClose}><div className="drawer" onClick={e=>e.stopPropagation()}><div className="guide-hd"><div><h2 style={{fontSize:'.95rem',fontWeight:800,fontFamily:'var(--fm)'}}>{hostname}</h2><p className="muted" style={{fontSize:'.68rem'}}>{deviceAlerts.length} alerts from {sources.length} sources</p></div><button className="modal-close" onClick={onClose}>✕</button></div><div className="guide-body"><div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:12}}>{sources.map(s=>(<span key={s} className={`src ${sc(s)}`}>{s}</span>))}</div>{deviceAlerts.length===0?<div style={{textAlign:'center',padding:20,color:'var(--t3)'}}>No alerts for this device</div>:deviceAlerts.map((a:any)=>(<div key={a.id} className="device-alert-card"><div style={{display:'flex',gap:4,alignItems:'center',marginBottom:3}}><span className={`sev sev-${a.severity}`}>{a.severity}</span><span className={`src ${sc(a.source)}`}>{a.source}</span><span className="ts">{ago(a.timestamp)}</span></div><div style={{fontSize:'.8rem',fontWeight:600}}>{a.title}</div>{a.mitre&&<span className="mitre" style={{marginTop:3,display:'inline-block'}}>{a.mitre}</span>}{a.user&&<div style={{fontSize:'.7rem',color:'var(--t3)',marginTop:2}}>User: {a.user}</div>}</div>))}</div></div></div>);
 }
 
 /* ═══ ALERT NOTES ═══ */
@@ -253,14 +181,7 @@ function AlertNotes({alertId,onClose}:{alertId:string|null;onClose:()=>void}){
   useEffect(()=>{if(alertId)fetch(`/api/alert-notes?alertId=${alertId}`).then(r=>r.json()).then(d=>setNotes(d.notes||[]))},[alertId]);
   async function addNote(){if(!text.trim()||!alertId)return;setLoading(true);try{const r=await fetch('/api/alert-notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alertId,note:text})});const d=await r.json();if(d.notes)setNotes(d.notes);setText('')}catch(e){}setLoading(false)}
   if(!alertId)return null;
-  return(<div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:480}}>
-    <div className="modal-hd"><h3 style={{fontSize:'.9rem'}}>📝 Investigation Notes</h3><button className="modal-close" onClick={onClose}>✕</button></div>
-    <div className="modal-body">
-      <div style={{display:'flex',gap:4,marginBottom:10}}><input className="field-input" placeholder="Add a note..." value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addNote()} style={{flex:1}}/><button className="tc-btn tc-btn-primary" onClick={addNote} disabled={loading}>{loading?'...':'Add'}</button></div>
-      {notes.length===0?<div style={{textAlign:'center',padding:16,color:'var(--t3)',fontSize:'.78rem'}}>No notes yet</div>
-      :notes.map((n:any)=>(<div key={n.id} style={{padding:'8px 0',borderBottom:'1px solid var(--brd)'}}><div style={{display:'flex',justifyContent:'space-between',fontSize:'.65rem',color:'var(--t3)',marginBottom:2}}><span>{n.analyst}</span><span>{ago(n.time)}</span></div><div style={{fontSize:'.8rem'}}>{n.text}</div></div>))}
-    </div>
-  </div></div>);
+  return(<div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:480}}><div className="modal-hd"><h3 style={{fontSize:'.9rem'}}>📝 Investigation Notes</h3><button className="modal-close" onClick={onClose}>✕</button></div><div className="modal-body"><div style={{display:'flex',gap:4,marginBottom:10}}><input className="field-input" placeholder="Add a note..." value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addNote()} style={{flex:1}}/><button className="tc-btn tc-btn-primary" onClick={addNote} disabled={loading}>{loading?'...':'Add'}</button></div>{notes.length===0?<div style={{textAlign:'center',padding:16,color:'var(--t3)',fontSize:'.78rem'}}>No notes yet</div>:notes.map((n:any)=>(<div key={n.id} style={{padding:'8px 0',borderBottom:'1px solid var(--brd)'}}><div style={{display:'flex',justifyContent:'space-between',fontSize:'.65rem',color:'var(--t3)',marginBottom:2}}><span>{n.analyst}</span><span>{ago(n.time)}</span></div><div style={{fontSize:'.8rem'}}>{n.text}</div></div>))}</div></div></div>);
 }
 
 
@@ -322,18 +243,10 @@ function AttackChainGraph(){
   };
   const sevCol:Record<string,string>={critical:'var(--red)',high:'#f97316',medium:'var(--amber)',low:'var(--blue)'};
   const typeIcon:Record<string,string>={device:'🖥',user:'👤',ip:'🌐'};
-  return(<div className="panel"><div className="panel-hd"><h3>🕸 Attack Chain</h3><span className="count">{nodes.length} nodes · {edges.length} edges</span></div>
-    <div style={{padding:8,overflowX:'auto'}}>
-      <svg width="620" height="280" style={{display:'block',margin:'0 auto'}}>
-        <defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--t3)"/></marker></defs>
-        {edges.map((e:any,i:number)=>{const f=positions[e.from],t=positions[e.to];if(!f||!t)return null;const mx=(f.x+t.x)/2,my=(f.y+t.y)/2-15);
-          return(<g key={i}><path d={`M${f.x},${f.y} Q${mx},${my} ${t.x},${t.y}`} fill="none" stroke={sevCol[e.sev]||'var(--t3)'} strokeWidth="1.5" markerEnd="url(#arrow)" opacity=".6"><animate attributeName="stroke-dashoffset" from="50" to="0" dur="2s" repeatCount="indefinite"/></path>
-          <text x={mx} y={my-6} textAnchor="middle" fill="var(--t3)" fontSize="7" fontFamily="var(--fm)">{e.label}</text>
-          {e.mitre&&<text x={mx} y={my+5} textAnchor="middle" fill="var(--accent)" fontSize="6" fontFamily="var(--fm)">{e.mitre}</text>}</g>})}
+  return(<div className="panel"><div className="panel-hd"><h3>🕸 Attack Chain</h3><span className="count">{nodes.length} nodes · {edges.length} edges</span></div><div style={{padding:8,overflowX:'auto'}}><svg width="620" height="280" style={{display:'block',margin:'0 auto'}}><defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--t3)"/></marker></defs>{edges.map((e:any,i:number)=>{const f=positions[e.from],t=positions[e.to];if(!f||!t)return null;const mx=(f.x+t.x)/2,my=(f.y+t.y)/2-15);
+          return(<g key={i}><path d={`M${f.x},${f.y} Q${mx},${my} ${t.x},${t.y}`} fill="none" stroke={sevCol[e.sev]||'var(--t3)'} strokeWidth="1.5" markerEnd="url(#arrow)" opacity=".6"><animate attributeName="stroke-dashoffset" from="50" to="0" dur="2s" repeatCount="indefinite"/></path><text x={mx} y={my-6} textAnchor="middle" fill="var(--t3)" fontSize="7" fontFamily="var(--fm)">{e.label}</text>{e.mitre&&<text x={mx} y={my+5} textAnchor="middle" fill="var(--accent)" fontSize="6" fontFamily="var(--fm)">{e.mitre}</text>}</g>})}
         {nodes.map((n:any)=>{const p=positions[n.id];if(!p)return null);
-          return <g key={n.id}><circle cx={p.x} cy={p.y} r="18" fill={`${sevCol[n.sev]||'var(--bg3)'}20`} stroke={sevCol[n.sev]||'var(--brd)'} strokeWidth="1.5"/>
-          <text x={p.x} y={p.y+1} textAnchor="middle" fontSize="11" dominantBaseline="middle">{typeIcon[n.type]||'?'}</text>
-          <text x={p.x} y={p.y+28} textAnchor="middle" fill="var(--t1)" fontSize="7" fontWeight="600" fontFamily="var(--fm)">{n.label.split('.')[0]}</text></g>})}
+          return <g key={n.id}><circle cx={p.x} cy={p.y} r="18" fill={`${sevCol[n.sev]||'var(--bg3)'}20`} stroke={sevCol[n.sev]||'var(--brd)'} strokeWidth="1.5"/><text x={p.x} y={p.y+1} textAnchor="middle" fontSize="11" dominantBaseline="middle">{typeIcon[n.type]||'?'}</text><text x={p.x} y={p.y+28} textAnchor="middle" fill="var(--t1)" fontSize="7" fontWeight="600" fontFamily="var(--fm)">{n.label.split('.')[0]}</text></g>})}
       </svg>
     </div>
   </div>;
@@ -343,20 +256,7 @@ function AttackChainGraph(){
 function NLQuery(){
   const[q,setQ]=useState('');const[result,setResult]=useState<any>(null);const[loading,setLoading]=useState(false);const[open,setOpen]=useState(false);
   async function search(){if(!q.trim())return;setLoading(true);try{const r=await fetch('/api/nl-query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q})});setResult(await r.json())}catch(e){setResult({answer:'Query failed',results:[]})}setLoading(false)}
-  return(<div className="nl-bar">
-    <div className="nl-input-wrap" onClick={()=>setOpen(!open)}>
-      <span style={{color:'var(--accent)'}}>🧠</span>
-      <input className="nl-input" placeholder="Ask anything: show critical alerts, which devices missing agents..." value={q} onChange={e=>{setQ(e.target.value);setOpen(true)}} onKeyDown={e=>e.key==='Enter'&&search()}/>
-      {q&&<button className="tc-btn tc-btn-primary" onClick={search} disabled={loading} style={{fontSize:'.68rem',padding:'3px 8px'}}>{loading?'...':'Ask'}</button>}
-    </div>
-    {open&&result&&<div className="nl-results">
-      <div style={{padding:'8px 12px',borderBottom:'1px solid var(--brd)',display:'flex',justifyContent:'space-between'}}>
-        <div><span style={{fontSize:'.72rem',fontWeight:600}}>{result.answer}</span>{result.query_interpreted&&<span className="muted" style={{fontSize:'.62rem',marginLeft:8}}>Interpreted: {result.query_interpreted}</span>}</div>
-        <button className="modal-close" onClick={()=>{setOpen(false);setResult(null)}}>✕</button>
-      </div>
-      <div style={{maxHeight:250,overflowY:'auto'}}>{result.results?.slice(0,10).map((r:any,i:number)=>(<div key={i} style={{padding:'6px 12px',borderBottom:'1px solid var(--brd)',fontSize:'.78rem'}}><div style={{display:'flex',gap:4,alignItems:'center'}}><span className={`sev sev-${r.severity}`}>{r.severity}</span><span className={`src ${sc(r.source)}`}>{r.source}</span><span className="ts">{ago(r.timestamp)}</span></div><div style={{fontWeight:600,marginTop:2}}>{r.title}</div>{r.device&&<span className="device">{r.device}</span>}</div>))}</div>
-    </div>}
-  </div>);
+  return(<div className="nl-bar"><div className="nl-input-wrap" onClick={()=>setOpen(!open)}><span style={{color:'var(--accent)'}}>🧠</span><input className="nl-input" placeholder="Ask anything: show critical alerts, which devices missing agents..." value={q} onChange={e=>{setQ(e.target.value);setOpen(true)}} onKeyDown={e=>e.key==='Enter'&&search()}/>{q&&<button className="tc-btn tc-btn-primary" onClick={search} disabled={loading} style={{fontSize:'.68rem',padding:'3px 8px'}}>{loading?'...':'Ask'}</button>}</div>{open&&result&&<div className="nl-results"><div style={{padding:'8px 12px',borderBottom:'1px solid var(--brd)',display:'flex',justifyContent:'space-between'}}><div><span style={{fontSize:'.72rem',fontWeight:600}}>{result.answer}</span>{result.query_interpreted&&<span className="muted" style={{fontSize:'.62rem',marginLeft:8}}>Interpreted: {result.query_interpreted}</span>}</div><button className="modal-close" onClick={()=>{setOpen(false);setResult(null)}}>✕</button></div><div style={{maxHeight:250,overflowY:'auto'}}>{result.results?.slice(0,10).map((r:any,i:number)=>(<div key={i} style={{padding:'6px 12px',borderBottom:'1px solid var(--brd)',fontSize:'.78rem'}}><div style={{display:'flex',gap:4,alignItems:'center'}}><span className={`sev sev-${r.severity}`}>{r.severity}</span><span className={`src ${sc(r.source)}`}>{r.source}</span><span className="ts">{ago(r.timestamp)}</span></div><div style={{fontWeight:600,marginTop:2}}>{r.title}</div>{r.device&&<span className="device">{r.device}</span>}</div>))}</div></div>}</div>);
 }
 
 /* ═══ ANALYST COLLABORATION BAR ═══ */
@@ -364,11 +264,7 @@ function CollabBar(){
   const[data,setData]=useState<any>(null);
   useEffect(()=>{fetch('/api/collaboration').then(r=>r.json()).then(setData);const i=setInterval(()=>fetch('/api/collaboration').then(r=>r.json()).then(setData),30000);return()=>clearInterval(i)},[]);
   if(!data)return null;
-  return(<div className="collab-bar">
-    <span style={{fontSize:'.62rem',color:'var(--t3)',fontWeight:600,marginRight:6}}>ONLINE:</span>
-    {data.analysts.filter((a:any)=>a.status==='active').map((a:any)=>(<div key={a.id} className="analyst-avatar" style={{background:a.color+'22',color:a.color,borderColor:a.color+'44'}} title={`${a.name} — viewing ${a.viewing||'nothing'}`}>{a.avatar}</div>))}
-    {data.analysts.filter((a:any)=>a.status==='away').map((a:any)=>(<div key={a.id} className="analyst-avatar away" title={`${a.name} — away`}>{a.avatar}</div>))}
-  </div>);
+  return(<div className="collab-bar"><span style={{fontSize:'.62rem',color:'var(--t3)',fontWeight:600,marginRight:6}}>ONLINE:</span>{data.analysts.filter((a:any)=>a.status==='active').map((a:any)=>(<div key={a.id} className="analyst-avatar" style={{background:a.color+'22',color:a.color,borderColor:a.color+'44'}} title={`${a.name} — viewing ${a.viewing||'nothing'}`}>{a.avatar}</div>))}{data.analysts.filter((a:any)=>a.status==='away').map((a:any)=>(<div key={a.id} className="analyst-avatar away" title={`${a.name} — away`}>{a.avatar}</div>))}</div>);
 }
 
 /* ═══ PREDICTIONS PANEL ═══ */
@@ -376,26 +272,14 @@ function PredictionsPanel(){
   const[data,setData]=useState<any>(null);const[open,setOpen]=useState(false);
   useEffect(()=>{fetch('/api/predictions').then(r=>r.json()).then(setData)},[]);
   if(!data)return null;
-  return(<div className="panel"><div className="panel-hd"><h3>🔮 Predictive Analytics</h3><span className="count">{data.predictions.length}</span></div>
-    <div style={{padding:8}}>{data.predictions.map((p:any)=>(<div key={p.id} className="pred-card" style={{borderLeftColor:p.severity==='critical'?'var(--red)':p.severity==='high'?'#f97316':'var(--amber)'}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
-        <div style={{flex:1}}><div style={{display:'flex',gap:4,alignItems:'center',marginBottom:2}}><span>{p.icon}</span><span className={`sev sev-${p.severity}`}>{p.severity}</span><span style={{fontSize:'.58rem',color:'var(--t3)',fontFamily:'var(--fm)',background:'var(--bg3)',padding:'1px 5px',borderRadius:3}}>{p.confidence}% conf</span></div>
-        <div style={{fontSize:'.78rem',fontWeight:600}}>{p.title}</div>
-        <div style={{fontSize:'.68rem',color:'var(--t2)',marginTop:2}}>{p.detail}</div></div>
-        <span style={{fontSize:'.6rem',color:'var(--t3)',fontFamily:'var(--fm)',whiteSpace:'nowrap',marginLeft:8}}>{p.timeframe}</span>
-      </div>
-    </div>))}</div>
-  </div>);
+  return(<div className="panel"><div className="panel-hd"><h3>🔮 Predictive Analytics</h3><span className="count">{data.predictions.length}</span></div><div style={{padding:8}}>{data.predictions.map((p:any)=>(<div key={p.id} className="pred-card" style={{borderLeftColor:p.severity==='critical'?'var(--red)':p.severity==='high'?'#f97316':'var(--amber)'}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}><div style={{flex:1}}><div style={{display:'flex',gap:4,alignItems:'center',marginBottom:2}}><span>{p.icon}</span><span className={`sev sev-${p.severity}`}>{p.severity}</span><span style={{fontSize:'.58rem',color:'var(--t3)',fontFamily:'var(--fm)',background:'var(--bg3)',padding:'1px 5px',borderRadius:3}}>{p.confidence}% conf</span></div><div style={{fontSize:'.78rem',fontWeight:600}}>{p.title}</div><div style={{fontSize:'.68rem',color:'var(--t2)',marginTop:2}}>{p.detail}</div></div><span style={{fontSize:'.6rem',color:'var(--t3)',fontFamily:'var(--fm)',whiteSpace:'nowrap',marginLeft:8}}>{p.timeframe}</span></div></div>))}</div></div>);
 }
 
 /* ═══ AUTO-TRIAGE BADGE ═══ */
 function TriageBadge({alert}:{alert:any}){
   const t=alert.triage;if(!t)return null;
   const col=t.verdict==='true_positive'?'var(--red)':t.verdict==='false_positive'?'var(--green)':'var(--amber)';
-  return(<div className="triage-badge" title={`${t.reasoning}\n${t.recommended_action}`}>
-    <div style={{fontSize:'.55rem',fontWeight:700,color:col}}>{t.confidence}%</div>
-    <div style={{fontSize:'.48rem',color:'var(--t3)'}}>{t.verdict==='true_positive'?'TP':t.verdict==='false_positive'?'FP':'SUS'}</div>
-  </div>);
+  return(<div className="triage-badge" title={`${t.reasoning}\n${t.recommended_action}`}><div style={{fontSize:'.55rem',fontWeight:700,color:col}}>{t.confidence}%</div><div style={{fontSize:'.48rem',color:'var(--t3)'}}>{t.verdict==='true_positive'?'TP':t.verdict==='false_positive'?'FP':'SUS'}</div></div>);
 }
 
 
@@ -476,63 +360,13 @@ export default function Dashboard(){
   const highCount=alerts.filter(a=>a.severity==='high').length;
   const tabs:{k:Tab;l:string;i:string;badge?:number}[]=[{k:'overview',l:'Overview',i:'◉'},{k:'alerts',l:'Alerts',i:'⚡',badge:critCount+highCount},{k:'coverage',l:'Coverage',i:'🛡'},{k:'vulns',l:'Vulns',i:'🔓'},{k:'tools',l:`Tools (${enabledTools.length})`,i:'🔌'}];
 
-  return(<><style dangerouslySetInnerHTML={{__html:CSS}}/><div className={`shell ${hasCrit?'crit-flash':''}`}>
-    <div className="topbar">
-      <div className="logo"><div className="logo-icon">S</div><span>Sec</span>Ops</div>
-      <div className="tabs desk-only">{tabs.map(t=>(<button key={t.k} className={`tab ${tab===t.k?'active':''}`} onClick={()=>setTab(t.k)}>{t.i} {t.l}{t.badge&&t.badge>0?<span className="tab-badge">{t.badge}</span>:null}</button>))}</div>
-      <button className="mob-menu mob-only" onClick={()=>setMobileNav(!mobileNav)}>☰</button>
-      <div className="topbar-right"><button className="search-trigger desk-only" onClick={()=>setIocOpen(true)}>🔍 <span className="desk-only">IOC Search</span></button><CollabBar/><span className="clock desk-only">{clock}</span><div className="live-dot"/>{demo&&<div className="demo-pill desk-only">DEMO</div>}<button className="theme-btn desk-only" onClick={toggleFullscreen} title="Fullscreen">{isFullscreen?'⊡':'⛶'}</button><button className="theme-btn" onClick={()=>setTheme(t=>t==='dark'?'light':'dark')}>{theme==='dark'?'☀':'🌙'}</button><button className="theme-btn desk-only" onClick={()=>setGuideOpen(true)} title="Help">?</button><button className="refresh-btn desk-only" onClick={refresh}>↻</button></div>
-    </div>
-    {mobileNav&&<div className="mob-nav">{tabs.map(t=>(<button key={t.k} className={`mnav-btn ${tab===t.k?'active':''}`} onClick={()=>{setTab(t.k);setMobileNav(false)}}>{t.i} {t.l}</button>))}</div>}
-    <div className="main">
-      {iocOpen&&<IOCSearch open={iocOpen} onClose={()=>setIocOpen(false)}/>}
-      {aiAlert&&<AICopilot alert={aiAlert} onClose={()=>setAiAlert(null)}/>}
-      <UserGuide open={guideOpen} onClose={()=>setGuideOpen(false)}/>
-      <CmdPalette open={cmdOpen} onClose={()=>setCmdOpen(false)} onSelect={cmdSelect}/>
-      <DeviceDrawer hostname={deviceDrill} alerts={alerts} onClose={()=>setDeviceDrill(null)}/>
-      <AlertNotes alertId={notesAlert} onClose={()=>setNotesAlert(null)}/>
-      {loading?<div className="loading"><span className="spin"/>Loading...</div>
-        :tab==='overview'?<Ov m={m} cov={cov} alerts={alerts} zsc={zsc} sparks={sparks} enabledTools={enabledTools} onAskAI={(a:Al)=>setAiAlert(a)}/>
-        :tab==='alerts'?<Als alerts={alerts} onAskAI={(a:Al)=>setAiAlert(a)} onDeviceDrill={(h:string)=>setDeviceDrill(h)} onNotes={(id:string)=>setNotesAlert(id)}/>
-        :tab==='coverage'?<CovTab cov={cov}/>
-        :tab==='vulns'?<Vul/>
-        :<ToolsManager toolsData={toolsData} onRefresh={refresh}/>}
-    </div>
-    <ThreatTicker/>
-  </div></>);
+  return(<><style dangerouslySetInnerHTML={{__html:CSS}}/><div className={`shell ${hasCrit?'crit-flash':''}`}><div className="topbar"><div className="logo"><div className="logo-icon">S</div><span>Sec</span>Ops</div><div className="tabs desk-only">{tabs.map(t=>(<button key={t.k} className={`tab ${tab===t.k?'active':''}`} onClick={()=>setTab(t.k)}>{t.i} {t.l}{t.badge&&t.badge>0?<span className="tab-badge">{t.badge}</span>:null}</button>))}</div><button className="mob-menu mob-only" onClick={()=>setMobileNav(!mobileNav)}>☰</button><div className="topbar-right"><button className="search-trigger desk-only" onClick={()=>setIocOpen(true)}>🔍 <span className="desk-only">IOC Search</span></button><CollabBar/><span className="clock desk-only">{clock}</span><div className="live-dot"/>{demo&&<div className="demo-pill desk-only">DEMO</div>}<button className="theme-btn desk-only" onClick={toggleFullscreen} title="Fullscreen">{isFullscreen?'⊡':'⛶'}</button><button className="theme-btn" onClick={()=>setTheme(t=>t==='dark'?'light':'dark')}>{theme==='dark'?'☀':'🌙'}</button><button className="theme-btn desk-only" onClick={()=>setGuideOpen(true)} title="Help">?</button><button className="refresh-btn desk-only" onClick={refresh}>↻</button></div></div>{mobileNav&&<div className="mob-nav">{tabs.map(t=>(<button key={t.k} className={`mnav-btn ${tab===t.k?'active':''}`} onClick={()=>{setTab(t.k);setMobileNav(false)}}>{t.i} {t.l}</button>))}</div>}<div className="main">{iocOpen&&<IOCSearch open={iocOpen} onClose={()=>setIocOpen(false)}/>}{aiAlert&&<AICopilot alert={aiAlert} onClose={()=>setAiAlert(null)}/>}<UserGuide open={guideOpen} onClose={()=>setGuideOpen(false)}/><CmdPalette open={cmdOpen} onClose={()=>setCmdOpen(false)} onSelect={cmdSelect}/><DeviceDrawer hostname={deviceDrill} alerts={alerts} onClose={()=>setDeviceDrill(null)}/><AlertNotes alertId={notesAlert} onClose={()=>setNotesAlert(null)}/>{loading?<div className="loading"><span className="spin"/>Loading...</div>:tab==='overview'?<Ov m={m} cov={cov} alerts={alerts} zsc={zsc} sparks={sparks} enabledTools={enabledTools} onAskAI={(a:Al)=>setAiAlert(a)}/>:tab==='alerts'?<Als alerts={alerts} onAskAI={(a:Al)=>setAiAlert(a)} onDeviceDrill={(h:string)=>setDeviceDrill(h)} onNotes={(id:string)=>setNotesAlert(id)}/>:tab==='coverage'?<CovTab cov={cov}/>:tab==='vulns'?<Vul/>:<ToolsManager toolsData={toolsData} onRefresh={refresh}/>}</div><ThreatTicker/></div></>);
 }
 
 /* ═══ OVERVIEW ═══ */
 function Ov({m,cov,alerts,zsc,sparks,enabledTools,onAskAI}:any){
   if(!m)return null;
-  return(<>
-    <div style={{display:'flex',justifyContent:'flex-end',gap:6,marginBottom:8}}><ExecSummary metrics={m} alerts={alerts} coverage={cov}/></div>
-    <div className="kpi-grid">
-      <div className="kpi"><div className="kpi-top"><div className="kpi-label">Alerts 24h</div></div><div className="kpi-val">{m.alertsLast24h.total}</div><div className="kpi-sub"><span style={{color:'var(--red)'}}>{m.alertsLast24h.critical} crit</span> · <span style={{color:'#f97316'}}>{m.alertsLast24h.high} high</span></div><div className="kpi-spark"><Spark data={sparks.al} color="var(--accent)"/></div></div>
-      <div className="kpi"><div className="kpi-top"><div className="kpi-label">MTTR</div><span className={`kpi-trend ${m.mttr.current<=m.mttr.target?'good':'bad'}`}>{m.mttr.current<m.mttr.previous?'↓':'↑'}{Math.abs(m.mttr.current-m.mttr.previous)}m</span></div><div className="kpi-val" style={{color:m.mttr.current<=m.mttr.target?'var(--green)':'var(--amber)'}}>{m.mttr.current}<span className="kpi-unit">min</span></div><div className="kpi-sub">Target {m.mttr.target}m</div><div className="kpi-spark"><Spark data={sparks.mttr} color={m.mttr.current<=m.mttr.target?'var(--green)':'var(--amber)'}/></div></div>
-      <div className="kpi"><div className="kpi-top"><div className="kpi-label">MTTD</div><span className={`kpi-trend ${m.mttd.current<=m.mttd.target?'good':'warn'}`}>{m.mttd.current<m.mttd.previous?'↓':'↑'}{Math.abs(m.mttd.current-m.mttd.previous).toFixed(1)}m</span></div><div className="kpi-val" style={{color:m.mttd.current<=m.mttd.target?'var(--green)':'var(--amber)'}}>{m.mttd.current}<span className="kpi-unit">min</span></div><div className="kpi-sub">Target {m.mttd.target}m</div><div className="kpi-spark"><Spark data={sparks.mttd} color="var(--green)"/></div></div>
-      <div className="kpi"><div className="kpi-top"><div className="kpi-label">Open Incidents</div></div><div className="kpi-val" style={{color:m.incidentsOpen>0?'var(--amber)':'var(--green)'}}>{m.incidentsOpen}</div><div className="kpi-sub">SLA {m.slaCompliance}%</div></div>
-      <div className="kpi"><div className="kpi-top"><div className="kpi-label">ZIA Blocked</div></div><div className="kpi-val" style={{color:'var(--green)'}}>{zsc?.zia?.blockedThreats?.toLocaleString()}</div><div className="kpi-sub">{zsc?.zia?.dlpViolations} DLP</div><div className="kpi-spark"><Spark data={sparks.thr} color="var(--green)"/></div></div>
-      <div className="kpi"><div className="kpi-top"><div className="kpi-label">Tools Active</div></div><div className="kpi-val" style={{color:'var(--accent)'}}>{enabledTools.length}<span className="kpi-unit">/{TOOLS.length}</span></div><div className="kpi-sub">{cov?.totalDevices?.toLocaleString()} devices</div></div>
-    </div>
-    <div className="hero-grid">
-      <div className="panel hero-panel"><div className="panel-hd"><h3>🌍 Threat Globe</h3></div><div style={{padding:'6px 0'}}><ThreatGlobe size={160}/></div><div style={{textAlign:'center',fontSize:'.55rem',color:'var(--t3)',paddingBottom:6}}>Live attack arcs — source → target</div></div>
-      <div className="panel hero-panel"><div className="panel-hd"><h3>🎯 Severity</h3></div><div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:14,padding:'14px 10px'}}><SevRing c={m.alertsLast24h.critical} h={m.alertsLast24h.high} m={m.alertsLast24h.medium} l={m.alertsLast24h.low} size={90}/><div style={{fontSize:'.7rem',lineHeight:2}}><div><span className="sev sev-critical">{m.alertsLast24h.critical}</span> Crit</div><div><span className="sev sev-high">{m.alertsLast24h.high}</span> High</div><div><span className="sev sev-medium">{m.alertsLast24h.medium}</span> Med</div><div><span className="sev sev-low">{m.alertsLast24h.low}</span> Low</div></div></div></div>
-      <div className="panel hero-panel"><div className="panel-hd"><h3>📈 Hourly Alerts</h3></div><div style={{padding:'14px 10px',display:'flex',flexDirection:'column',alignItems:'center',gap:4}}><HourlyChart data={sparks.hourly} w={200} h={60}/><div style={{display:'flex',justifyContent:'space-between',width:200,fontSize:'.52rem',color:'var(--t3)',fontFamily:'var(--fm)'}}><span>24h ago</span><span>12h</span><span>Now</span></div></div></div>
-      <div className="panel hero-panel"><div className="panel-hd"><h3>🔌 Connected</h3></div><div style={{padding:'10px',display:'flex',flexWrap:'wrap',gap:6,justifyContent:'center'}}>{enabledTools.map((t:any)=>(<div key={t.id} className="tool-chip" style={{borderColor:t.color+'33',color:t.color}}><span>{t.icon}</span>{t.shortName}</div>))}{enabledTools.length===0&&<div style={{fontSize:'.72rem',color:'var(--t3)',padding:12}}>No tools connected — go to Tools tab</div>}</div></div>
-    </div>
-    <div className="g23">
-      <div>
-        <div className="panel"><div className="panel-hd"><h3>⚡ Critical & High</h3><span className="count">{alerts.filter((a:Al)=>a.severity==='critical'||a.severity==='high').length}</span></div><div className="tbl-wrap" style={{maxHeight:280}}><table className="tbl"><thead><tr><th>Alert</th><th>Source</th><th>Sev</th><th>Time</th></tr></thead><tbody>{alerts.filter((a:Al)=>a.severity==='critical'||a.severity==='high').sort((a,b)=>SO[a.severity]-SO[b.severity]).slice(0,8).map((a:Al)=>(<tr key={a.id}><td style={{fontWeight:600}}>{a.title}{a.device&&<><br/><span className="device">{a.device}</span></>}</td><td><span className={`src ${sc(a.source)}`}>{a.source}</span></td><td><span className={`sev sev-${a.severity}`}>{a.severity}</span></td><td className="ts">{ago(a.timestamp)}</td></tr>))}</tbody></table></div></div>
-        <div className="panel"><div className="panel-hd"><h3>📊 Sources</h3></div><div style={{padding:14}}>{m.topSources.map((s:any)=>(<div key={s.source} style={{display:'flex',alignItems:'center',gap:8,marginBottom:7}}><span className={`src ${sc(s.source)}`} style={{minWidth:80,justifyContent:'center'}}>{s.source}</span><div className="bar-wrap" style={{flex:1}}><div className="bar-track"><div className="bar-fill" style={{width:`${s.pct}%`,background:'var(--accent)'}}/></div></div><span className="mono" style={{fontSize:'.72rem',minWidth:24,textAlign:'right'}}>{s.count}</span></div>))}</div></div>
-      </div>
-      <div className="panel" style={{overflow:'hidden'}}><div className="panel-hd"><h3>🕐 Timeline</h3></div><div style={{overflowY:'auto',maxHeight:460,padding:'6px 14px'}}>{TL.map(t=>(<div key={t.id} className="tl-item"><div className="tl-icon">{t.icon}</div><div className="tl-body"><div className="tl-title">{t.title}</div><div className="tl-meta"><span className={`src ${sc(t.source)}`}>{t.source}</span><span className="ts">{ago(t.time)}</span></div></div></div>))}</div></div>
-    </div>
-    <NLQuery/>
-    <div className="g2r"><AttackChainGraph/><PredictionsPanel/></div>
-    <MitreHeatmap alerts={alerts}/>
-    <TrendCharts/>
-  </>);
+  return(<><div style={{display:'flex',justifyContent:'flex-end',gap:6,marginBottom:8}}><ExecSummary metrics={m} alerts={alerts} coverage={cov}/></div><div className="kpi-grid"><div className="kpi"><div className="kpi-top"><div className="kpi-label">Alerts 24h</div></div><div className="kpi-val">{m.alertsLast24h.total}</div><div className="kpi-sub"><span style={{color:'var(--red)'}}>{m.alertsLast24h.critical} crit</span> · <span style={{color:'#f97316'}}>{m.alertsLast24h.high} high</span></div><div className="kpi-spark"><Spark data={sparks.al} color="var(--accent)"/></div></div><div className="kpi"><div className="kpi-top"><div className="kpi-label">MTTR</div><span className={`kpi-trend ${m.mttr.current<=m.mttr.target?'good':'bad'}`}>{m.mttr.current<m.mttr.previous?'↓':'↑'}{Math.abs(m.mttr.current-m.mttr.previous)}m</span></div><div className="kpi-val" style={{color:m.mttr.current<=m.mttr.target?'var(--green)':'var(--amber)'}}>{m.mttr.current}<span className="kpi-unit">min</span></div><div className="kpi-sub">Target {m.mttr.target}m</div><div className="kpi-spark"><Spark data={sparks.mttr} color={m.mttr.current<=m.mttr.target?'var(--green)':'var(--amber)'}/></div></div><div className="kpi"><div className="kpi-top"><div className="kpi-label">MTTD</div><span className={`kpi-trend ${m.mttd.current<=m.mttd.target?'good':'warn'}`}>{m.mttd.current<m.mttd.previous?'↓':'↑'}{Math.abs(m.mttd.current-m.mttd.previous).toFixed(1)}m</span></div><div className="kpi-val" style={{color:m.mttd.current<=m.mttd.target?'var(--green)':'var(--amber)'}}>{m.mttd.current}<span className="kpi-unit">min</span></div><div className="kpi-sub">Target {m.mttd.target}m</div><div className="kpi-spark"><Spark data={sparks.mttd} color="var(--green)"/></div></div><div className="kpi"><div className="kpi-top"><div className="kpi-label">Open Incidents</div></div><div className="kpi-val" style={{color:m.incidentsOpen>0?'var(--amber)':'var(--green)'}}>{m.incidentsOpen}</div><div className="kpi-sub">SLA {m.slaCompliance}%</div></div><div className="kpi"><div className="kpi-top"><div className="kpi-label">ZIA Blocked</div></div><div className="kpi-val" style={{color:'var(--green)'}}>{zsc?.zia?.blockedThreats?.toLocaleString()}</div><div className="kpi-sub">{zsc?.zia?.dlpViolations} DLP</div><div className="kpi-spark"><Spark data={sparks.thr} color="var(--green)"/></div></div><div className="kpi"><div className="kpi-top"><div className="kpi-label">Tools Active</div></div><div className="kpi-val" style={{color:'var(--accent)'}}>{enabledTools.length}<span className="kpi-unit">/{TOOLS.length}</span></div><div className="kpi-sub">{cov?.totalDevices?.toLocaleString()} devices</div></div></div><div className="hero-grid"><div className="panel hero-panel"><div className="panel-hd"><h3>🌍 Threat Globe</h3></div><div style={{padding:'6px 0'}}><ThreatGlobe size={160}/></div><div style={{textAlign:'center',fontSize:'.55rem',color:'var(--t3)',paddingBottom:6}}>Live attack arcs — source → target</div></div><div className="panel hero-panel"><div className="panel-hd"><h3>🎯 Severity</h3></div><div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:14,padding:'14px 10px'}}><SevRing c={m.alertsLast24h.critical} h={m.alertsLast24h.high} m={m.alertsLast24h.medium} l={m.alertsLast24h.low} size={90}/><div style={{fontSize:'.7rem',lineHeight:2}}><div><span className="sev sev-critical">{m.alertsLast24h.critical}</span> Crit</div><div><span className="sev sev-high">{m.alertsLast24h.high}</span> High</div><div><span className="sev sev-medium">{m.alertsLast24h.medium}</span> Med</div><div><span className="sev sev-low">{m.alertsLast24h.low}</span> Low</div></div></div></div><div className="panel hero-panel"><div className="panel-hd"><h3>📈 Hourly Alerts</h3></div><div style={{padding:'14px 10px',display:'flex',flexDirection:'column',alignItems:'center',gap:4}}><HourlyChart data={sparks.hourly} w={200} h={60}/><div style={{display:'flex',justifyContent:'space-between',width:200,fontSize:'.52rem',color:'var(--t3)',fontFamily:'var(--fm)'}}><span>24h ago</span><span>12h</span><span>Now</span></div></div></div><div className="panel hero-panel"><div className="panel-hd"><h3>🔌 Connected</h3></div><div style={{padding:'10px',display:'flex',flexWrap:'wrap',gap:6,justifyContent:'center'}}>{enabledTools.map((t:any)=>(<div key={t.id} className="tool-chip" style={{borderColor:t.color+'33',color:t.color}}><span>{t.icon}</span>{t.shortName}</div>))}{enabledTools.length===0&&<div style={{fontSize:'.72rem',color:'var(--t3)',padding:12}}>No tools connected — go to Tools tab</div>}</div></div></div><div className="g23"><div><div className="panel"><div className="panel-hd"><h3>⚡ Critical & High</h3><span className="count">{alerts.filter((a:Al)=>a.severity==='critical'||a.severity==='high').length}</span></div><div className="tbl-wrap" style={{maxHeight:280}}><table className="tbl"><thead><tr><th>Alert</th><th>Source</th><th>Sev</th><th>Time</th></tr></thead><tbody>{alerts.filter((a:Al)=>a.severity==='critical'||a.severity==='high').sort((a,b)=>SO[a.severity]-SO[b.severity]).slice(0,8).map((a:Al)=>(<tr key={a.id}><td style={{fontWeight:600}}>{a.title}{a.device&&<><br/><span className="device">{a.device}</span></>}</td><td><span className={`src ${sc(a.source)}`}>{a.source}</span></td><td><span className={`sev sev-${a.severity}`}>{a.severity}</span></td><td className="ts">{ago(a.timestamp)}</td></tr>))}</tbody></table></div></div><div className="panel"><div className="panel-hd"><h3>📊 Sources</h3></div><div style={{padding:14}}>{m.topSources.map((s:any)=>(<div key={s.source} style={{display:'flex',alignItems:'center',gap:8,marginBottom:7}}><span className={`src ${sc(s.source)}`} style={{minWidth:80,justifyContent:'center'}}>{s.source}</span><div className="bar-wrap" style={{flex:1}}><div className="bar-track"><div className="bar-fill" style={{width:`${s.pct}%`,background:'var(--accent)'}}/></div></div><span className="mono" style={{fontSize:'.72rem',minWidth:24,textAlign:'right'}}>{s.count}</span></div>))}</div></div></div><div className="panel" style={{overflow:'hidden'}}><div className="panel-hd"><h3>🕐 Timeline</h3></div><div style={{overflowY:'auto',maxHeight:460,padding:'6px 14px'}}>{TL.map(t=>(<div key={t.id} className="tl-item"><div className="tl-icon">{t.icon}</div><div className="tl-body"><div className="tl-title">{t.title}</div><div className="tl-meta"><span className={`src ${sc(t.source)}`}>{t.source}</span><span className="ts">{ago(t.time)}</span></div></div></div>))}</div></div></div><NLQuery/><div className="g2r"><AttackChainGraph/><PredictionsPanel/></div><MitreHeatmap alerts={alerts}/><TrendCharts/></>);
 }
 
 /* ═══ ALERTS ═══ */
@@ -543,15 +377,7 @@ function Als({alerts,onAskAI,onDeviceDrill,onNotes}:{alerts:Al[];onAskAI?:(a:Al)
   const[sev,setSev]=useState('all');const[src,setSrc]=useState('all');const[grouped,setGrouped]=useState(false);
   const sources=[...new Set(alerts.map(a=>a.source))];
   const f=alerts.filter(a=>sev==='all'||a.severity===sev).filter(a=>src==='all'||a.source===src);
-  return(<>
-    <div className="filter-row">
-      <div className="pills">{['all','critical','high','medium','low'].map(s=>(<button key={s} className={`pill ${sev===s?'on':''}`} onClick={()=>setSev(s)}>{s==='all'?`All (${alerts.length})`:`${s.charAt(0).toUpperCase()+s.slice(1)} (${alerts.filter(a=>a.severity===s).length})`}</button>))}</div>
-      <button className={`tc-btn ${grouped?'tc-btn-primary':''}`} onClick={()=>setGrouped(!grouped)} style={{fontSize:'.66rem',padding:'3px 8px'}}>{grouped?'🔗 Correlated':'🔗 Correlate'}</button>
-      <ExportBtn data={()=>f.map(a=>({title:a.title,source:a.source,severity:a.severity,status:a.status,device:a.device,user:a.user,mitre:a.mitre,time:a.timestamp}))} filename="secops-alerts"/>
-      <button className={`tc-btn ${triageOn?'tc-btn-primary':''}`} onClick={()=>setTriageOn(!triageOn)} style={{fontSize:'.66rem',padding:'3px 8px'}}>{triageOn?'🤖 Triaged':'🤖 Auto-Triage'}</button>
-    </div>
-    <div className="panel"><div className="tbl-wrap" style={{maxHeight:'calc(100vh - 170px)'}}><table className="tbl"><thead><tr><th>Alert</th><th>Source</th><th>Sev</th><th className="desk-only">Status</th><th className="desk-only">Device</th><th className="desk-only">MITRE</th><th>Time</th><th className="desk-only">Actions</th></tr></thead><tbody>{(()=>{
-        if(!grouped)return f.map(a=>(<tr key={a.id}><td style={{fontWeight:600,maxWidth:280}}>{a.title}</td><td><span className={`src ${sc(a.source)}`}>{a.source}</span></td><td><span className={`sev sev-${a.severity}`}>{a.severity}</span></td><td className="desk-only"><span className={`status status-${a.status}`}>{a.status}</span></td><td className="device desk-only">{a.device?<span style={{cursor:"pointer",textDecoration:"underline dotted",textUnderlineOffset:2}} onClick={()=>onDeviceDrill?.(a.device)}>{a.device}</span>:"—"}</td><td className="desk-only">{a.mitre?<span className="mitre">{a.mitre}</span>:<span className="muted">—</span>}</td><td className="ts">{ago(a.timestamp)}</td><td className="desk-only"><ActionMenu alert={a} onDone={()=>{}}/><button className="tc-btn" onClick={()=>onAskAI?.(a)} style={{fontSize:'.58rem',padding:'2px 5px'}}>🤖</button><button className="tc-btn" onClick={()=>onNotes?.(a.id)} style={{fontSize:'.58rem',padding:'2px 5px'}}>📝</button><button className="tc-btn" onClick={()=>fetch('/api/slack-webhook',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send',alert:a})}).then(()=>{})} style={{fontSize:'.58rem',padding:'2px 5px'}} title="Send to Slack">💬</button></td></tr>));
+  return(<><div className="filter-row"><div className="pills">{['all','critical','high','medium','low'].map(s=>(<button key={s} className={`pill ${sev===s?'on':''}`} onClick={()=>setSev(s)}>{s==='all'?`All (${alerts.length})`:`${s.charAt(0).toUpperCase()+s.slice(1)} (${alerts.filter(a=>a.severity===s).length})`}</button>))}</div><button className={`tc-btn ${grouped?'tc-btn-primary':''}`} onClick={()=>setGrouped(!grouped)} style={{fontSize:'.66rem',padding:'3px 8px'}}>{grouped?'🔗 Correlated':'🔗 Correlate'}</button><ExportBtn data={()=>f.map(a=>({title:a.title,source:a.source,severity:a.severity,status:a.status,device:a.device,user:a.user,mitre:a.mitre,time:a.timestamp}))} filename="secops-alerts"/><button className={`tc-btn ${triageOn?'tc-btn-primary':''}`} onClick={()=>setTriageOn(!triageOn)} style={{fontSize:'.66rem',padding:'3px 8px'}}>{triageOn?'🤖 Triaged':'🤖 Auto-Triage'}</button></div><div className="panel"><div className="tbl-wrap" style={{maxHeight:'calc(100vh - 170px)'}}><table className="tbl"><thead><tr><th>Alert</th><th>Source</th><th>Sev</th><th className="desk-only">Status</th><th className="desk-only">Device</th><th className="desk-only">MITRE</th><th>Time</th><th className="desk-only">Actions</th></tr></thead><tbody>{(()=>{if(!grouped)return f.map(a=>(<tr key={a.id}><td style={{fontWeight:600,maxWidth:280}}>{a.title}</td><td><span className={`src ${sc(a.source)}`}>{a.source}</span></td><td><span className={`sev sev-${a.severity}`}>{a.severity}</span></td><td className="desk-only"><span className={`status status-${a.status}`}>{a.status}</span></td><td className="device desk-only">{a.device?<span style={{cursor:"pointer",textDecoration:"underline dotted",textUnderlineOffset:2}} onClick={()=>onDeviceDrill?.(a.device)}>{a.device}</span>:"—"}</td><td className="desk-only">{a.mitre?<span className="mitre">{a.mitre}</span>:<span className="muted">—</span>}</td><td className="ts">{ago(a.timestamp)}</td><td className="desk-only"><ActionMenu alert={a} onDone={()=>{}}/><button className="tc-btn" onClick={()=>onAskAI?.(a)} style={{fontSize:'.58rem',padding:'2px 5px'}}>🤖</button><button className="tc-btn" onClick={()=>onNotes?.(a.id)} style={{fontSize:'.58rem',padding:'2px 5px'}}>📝</button><button className="tc-btn" onClick={()=>fetch('/api/slack-webhook',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send',alert:a})}).then(()=>{})} style={{fontSize:'.58rem',padding:'2px 5px'}} title="Send to Slack">💬</button></td></tr>));
         // Correlate: group by device within 30min windows
         const groups:Record<string,Al[]>={};
         f.forEach(a=>{const key=a.device||a.user||a.id;if(!groups[key])groups[key]=[];groups[key].push(a)});
@@ -567,10 +393,7 @@ function Als({alerts,onAskAI,onDeviceDrill,onNotes}:{alerts:Al[];onAskAI?:(a:Al)
 /* ═══ COVERAGE ═══ */
 function CovTab({cov}:any){
   if(!cov)return null;
-  return(<>
-    <div className="kpi-grid"><div className="kpi"><div className="kpi-label">Total Devices</div><div className="kpi-val">{cov.totalDevices.toLocaleString()}</div></div>{Object.entries(cov.tools).map(([k,v]:any)=>(<div key={k} className="kpi"><div className="kpi-label">{k}</div><div className="kpi-val" style={{color:v.offline>10?'var(--amber)':'var(--green)'}}>{v.installed}</div><div className="kpi-sub">{v.offline} off · v{v.version}</div></div>))}</div>
-    <div className="panel"><div className="panel-hd"><h3>⚠ Coverage Gaps</h3><span className="count">{cov.gaps.length}</span></div><div className="tbl-wrap"><table className="tbl"><thead><tr><th>Host</th><th className="desk-only">OS</th><th>Missing</th><th className="desk-only">Reason</th></tr></thead><tbody>{cov.gaps.map((g:any,i:number)=>(<tr key={i}><td className="device" style={{fontWeight:600}}>{g.hostname}</td><td className="desk-only" style={{fontSize:'.8rem'}}>{g.os}</td><td>{g.missing.map((m:string)=><span key={m} className={`src ${m}`} style={{marginRight:3}}>{m}</span>)}</td><td className="muted desk-only" style={{fontSize:'.78rem'}}>{g.reason}</td></tr>))}</tbody></table></div></div>
-  </>);
+  return(<><div className="kpi-grid"><div className="kpi"><div className="kpi-label">Total Devices</div><div className="kpi-val">{cov.totalDevices.toLocaleString()}</div></div>{Object.entries(cov.tools).map(([k,v]:any)=>(<div key={k} className="kpi"><div className="kpi-label">{k}</div><div className="kpi-val" style={{color:v.offline>10?'var(--amber)':'var(--green)'}}>{v.installed}</div><div className="kpi-sub">{v.offline} off · v{v.version}</div></div>))}</div><div className="panel"><div className="panel-hd"><h3>⚠ Coverage Gaps</h3><span className="count">{cov.gaps.length}</span></div><div className="tbl-wrap"><table className="tbl"><thead><tr><th>Host</th><th className="desk-only">OS</th><th>Missing</th><th className="desk-only">Reason</th></tr></thead><tbody>{cov.gaps.map((g:any,i:number)=>(<tr key={i}><td className="device" style={{fontWeight:600}}>{g.hostname}</td><td className="desk-only" style={{fontSize:'.8rem'}}>{g.os}</td><td>{g.missing.map((m:string)=><span key={m} className={`src ${m}`} style={{marginRight:3}}>{m}</span>)}</td><td className="muted desk-only" style={{fontSize:'.78rem'}}>{g.reason}</td></tr>))}</tbody></table></div></div></>);
 }
 
 /* ═══ VULNS ═══ */
@@ -579,14 +402,7 @@ function Vul(){
   useEffect(()=>{fetch('/api/tenable').then(r=>r.json()).then(setD)},[]);
   if(!d)return <div className="loading"><span className="spin"/>Loading...</div>;
   const s=d.summary;
-  return(<>
-    <div className="kpi-grid"><div className="kpi"><div className="kpi-label">Total</div><div className="kpi-val">{s.total.toLocaleString()}</div></div><div className="kpi"><div className="kpi-label">Critical</div><div className="kpi-val" style={{color:'var(--red)'}}>{s.critical}</div></div><div className="kpi"><div className="kpi-label">High</div><div className="kpi-val" style={{color:'#f97316'}}>{s.high}</div></div><div className="kpi"><div className="kpi-label">Coverage</div><div className="kpi-val" style={{color:'var(--green)'}}>{d.scanHealth?.coverage}%</div></div></div>
-    <div className="g2r">
-      <div className="panel"><div className="panel-hd"><h3>Asset Risk</h3></div><div style={{padding:16,display:'flex',justifyContent:'space-around',alignItems:'center',flexWrap:'wrap',gap:12}}><Donut val={d.assetCounts?.withCritical||0} max={d.assetCounts?.total||1} color="var(--red)" label="Critical"/><Donut val={d.assetCounts?.withHigh||0} max={d.assetCounts?.total||1} color="#f97316" label="High"/><Donut val={d.assetCounts?.scanned||0} max={d.assetCounts?.total||1} color="var(--green)" label="Scanned"/></div></div>
-      <div className="panel"><div className="panel-hd"><h3>Severity Ring</h3></div><div style={{display:'flex',justifyContent:'center',padding:16}}><SevRing c={s.critical} h={s.high} m={s.medium} l={s.low} size={110}/></div></div>
-    </div>
-    <div className="panel"><div className="panel-hd"><h3>🔴 Critical CVEs</h3></div><div className="tbl-wrap"><table className="tbl"><thead><tr><th>CVE</th><th>Name</th><th>CVSS</th><th className="desk-only">EPSS</th><th>Hosts</th></tr></thead><tbody>{d.topCritical?.map((v:any)=>(<tr key={v.id}><td className="mono" style={{fontWeight:700,color:'var(--red)'}}>{v.id}</td><td style={{fontWeight:600,maxWidth:260}}>{v.name}</td><td><span className="sev sev-critical" style={{fontFamily:'var(--fm)'}}>{v.cvss}</span></td><td className="mono desk-only" style={{color:v.epss>=.9?'var(--red)':'var(--amber)'}}>{(v.epss*100).toFixed(0)}%</td><td className="mono">{v.hosts}</td></tr>))}</tbody></table></div></div>
-  </>);
+  return(<><div className="kpi-grid"><div className="kpi"><div className="kpi-label">Total</div><div className="kpi-val">{s.total.toLocaleString()}</div></div><div className="kpi"><div className="kpi-label">Critical</div><div className="kpi-val" style={{color:'var(--red)'}}>{s.critical}</div></div><div className="kpi"><div className="kpi-label">High</div><div className="kpi-val" style={{color:'#f97316'}}>{s.high}</div></div><div className="kpi"><div className="kpi-label">Coverage</div><div className="kpi-val" style={{color:'var(--green)'}}>{d.scanHealth?.coverage}%</div></div></div><div className="g2r"><div className="panel"><div className="panel-hd"><h3>Asset Risk</h3></div><div style={{padding:16,display:'flex',justifyContent:'space-around',alignItems:'center',flexWrap:'wrap',gap:12}}><Donut val={d.assetCounts?.withCritical||0} max={d.assetCounts?.total||1} color="var(--red)" label="Critical"/><Donut val={d.assetCounts?.withHigh||0} max={d.assetCounts?.total||1} color="#f97316" label="High"/><Donut val={d.assetCounts?.scanned||0} max={d.assetCounts?.total||1} color="var(--green)" label="Scanned"/></div></div><div className="panel"><div className="panel-hd"><h3>Severity Ring</h3></div><div style={{display:'flex',justifyContent:'center',padding:16}}><SevRing c={s.critical} h={s.high} m={s.medium} l={s.low} size={110}/></div></div></div><div className="panel"><div className="panel-hd"><h3>🔴 Critical CVEs</h3></div><div className="tbl-wrap"><table className="tbl"><thead><tr><th>CVE</th><th>Name</th><th>CVSS</th><th className="desk-only">EPSS</th><th>Hosts</th></tr></thead><tbody>{d.topCritical?.map((v:any)=>(<tr key={v.id}><td className="mono" style={{fontWeight:700,color:'var(--red)'}}>{v.id}</td><td style={{fontWeight:600,maxWidth:260}}>{v.name}</td><td><span className="sev sev-critical" style={{fontFamily:'var(--fm)'}}>{v.cvss}</span></td><td className="mono desk-only" style={{color:v.epss>=.9?'var(--red)':'var(--amber)'}}>{(v.epss*100).toFixed(0)}%</td><td className="mono">{v.hosts}</td></tr>))}</tbody></table></div></div></>);
 }
 
 /* ═══ TOOLS MANAGER ═══ */
@@ -633,36 +449,10 @@ function ToolsManager({toolsData,onRefresh}:{toolsData:any;onRefresh:()=>void}){
 
   const sel=TOOLS.find(t=>t.id===selectedTool);
 
-  return(<div style={{maxWidth:900}}>
-    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12,flexWrap:'wrap',gap:8}}>
-      <div><h2 style={{fontSize:'1.1rem',fontWeight:800}}>🔌 Tool Integrations</h2><p className="muted" style={{fontSize:'.76rem'}}>{toolsData?.enabledCount||0} connected · {TOOLS.length} available</p></div>
-      {!toolsData?.kvAvailable&&<div className="kv-warn">⚠ Redis not configured — credentials won't persist. <a href="https://upstash.com" target="_blank" rel="noopener" style={{color:'var(--accent)'}}>Set up Upstash Redis (free) →</a></div>}
-    </div>
-
-    <div className="pills" style={{marginBottom:12}}><button className={`pill ${catFilter==='all'?'on':''}`} onClick={()=>setCatFilter('all')}>All ({TOOLS.length})</button>{categories.map(c=>(<button key={c} className={`pill ${catFilter===c?'on':''}`} onClick={()=>setCatFilter(c)}>{c} ({TOOLS.filter(t=>t.categoryLabel===c).length})</button>))}</div>
-
-    <div className="tool-grid">{filtered.map(tool=>{
-      const st=toolStatuses[tool.id];
+  return(<div style={{maxWidth:900}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12,flexWrap:'wrap',gap:8}}><div><h2 style={{fontSize:'1.1rem',fontWeight:800}}>🔌 Tool Integrations</h2><p className="muted" style={{fontSize:'.76rem'}}>{toolsData?.enabledCount||0} connected · {TOOLS.length} available</p></div>{!toolsData?.kvAvailable&&<div className="kv-warn">⚠ Redis not configured — credentials won't persist. <a href="https://upstash.com" target="_blank" rel="noopener" style={{color:'var(--accent)'}}>Set up Upstash Redis (free) →</a></div>}</div><div className="pills" style={{marginBottom:12}}><button className={`pill ${catFilter==='all'?'on':''}`} onClick={()=>setCatFilter('all')}>All ({TOOLS.length})</button>{categories.map(c=>(<button key={c} className={`pill ${catFilter===c?'on':''}`} onClick={()=>setCatFilter(c)}>{c} ({TOOLS.filter(t=>t.categoryLabel===c).length})</button>))}</div><div className="tool-grid">{filtered.map(tool=>{const st=toolStatuses[tool.id];
       const isEnabled=st?.enabled;
       const isConfigured=st?.configured;
-      return(<div key={tool.id} className={`tool-card ${isEnabled?'enabled':''}`} style={{'--tc':tool.color} as any}>
-        <div className="tc-top">
-          <span className="tc-icon">{tool.icon}</span>
-          <div className="tc-info"><div className="tc-name">{tool.name}</div><div className="tc-cat">{tool.categoryLabel} · {tool.vendor}</div></div>
-          {isConfigured&&<label className="toggle"><input type="checkbox" checked={isEnabled} onChange={e=>toggleTool(tool.id,e.target.checked)}/><span className="toggle-slider"/></label>}
-        </div>
-        <div className="tc-desc">{tool.description}</div>
-        <div className="tc-footer">
-          {isConfigured?(<>
-            <span className="tc-status" style={{color:isEnabled?'var(--green)':'var(--t3)'}}><span className={`dot ${isEnabled?'dot-on':'dot-off'}`}/>{isEnabled?'Connected':'Disabled'}</span>
-            <button className="tc-btn" onClick={()=>openTool(tool)}>Edit</button>
-            <button className="tc-btn tc-btn-danger" onClick={()=>removeTool(tool.id)}>Remove</button>
-          </>):(<>
-            <span className="tc-status" style={{color:'var(--t3)'}}><span className="dot dot-off"/>Not configured</span>
-            <button className="tc-btn tc-btn-primary" onClick={()=>openTool(tool)}>+ Connect</button>
-          </>)}
-        </div>
-      </div>);
+      return(<div key={tool.id} className={`tool-card ${isEnabled?'enabled':''}`} style={{'--tc':tool.color} as any}><div className="tc-top"><span className="tc-icon">{tool.icon}</span><div className="tc-info"><div className="tc-name">{tool.name}</div><div className="tc-cat">{tool.categoryLabel} · {tool.vendor}</div></div>{isConfigured&&<label className="toggle"><input type="checkbox" checked={isEnabled} onChange={e=>toggleTool(tool.id,e.target.checked)}/><span className="toggle-slider"/></label>}</div><div className="tc-desc">{tool.description}</div><div className="tc-footer">{isConfigured?(<><span className="tc-status" style={{color:isEnabled?'var(--green)':'var(--t3)'}}><span className={`dot ${isEnabled?'dot-on':'dot-off'}`}/>{isEnabled?'Connected':'Disabled'}</span><button className="tc-btn" onClick={()=>openTool(tool)}>Edit</button><button className="tc-btn tc-btn-danger" onClick={()=>removeTool(tool.id)}>Remove</button></>):(<><span className="tc-status" style={{color:'var(--t3)'}}><span className="dot dot-off"/>Not configured</span><button className="tc-btn tc-btn-primary" onClick={()=>openTool(tool)}>+ Connect</button></>)}</div></div>);
     })}</div>
 
     {/* Credential modal */}
