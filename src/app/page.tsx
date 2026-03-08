@@ -234,22 +234,16 @@ function ThreatGlobe({size=200}:{size?:number}){
 function AttackChainGraph(){
   const[data,setData]=useState<any>(null);
   useEffect(()=>{fetch('/api/attack-chain').then(r=>r.json()).then(setData)},[]);
-  if(!data)return <div className="loading"><span className="spin"/>Loading attack chain...</div>;
+  if(!data)return <div className="loading"><span className="spin"/>Loading...</div>;
   const{nodes,edges}=data;
-  // Position nodes in a force-like layout
-  const positions:Record<string,{x:number;y:number}>={
-    'MAIL':{x:50,y:60},'C2':{x:80,y:180},'WS042':{x:220,y:120},'jsmith':{x:350,y:60},
-    'DC01':{x:480,y:120},'admin_svc':{x:350,y:200},'FS01':{x:550,y:200},'DNS':{x:150,y:250}
-  };
-  const sevCol:Record<string,string>={critical:'var(--red)',high:'#f97316',medium:'var(--amber)',low:'var(--blue)'};
-  const typeIcon:Record<string,string>={device:'🖥',user:'👤',ip:'🌐'};
-  return(<div className="panel"><div className="panel-hd"><h3>🕸 Attack Chain</h3><span className="count">{nodes.length} nodes · {edges.length} edges</span></div><div style={{padding:8,overflowX:'auto'}}><svg width="620" height="280" style={{display:'block',margin:'0 auto'}}><defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--t3)"/></marker></defs>{edges.map((e:any,i:number)=>{const f=positions[e.from],t=positions[e.to];if(!f||!t)return null;const mx=(f.x+t.x)/2,my=(f.y+t.y)/2-15);
-          return(<g key={i}><path d={`M${f.x},${f.y} Q${mx},${my} ${t.x},${t.y}`} fill="none" stroke={sevCol[e.sev]||'var(--t3)'} strokeWidth="1.5" markerEnd="url(#arrow)" opacity=".6"><animate attributeName="stroke-dashoffset" from="50" to="0" dur="2s" repeatCount="indefinite"/></path><text x={mx} y={my-6} textAnchor="middle" fill="var(--t3)" fontSize="7" fontFamily="var(--fm)">{e.label}</text>{e.mitre&&<text x={mx} y={my+5} textAnchor="middle" fill="var(--accent)" fontSize="6" fontFamily="var(--fm)">{e.mitre}</text>}</g>})}
-        {nodes.map((n:any)=>{const p=positions[n.id];if(!p)return null);
-          return <g key={n.id}><circle cx={p.x} cy={p.y} r="18" fill={`${sevCol[n.sev]||'var(--bg3)'}20`} stroke={sevCol[n.sev]||'var(--brd)'} strokeWidth="1.5"/><text x={p.x} y={p.y+1} textAnchor="middle" fontSize="11" dominantBaseline="middle">{typeIcon[n.type]||'?'}</text><text x={p.x} y={p.y+28} textAnchor="middle" fill="var(--t1)" fontSize="7" fontWeight="600" fontFamily="var(--fm)">{n.label.split('.')[0]}</text></g>})}
-      </svg>
-    </div>
-  </div>;
+  const pos:Record<string,{x:number;y:number}>={'MAIL':{x:50,y:60},'C2':{x:80,y:180},'WS042':{x:220,y:120},'jsmith':{x:350,y:60},'DC01':{x:480,y:120},'admin_svc':{x:350,y:200},'FS01':{x:550,y:200},'DNS':{x:150,y:250}};
+  const sc:Record<string,string>={critical:'#f0384a',high:'#f97316',medium:'#eda033',low:'#4f8fff'};
+  const ti:Record<string,string>={device:'🖥',user:'👤',ip:'🌐'};
+  // Build SVG as string to avoid SWC JSX parsing issues with < in expressions
+  let svg='<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#505d78"/></marker></defs>';
+  edges.forEach((e:any)=>{const f=pos[e.from],t=pos[e.to];if(!f||!t)return;const mx=(f.x+t.x)/2,my=(f.y+t.y)/2-15;svg+=`<path d="M${f.x},${f.y} Q${mx},${my} ${t.x},${t.y}" fill="none" stroke="${sc[e.sev]||'#505d78'}" stroke-width="1.5" marker-end="url(#arrow)" opacity="0.6"/><text x="${mx}" y="${my-6}" text-anchor="middle" fill="#505d78" font-size="7" font-family="monospace">${e.label}</text>${e.mitre?`<text x="${mx}" y="${my+5}" text-anchor="middle" fill="#4f8fff" font-size="6" font-family="monospace">${e.mitre}</text>`:''}`});
+  nodes.forEach((n:any)=>{const p=pos[n.id];if(!p)return;svg+=`<circle cx="${p.x}" cy="${p.y}" r="18" fill="${(sc[n.sev]||'#171c28')+'20'}" stroke="${sc[n.sev]||'#1a2030'}" stroke-width="1.5"/><text x="${p.x}" y="${p.y+4}" text-anchor="middle" font-size="11" dominant-baseline="middle">${ti[n.type]||'?'}</text><text x="${p.x}" y="${p.y+28}" text-anchor="middle" fill="#e4e9f2" font-size="7" font-weight="600" font-family="monospace">${n.label.split('.')[0]}</text>`});
+  return <div className="panel"><div className="panel-hd"><h3>🕸 Attack Chain</h3><span className="count">{nodes.length} nodes · {edges.length} edges</span></div><div style={{padding:8,overflowX:'auto'}}><svg width="620" height="280" style={{display:'block',margin:'0 auto'}} dangerouslySetInnerHTML={{__html:svg}}/></div></div>;
 }
 
 /* ═══ NATURAL LANGUAGE QUERY ═══ */
