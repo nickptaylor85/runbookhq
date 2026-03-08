@@ -136,7 +136,7 @@ function TrendCharts(){
   const charts=[{label:'MTTR (min)',data:data.mttr[period],color:'var(--amber)',target:30},{label:'MTTD (min)',data:data.mttd[period],color:'var(--green)',target:10},{label:'Alert Volume',data:data.alerts[period],color:'var(--accent)'},{label:'Critical Vulns',data:data.vulns[period],color:'var(--red)'}];
   return(<div className="panel"><div className="panel-hd"><h3>📈 Trends</h3><div className="pills" style={{margin:0}}>{(['7d','30d','90d'] as const).map(p=>(<button key={p} className={`pill ${period===p?'on':''}`} onClick={()=>setPeriod(p)}>{p}</button>))}</div></div>
     <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:8,padding:12}}>
-      {charts.map(ch=>{const last=ch.data[ch.data.length-1];const first=ch.data[0];const change=((last-first)/first*100).toFixed(1);const isGood=(ch.label.includes('MTT')&&last<first)||(ch.label.includes('Vuln')&&last<first));
+      {charts.map(ch=>{const last=ch.data[ch.data.length-1];const first=ch.data[0];const change=((last-first)/first*100).toFixed(1);const isGood=(ch.label.includes('MTT')&&last<first)||(ch.label.includes('Vuln')&&last<first);
         return(<div key={ch.label} style={{padding:'8px 10px',background:'var(--bg2)',borderRadius:'var(--r)',border:'1px solid var(--brd)'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
             <span style={{fontSize:'.68rem',fontWeight:700,color:'var(--t2)'}}>{ch.label}</span>
