@@ -44,7 +44,7 @@ function IOCSearch({open,onClose}:{open:boolean;onClose:()=>void}){
   const[q,setQ]=useState('');const[results,setResults]=useState<any>(null);const[searching,setSearching]=useState(false);
   async function search(){if(q.length<3)return;setSearching(true);try{const r=await fetch('/api/ioc-search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ioc:q})});setResults(await r.json())}catch(e){setResults({error:'Search failed'})}setSearching(false)}
   if(!open)return null;
-  return<div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:640}}>
+  return <div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:640}}>
     <div className="modal-hd"><h3 style={{fontSize:'.95rem'}}>🔍 IOC Search — All Tools</h3><button className="modal-close" onClick={onClose}>✕</button></div>
     <div className="modal-body">
       <div style={{display:'flex',gap:6,marginBottom:12}}><input className="field-input" placeholder="IP, domain, hash, CVE, hostname, username..." value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>e.key==='Enter'&&search()} autoFocus style={{flex:1}}/><button className="tc-btn tc-btn-primary" onClick={search} disabled={searching}>{searching?'Searching...':'Search'}</button></div>
@@ -74,7 +74,7 @@ function ActionMenu({alert,onDone}:{alert:any;onDone:()=>void}){
     {id:'collect_evidence',label:'🧲 Collect Evidence',target:alert.device,tool:alert.source,show:!!alert.device},
   ].filter(a=>a.show);
   async function exec(a:any){setLoading(a.id);try{const r=await fetch('/api/response-actions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:a.id,target:a.target,tool:a.tool,alertId:alert.id})});setResult(await r.json())}catch{setResult({error:'Action failed'})}setLoading('')}
-  return<div style={{position:'relative'}}><button className="tc-btn" onClick={()=>setOpen(!open)} style={{fontSize:'.6rem',padding:'2px 6px'}}>⚡ Act</button>
+  return <div style={{position:'relative'}}><button className="tc-btn" onClick={()=>setOpen(!open)} style={{fontSize:'.6rem',padding:'2px 6px'}}>⚡ Act</button>
     {open&&<div className="action-dropdown">{actions.map(a=>(<button key={a.id} className="action-item" onClick={()=>exec(a)} disabled={!!loading}>{loading===a.id?'Running...':a.label}<span className="muted" style={{fontSize:'.55rem',marginLeft:4}}>{a.target}</span></button>))}
     {result&&<div className={`action-result ${result.ok?'ok':'err'}`}>{result.ok?`✓ ${result.message}`:result.error}</div>}
     </div>}
@@ -85,7 +85,7 @@ function ActionMenu({alert,onDone}:{alert:any;onDone:()=>void}){
 function ExportBtn({data,filename,label='Export'}:{data:()=>any[];filename:string;label?:string}){
   function toCSV(){const rows=data();if(!rows.length)return;const keys=Object.keys(rows[0]);const csv=[keys.join(','),...rows.map(r=>keys.map(k=>JSON.stringify(r[k]??'')).join(','))].join('\n');dl(csv,'text/csv',filename+'.csv')}
   function dl(content:string,mime:string,name:string){const b=new Blob([content],{type:mime});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;a.click();URL.revokeObjectURL(u)}
-  return<div style={{display:'flex',gap:4}}><button className="tc-btn" onClick={toCSV} style={{fontSize:'.62rem',padding:'2px 8px'}}>📥 CSV</button></div>;
+  return <div style={{display:'flex',gap:4}}><button className="tc-btn" onClick={toCSV} style={{fontSize:'.62rem',padding:'2px 8px'}}>📥 CSV</button></div>;
 }
 
 
@@ -101,12 +101,12 @@ function MitreHeatmap({alerts}:{alerts:Al[]}){
   const demoTechs:Record<string,{count:number;sev:string}>={'T1566':{count:4,sev:'high'},'T1059.001':{count:3,sev:'critical'},'T1003.001':{count:2,sev:'critical'},'T1071.001':{count:3,sev:'high'},'T1021.002':{count:2,sev:'high'},'T1053.005':{count:1,sev:'medium'},'T1110':{count:5,sev:'high'},'T1048':{count:1,sev:'medium'},'T1572':{count:2,sev:'high'},'T1190':{count:1,sev:'critical'},'T1078':{count:3,sev:'high'},'T1027':{count:1,sev:'medium'},'T1070':{count:1,sev:'medium'},'T1018':{count:2,sev:'low'},'T1082':{count:3,sev:'low'},'T1569.002':{count:1,sev:'high'},'T1036':{count:2,sev:'medium'},'T1547.001':{count:1,sev:'high'},'T1562.001':{count:1,sev:'critical'},'T1567.002':{count:1,sev:'high'}};
   Object.entries(demoTechs).forEach(([k,v])=>{if(!techCounts[k])techCounts[k]=v});
   const sevColor=(s:string)=>s==='critical'?'var(--red)':s==='high'?'#f97316':s==='medium'?'var(--amber)':'var(--blue)';
-  return<div className="panel"><div className="panel-hd"><h3>🗺 MITRE ATT&CK Coverage</h3><span className="count">{Object.keys(techCounts).length} techniques</span></div>
+  return <div className="panel"><div className="panel-hd"><h3>🗺 MITRE ATT&CK Coverage</h3><span className="count">{Object.keys(techCounts).length} techniques</span></div>
     <div style={{padding:'10px',overflowX:'auto'}}>
       <div style={{display:'grid',gridTemplateColumns:`repeat(${TACTICS.length},1fr)`,gap:3,minWidth:700}}>
         {TACTICS.map(tac=>(<div key={tac.id}>
           <div style={{fontSize:'.52rem',fontWeight:700,color:'var(--t3)',textAlign:'center',padding:'4px 2px',textTransform:'uppercase',letterSpacing:'.3px',borderBottom:'1px solid var(--brd)',marginBottom:3}}>{tac.n}</div>
-          {tac.t.map(tech=>{const d=techCounts[tech];return<div key={tech} style={{background:d?sevColor(d.sev)+'18':'var(--bg3)',border:`1px solid ${d?sevColor(d.sev)+'30':'var(--brd)'}`,borderRadius:4,padding:'4px 3px',marginBottom:2,textAlign:'center',cursor:'default',transition:'all .15s'}} title={`${tech}: ${d?.count||0} alerts (${d?.sev||'none'})`}>
+          {tac.t.map(tech=>{const d=techCounts[tech];return <div key={tech} style={{background:d?sevColor(d.sev)+'18':'var(--bg3)',border:`1px solid ${d?sevColor(d.sev)+'30':'var(--brd)'}`,borderRadius:4,padding:'4px 3px',marginBottom:2,textAlign:'center',cursor:'default',transition:'all .15s'}} title={`${tech}: ${d?.count||0} alerts (${d?.sev||'none'})`}>
             <div style={{fontSize:'.52rem',fontFamily:'var(--fm)',fontWeight:600,color:d?sevColor(d.sev):'var(--t4)'}}>{tech.replace('T','')}</div>
             {d&&<div style={{fontSize:'.62rem',fontWeight:800,fontFamily:'var(--fm)',color:sevColor(d.sev)}}>{d.count}</div>}
           </div>})}
@@ -134,10 +134,10 @@ function TrendCharts(){
     vulns:{'7d':[28,26,25,24,24,23,24],'30d':[35,34,32,31,30,29,28,27,28,26,25,26,25,24,25,24,24,23,24,23,24,23,24,24,23,24,24,23,24,24],'90d':[48,45,42,38,35,32,30,28,26,25,24,24]},
   });
   const charts=[{label:'MTTR (min)',data:data.mttr[period],color:'var(--amber)',target:30},{label:'MTTD (min)',data:data.mttd[period],color:'var(--green)',target:10},{label:'Alert Volume',data:data.alerts[period],color:'var(--accent)'},{label:'Critical Vulns',data:data.vulns[period],color:'var(--red)'}];
-  return<div className="panel"><div className="panel-hd"><h3>📈 Trends</h3><div className="pills" style={{margin:0}}>{(['7d','30d','90d'] as const).map(p=>(<button key={p} className={`pill ${period===p?'on':''}`} onClick={()=>setPeriod(p)}>{p}</button>))}</div></div>
+  return <div className="panel"><div className="panel-hd"><h3>📈 Trends</h3><div className="pills" style={{margin:0}}>{(['7d','30d','90d'] as const).map(p=>(<button key={p} className={`pill ${period===p?'on':''}`} onClick={()=>setPeriod(p)}>{p}</button>))}</div></div>
     <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:8,padding:12}}>
       {charts.map(ch=>{const last=ch.data[ch.data.length-1];const first=ch.data[0];const change=((last-first)/first*100).toFixed(1);const isGood=(ch.label.includes('MTT')&&last<first)||(ch.label.includes('Vuln')&&last<first);
-        return<div key={ch.label} style={{padding:'8px 10px',background:'var(--bg2)',borderRadius:'var(--r)',border:'1px solid var(--brd)'}}>
+        return <div key={ch.label} style={{padding:'8px 10px',background:'var(--bg2)',borderRadius:'var(--r)',border:'1px solid var(--brd)'}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
             <span style={{fontSize:'.68rem',fontWeight:700,color:'var(--t2)'}}>{ch.label}</span>
             <span style={{fontSize:'.6rem',fontWeight:700,color:isGood?'var(--green)':Number(change)>0&&ch.label!=='Alert Volume'?'var(--red)':'var(--t3)'}}>{Number(change)>0?'+':''}{change}%</span>
@@ -159,7 +159,7 @@ function AICopilot({alert,onClose}:{alert:Al|null;onClose:()=>void}){
   async function ask(q?:string){setLoading(true);setResponse('');try{const r=await fetch('/api/ai-copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alert,question:q||question||undefined})});const d=await r.json();setResponse(d.response)}catch{setResponse('Failed to get response.')}setLoading(false)}
   useEffect(()=>{if(alert)ask()},[]);
   if(!alert)return null;
-  return<div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:600}}>
+  return <div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:600}}>
     <div className="modal-hd"><div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:'1.2rem'}}>🤖</span><div><h3 style={{fontSize:'.9rem'}}>AI Co-Pilot</h3><p className="muted" style={{fontSize:'.62rem'}}>{alert.title}</p></div></div><button className="modal-close" onClick={onClose}>✕</button></div>
     <div className="modal-body">
       <div style={{display:'flex',gap:4,marginBottom:10,flexWrap:'wrap'}}><span className={`sev sev-${alert.severity}`}>{alert.severity}</span><span className={`src ${sc(alert.source)}`}>{alert.source}</span>{alert.mitre&&<span className="mitre">{alert.mitre}</span>}{alert.device&&<span className="device">{alert.device}</span>}</div>
@@ -207,7 +207,7 @@ function UserGuide({open,onClose}:{open:boolean;onClose:()=>void}){
     {label:'Tool credentials',key:'Via Tools tab or env vars',desc:'Connect Defender, CrowdStrike, Tenable, Zscaler, etc.'},
     {label:'Slack/Teams Alerts',key:'SLACK_WEBHOOK_URL or TEAMS_WEBHOOK_URL',desc:'Send critical alerts to a channel. Click 💬 on any alert to push it.'},
   ];
-  return<div className="guide-overlay" onClick={onClose}><div className="guide-panel" onClick={e=>e.stopPropagation()}>
+  return <div className="guide-overlay" onClick={onClose}><div className="guide-panel" onClick={e=>e.stopPropagation()}>
     <div className="guide-hd"><div><h2 style={{fontSize:'1.05rem',fontWeight:800}}>📖 SecOps Dashboard Guide</h2><p className="muted" style={{fontSize:'.7rem'}}>v7 — Single pane of glass for your SOC</p></div><button className="modal-close" onClick={onClose}>✕</button></div>
     <div className="guide-body">
       {sections.map(s=>(<div key={s.title} className="guide-section"><h3><span style={{marginRight:6}}>{s.icon}</span>{s.title}</h3><ul>{s.items.map((item,i)=>(<li key={i}>{item}</li>))}</ul></div>))}
@@ -235,7 +235,7 @@ function CmdPalette({open,onClose,onSelect}:{open:boolean;onClose:()=>void;onSel
   ];
   const filtered=q?items.filter(i=>(i.label+' '+i.keywords).toLowerCase().includes(q.toLowerCase())):items;
   if(!open)return null;
-  return<div className="modal-overlay" onClick={onClose}><div className="cmd-palette" onClick={e=>e.stopPropagation()}>
+  return <div className="modal-overlay" onClick={onClose}><div className="cmd-palette" onClick={e=>e.stopPropagation()}>
     <div className="cmd-input-wrap"><span style={{color:'var(--t3)'}}>⌘</span><input className="cmd-input" placeholder="Jump to..." value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>{if(e.key==='Escape')onClose();if(e.key==='Enter'&&filtered.length>0){onSelect(filtered[0].id);onClose();setQ('')}}} autoFocus/></div>
     <div className="cmd-list">{filtered.map(i=>(<button key={i.id} className="cmd-item" onClick={()=>{onSelect(i.id);onClose();setQ('')}}><span className="cmd-icon">{i.icon}</span>{i.label}</button>))}</div>
   </div></div>;
@@ -244,7 +244,7 @@ function CmdPalette({open,onClose,onSelect}:{open:boolean;onClose:()=>void;onSel
 /* ═══ THREAT INTEL TICKER ═══ */
 function ThreatTicker(){
   const items=['🔴 CVE-2024-3400: PAN-OS RCE actively exploited — patch immediately','🟠 Volt Typhoon targeting critical infrastructure VPN appliances','🔴 BlackSuit ransomware campaign targeting healthcare sector','🟡 AI-generated spear phishing surge in financial services','🟠 NPM typosquatting supply chain campaign detected','🔴 FortiManager CVE-2024-47575 missing auth — CVSS 9.8','🟡 QR code phishing (quishing) campaigns increasing','🟠 DNS tunnelling via legitimate cloud services on the rise'];
-  return<div className="ticker-bar"><div className="ticker-track">{[...items,...items].map((t,i)=>(<span key={i} className="ticker-item">{t}</span>))}</div></div>;
+  return <div className="ticker-bar"><div className="ticker-track">{[...items,...items].map((t,i)=>(<span key={i} className="ticker-item">{t}</span>))}</div></div>;
 }
 
 /* ═══ DEVICE DEEP-DIVE ═══ */
@@ -252,7 +252,7 @@ function DeviceDrawer({hostname,alerts,onClose}:{hostname:string|null;alerts:any
   if(!hostname)return null;
   const deviceAlerts=alerts.filter((a:any)=>a.device===hostname);
   const sources=[...new Set(deviceAlerts.map((a:any)=>a.source))];
-  return<div className="drawer-overlay" onClick={onClose}><div className="drawer" onClick={e=>e.stopPropagation()}>
+  return <div className="drawer-overlay" onClick={onClose}><div className="drawer" onClick={e=>e.stopPropagation()}>
     <div className="guide-hd"><div><h2 style={{fontSize:'.95rem',fontWeight:800,fontFamily:'var(--fm)'}}>{hostname}</h2><p className="muted" style={{fontSize:'.68rem'}}>{deviceAlerts.length} alerts from {sources.length} sources</p></div><button className="modal-close" onClick={onClose}>✕</button></div>
     <div className="guide-body">
       <div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:12}}>{sources.map(s=>(<span key={s} className={`src ${sc(s)}`}>{s}</span>))}</div>
@@ -273,7 +273,7 @@ function AlertNotes({alertId,onClose}:{alertId:string|null;onClose:()=>void}){
   useEffect(()=>{if(alertId)fetch(`/api/alert-notes?alertId=${alertId}`).then(r=>r.json()).then(d=>setNotes(d.notes||[]))},[alertId]);
   async function addNote(){if(!text.trim()||!alertId)return;setLoading(true);try{const r=await fetch('/api/alert-notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alertId,note:text})});const d=await r.json();if(d.notes)setNotes(d.notes);setText('')}catch{}setLoading(false)}
   if(!alertId)return null;
-  return<div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:480}}>
+  return <div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:480}}>
     <div className="modal-hd"><h3 style={{fontSize:'.9rem'}}>📝 Investigation Notes</h3><button className="modal-close" onClick={onClose}>✕</button></div>
     <div className="modal-body">
       <div style={{display:'flex',gap:4,marginBottom:10}}><input className="field-input" placeholder="Add a note..." value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addNote()} style={{flex:1}}/><button className="tc-btn tc-btn-primary" onClick={addNote} disabled={loading}>{loading?'...':'Add'}</button></div>
@@ -326,14 +326,14 @@ function ThreatGlobe({size=200}:{size?:number}){
     draw();
     return()=>{cancelAnimationFrame(frameRef.current)};
   },[size]);
-  return<canvas ref={canvasRef} width={size} height={size} style={{display:'block',margin:'0 auto'}}/>;
+  return <canvas ref={canvasRef} width={size} height={size} style={{display:'block',margin:'0 auto'}}/>;
 }
 
 /* ═══ ATTACK CHAIN GRAPH ═══ */
 function AttackChainGraph(){
   const[data,setData]=useState<any>(null);
   useEffect(()=>{fetch('/api/attack-chain').then(r=>r.json()).then(setData)},[]);
-  if(!data)return<div className="loading"><span className="spin"/>Loading attack chain...</div>;
+  if(!data)return <div className="loading"><span className="spin"/>Loading attack chain...</div>;
   const{nodes,edges}=data;
   // Position nodes in a force-like layout
   const positions:Record<string,{x:number;y:number}>={
@@ -342,16 +342,16 @@ function AttackChainGraph(){
   };
   const sevCol:Record<string,string>={critical:'var(--red)',high:'#f97316',medium:'var(--amber)',low:'var(--blue)'};
   const typeIcon:Record<string,string>={device:'🖥',user:'👤',ip:'🌐'};
-  return<div className="panel"><div className="panel-hd"><h3>🕸 Attack Chain</h3><span className="count">{nodes.length} nodes · {edges.length} edges</span></div>
+  return <div className="panel"><div className="panel-hd"><h3>🕸 Attack Chain</h3><span className="count">{nodes.length} nodes · {edges.length} edges</span></div>
     <div style={{padding:8,overflowX:'auto'}}>
       <svg width="620" height="280" style={{display:'block',margin:'0 auto'}}>
         <defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--t3)"/></marker></defs>
         {edges.map((e:any,i:number)=>{const f=positions[e.from],t=positions[e.to];if(!f||!t)return null;const mx=(f.x+t.x)/2,my=(f.y+t.y)/2-15;
-          return<g key={i}><path d={`M${f.x},${f.y} Q${mx},${my} ${t.x},${t.y}`} fill="none" stroke={sevCol[e.sev]||'var(--t3)'} strokeWidth="1.5" markerEnd="url(#arrow)" opacity=".6"><animate attributeName="stroke-dashoffset" from="50" to="0" dur="2s" repeatCount="indefinite"/></path>
+          return <g key={i}><path d={`M${f.x},${f.y} Q${mx},${my} ${t.x},${t.y}`} fill="none" stroke={sevCol[e.sev]||'var(--t3)'} strokeWidth="1.5" markerEnd="url(#arrow)" opacity=".6"><animate attributeName="stroke-dashoffset" from="50" to="0" dur="2s" repeatCount="indefinite"/></path>
           <text x={mx} y={my-6} textAnchor="middle" fill="var(--t3)" fontSize="7" fontFamily="var(--fm)">{e.label}</text>
           {e.mitre&&<text x={mx} y={my+5} textAnchor="middle" fill="var(--accent)" fontSize="6" fontFamily="var(--fm)">{e.mitre}</text>}</g>})}
         {nodes.map((n:any)=>{const p=positions[n.id];if(!p)return null;
-          return<g key={n.id}><circle cx={p.x} cy={p.y} r="18" fill={`${sevCol[n.sev]||'var(--bg3)'}20`} stroke={sevCol[n.sev]||'var(--brd)'} strokeWidth="1.5"/>
+          return <g key={n.id}><circle cx={p.x} cy={p.y} r="18" fill={`${sevCol[n.sev]||'var(--bg3)'}20`} stroke={sevCol[n.sev]||'var(--brd)'} strokeWidth="1.5"/>
           <text x={p.x} y={p.y+1} textAnchor="middle" fontSize="11" dominantBaseline="middle">{typeIcon[n.type]||'?'}</text>
           <text x={p.x} y={p.y+28} textAnchor="middle" fill="var(--t1)" fontSize="7" fontWeight="600" fontFamily="var(--fm)">{n.label.split('.')[0]}</text></g>})}
       </svg>
@@ -363,7 +363,7 @@ function AttackChainGraph(){
 function NLQuery(){
   const[q,setQ]=useState('');const[result,setResult]=useState<any>(null);const[loading,setLoading]=useState(false);const[open,setOpen]=useState(false);
   async function search(){if(!q.trim())return;setLoading(true);try{const r=await fetch('/api/nl-query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q})});setResult(await r.json())}catch{setResult({answer:'Query failed',results:[]})}setLoading(false)}
-  return<div className="nl-bar">
+  return <div className="nl-bar">
     <div className="nl-input-wrap" onClick={()=>setOpen(!open)}>
       <span style={{color:'var(--accent)'}}>🧠</span>
       <input className="nl-input" placeholder="Ask anything... \"show critical alerts from Defender\" or \"which devices are missing agents\"" value={q} onChange={e=>{setQ(e.target.value);setOpen(true)}} onKeyDown={e=>e.key==='Enter'&&search()}/>
@@ -384,7 +384,7 @@ function CollabBar(){
   const[data,setData]=useState<any>(null);
   useEffect(()=>{fetch('/api/collaboration').then(r=>r.json()).then(setData);const i=setInterval(()=>fetch('/api/collaboration').then(r=>r.json()).then(setData),30000);return()=>clearInterval(i)},[]);
   if(!data)return null;
-  return<div className="collab-bar">
+  return <div className="collab-bar">
     <span style={{fontSize:'.62rem',color:'var(--t3)',fontWeight:600,marginRight:6}}>ONLINE:</span>
     {data.analysts.filter((a:any)=>a.status==='active').map((a:any)=>(<div key={a.id} className="analyst-avatar" style={{background:a.color+'22',color:a.color,borderColor:a.color+'44'}} title={`${a.name} — viewing ${a.viewing||'nothing'}`}>{a.avatar}</div>))}
     {data.analysts.filter((a:any)=>a.status==='away').map((a:any)=>(<div key={a.id} className="analyst-avatar away" title={`${a.name} — away`}>{a.avatar}</div>))}
@@ -396,7 +396,7 @@ function PredictionsPanel(){
   const[data,setData]=useState<any>(null);const[open,setOpen]=useState(false);
   useEffect(()=>{fetch('/api/predictions').then(r=>r.json()).then(setData)},[]);
   if(!data)return null;
-  return<div className="panel"><div className="panel-hd"><h3>🔮 Predictive Analytics</h3><span className="count">{data.predictions.length}</span></div>
+  return <div className="panel"><div className="panel-hd"><h3>🔮 Predictive Analytics</h3><span className="count">{data.predictions.length}</span></div>
     <div style={{padding:8}}>{data.predictions.map((p:any)=>(<div key={p.id} className="pred-card" style={{borderLeftColor:p.severity==='critical'?'var(--red)':p.severity==='high'?'#f97316':'var(--amber)'}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
         <div style={{flex:1}}><div style={{display:'flex',gap:4,alignItems:'center',marginBottom:2}}><span>{p.icon}</span><span className={`sev sev-${p.severity}`}>{p.severity}</span><span style={{fontSize:'.58rem',color:'var(--t3)',fontFamily:'var(--fm)',background:'var(--bg3)',padding:'1px 5px',borderRadius:3}}>{p.confidence}% conf</span></div>
@@ -412,7 +412,7 @@ function PredictionsPanel(){
 function TriageBadge({alert}:{alert:any}){
   const t=alert.triage;if(!t)return null;
   const col=t.verdict==='true_positive'?'var(--red)':t.verdict==='false_positive'?'var(--green)':'var(--amber)';
-  return<div className="triage-badge" title={`${t.reasoning}\n${t.recommended_action}`}>
+  return <div className="triage-badge" title={`${t.reasoning}\n${t.recommended_action}`}>
     <div style={{fontSize:'.55rem',fontWeight:700,color:col}}>{t.confidence}%</div>
     <div style={{fontSize:'.48rem',color:'var(--t3)'}}>{t.verdict==='true_positive'?'TP':t.verdict==='false_positive'?'FP':'SUS'}</div>
   </div>;
@@ -597,7 +597,7 @@ function CovTab({cov}:any){
 function Vul(){
   const[d,setD]=useState<any>(null);
   useEffect(()=>{fetch('/api/tenable').then(r=>r.json()).then(setD)},[]);
-  if(!d)return<div className="loading"><span className="spin"/>Loading...</div>;
+  if(!d)return <div className="loading"><span className="spin"/>Loading...</div>;
   const s=d.summary;
   return(<>
     <div className="kpi-grid"><div className="kpi"><div className="kpi-label">Total</div><div className="kpi-val">{s.total.toLocaleString()}</div></div><div className="kpi"><div className="kpi-label">Critical</div><div className="kpi-val" style={{color:'var(--red)'}}>{s.critical}</div></div><div className="kpi"><div className="kpi-label">High</div><div className="kpi-val" style={{color:'#f97316'}}>{s.high}</div></div><div className="kpi"><div className="kpi-label">Coverage</div><div className="kpi-val" style={{color:'var(--green)'}}>{d.scanHealth?.coverage}%</div></div></div>
