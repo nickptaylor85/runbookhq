@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { TOOLS, type ToolInfo, type ToolField } from '@/lib/tool-registry-client';
 
 /* ═══ SVG COMPONENTS ═══ */
@@ -191,8 +191,8 @@ function ExecSummary({metrics,alerts,coverage}:{metrics:any;alerts:Al[];coverage
 function UserGuide({open,onClose}:{open:boolean;onClose:()=>void}){
   if(!open)return null;
   const sections=[
-    {title:'Overview Tab',icon:'◉',items:['KPI cards with sparkline trends (Alerts, MTTR, MTTD, Incidents, ZIA Blocked, Devices)','Threat Radar — animated SVG showing active threat blips by severity','Severity Ring — donut breakdown of alert severities with total count','Hourly Alert Chart — bar chart of alert volume over 24 hours','Tool Health — circular progress for each connected tool\'s coverage','Connected Tools — shows which integrations are active','Critical & High alerts table with source badges and time','Alert Sources — bar chart showing which tools generate most alerts','Activity Timeline — chronological feed of events across all tools','MITRE ATT&CK Heatmap — 11-tactic grid with technique hit counts','Trend Charts — 7/30/90 day sparklines for MTTR, MTTD, alerts, vulns','Executive Summary — AI-generated board-ready posture report']},
-    {title:'Alerts Tab',icon:'⚡',items:['Unified alert feed from all connected tools','Filter by severity (Critical/High/Medium/Low)','Filter by source tool','Alert Correlation — groups related alerts by device/user','One-click response actions (Isolate, Block IP, Disable User, etc.)','AI Co-pilot — click 🤖 for instant analysis and recommendations','Investigation notes — attach notes to any alert','Export to CSV']},
+    {title:'Overview Tab',icon:'◉',items:['3D Threat Globe — animated rotating earth with live attack arcs','Natural Language Query — ask questions in plain English across all tools','Attack Chain Graph — visual kill chain showing how alerts connect device→user→device','Predictive Analytics — AI-powered predictions for volume spikes, exploit risk, SLA breaches','KPI cards with sparkline trends (Alerts, MTTR, MTTD, Incidents, ZIA Blocked, Devices)','Threat Radar — animated SVG showing active threat blips by severity','Severity Ring — donut breakdown of alert severities with total count','Hourly Alert Chart — bar chart of alert volume over 24 hours','Tool Health — circular progress for each connected tool\'s coverage','Connected Tools — shows which integrations are active','Critical & High alerts table with source badges and time','Alert Sources — bar chart showing which tools generate most alerts','Activity Timeline — chronological feed of events across all tools','MITRE ATT&CK Heatmap — 11-tactic grid with technique hit counts','Trend Charts — 7/30/90 day sparklines for MTTR, MTTD, alerts, vulns','Executive Summary — AI-generated board-ready posture report']},
+    {title:'Alerts Tab',icon:'⚡',items:['Auto-Triage — AI confidence scores, TP/FP/Suspicious verdicts, priority ranking','Send to Slack/Teams — push any alert to your SOC channel with 💬 button','Unified alert feed from all connected tools','Filter by severity (Critical/High/Medium/Low)','Filter by source tool','Alert Correlation — groups related alerts by device/user','One-click response actions (Isolate, Block IP, Disable User, etc.)','AI Co-pilot — click 🤖 for instant analysis and recommendations','Investigation notes — attach notes to any alert','Export to CSV']},
     {title:'Coverage Tab',icon:'🛡',items:['Device count per tool with version info','Coverage gaps table — which devices are missing which agents','Agent health breakdown (Healthy/Degraded/Offline) per tool','Coverage percentage bars']},
     {title:'Vulnerabilities Tab',icon:'🔓',items:['Tenable.io vulnerability summary (Critical/High/Medium/Low)','Asset risk donuts — % of assets with critical/high vulns','Severity ring chart','Top critical CVEs with CVSS, EPSS scores, host counts, exploitability']},
     {title:'Tools Tab',icon:'🔌',items:['18 supported integrations across EDR, XDR, SIEM, NDR, Vuln, ZTNA, Threat Intel, Cloud, Email','Add credentials directly from the UI','Toggle tools on/off','Filter by category','Connection status indicators','Credentials stored in Upstash Redis']},
@@ -205,6 +205,7 @@ function UserGuide({open,onClose}:{open:boolean;onClose:()=>void}){
     {label:'Upstash Redis',key:'UPSTASH_REDIS_REST_URL + TOKEN',desc:'Enables in-app credential storage + alert notes'},
     {label:'Anthropic API',key:'ANTHROPIC_API_KEY',desc:'Enables AI co-pilot and executive summaries'},
     {label:'Tool credentials',key:'Via Tools tab or env vars',desc:'Connect Defender, CrowdStrike, Tenable, Zscaler, etc.'},
+    {label:'Slack/Teams Alerts',key:'SLACK_WEBHOOK_URL or TEAMS_WEBHOOK_URL',desc:'Send critical alerts to a channel. Click 💬 on any alert to push it.'},
   ];
   return<div className="guide-overlay" onClick={onClose}><div className="guide-panel" onClick={e=>e.stopPropagation()}>
     <div className="guide-hd"><div><h2 style={{fontSize:'1.05rem',fontWeight:800}}>📖 SecOps Dashboard Guide</h2><p className="muted" style={{fontSize:'.7rem'}}>v7 — Single pane of glass for your SOC</p></div><button className="modal-close" onClick={onClose}>✕</button></div>
@@ -280,6 +281,141 @@ function AlertNotes({alertId,onClose}:{alertId:string|null;onClose:()=>void}){
       :notes.map((n:any)=>(<div key={n.id} style={{padding:'8px 0',borderBottom:'1px solid var(--brd)'}}><div style={{display:'flex',justifyContent:'space-between',fontSize:'.65rem',color:'var(--t3)',marginBottom:2}}><span>{n.analyst}</span><span>{ago(n.time)}</span></div><div style={{fontSize:'.8rem'}}>{n.text}</div></div>))}
     </div>
   </div></div>;
+}
+
+
+
+/* ═══ 3D THREAT GLOBE (Canvas) ═══ */
+function ThreatGlobe({size=200}:{size?:number}){
+  const canvasRef=useRef<HTMLCanvasElement>(null);
+  const frameRef=useRef(0);
+  useEffect(()=>{
+    const cv=canvasRef.current;if(!cv)return;const ctx=cv.getContext('2d');if(!ctx)return;
+    const w=size,h=size,cx=w/2,cy=h/2,r=w/2-10;
+    const attacks=[{lat:51.5,lon:-0.1,lat2:40.7,lon2:-74,sev:'high'},{lat:55.7,lon:37.6,lat2:51.5,lon2:-0.1,sev:'critical'},{lat:31.2,lon:121.5,lat2:37.5,lon2:-122.4,sev:'critical'},{lat:-33.9,lon:18.4,lat2:48.9,lon2:2.3,sev:'medium'},{lat:35.7,lon:139.7,lat2:1.3,lon2:103.8,sev:'high'},{lat:52.5,lon:13.4,lat2:51.5,lon2:-0.1,sev:'low'}];
+    let rot=0;
+    function project(lat:number,lon:number):[number,number,number]{const lr=lat*Math.PI/180,lo=(lon+rot)*Math.PI/180;const x=Math.cos(lr)*Math.sin(lo);const y=-Math.sin(lr);const z=Math.cos(lr)*Math.cos(lo);return[cx+x*r,cy+y*r,z]}
+    function draw(){
+      ctx.clearRect(0,0,w,h);
+      // Globe
+      ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle=getComputedStyle(cv).getPropertyValue('--bg2')||'#10141e';ctx.fill();ctx.strokeStyle=getComputedStyle(cv).getPropertyValue('--brd')||'#1a2030';ctx.lineWidth=1;ctx.stroke();
+      // Grid lines
+      ctx.strokeStyle=(getComputedStyle(cv).getPropertyValue('--brd2')||'#252d40')+'60';ctx.lineWidth=.5;
+      for(let lat=-60;lat<=60;lat+=30){const pts:number[][]=[];for(let lon=0;lon<=360;lon+=5){const[px,py,pz]=project(lat,lon);if(pz>0)pts.push([px,py]);else if(pts.length>1){ctx.beginPath();pts.forEach((p,i)=>i===0?ctx.moveTo(p[0],p[1]):ctx.lineTo(p[0],p[1]));ctx.stroke();pts.length=0}}if(pts.length>1){ctx.beginPath();pts.forEach((p,i)=>i===0?ctx.moveTo(p[0],p[1]):ctx.lineTo(p[0],p[1]));ctx.stroke()}}
+      for(let lon=-180;lon<180;lon+=30){const pts:number[][]=[];for(let lat=-90;lat<=90;lat+=5){const[px,py,pz]=project(lat,lon);if(pz>0)pts.push([px,py]);else if(pts.length>1){ctx.beginPath();pts.forEach((p,i)=>i===0?ctx.moveTo(p[0],p[1]):ctx.lineTo(p[0],p[1]));ctx.stroke();pts.length=0}}if(pts.length>1){ctx.beginPath();pts.forEach((p,i)=>i===0?ctx.moveTo(p[0],p[1]):ctx.lineTo(p[0],p[1]));ctx.stroke()}}
+      // Attack arcs
+      const sevCol:Record<string,string>={critical:'#f0384a',high:'#f97316',medium:'#eda033',low:'#4f8fff'};
+      const t=Date.now()/2000;
+      attacks.forEach((a,i)=>{
+        const[x1,y1,z1]=project(a.lat,a.lon);const[x2,y2,z2]=project(a.lat2,a.lon2);
+        if(z1>-0.3&&z2>-0.3){
+          const progress=(Math.sin(t+i*1.2)+1)/2;
+          ctx.beginPath();ctx.moveTo(x1,y1);
+          const midX=(x1+x2)/2,midY=Math.min(y1,y2)-30-i*5;
+          ctx.quadraticCurveTo(midX,midY,x1+(x2-x1)*progress,y1+(y2-y1)*progress-(30+i*5)*(1-Math.abs(progress*2-1)));
+          ctx.strokeStyle=sevCol[a.sev]||'#4f8fff';ctx.lineWidth=1.5;ctx.globalAlpha=.7;ctx.stroke();ctx.globalAlpha=1;
+          // Source dot
+          ctx.beginPath();ctx.arc(x1,y1,3,0,Math.PI*2);ctx.fillStyle=sevCol[a.sev];ctx.fill();
+          // Target dot (pulsing)
+          ctx.beginPath();ctx.arc(x2,y2,2+Math.sin(t*3+i)*1,0,Math.PI*2);ctx.fillStyle=sevCol[a.sev];ctx.globalAlpha=.6;ctx.fill();ctx.globalAlpha=1;
+        }
+      });
+      rot+=0.15;
+      frameRef.current=requestAnimationFrame(draw);
+    }
+    draw();
+    return()=>{cancelAnimationFrame(frameRef.current)};
+  },[size]);
+  return<canvas ref={canvasRef} width={size} height={size} style={{display:'block',margin:'0 auto'}}/>;
+}
+
+/* ═══ ATTACK CHAIN GRAPH ═══ */
+function AttackChainGraph(){
+  const[data,setData]=useState<any>(null);
+  useEffect(()=>{fetch('/api/attack-chain').then(r=>r.json()).then(setData)},[]);
+  if(!data)return<div className="loading"><span className="spin"/>Loading attack chain...</div>;
+  const{nodes,edges}=data;
+  // Position nodes in a force-like layout
+  const positions:Record<string,{x:number;y:number}>={
+    'MAIL':{x:50,y:60},'C2':{x:80,y:180},'WS042':{x:220,y:120},'jsmith':{x:350,y:60},
+    'DC01':{x:480,y:120},'admin_svc':{x:350,y:200},'FS01':{x:550,y:200},'DNS':{x:150,y:250}
+  };
+  const sevCol:Record<string,string>={critical:'var(--red)',high:'#f97316',medium:'var(--amber)',low:'var(--blue)'};
+  const typeIcon:Record<string,string>={device:'🖥',user:'👤',ip:'🌐'};
+  return<div className="panel"><div className="panel-hd"><h3>🕸 Attack Chain</h3><span className="count">{nodes.length} nodes · {edges.length} edges</span></div>
+    <div style={{padding:8,overflowX:'auto'}}>
+      <svg width="620" height="280" style={{display:'block',margin:'0 auto'}}>
+        <defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--t3)"/></marker></defs>
+        {edges.map((e:any,i:number)=>{const f=positions[e.from],t=positions[e.to];if(!f||!t)return null;const mx=(f.x+t.x)/2,my=(f.y+t.y)/2-15;
+          return<g key={i}><path d={`M${f.x},${f.y} Q${mx},${my} ${t.x},${t.y}`} fill="none" stroke={sevCol[e.sev]||'var(--t3)'} strokeWidth="1.5" markerEnd="url(#arrow)" opacity=".6"><animate attributeName="stroke-dashoffset" from="50" to="0" dur="2s" repeatCount="indefinite"/></path>
+          <text x={mx} y={my-6} textAnchor="middle" fill="var(--t3)" fontSize="7" fontFamily="var(--fm)">{e.label}</text>
+          {e.mitre&&<text x={mx} y={my+5} textAnchor="middle" fill="var(--accent)" fontSize="6" fontFamily="var(--fm)">{e.mitre}</text>}</g>})}
+        {nodes.map((n:any)=>{const p=positions[n.id];if(!p)return null;
+          return<g key={n.id}><circle cx={p.x} cy={p.y} r="18" fill={`${sevCol[n.sev]||'var(--bg3)'}20`} stroke={sevCol[n.sev]||'var(--brd)'} strokeWidth="1.5"/>
+          <text x={p.x} y={p.y+1} textAnchor="middle" fontSize="11" dominantBaseline="middle">{typeIcon[n.type]||'?'}</text>
+          <text x={p.x} y={p.y+28} textAnchor="middle" fill="var(--t1)" fontSize="7" fontWeight="600" fontFamily="var(--fm)">{n.label.split('.')[0]}</text></g>})}
+      </svg>
+    </div>
+  </div>;
+}
+
+/* ═══ NATURAL LANGUAGE QUERY ═══ */
+function NLQuery(){
+  const[q,setQ]=useState('');const[result,setResult]=useState<any>(null);const[loading,setLoading]=useState(false);const[open,setOpen]=useState(false);
+  async function search(){if(!q.trim())return;setLoading(true);try{const r=await fetch('/api/nl-query',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q})});setResult(await r.json())}catch{setResult({answer:'Query failed',results:[]})}setLoading(false)}
+  return<div className="nl-bar">
+    <div className="nl-input-wrap" onClick={()=>setOpen(!open)}>
+      <span style={{color:'var(--accent)'}}>🧠</span>
+      <input className="nl-input" placeholder="Ask anything... \"show critical alerts from Defender\" or \"which devices are missing agents\"" value={q} onChange={e=>{setQ(e.target.value);setOpen(true)}} onKeyDown={e=>e.key==='Enter'&&search()}/>
+      {q&&<button className="tc-btn tc-btn-primary" onClick={search} disabled={loading} style={{fontSize:'.68rem',padding:'3px 8px'}}>{loading?'...':'Ask'}</button>}
+    </div>
+    {open&&result&&<div className="nl-results">
+      <div style={{padding:'8px 12px',borderBottom:'1px solid var(--brd)',display:'flex',justifyContent:'space-between'}}>
+        <div><span style={{fontSize:'.72rem',fontWeight:600}}>{result.answer}</span>{result.query_interpreted&&<span className="muted" style={{fontSize:'.62rem',marginLeft:8}}>Interpreted: {result.query_interpreted}</span>}</div>
+        <button className="modal-close" onClick={()=>{setOpen(false);setResult(null)}}>✕</button>
+      </div>
+      <div style={{maxHeight:250,overflowY:'auto'}}>{result.results?.slice(0,10).map((r:any,i:number)=>(<div key={i} style={{padding:'6px 12px',borderBottom:'1px solid var(--brd)',fontSize:'.78rem'}}><div style={{display:'flex',gap:4,alignItems:'center'}}><span className={`sev sev-${r.severity}`}>{r.severity}</span><span className={`src ${sc(r.source)}`}>{r.source}</span><span className="ts">{ago(r.timestamp)}</span></div><div style={{fontWeight:600,marginTop:2}}>{r.title}</div>{r.device&&<span className="device">{r.device}</span>}</div>))}</div>
+    </div>}
+  </div>;
+}
+
+/* ═══ ANALYST COLLABORATION BAR ═══ */
+function CollabBar(){
+  const[data,setData]=useState<any>(null);
+  useEffect(()=>{fetch('/api/collaboration').then(r=>r.json()).then(setData);const i=setInterval(()=>fetch('/api/collaboration').then(r=>r.json()).then(setData),30000);return()=>clearInterval(i)},[]);
+  if(!data)return null;
+  return<div className="collab-bar">
+    <span style={{fontSize:'.62rem',color:'var(--t3)',fontWeight:600,marginRight:6}}>ONLINE:</span>
+    {data.analysts.filter((a:any)=>a.status==='active').map((a:any)=>(<div key={a.id} className="analyst-avatar" style={{background:a.color+'22',color:a.color,borderColor:a.color+'44'}} title={`${a.name} — viewing ${a.viewing||'nothing'}`}>{a.avatar}</div>))}
+    {data.analysts.filter((a:any)=>a.status==='away').map((a:any)=>(<div key={a.id} className="analyst-avatar away" title={`${a.name} — away`}>{a.avatar}</div>))}
+  </div>;
+}
+
+/* ═══ PREDICTIONS PANEL ═══ */
+function PredictionsPanel(){
+  const[data,setData]=useState<any>(null);const[open,setOpen]=useState(false);
+  useEffect(()=>{fetch('/api/predictions').then(r=>r.json()).then(setData)},[]);
+  if(!data)return null;
+  return<div className="panel"><div className="panel-hd"><h3>🔮 Predictive Analytics</h3><span className="count">{data.predictions.length}</span></div>
+    <div style={{padding:8}}>{data.predictions.map((p:any)=>(<div key={p.id} className="pred-card" style={{borderLeftColor:p.severity==='critical'?'var(--red)':p.severity==='high'?'#f97316':'var(--amber)'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+        <div style={{flex:1}}><div style={{display:'flex',gap:4,alignItems:'center',marginBottom:2}}><span>{p.icon}</span><span className={`sev sev-${p.severity}`}>{p.severity}</span><span style={{fontSize:'.58rem',color:'var(--t3)',fontFamily:'var(--fm)',background:'var(--bg3)',padding:'1px 5px',borderRadius:3}}>{p.confidence}% conf</span></div>
+        <div style={{fontSize:'.78rem',fontWeight:600}}>{p.title}</div>
+        <div style={{fontSize:'.68rem',color:'var(--t2)',marginTop:2}}>{p.detail}</div></div>
+        <span style={{fontSize:'.6rem',color:'var(--t3)',fontFamily:'var(--fm)',whiteSpace:'nowrap',marginLeft:8}}>{p.timeframe}</span>
+      </div>
+    </div>))}</div>
+  </div>;
+}
+
+/* ═══ AUTO-TRIAGE BADGE ═══ */
+function TriageBadge({alert}:{alert:any}){
+  const t=alert.triage;if(!t)return null;
+  const col=t.verdict==='true_positive'?'var(--red)':t.verdict==='false_positive'?'var(--green)':'var(--amber)';
+  return<div className="triage-badge" title={`${t.reasoning}\n${t.recommended_action}`}>
+    <div style={{fontSize:'.55rem',fontWeight:700,color:col}}>{t.confidence}%</div>
+    <div style={{fontSize:'.48rem',color:'var(--t3)'}}>{t.verdict==='true_positive'?'TP':t.verdict==='false_positive'?'FP':'SUS'}</div>
+  </div>;
 }
 
 
@@ -365,7 +501,7 @@ export default function Dashboard(){
       <div className="logo"><div className="logo-icon">S</div><span>Sec</span>Ops</div>
       <div className="tabs desk-only">{tabs.map(t=>(<button key={t.k} className={`tab ${tab===t.k?'active':''}`} onClick={()=>setTab(t.k)}>{t.i} {t.l}{t.badge&&t.badge>0?<span className="tab-badge">{t.badge}</span>:null}</button>))}</div>
       <button className="mob-menu mob-only" onClick={()=>setMobileNav(!mobileNav)}>☰</button>
-      <div className="topbar-right"><button className="search-trigger desk-only" onClick={()=>setIocOpen(true)}>🔍 <span className="desk-only">IOC Search</span></button><span className="clock desk-only">{clock}</span><div className="live-dot"/>{demo&&<div className="demo-pill desk-only">DEMO</div>}<button className="theme-btn desk-only" onClick={toggleFullscreen} title="Fullscreen">{isFullscreen?'⊡':'⛶'}</button><button className="theme-btn" onClick={()=>setTheme(t=>t==='dark'?'light':'dark')}>{theme==='dark'?'☀':'🌙'}</button><button className="theme-btn desk-only" onClick={()=>setGuideOpen(true)} title="Help">?</button><button className="refresh-btn desk-only" onClick={refresh}>↻</button></div>
+      <div className="topbar-right"><button className="search-trigger desk-only" onClick={()=>setIocOpen(true)}>🔍 <span className="desk-only">IOC Search</span></button><CollabBar/><span className="clock desk-only">{clock}</span><div className="live-dot"/>{demo&&<div className="demo-pill desk-only">DEMO</div>}<button className="theme-btn desk-only" onClick={toggleFullscreen} title="Fullscreen">{isFullscreen?'⊡':'⛶'}</button><button className="theme-btn" onClick={()=>setTheme(t=>t==='dark'?'light':'dark')}>{theme==='dark'?'☀':'🌙'}</button><button className="theme-btn desk-only" onClick={()=>setGuideOpen(true)} title="Help">?</button><button className="refresh-btn desk-only" onClick={refresh}>↻</button></div>
     </div>
     {mobileNav&&<div className="mob-nav">{tabs.map(t=>(<button key={t.k} className={`mnav-btn ${tab===t.k?'active':''}`} onClick={()=>{setTab(t.k);setMobileNav(false)}}>{t.i} {t.l}</button>))}</div>}
     <div className="main">
@@ -400,7 +536,7 @@ function Ov({m,cov,alerts,zsc,sparks,enabledTools,onAskAI}:any){
       <div className="kpi"><div className="kpi-top"><div className="kpi-label">Tools Active</div></div><div className="kpi-val" style={{color:'var(--accent)'}}>{enabledTools.length}<span className="kpi-unit">/{TOOLS.length}</span></div><div className="kpi-sub">{cov?.totalDevices?.toLocaleString()} devices</div></div>
     </div>
     <div className="hero-grid">
-      <div className="panel hero-panel"><div className="panel-hd"><h3>📡 Threat Radar</h3></div><div style={{display:'flex',justifyContent:'center',padding:'10px 0'}}><ThreatPulse size={130}/></div><div style={{textAlign:'center',fontSize:'.6rem',color:'var(--t3)',paddingBottom:8,display:'flex',justifyContent:'center',gap:10}}><span><span style={{color:'var(--red)'}}>●</span> Critical</span><span><span style={{color:'var(--amber)'}}>●</span> High</span><span><span style={{color:'var(--green)'}}>●</span> Resolved</span></div></div>
+      <div className="panel hero-panel"><div className="panel-hd"><h3>🌍 Threat Globe</h3></div><div style={{padding:'6px 0'}}><ThreatGlobe size={160}/></div><div style={{textAlign:'center',fontSize:'.55rem',color:'var(--t3)',paddingBottom:6}}>Live attack arcs — source → target</div></div>
       <div className="panel hero-panel"><div className="panel-hd"><h3>🎯 Severity</h3></div><div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:14,padding:'14px 10px'}}><SevRing c={m.alertsLast24h.critical} h={m.alertsLast24h.high} m={m.alertsLast24h.medium} l={m.alertsLast24h.low} size={90}/><div style={{fontSize:'.7rem',lineHeight:2}}><div><span className="sev sev-critical">{m.alertsLast24h.critical}</span> Crit</div><div><span className="sev sev-high">{m.alertsLast24h.high}</span> High</div><div><span className="sev sev-medium">{m.alertsLast24h.medium}</span> Med</div><div><span className="sev sev-low">{m.alertsLast24h.low}</span> Low</div></div></div></div>
       <div className="panel hero-panel"><div className="panel-hd"><h3>📈 Hourly Alerts</h3></div><div style={{padding:'14px 10px',display:'flex',flexDirection:'column',alignItems:'center',gap:4}}><HourlyChart data={sparks.hourly} w={200} h={60}/><div style={{display:'flex',justifyContent:'space-between',width:200,fontSize:'.52rem',color:'var(--t3)',fontFamily:'var(--fm)'}}><span>24h ago</span><span>12h</span><span>Now</span></div></div></div>
       <div className="panel hero-panel"><div className="panel-hd"><h3>🔌 Connected</h3></div><div style={{padding:'10px',display:'flex',flexWrap:'wrap',gap:6,justifyContent:'center'}}>{enabledTools.map((t:any)=>(<div key={t.id} className="tool-chip" style={{borderColor:t.color+'33',color:t.color}}><span>{t.icon}</span>{t.shortName}</div>))}{enabledTools.length===0&&<div style={{fontSize:'.72rem',color:'var(--t3)',padding:12}}>No tools connected — go to Tools tab</div>}</div></div>
@@ -412,6 +548,8 @@ function Ov({m,cov,alerts,zsc,sparks,enabledTools,onAskAI}:any){
       </div>
       <div className="panel" style={{overflow:'hidden'}}><div className="panel-hd"><h3>🕐 Timeline</h3></div><div style={{overflowY:'auto',maxHeight:460,padding:'6px 14px'}}>{TL.map(t=>(<div key={t.id} className="tl-item"><div className="tl-icon">{t.icon}</div><div className="tl-body"><div className="tl-title">{t.title}</div><div className="tl-meta"><span className={`src ${sc(t.source)}`}>{t.source}</span><span className="ts">{ago(t.time)}</span></div></div></div>))}</div></div>
     </div>
+    <NLQuery/>
+    <div className="g2r"><AttackChainGraph/><PredictionsPanel/></div>
     <MitreHeatmap alerts={alerts}/>
     <TrendCharts/>
   </>);
@@ -419,6 +557,9 @@ function Ov({m,cov,alerts,zsc,sparks,enabledTools,onAskAI}:any){
 
 /* ═══ ALERTS ═══ */
 function Als({alerts,onAskAI,onDeviceDrill,onNotes}:{alerts:Al[];onAskAI?:(a:Al)=>void;onDeviceDrill?:(h:string)=>void;onNotes?:(id:string)=>void}){
+  const[triaged,setTriaged]=useState<any[]>([]);
+  const[triageOn,setTriageOn]=useState(false);
+  useEffect(()=>{if(triageOn&&alerts.length>0){fetch('/api/auto-triage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alerts})}).then(r=>r.json()).then(d=>setTriaged(d.alerts||[]))}},[triageOn,alerts]);
   const[sev,setSev]=useState('all');const[src,setSrc]=useState('all');const[grouped,setGrouped]=useState(false);
   const sources=[...new Set(alerts.map(a=>a.source))];
   const f=alerts.filter(a=>sev==='all'||a.severity===sev).filter(a=>src==='all'||a.source===src);
@@ -427,14 +568,15 @@ function Als({alerts,onAskAI,onDeviceDrill,onNotes}:{alerts:Al[];onAskAI?:(a:Al)
       <div className="pills">{['all','critical','high','medium','low'].map(s=>(<button key={s} className={`pill ${sev===s?'on':''}`} onClick={()=>setSev(s)}>{s==='all'?`All (${alerts.length})`:`${s.charAt(0).toUpperCase()+s.slice(1)} (${alerts.filter(a=>a.severity===s).length})`}</button>))}</div>
       <button className={`tc-btn ${grouped?'tc-btn-primary':''}`} onClick={()=>setGrouped(!grouped)} style={{fontSize:'.66rem',padding:'3px 8px'}}>{grouped?'🔗 Correlated':'🔗 Correlate'}</button>
       <ExportBtn data={()=>f.map(a=>({title:a.title,source:a.source,severity:a.severity,status:a.status,device:a.device,user:a.user,mitre:a.mitre,time:a.timestamp}))} filename="secops-alerts"/>
+      <button className={`tc-btn ${triageOn?'tc-btn-primary':''}`} onClick={()=>setTriageOn(!triageOn)} style={{fontSize:'.66rem',padding:'3px 8px'}}>{triageOn?'🤖 Triaged':'🤖 Auto-Triage'}</button>
     </div>
     <div className="panel"><div className="tbl-wrap" style={{maxHeight:'calc(100vh - 170px)'}}><table className="tbl"><thead><tr><th>Alert</th><th>Source</th><th>Sev</th><th className="desk-only">Status</th><th className="desk-only">Device</th><th className="desk-only">MITRE</th><th>Time</th><th className="desk-only">Actions</th></tr></thead><tbody>{(()=>{
-        if(!grouped)return f.map(a=>(<tr key={a.id}><td style={{fontWeight:600,maxWidth:280}}>{a.title}</td><td><span className={`src ${sc(a.source)}`}>{a.source}</span></td><td><span className={`sev sev-${a.severity}`}>{a.severity}</span></td><td className="desk-only"><span className={`status status-${a.status}`}>{a.status}</span></td><td className="device desk-only">{a.device?<span style={{cursor:"pointer",textDecoration:"underline dotted",textUnderlineOffset:2}} onClick={()=>onDeviceDrill?.(a.device)}>{a.device}</span>:"—"}</td><td className="desk-only">{a.mitre?<span className="mitre">{a.mitre}</span>:<span className="muted">—</span>}</td><td className="ts">{ago(a.timestamp)}</td><td className="desk-only"><ActionMenu alert={a} onDone={()=>{}}/><button className="tc-btn" onClick={()=>onAskAI?.(a)} style={{fontSize:'.58rem',padding:'2px 5px'}}>🤖</button><button className="tc-btn" onClick={()=>onNotes?.(a.id)} style={{fontSize:'.58rem',padding:'2px 5px'}}>📝</button></td></tr>));
+        if(!grouped)return f.map(a=>(<tr key={a.id}><td style={{fontWeight:600,maxWidth:280}}>{a.title}</td><td><span className={`src ${sc(a.source)}`}>{a.source}</span></td><td><span className={`sev sev-${a.severity}`}>{a.severity}</span></td><td className="desk-only"><span className={`status status-${a.status}`}>{a.status}</span></td><td className="device desk-only">{a.device?<span style={{cursor:"pointer",textDecoration:"underline dotted",textUnderlineOffset:2}} onClick={()=>onDeviceDrill?.(a.device)}>{a.device}</span>:"—"}</td><td className="desk-only">{a.mitre?<span className="mitre">{a.mitre}</span>:<span className="muted">—</span>}</td><td className="ts">{ago(a.timestamp)}</td><td className="desk-only"><ActionMenu alert={a} onDone={()=>{}}/><button className="tc-btn" onClick={()=>onAskAI?.(a)} style={{fontSize:'.58rem',padding:'2px 5px'}}>🤖</button><button className="tc-btn" onClick={()=>onNotes?.(a.id)} style={{fontSize:'.58rem',padding:'2px 5px'}}>📝</button><button className="tc-btn" onClick={()=>fetch('/api/slack-webhook',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send',alert:a})}).then(()=>{})} style={{fontSize:'.58rem',padding:'2px 5px'}} title="Send to Slack">💬</button></td></tr>));
         // Correlate: group by device within 30min windows
         const groups:Record<string,Al[]>={};
         f.forEach(a=>{const key=a.device||a.user||a.id;if(!groups[key])groups[key]=[];groups[key].push(a)});
         return Object.entries(groups).flatMap(([key,als])=>{
-          if(als.length===1)return als.map(a=>(<tr key={a.id}><td style={{fontWeight:600,maxWidth:280}}>{a.title}</td><td><span className={`src ${sc(a.source)}`}>{a.source}</span></td><td><span className={`sev sev-${a.severity}`}>{a.severity}</span></td><td className="desk-only"><span className={`status status-${a.status}`}>{a.status}</span></td><td className="device desk-only">{a.device?<span style={{cursor:"pointer",textDecoration:"underline dotted",textUnderlineOffset:2}} onClick={()=>onDeviceDrill?.(a.device)}>{a.device}</span>:"—"}</td><td className="desk-only">{a.mitre?<span className="mitre">{a.mitre}</span>:<span className="muted">—</span>}</td><td className="ts">{ago(a.timestamp)}</td><td className="desk-only"><ActionMenu alert={a} onDone={()=>{}}/><button className="tc-btn" onClick={()=>onAskAI?.(a)} style={{fontSize:'.58rem',padding:'2px 5px'}}>🤖</button><button className="tc-btn" onClick={()=>onNotes?.(a.id)} style={{fontSize:'.58rem',padding:'2px 5px'}}>📝</button></td></tr>));
+          if(als.length===1)return als.map(a=>(<tr key={a.id}><td style={{fontWeight:600,maxWidth:280}}>{a.title}</td><td><span className={`src ${sc(a.source)}`}>{a.source}</span></td><td><span className={`sev sev-${a.severity}`}>{a.severity}</span></td><td className="desk-only"><span className={`status status-${a.status}`}>{a.status}</span></td><td className="device desk-only">{a.device?<span style={{cursor:"pointer",textDecoration:"underline dotted",textUnderlineOffset:2}} onClick={()=>onDeviceDrill?.(a.device)}>{a.device}</span>:"—"}</td><td className="desk-only">{a.mitre?<span className="mitre">{a.mitre}</span>:<span className="muted">—</span>}</td><td className="ts">{ago(a.timestamp)}</td><td className="desk-only"><ActionMenu alert={a} onDone={()=>{}}/><button className="tc-btn" onClick={()=>onAskAI?.(a)} style={{fontSize:'.58rem',padding:'2px 5px'}}>🤖</button><button className="tc-btn" onClick={()=>onNotes?.(a.id)} style={{fontSize:'.58rem',padding:'2px 5px'}}>📝</button><button className="tc-btn" onClick={()=>fetch('/api/slack-webhook',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'send',alert:a})}).then(()=>{})} style={{fontSize:'.58rem',padding:'2px 5px'}} title="Send to Slack">💬</button></td></tr>));
           const top=als.sort((a,b)=>SO[a.severity]-SO[b.severity])[0];
           return[<tr key={key} className="corr-group"><td colSpan={8} style={{padding:'6px 10px',background:'var(--accent-s)',borderLeft:'3px solid var(--accent)'}}><div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:'.7rem',fontWeight:700,color:'var(--accent)'}}>🔗 Correlated ({als.length} alerts)</span><span className="device">{key}</span><span className="muted" style={{fontSize:'.62rem'}}>Highest: <span className={`sev sev-${top.severity}`}>{top.severity}</span></span>{als.map(a=>(<span key={a.id} className={`src ${sc(a.source)}`} style={{marginLeft:2}}>{a.source}</span>))}<span style={{marginLeft:'auto'}}><ActionMenu alert={top} onDone={()=>{}}/></span></div><div style={{fontSize:'.68rem',color:'var(--t2)',marginTop:3}}>{als.map(a=>a.title).join(' → ')}</div></td></tr>];
         });
@@ -647,4 +789,12 @@ body{background:var(--bg0);color:var(--t1);font-family:var(--fs);font-size:14px;
 /* Device Drawer */
 .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:200;display:flex;justify-content:flex-end}
 .drawer{width:400px;max-width:90vw;background:var(--bg1);border-left:1px solid var(--brd);display:flex;flex-direction:column;animation:slideIn .2s ease}
-.device-alert-card{padding:10px;border:1px solid var(--brd);border-radius:var(--r);margin-bottom:6px;background:var(--bg2)}`;
+.device-alert-card{padding:10px;border:1px solid var(--brd);border-radius:var(--r);margin-bottom:6px;background:var(--bg2)}
+/* NL Query */
+.nl-bar{margin-bottom:10px;position:relative}.nl-input-wrap{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2);transition:border-color .2s}.nl-input-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-s)}.nl-input{flex:1;background:none;border:none;color:var(--t1);font-size:.82rem;font-family:var(--fs);outline:none}.nl-input::placeholder{color:var(--t4)}.nl-results{position:absolute;top:100%;left:0;right:0;background:var(--bg1);border:1px solid var(--brd);border-radius:0 0 var(--r2) var(--r2);box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:40;margin-top:-1px}
+/* Collab */
+.collab-bar{display:flex;align-items:center;gap:3px}.analyst-avatar{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.52rem;font-weight:700;font-family:var(--fm);border:1.5px solid;cursor:default;transition:transform .15s}.analyst-avatar:hover{transform:scale(1.2)}.analyst-avatar.away{opacity:.4}
+/* Predictions */
+.pred-card{padding:8px 10px;border-left:3px solid;margin-bottom:6px;background:var(--bg2);border-radius:0 var(--r) var(--r) 0}
+/* Triage */
+.triage-badge{display:inline-flex;flex-direction:column;align-items:center;padding:2px 5px;border-radius:4px;background:var(--bg3);border:1px solid var(--brd);min-width:32px}`;
