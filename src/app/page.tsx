@@ -127,30 +127,10 @@ function MitreHeatmap({alerts}:{alerts:Al[]}){
 /* ═══ TREND CHARTS ═══ */
 function TrendCharts(){
   const[period,setPeriod]=useState<'7d'|'30d'|'90d'>('7d');
-  const[data]=useState({
-    mttr:{'7d':[38,35,42,31,28,33,32],'30d':[45,42,40,38,41,39,36,38,35,33,37,34,32,35,33,31,34,32,30,33,31,29,32,30,28,31,29,32,30,32],'90d':[52,48,45,42,40,38,36,35,33,32,31,32]},
-    mttd:{'7d':[12,10,11,9,8,9,8.5],'30d':[15,14,13,12,13,11,12,10,11,10,9,10,9,8,9,8,9,8,8.5,9,8,8.5,8,9,8,8.5,8,8.5,8,8.5],'90d':[18,16,14,13,12,11,10,9.5,9,8.5,8.5,8.5]},
-    alerts:{'7d':[142,158,134,167,155,128,147],'30d':[120,132,145,138,142,158,134,167,155,128,147,162,138,145,152,148,135,142,155,160,148,138,145,150,142,138,155,148,142,147],'90d':[1020,1150,1080,1200,1100,1050,980,1020,1080,1050,1020,1040]},
-    vulns:{'7d':[28,26,25,24,24,23,24],'30d':[35,34,32,31,30,29,28,27,28,26,25,26,25,24,25,24,24,23,24,23,24,23,24,24,23,24,24,23,24,24],'90d':[48,45,42,38,35,32,30,28,26,25,24,24]},
-  });
-  const charts=[{label:'MTTR (min)',data:data.mttr[period],color:'var(--amber)',target:30},{label:'MTTD (min)',data:data.mttd[period],color:'var(--green)',target:10},{label:'Alert Volume',data:data.alerts[period],color:'var(--accent)'},{label:'Critical Vulns',data:data.vulns[period],color:'var(--red)'}];
-  return(<div className="panel"><div className="panel-hd"><h3>📈 Trends</h3><div className="pills" style={{margin:0}}>{(['7d','30d','90d'] as const).map(p=>(<button key={p} className={`pill ${period===p?'on':''}`} onClick={()=>setPeriod(p)}>{p}</button>))}</div></div>
-    <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:8,padding:12}}>
-      {charts.map(ch=>{const last=ch.data[ch.data.length-1];const first=ch.data[0];const change=((last-first)/first*100).toFixed(1);const isGood=(ch.label.includes('MTT')&&last<first)||(ch.label.includes('Vuln')&&last<first);
-        return(<div key={ch.label} style={{padding:'8px 10px',background:'var(--bg2)',borderRadius:'var(--r)',border:'1px solid var(--brd)'}}>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
-            <span style={{fontSize:'.68rem',fontWeight:700,color:'var(--t2)'}}>{ch.label}</span>
-            <span style={{fontSize:'.6rem',fontWeight:700,color:isGood?'var(--green)':Number(change)>0&&ch.label!=='Alert Volume'?'var(--red)':'var(--t3)'}}>{Number(change)>0?'+':''}{change}%</span>
-          </div>
-          <Spark data={ch.data} color={ch.color} w={200} h={40}/>
-          <div style={{display:'flex',justifyContent:'space-between',fontSize:'.52rem',color:'var(--t3)',fontFamily:'var(--fm)',marginTop:4}}>
-            <span>{period==='7d'?'Mon':'Start'}</span>
-            <span style={{fontWeight:700,color:'var(--t1)'}}>{last}</span>
-            <span>Now</span>
-          </div>
-        </div>})}
-    </div>
-  </div>);
+  const td={mttr:{'7d':[38,35,42,31,28,33,32],'30d':[45,42,40,38,41,39,36,38,35,33,37,34,32,35,33,31,34,32,30,33,31,29,32,30,28,31,29,32,30,32],'90d':[52,48,45,42,40,38,36,35,33,32,31,32]},mttd:{'7d':[12,10,11,9,8,9,8.5],'30d':[15,14,13,12,13,11,12,10,11,10,9,10,9,8,9,8,9,8,8.5,9,8,8.5,8,9,8,8.5,8,8.5,8,8.5],'90d':[18,16,14,13,12,11,10,9.5,9,8.5,8.5,8.5]},alerts:{'7d':[142,158,134,167,155,128,147],'30d':[120,132,145,138,142,158,134,167,155,128,147,162,138,145,152,148,135,142,155,160,148,138,145,150,142,138,155,148,142,147],'90d':[1020,1150,1080,1200,1100,1050,980,1020,1080,1050,1020,1040]},vulns:{'7d':[28,26,25,24,24,23,24],'30d':[35,34,32,31,30,29,28,27,28,26,25,26,25,24,25,24,24,23,24,23,24,23,24,24,23,24,24,23,24,24],'90d':[48,45,42,38,35,32,30,28,26,25,24,24]}};
+  const charts=[{label:'MTTR (min)',d:td.mttr[period],color:'var(--amber)'},{label:'MTTD (min)',d:td.mttd[period],color:'var(--green)'},{label:'Alert Volume',d:td.alerts[period],color:'var(--accent)'},{label:'Critical Vulns',d:td.vulns[period],color:'var(--red)'}];
+  function ChartCard({label,d,color}:{label:string;d:number[];color:string}){const last=d[d.length-1],first=d[0],change=((last-first)/first*100).toFixed(1),isDown=last<first;return <div style={{padding:'8px 10px',background:'var(--bg2)',borderRadius:'var(--r)',border:'1px solid var(--brd)'}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}><span style={{fontSize:'.68rem',fontWeight:700,color:'var(--t2)'}}>{label}</span><span style={{fontSize:'.6rem',fontWeight:700,color:isDown?'var(--green)':'var(--t3)'}}>{Number(change)>0?'+':''}{change}%</span></div><Spark data={d} color={color} w={200} h={40}/><div style={{display:'flex',justifyContent:'space-between',fontSize:'.52rem',color:'var(--t3)',fontFamily:'var(--fm)',marginTop:4}}><span>{period==='7d'?'Mon':'Start'}</span><span style={{fontWeight:700,color:'var(--t1)'}}>{last}</span><span>Now</span></div></div>}
+  return <div className="panel"><div className="panel-hd"><h3>📈 Trends</h3><div className="pills" style={{margin:0}}>{(['7d','30d','90d'] as const).map(p=>(<button key={p} className={`pill ${period===p?'on':''}`} onClick={()=>setPeriod(p)}>{p}</button>))}</div></div><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:8,padding:12}}>{charts.map(ch=>(<ChartCard key={ch.label} label={ch.label} d={ch.d} color={ch.color}/>))}</div></div>;
 }
 
 /* ═══ AI CO-PILOT PANEL ═══ */
