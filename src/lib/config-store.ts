@@ -1,7 +1,7 @@
 // Redis REST store (works with Upstash, Vercel KV, or any Redis REST API)
 async function redisGet(key: string): Promise<any> {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || process.env.REDIS_REST_TOKEN;
   if (!url || !token) return null;
   try {
     const res = await fetch(`${url}/get/${key}`, { headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' });
@@ -10,8 +10,8 @@ async function redisGet(key: string): Promise<any> {
   } catch { return null; }
 }
 async function redisSet(key: string, value: any): Promise<boolean> {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || process.env.REDIS_REST_TOKEN;
   if (!url || !token) return false;
   try {
     await fetch(`${url}/set/${key}`, { method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(value), cache: 'no-store' });
@@ -19,8 +19,8 @@ async function redisSet(key: string, value: any): Promise<boolean> {
   } catch { return false; }
 }
 async function redisDel(key: string): Promise<boolean> {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || process.env.REDIS_REST_TOKEN;
   if (!url || !token) return false;
   try { await fetch(`${url}/del/${key}`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, cache: 'no-store' }); return true; } catch { return false; }
 }
@@ -29,7 +29,9 @@ export interface ToolConfig { id: string; enabled: boolean; credentials: Record<
 export interface AllToolConfigs { tools: Record<string, ToolConfig>; updatedAt: string }
 
 export async function hasKVStore(): Promise<boolean> {
-  return !!((process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL) && (process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN));
+  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN || process.env.REDIS_REST_TOKEN;
+  return !!(url && token);
 }
 
 export async function loadToolConfigs(): Promise<AllToolConfigs> {
@@ -51,5 +53,8 @@ function buildFromEnv(): AllToolConfigs {
   if (process.env.ZPA_CLIENT_ID) t.zscaler_zpa = { id: 'zscaler_zpa', enabled: true, credentials: { ZPA_CLIENT_ID: process.env.ZPA_CLIENT_ID!, ZPA_CLIENT_SECRET: process.env.ZPA_CLIENT_SECRET || '', ZPA_CUSTOMER_ID: process.env.ZPA_CUSTOMER_ID || '' }, status: 'untested' };
   if (process.env.CS_CLIENT_ID) t.crowdstrike = { id: 'crowdstrike', enabled: true, credentials: { CS_CLIENT_ID: process.env.CS_CLIENT_ID!, CS_CLIENT_SECRET: process.env.CS_CLIENT_SECRET || '', CS_BASE_URL: process.env.CS_BASE_URL || 'https://api.crowdstrike.com' }, status: 'untested' };
   if (process.env.S1_API_TOKEN) t.sentinelone = { id: 'sentinelone', enabled: true, credentials: { S1_API_TOKEN: process.env.S1_API_TOKEN!, S1_BASE_URL: process.env.S1_BASE_URL || '' }, status: 'untested' };
+  if (process.env.ANTHROPIC_API_KEY) t.anthropic = { id: 'anthropic', enabled: true, credentials: { ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY! }, status: 'untested' };
+  if (process.env.SLACK_WEBHOOK_URL) t.slack_webhook = { id: 'slack_webhook', enabled: true, credentials: { SLACK_WEBHOOK_URL: process.env.SLACK_WEBHOOK_URL! }, status: 'untested' };
+  if (process.env.TEAMS_WEBHOOK_URL) t.teams_webhook = { id: 'teams_webhook', enabled: true, credentials: { TEAMS_WEBHOOK_URL: process.env.TEAMS_WEBHOOK_URL! }, status: 'untested' };
   return { tools: t, updatedAt: new Date().toISOString() };
 }

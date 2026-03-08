@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
+import { loadToolConfigs } from '@/lib/config-store';
+async function getAnthropicKeyFromRedis(): Promise<string|null> {
+  try { const c = await loadToolConfigs(); return c.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || null; } catch { return null; }
+}
 export async function POST(req: Request) {
   const { alerts } = await req.json();
   const triaged = (alerts||[]).map((a: any) => ({ ...a, triage: calcTriage(a) }));
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY || await getAnthropicKeyFromRedis();
   if (apiKey && alerts?.length <= 5) {
     try {
       const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },

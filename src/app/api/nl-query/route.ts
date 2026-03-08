@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
+import { loadToolConfigs } from '@/lib/config-store';
+async function getAnthropicKeyFromRedis(): Promise<string|null> {
+  try { const c = await loadToolConfigs(); return c.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || null; } catch { return null; }
+}
 import { DEMO_DEFENDER_ALERTS, DEMO_TAEGIS_ALERTS, DEMO_METRICS, DEMO_COVERAGE, DEMO_TENABLE_VULNS } from '@/lib/demo-data';
 export async function POST(req: Request) {
   const { query } = await req.json();
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY || await getAnthropicKeyFromRedis();
   const allAlerts = [...DEMO_DEFENDER_ALERTS, ...DEMO_TAEGIS_ALERTS];
   if (!apiKey) return NextResponse.json({ demo: true, ...demoQ(query, allAlerts) });
   try {

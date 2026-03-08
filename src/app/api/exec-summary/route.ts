@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
+import { loadToolConfigs } from '@/lib/config-store';
+async function getAnthropicKeyFromRedis(): Promise<string|null> {
+  try { const c = await loadToolConfigs(); return c.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || null; } catch { return null; }
+}
 
 export async function POST(req: Request) {
   const { metrics, alerts, coverage, vulns } = await req.json();
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY || await getAnthropicKeyFromRedis();
 
   const context = `Current SOC Dashboard State:
 - Alerts (24h): ${metrics?.alertsLast24h?.total || 0} total, ${metrics?.alertsLast24h?.critical || 0} critical, ${metrics?.alertsLast24h?.high || 0} high
