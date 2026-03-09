@@ -317,7 +317,7 @@ export default function Dashboard(){
   const refresh=useCallback(async()=>{
     setLoading(true);
     try{
-      const[aR,cR,tR]=await Promise.all([fetch('/api/unified-alerts').then(r=>r.json()),fetch('/api/coverage').then(r=>r.json()),fetch('/api/tools').then(r=>r.json())]);
+      const[aR,cR,tR]=await Promise.all([fetch('/api/unified-alerts').then(r=>r.ok?r.json():{alerts:[],demo:true}).catch(()=>({alerts:[],demo:true})),fetch('/api/coverage').then(r=>r.ok?r.json():{demo:true,coverage:null,metrics:null,zscaler:null}).catch(()=>({demo:true,coverage:null,metrics:null,zscaler:null})),fetch('/api/tools').then(r=>r.ok?r.json():{tools:[],kvAvailable:false}).catch(()=>({tools:[],kvAvailable:false}))]);
       setAlerts(aR.alerts||[]);setData(cR);setDemo(aR.demo&&cR.demo);setToolsData(tR);
     }catch(e){console.error(e)}
     setLoading(false);
