@@ -3,11 +3,10 @@ import { getDefenderToken, defenderAPI, getMDEToken, mdeAPI, getTaegisToken, tae
 import { DEMO_DEFENDER_ALERTS, DEMO_TAEGIS_ALERTS } from '@/lib/demo-data';
 
 export async function GET() {
-  const tools = getConfiguredTools();
+  const tools = await getConfiguredTools();
   const alerts: any[] = [];
   const errors: string[] = [];
 
-  // Defender MDE alerts
   if (tools.defender) {
     try {
       const token = await getMDEToken();
@@ -26,7 +25,6 @@ export async function GET() {
     } catch (e) { errors.push('Defender MDE: ' + (e as Error).message); }
   }
 
-  // Defender XDR incidents
   if (tools.defender) {
     try {
       const token = await getDefenderToken();
@@ -37,15 +35,13 @@ export async function GET() {
             id: i.incidentId, title: i.incidentName, severity: i.severity?.toLowerCase(),
             status: i.status?.toLowerCase(), source: 'Defender XDR',
             category: i.classification || 'Incident', device: null,
-            user: null, timestamp: i.createdDateTime,
-            mitre: null,
+            user: null, timestamp: i.createdDateTime, mitre: null,
           })));
         }
       }
     } catch (e) { errors.push('Defender XDR: ' + (e as Error).message); }
   }
 
-  // Taegis alerts
   if (tools.taegis) {
     try {
       const token = await getTaegisToken();
@@ -64,11 +60,12 @@ export async function GET() {
     } catch (e) { errors.push('Taegis: ' + (e as Error).message); }
   }
 
-  // If no tools configured, return demo data
-  if (!tools.defender && !tools.taegis) {
+  // If no tools configured or no alerts fetched, return demo data
+  if (alerts.length === 0) {
     return NextResponse.json({
       demo: true,
       alerts: [...DEMO_DEFENDER_ALERTS, ...DEMO_TAEGIS_ALERTS].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+      errors: errors.length ? errors : undefined,
     });
   }
 
