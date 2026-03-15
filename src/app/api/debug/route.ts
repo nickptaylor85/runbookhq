@@ -41,16 +41,16 @@ export async function GET() {
 
   // Taegis
   try {
-    const token = await getTaegisToken();
-    debug.steps.taegisToken = { ok: !!token, tokenPrefix: token ? token.substring(0, 15) + '...' : null };
-    if (token) {
+    const taegisAuth = await getTaegisToken();
+    debug.steps.taegisToken = { ok: !!taegisAuth, base: taegisAuth?.base || null, tokenPrefix: taegisAuth ? taegisAuth.token.substring(0, 15) + '...' : null };
+    if (taegisAuth) {
       try {
-        const query = `query { alerts(first: 3, orderBy: { field: CREATED_AT, direction: DESC }) { edges { node { id title severity status createdAt } } } }`;
-        const data = await taegisGraphQL(query, {}, token);
+        const query = `query { alertsServiceSearch(in: { cql_query: "FROM alert WHERE severity >= 0.4 EARLIEST=-1d", offset: 0, limit: 3 }) { reason alerts { total_results list { id metadata { title severity } status } } } }`;
+        const data = await taegisGraphQL(query, {}, taegisAuth.token, taegisAuth.base);
         debug.steps.taegisApi = {
           ok: !data.errors,
-          alertCount: data.data?.alerts?.edges?.length || 0,
-          sample: data.data?.alerts?.edges?.slice(0, 1) || [],
+          alertCount: data.data?.alertsServiceSearch?.alerts?.total_results || 0,
+          sample: data.data?.alertsServiceSearch?.alerts?.list?.slice(0, 1) || [],
           errors: data.errors || null,
           keys: data.data ? Object.keys(data.data) : [],
           raw: JSON.stringify(data).substring(0, 500),

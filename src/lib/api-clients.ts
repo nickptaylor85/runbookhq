@@ -65,26 +65,40 @@ export async function mdeAPI(path: string, token: string) {
 }
 
 // ═══ TAEGIS ═══
-export async function getTaegisToken(): Promise<string | null> {
+const TAEGIS_REGIONS: Record<string, string> = {
+  'us': 'https://api.ctpx.secureworks.com',
+  'us1': 'https://api.ctpx.secureworks.com',
+  'us2': 'https://api.delta.taegis.secureworks.com',
+  'us3': 'https://api.foxtrot.taegis.secureworks.com',
+  'eu': 'https://api.echo.taegis.secureworks.com',
+  'eu1': 'https://api.echo.taegis.secureworks.com',
+  'eu2': 'https://api.golf.taegis.secureworks.com',
+};
+
+export async function getTaegisToken(): Promise<{ token: string; base: string } | null> {
   const c = await getConfigs();
   const clientId = getCred('taegis', 'TAEGIS_CLIENT_ID', c);
   const clientSecret = getCred('taegis', 'TAEGIS_CLIENT_SECRET', c);
-  const region = getCred('taegis', 'TAEGIS_REGION', c) || 'us';
+  const region = (getCred('taegis', 'TAEGIS_REGION', c) || 'us').toLowerCase();
   if (!clientId || !clientSecret) return null;
-  const base = region === 'eu' ? 'https://api.ctpx.secureworks.com' : 'https://api.ctpx.secureworks.com';
+  const base = TAEGIS_REGIONS[region] || TAEGIS_REGIONS['us'];
   try {
-    const res = await fetch(`${base}/auth/api/v2/auth/token`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ client_id: clientId, client_secret: clientSecret }),
+    // OAuth2 client_credentials flow - must be form-encoded
+    const res = await fetch(base + '/auth/api/v2/auth/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: `grant_type=client_credentials&client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}`,
     });
     const data = await res.json();
-    return data.access_token || null;
+    if (data.access_token) return { token: data.access_token, base };
+    return null;
   } catch { return null; }
 }
 
-export async function taegisGraphQL(query: string, variables: any, token: string) {
-  const res = await fetch('https://api.ctpx.secureworks.com/graphql', {
-    method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+export async function taegisGraphQL(query: string, variables: any, token: string, base?: string) {
+  const url = (base || 'https://api.ctpx.secureworks.com') + '/graphql';
+  const res = await fetch(url, {
+    method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
     body: JSON.stringify({ query, variables }), cache: 'no-store',
   });
   return res.json();

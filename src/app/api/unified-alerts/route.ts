@@ -44,18 +44,23 @@ export async function GET() {
 
   if (tools.taegis) {
     try {
-      const token = await getTaegisToken();
-      if (token) {
-        const query = `query { alerts(first: 20, orderBy: { field: CREATED_AT, direction: DESC }) { edges { node { id title severity status createdAt } } } }`;
-        const data = await taegisGraphQL(query, {}, token);
-        if (data.data?.alerts?.edges) {
-          alerts.push(...data.data.alerts.edges.map((e: any) => ({
-            id: e.node.id, title: e.node.title, severity: e.node.severity?.toLowerCase(),
-            status: e.node.status?.toLowerCase(), source: 'Taegis XDR',
+      const taegisAuth = await getTaegisToken();
+      if (taegisAuth) {
+        const query = `query { alertsServiceSearch(in: { cql_query: "FROM alert WHERE severity >= 0.4 EARLIEST=-1d", offset: 0, limit: 20 }) { reason alerts { total_results list { id metadata { title severity } status } } } }`;
+        const data = await taegisGraphQL(query, {}, taegisAuth.token, taegisAuth.base);
+        const alertList = data.data?.alertsServiceSearch?.alerts?.list || [];
+        if (alertList.length > 0) {
+          alerts.push(...alertList.map((a: any) => ({
+            id: a.id, title: a.metadata?.title || 'Taegis Alert',
+            severity: a.metadata?.severity >= 0.8 ? 'critical' : a.metadata?.severity >= 0.6 ? 'high' : a.metadata?.severity >= 0.4 ? 'medium' : 'low',
+            status: (a.status || 'open').toLowerCase(), source: 'Taegis XDR',
             category: null, device: null, user: null,
-            timestamp: e.node.createdAt, mitre: null,
+            timestamp: new Date().toISOString(), mitre: null,
           })));
         }
+        if (data.errors) errors.push('Taegis GraphQL: ' + JSON.stringify(data.errors).substring(0, 200));
+      } else {
+        errors.push('Taegis: Failed to obtain auth token');
       }
     } catch (e) { errors.push('Taegis: ' + (e as Error).message); }
   }
