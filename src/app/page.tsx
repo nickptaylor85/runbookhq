@@ -258,6 +258,14 @@ function IntelTab({alerts,onAskAI,onDeviceDrill}:{alerts:Al[];onAskAI?:(a:Al)=>v
   return <><ThreatIntelFeed/><div className="g2r"><AttackChainGraph/><PredictionsPanel/></div><MitreHeatmap alerts={alerts}/><TrendCharts/></>;
 }
 
+
+/* ═══ TV WALL MODE ═══ */
+function TVWall({alerts,m,cov,sparks,slide,onExit}:{alerts:any[];m:any;cov:any;sparks:any;slide:number;onExit:()=>void}){
+  const a=m?.alertsLast24h||{};
+  const slides=[<div key="s0" className="tv-slide"><div className="tv-title">SECURITY OPERATIONS CENTRE</div><div className="tv-posture-row"><PostureGauge/></div><div className="tv-kpi-row"><div className="tv-kpi"><div className="tv-kpi-val" style={{color:'var(--red)'}}>{a.critical||0}</div><div className="tv-kpi-label">CRITICAL</div></div><div className="tv-kpi"><div className="tv-kpi-val" style={{color:'#f97316'}}>{a.high||0}</div><div className="tv-kpi-label">HIGH</div></div><div className="tv-kpi"><div className="tv-kpi-val" style={{color:'var(--green)'}}>{cov?.totalDevices||0}</div><div className="tv-kpi-label">ASSETS</div></div><div className="tv-kpi"><div className="tv-kpi-val" style={{color:'var(--accent)'}}>{a.total||0}</div><div className="tv-kpi-label">ALERTS 24H</div></div></div></div>,<div key="s1" className="tv-slide"><div className="tv-title">LIVE ALERTS</div><div className="tv-alert-list">{alerts.slice(0,12).map((al:any)=>(<div key={al.id} className="tv-alert"><span className="tv-alert-sev" style={{background:al.severity==='critical'?'var(--red)':'#f97316'}}/><span className="tv-alert-title">{al.title}</span><span className={`src ${sc(al.source)}`}>{al.source}</span><span className="ts">{ago(al.timestamp)}</span></div>))}{alerts.length===0&&<div style={{textAlign:'center',color:'var(--t3)',padding:40,fontSize:'1.2rem'}}>No active alerts</div>}</div></div>,<div key="s2" className="tv-slide"><div className="tv-title">SEVERITY DISTRIBUTION</div><div style={{display:'flex',justifyContent:'center',padding:'40px 0'}}><SevRing c={a.critical||0} h={a.high||0} m={a.medium||0} l={a.low||0} size={200}/></div><div className="tv-kpi-row"><div className="tv-kpi"><div className="tv-kpi-val" style={{color:'var(--red)'}}>{a.critical||0}</div><div className="tv-kpi-label">CRITICAL</div></div><div className="tv-kpi"><div className="tv-kpi-val" style={{color:'#f97316'}}>{a.high||0}</div><div className="tv-kpi-label">HIGH</div></div><div className="tv-kpi"><div className="tv-kpi-val" style={{color:'var(--amber)'}}>{a.medium||0}</div><div className="tv-kpi-label">MEDIUM</div></div><div className="tv-kpi"><div className="tv-kpi-val" style={{color:'var(--blue)'}}>{a.low||0}</div><div className="tv-kpi-label">LOW</div></div></div></div>,<div key="s3" className="tv-slide"><div className="tv-title">HOURLY TREND</div><div style={{display:'flex',justifyContent:'center',padding:'40px 0'}}><HourlyChart data={sparks.hourly} w={600} h={200}/></div><div className="tv-kpi-row"><div className="tv-kpi"><div className="tv-kpi-val">{m?.mttr?.current||0}<span style={{fontSize:'.8rem',color:'var(--t3)'}}>min</span></div><div className="tv-kpi-label">MTTR</div></div><div className="tv-kpi"><div className="tv-kpi-val">{m?.mttd?.current||0}<span style={{fontSize:'.8rem',color:'var(--t3)'}}>min</span></div><div className="tv-kpi-label">MTTD</div></div></div></div>,];
+  return <div className="tv-wall" onClick={onExit}><div className="tv-indicators">{[0,1,2,3].map(i=>(<div key={i} className={`tv-ind ${slide===i?'active':''}`}/>))}</div>{slides[slide%slides.length]}<div className="tv-footer"><span className="tv-clock">{new Date().toLocaleTimeString('en-GB')}</span><span className="tv-exit">Click anywhere to exit</span><span className="stream-dot" style={{marginLeft:8}}/>MONITORING</div></div>;
+}
+
 /* ═══ MAIN ═══ */
 export default function Dashboard(){
   const[tab,setTab]=useState<Tab>('overview');
@@ -277,6 +285,8 @@ export default function Dashboard(){
   const[vulnDetail,setVulnDetail]=useState<any>(null);
   const[tlDetail,setTlDetail]=useState<any>(null);
   const[critPopup,setCritPopup]=useState<any>(null);
+  const[handoverOpen,setHandoverOpen]=useState(false);
+  const[tvWall,setTvWall]=useState(false);const[tvSlide,setTvSlide]=useState(0);
   const[isFullscreen,setIsFullscreen]=useState(false);
   const[refreshInterval,setRefreshInterval]=useState(120);
   const[prevCritCount,setPrevCritCount]=useState(0);
@@ -293,6 +303,7 @@ export default function Dashboard(){
     }
     window.addEventListener('keydown',onKey);return()=>window.removeEventListener('keydown',onKey);
   },[]);
+  useEffect(()=>{if(!tvWall)return;const ti=setInterval(()=>setTvSlide(s=>(s+1)%4),15000);return()=>clearInterval(ti)},[tvWall]);
   useEffect(()=>{const tick=()=>setClock(new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'}));tick();const i=setInterval(tick,1000);return()=>clearInterval(i)},[]);
 
   const refresh=useCallback(async()=>{
@@ -340,7 +351,8 @@ export default function Dashboard(){
   const highCount=alerts.filter(a=>a.severity==='high').length;
   const tabs:{k:Tab;l:string;i:string;badge?:number}[]=[{k:'overview',l:'Overview',i:'◉'},{k:'alerts',l:'Alerts',i:'⚡',badge:critCount+highCount},{k:'coverage',l:'Coverage',i:'🛡'},{k:'vulns',l:'Vulns',i:'🔓'},{k:'intel',l:'Intel',i:'🛡'},{k:'tools',l:`Tools (${enabledTools.length})`,i:'🔌'}];
 
-  return(<><style dangerouslySetInnerHTML={{__html:CSS}}/><div className={`shell ${hasCrit?'crit-flash':''}`}><div className="topbar"><div className="logo"><div className="logo-icon">S</div><span>Sec</span>Ops</div><div className="tabs desk-only">{tabs.map(t=>(<button key={t.k} className={`tab ${tab===t.k?'active':''}`} onClick={()=>setTab(t.k)}>{t.i} {t.l}{t.badge&&t.badge>0?<span className="tab-badge">{t.badge}</span>:null}</button>))}</div><button className="mob-menu mob-only" onClick={()=>setMobileNav(!mobileNav)}>☰</button><div className="topbar-right"><button className="search-trigger" onClick={()=>setIocOpen(true)}>🔍 <span className="desk-only">IOC Search</span></button><span className="clock desk-only">{clock}</span><div className="live-dot"/><button className="theme-btn desk-only" onClick={toggleFullscreen} title="Fullscreen">{isFullscreen?'⊡':'⛶'}</button><button className="theme-btn" onClick={()=>setTheme(t=>t==='dark'?'light':'dark')}>{theme==='dark'?'☀':'🌙'}</button><button className="guide-btn" onClick={()=>setGuideOpen(true)} title="User Guide">📖</button><select className="refresh-select desk-only" value={refreshInterval} onChange={e=>setRefreshInterval(Number(e.target.value))}><option value={30}>30s</option><option value={60}>1m</option><option value={300}>5m</option><option value={600}>10m</option></select><button className="refresh-btn desk-only" onClick={refresh}>↻</button></div></div>{mobileNav&&<div className="mob-nav">{tabs.map(t=>(<button key={t.k} className={`mnav-btn ${tab===t.k?'active':''}`} onClick={()=>{setTab(t.k);setMobileNav(false)}}>{t.i} {t.l}</button>))}</div>}<div className="main">{iocOpen&&<IOCSearch open={iocOpen} onClose={()=>setIocOpen(false)}/>}{aiAlert&&<AICopilot alert={aiAlert} onClose={()=>setAiAlert(null)}/>}<UserGuide open={guideOpen} onClose={()=>setGuideOpen(false)}/><CmdPalette open={cmdOpen} onClose={()=>setCmdOpen(false)} onSelect={cmdSelect}/><DeviceDrawer hostname={deviceDrill} alerts={alerts} onClose={()=>setDeviceDrill(null)}/><AlertNotes alertId={notesAlert} onClose={()=>setNotesAlert(null)}/>{tlDetail&&<div className="modal-overlay" onClick={()=>setTlDetail(null)}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:500}}><div className="modal-hd"><div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:'1.3rem'}}>{tlDetail.icon}</span><div><h3 style={{fontSize:'.9rem'}}>{tlDetail.title}</h3><p className="muted" style={{fontSize:'.68rem'}}>{tlDetail.source} · {new Date(tlDetail.time).toLocaleString()}</p></div></div><button className="modal-close" onClick={()=>setTlDetail(null)}>✕</button></div><div className="modal-body"><div style={{fontSize:'.78rem',color:'var(--t2)',lineHeight:1.7,marginBottom:10}}>{tlDetail.title.includes('Credential')?'Credential dumping attempt detected via LSASS memory access. The attacker used Mimikatz-style techniques to extract credentials from a domain controller. Immediate password rotation recommended for affected accounts.':tlDetail.title.includes('isolated')?'Device WS042 was manually isolated by SOC analyst following detection of C2 beacon activity. Network quarantine applied. Forensic image collection initiated.':tlDetail.title.includes('PowerShell')?'Encoded PowerShell execution detected with base64-obfuscated command. Decoded payload attempts to download secondary payload from external C2 server. Process tree indicates parent was outlook.exe suggesting phishing vector.':tlDetail.title.includes('C2 blocked')?'Outbound connection to known C2 infrastructure blocked by Zscaler ZIA web proxy. IP 185.220.101.42 is associated with Cobalt Strike team server. No data exfiltration detected before block.':tlDetail.title.includes('Scan done')?'Scheduled vulnerability scan completed. 3 new critical vulnerabilities found across 12 assets. Critical findings: CVE-2024-3400 (PAN-OS), CVE-2024-21302 (Windows), unsupported SQL Server instance.':tlDetail.title.includes('VPN')?'Multiple failed VPN authentication attempts from IP range associated with known brute force campaign. 47 unique usernames attempted in 10-minute window. GeoIP: Eastern Europe.':tlDetail.title.includes('Phishing')?'Phishing emails quarantined targeting 12 users with fake Microsoft 365 login pages. Credential harvesting site hosted on compromised WordPress installation. All recipients notified.':tlDetail.title.includes('Darktrace')?'Darktrace AI model breach triggered for unusual data transfer pattern. Internal server communicating with previously unseen external IP on non-standard port. Investigating potential data exfiltration.':tlDetail.title.includes('Shift')?'Shift handover completed. 4 open items transferred: 1 active incident (DC01 compromise), 2 pending investigations, 1 awaiting vendor response on Tenable agent deployment.':'Security event detected and logged. Review alert details for full context and recommended response actions.'}</div><div style={{display:'flex',gap:4,flexWrap:'wrap'}}><span className={`src ${sc(tlDetail.source)}`}>{tlDetail.source}</span></div></div></div></div>}{vulnDetail&&<VulnDetail vuln={vulnDetail} onClose={()=>{setVulnDetail(null);setTlDetail(null)}}/>}{critPopup&&<div className="crit-popup-overlay" onClick={()=>setCritPopup(null)}><div className="crit-popup" onClick={e=>e.stopPropagation()}><div className="crit-popup-pulse"/><div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}><span style={{fontSize:'1.5rem'}}>🚨</span><div><div style={{fontSize:'.95rem',fontWeight:800,color:'var(--red)'}}>CRITICAL ALERT</div><div style={{fontSize:'.65rem',color:'var(--t3)',fontFamily:'var(--fm)'}}>Just now</div></div><button className="modal-close" onClick={()=>setCritPopup(null)}>✕</button></div><div style={{fontSize:'.85rem',fontWeight:700,marginBottom:6}}>{critPopup.title}</div><div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:8}}><span className="sev sev-critical">critical</span><span className={`src ${sc(critPopup.source)}`}>{critPopup.source}</span>{critPopup.device&&<span className="device">{critPopup.device}</span>}{critPopup.mitre&&<span className="mitre">{critPopup.mitre}</span>}</div><div style={{display:'flex',gap:6}}><button className="tc-btn tc-btn-primary" onClick={()=>{setAiAlert(critPopup);setCritPopup(null)}} style={{fontSize:'.72rem'}}>🤖 Analyse</button><button className="tc-btn" onClick={()=>{setTab('alerts');setCritPopup(null)}} style={{fontSize:'.72rem'}}>View Alerts</button><button className="tc-btn" onClick={()=>setCritPopup(null)} style={{fontSize:'.72rem'}}>Dismiss</button></div></div></div>}{loading?<div className="loading"><span className="spin"/>Loading...</div>:tab==='overview'?<Ov m={m} cov={cov} alerts={alerts} zsc={zsc} sparks={sparks} enabledTools={enabledTools} onAskAI={(a:Al)=>setAiAlert(a)} onRefresh={refresh} setTlDetail={setTlDetail}/>:tab==='alerts'?<Als alerts={alerts} onAskAI={(a:Al)=>setAiAlert(a)} onDeviceDrill={(h:string)=>setDeviceDrill(h)} onNotes={(id:string)=>setNotesAlert(id)}/>:tab==='coverage'?<CovTab cov={cov} onRefresh={refresh}/>:tab==='vulns'?<Vul onVulnClick={(v:any)=>setVulnDetail(v)}/>:tab==='intel'?<IntelTab alerts={alerts} onAskAI={(a:Al)=>setAiAlert(a)} onDeviceDrill={(h:string)=>setDeviceDrill(h)}/>:<ToolsManager toolsData={toolsData} onRefresh={refresh}/>}</div></div></>);
+  if(tvWall)return <><style dangerouslySetInnerHTML={{__html:CSS}}/><TVWall alerts={alerts} m={data?.metrics||m} cov={data?.coverage} sparks={sparks} slide={tvSlide} onExit={()=>{setTvWall(false);document.exitFullscreen?.()}}/></>;
+  return(<><style dangerouslySetInnerHTML={{__html:CSS}}/><div className={`shell ${hasCrit?'crit-flash':''}`}><div className="topbar"><div className="logo"><div className="logo-icon">S</div><span>Sec</span>Ops</div><div className="tabs desk-only">{tabs.map(t=>(<button key={t.k} className={`tab ${tab===t.k?'active':''}`} onClick={()=>setTab(t.k)}>{t.i} {t.l}{t.badge&&t.badge>0?<span className="tab-badge">{t.badge}</span>:null}</button>))}</div><button className="mob-menu mob-only" onClick={()=>setMobileNav(!mobileNav)}>☰</button><div className="topbar-right"><button className="search-trigger" onClick={()=>setIocOpen(true)}>🔍 <span className="desk-only">IOC Search</span></button><span className="clock desk-only">{clock}</span><div className="live-dot"/><button className="theme-btn desk-only" onClick={()=>{setTvWall(!tvWall);if(!tvWall)document.documentElement.requestFullscreen?.()}} title="TV Wall Mode">📺</button><button className="theme-btn desk-only" onClick={toggleFullscreen} title="Fullscreen">{isFullscreen?'⊡':'⛶'}</button><button className="theme-btn" onClick={()=>setTheme(t=>t==='dark'?'light':'dark')}>{theme==='dark'?'☀':'🌙'}</button><button className="guide-btn" onClick={()=>setGuideOpen(true)} title="User Guide">📖</button><select className="refresh-select desk-only" value={refreshInterval} onChange={e=>setRefreshInterval(Number(e.target.value))}><option value={30}>30s</option><option value={60}>1m</option><option value={300}>5m</option><option value={600}>10m</option></select><button className="refresh-btn desk-only" onClick={refresh}>↻</button></div></div>{mobileNav&&<div className="mob-nav">{tabs.map(t=>(<button key={t.k} className={`mnav-btn ${tab===t.k?'active':''}`} onClick={()=>{setTab(t.k);setMobileNav(false)}}>{t.i} {t.l}</button>))}</div>}<div className="main">{iocOpen&&<IOCSearch open={iocOpen} onClose={()=>setIocOpen(false)}/>}{aiAlert&&<AICopilot alert={aiAlert} onClose={()=>setAiAlert(null)}/>}<UserGuide open={guideOpen} onClose={()=>setGuideOpen(false)}/><CmdPalette open={cmdOpen} onClose={()=>setCmdOpen(false)} onSelect={cmdSelect}/><DeviceDrawer hostname={deviceDrill} alerts={alerts} onClose={()=>setDeviceDrill(null)}/><AlertNotes alertId={notesAlert} onClose={()=>setNotesAlert(null)}/>{tlDetail&&<div className="modal-overlay" onClick={()=>setTlDetail(null)}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:500}}><div className="modal-hd"><div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:'1.3rem'}}>{tlDetail.icon}</span><div><h3 style={{fontSize:'.9rem'}}>{tlDetail.title}</h3><p className="muted" style={{fontSize:'.68rem'}}>{tlDetail.source} · {new Date(tlDetail.time).toLocaleString()}</p></div></div><button className="modal-close" onClick={()=>setTlDetail(null)}>✕</button></div><div className="modal-body"><div style={{fontSize:'.78rem',color:'var(--t2)',lineHeight:1.7,marginBottom:10}}>{tlDetail.title.includes('Credential')?'Credential dumping attempt detected via LSASS memory access. The attacker used Mimikatz-style techniques to extract credentials from a domain controller. Immediate password rotation recommended for affected accounts.':tlDetail.title.includes('isolated')?'Device WS042 was manually isolated by SOC analyst following detection of C2 beacon activity. Network quarantine applied. Forensic image collection initiated.':tlDetail.title.includes('PowerShell')?'Encoded PowerShell execution detected with base64-obfuscated command. Decoded payload attempts to download secondary payload from external C2 server. Process tree indicates parent was outlook.exe suggesting phishing vector.':tlDetail.title.includes('C2 blocked')?'Outbound connection to known C2 infrastructure blocked by Zscaler ZIA web proxy. IP 185.220.101.42 is associated with Cobalt Strike team server. No data exfiltration detected before block.':tlDetail.title.includes('Scan done')?'Scheduled vulnerability scan completed. 3 new critical vulnerabilities found across 12 assets. Critical findings: CVE-2024-3400 (PAN-OS), CVE-2024-21302 (Windows), unsupported SQL Server instance.':tlDetail.title.includes('VPN')?'Multiple failed VPN authentication attempts from IP range associated with known brute force campaign. 47 unique usernames attempted in 10-minute window. GeoIP: Eastern Europe.':tlDetail.title.includes('Phishing')?'Phishing emails quarantined targeting 12 users with fake Microsoft 365 login pages. Credential harvesting site hosted on compromised WordPress installation. All recipients notified.':tlDetail.title.includes('Darktrace')?'Darktrace AI model breach triggered for unusual data transfer pattern. Internal server communicating with previously unseen external IP on non-standard port. Investigating potential data exfiltration.':tlDetail.title.includes('Shift')?'Shift handover completed. 4 open items transferred: 1 active incident (DC01 compromise), 2 pending investigations, 1 awaiting vendor response on Tenable agent deployment.':'Security event detected and logged. Review alert details for full context and recommended response actions.'}</div><div style={{display:'flex',gap:4,flexWrap:'wrap'}}><span className={`src ${sc(tlDetail.source)}`}>{tlDetail.source}</span></div></div></div></div>}{vulnDetail&&<VulnDetail vuln={vulnDetail} onClose={()=>{setVulnDetail(null);setTlDetail(null)}}/>}<ShiftHandover open={handoverOpen} onClose={()=>setHandoverOpen(false)}/>{critPopup&&<div className="crit-popup-overlay" onClick={()=>setCritPopup(null)}><div className="crit-popup" onClick={e=>e.stopPropagation()}><div className="crit-popup-pulse"/><div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}><span style={{fontSize:'1.5rem'}}>🚨</span><div><div style={{fontSize:'.95rem',fontWeight:800,color:'var(--red)'}}>CRITICAL ALERT</div><div style={{fontSize:'.65rem',color:'var(--t3)',fontFamily:'var(--fm)'}}>Just now</div></div><button className="modal-close" onClick={()=>setCritPopup(null)}>✕</button></div><div style={{fontSize:'.85rem',fontWeight:700,marginBottom:6}}>{critPopup.title}</div><div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:8}}><span className="sev sev-critical">critical</span><span className={`src ${sc(critPopup.source)}`}>{critPopup.source}</span>{critPopup.device&&<span className="device">{critPopup.device}</span>}{critPopup.mitre&&<span className="mitre">{critPopup.mitre}</span>}</div><div style={{display:'flex',gap:6}}><button className="tc-btn tc-btn-primary" onClick={()=>{setAiAlert(critPopup);setCritPopup(null)}} style={{fontSize:'.72rem'}}>🤖 Analyse</button><button className="tc-btn" onClick={()=>{setTab('alerts');setCritPopup(null)}} style={{fontSize:'.72rem'}}>View Alerts</button><button className="tc-btn" onClick={()=>setCritPopup(null)} style={{fontSize:'.72rem'}}>Dismiss</button></div></div></div>}{loading?<div className="loading"><span className="spin"/>Loading...</div>:tab==='overview'?<Ov m={m} cov={cov} alerts={alerts} zsc={zsc} sparks={sparks} enabledTools={enabledTools} onAskAI={(a:Al)=>setAiAlert(a)} onRefresh={refresh} setTlDetail={setTlDetail} onQuickAction={(a:string)=>{if(a==='ioc')setIocOpen(true);if(a==='handover')setHandoverOpen(true);if(a==='exec'){/* trigger from overview */}}}/>:tab==='alerts'?<Als alerts={alerts} onAskAI={(a:Al)=>setAiAlert(a)} onDeviceDrill={(h:string)=>setDeviceDrill(h)} onNotes={(id:string)=>setNotesAlert(id)}/>:tab==='coverage'?<CovTab cov={cov} onRefresh={refresh}/>:tab==='vulns'?<Vul onVulnClick={(v:any)=>setVulnDetail(v)}/>:tab==='intel'?<IntelTab alerts={alerts} onAskAI={(a:Al)=>setAiAlert(a)} onDeviceDrill={(h:string)=>setDeviceDrill(h)}/>:<ToolsManager toolsData={toolsData} onRefresh={refresh}/>}</div></div></>);
 }
 
 /* ═══ KPI SECTION (needs metrics) ═══ */
@@ -348,6 +360,37 @@ function KpiSection({m,cov,zsc,sparks,enabledTools,alerts}:any){
   if(!m)return null;
   const a=m.alertsLast24h||{};
   return <div className="kpi-grid"><div className="kpi"><div className="kpi-top"><div className="kpi-label">Alerts 24h</div></div><div className="kpi-val">{a.total||0}</div><div className="kpi-sub"><span style={{color:'var(--red)'}}>{a.critical||0} crit</span> · <span style={{color:'#f97316'}}>{a.high||0} high</span></div><div className="kpi-spark"><Spark data={sparks.al} color="var(--accent)"/></div></div><div className="kpi"><div className="kpi-top"><div className="kpi-label">MTTR</div></div><div className="kpi-val" style={{color:m.mttr?.current<=m.mttr?.target?'var(--green)':'var(--amber)'}}>{m.mttr?.current||0}<span className="kpi-unit">min</span></div><div className="kpi-sub">Target {m.mttr?.target||30}m</div><div className="kpi-spark"><Spark data={sparks.mttr} color="var(--amber)"/></div></div><div className="kpi"><div className="kpi-top"><div className="kpi-label">MTTD</div></div><div className="kpi-val" style={{color:m.mttd?.current<=m.mttd?.target?'var(--green)':'var(--amber)'}}>{m.mttd?.current||0}<span className="kpi-unit">min</span></div><div className="kpi-sub">Target {m.mttd?.target||10}m</div><div className="kpi-spark"><Spark data={sparks.mttd} color="var(--green)"/></div></div><div className="kpi"><div className="kpi-top"><div className="kpi-label">Open Incidents</div></div><div className="kpi-val" style={{color:m.incidentsOpen>0?'var(--amber)':'var(--green)'}}>{m.incidentsOpen||0}</div><div className="kpi-sub">SLA {m.slaCompliance||0}%</div></div><div className="kpi"><div className="kpi-top"><div className="kpi-label">ZIA Blocked</div></div><div className="kpi-val" style={{color:'var(--green)'}}>{zsc?.zia?.blockedThreats?.toLocaleString()||0}</div><div className="kpi-sub">{zsc?.zia?.dlpViolations||0} DLP</div><div className="kpi-spark"><Spark data={sparks.thr} color="var(--green)"/></div></div><div className="kpi"><div className="kpi-top"><div className="kpi-label">Critical Vulns</div></div><div className="kpi-val" style={{color:'var(--red)'}}>{a.critical||0}</div><div className="kpi-sub">{a.high||0} high · {a.medium||0} med</div></div><div className="kpi"><div className="kpi-top"><div className="kpi-label">Tools Active</div></div><div className="kpi-val" style={{color:'var(--accent)'}}>{enabledTools.length}<span className="kpi-unit">/{TOOLS.length}</span></div><div className="kpi-sub">{cov?.totalDevices?.toLocaleString()||0} devices</div></div></div>;
+}
+
+
+/* ═══ POSTURE GAUGE ═══ */
+function PostureGauge(){
+  const[data,setData]=useState<any>(null);
+  useEffect(()=>{fetch('/api/posture?t='+Date.now()).then(r=>r.ok?r.json():null).then(d=>{if(d)setData(d)}).catch(()=>{})},[]);
+  if(!data)return <div className="posture-card"><div style={{textAlign:'center',padding:20}}><span className="spin" style={{display:'inline-block'}}/></div></div>;
+  const{score,grade,color,factors}=data;
+  const r=54,circ=2*Math.PI*r*0.75,filled=circ*(score/100);
+  return <div className="posture-card"><div className="posture-gauge"><svg width="140" height="120" viewBox="0 0 140 120"><defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor={color} stopOpacity=".8"/><stop offset="100%" stopColor={color}/></linearGradient><filter id="pggl"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path d="M 16 100 A 54 54 0 1 1 124 100" fill="none" stroke="var(--bg3)" strokeWidth="12" strokeLinecap="round"/><path d="M 16 100 A 54 54 0 1 1 124 100" fill="none" stroke="url(#pg)" strokeWidth="12" strokeLinecap="round" strokeDasharray={`${filled} ${circ}`} filter="url(#pggl)" style={{transition:'stroke-dasharray 1.2s cubic-bezier(.4,0,.2,1)'}}/></svg><div className="posture-score" style={{color}}>{score}</div><div className="posture-grade" style={{color}}>{grade}</div><div className="posture-label">Security Posture</div></div><div className="posture-factors">{factors.slice(0,5).map((f:any,i:number)=>(<div key={i} className="posture-factor"><span style={{color:(f.impact||0)>=0?'var(--green)':'var(--red)',fontFamily:'var(--fm)',fontSize:'.68rem',fontWeight:700,minWidth:32}}>{(f.impact||0)>0?'+':''}{f.impact}</span><span style={{fontSize:'.68rem',color:'var(--t2)'}}>{f.name}</span><span style={{fontSize:'.58rem',color:'var(--t3)',marginLeft:'auto'}}>{f.detail}</span></div>))}</div></div>;
+}
+
+/* ═══ ALERT STREAM ═══ */
+function AlertStream({alerts,onAlert}:{alerts:any[];onAlert:(a:any)=>void}){
+  return <div className="alert-stream"><div className="stream-hd"><span style={{display:'flex',alignItems:'center',gap:5}}><span className="stream-dot"/>LIVE ALERTS</span><span className="mono" style={{fontSize:'.58rem',color:'var(--t3)'}}>{alerts.length}</span></div><div className="stream-body">{alerts.length===0?<div style={{padding:16,textAlign:'center',color:'var(--t3)',fontSize:'.72rem'}}>No alerts</div>:alerts.slice(0,15).map((a:any)=>(<div key={a.id} className="stream-item clickable-row" onClick={()=>onAlert(a)}><div className="stream-sev" style={{background:a.severity==='critical'?'var(--red)':a.severity==='high'?'#f97316':'var(--amber)'}}/><div style={{flex:1,minWidth:0}}><div style={{fontSize:'.7rem',fontWeight:600,color:'var(--t1)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.title}</div><div style={{display:'flex',gap:4,alignItems:'center',marginTop:2}}><span className={`src ${sc(a.source)}`} style={{fontSize:'.48rem'}}>{a.source}</span><span className="ts" style={{fontSize:'.52rem'}}>{ago(a.timestamp)}</span></div></div></div>))}</div></div>;
+}
+
+/* ═══ QUICK ACTIONS ═══ */
+function QuickActions({onAction}:{onAction:(action:string)=>void}){
+  const actions=[{id:'ioc',icon:'🔍',label:'IOC Search'},{id:'investigate',icon:'📋',label:'New Investigation'},{id:'scan',icon:'🔍',label:'Launch Scan'},{id:'exec',icon:'📊',label:'Exec Summary'},{id:'handover',icon:'🔄',label:'Shift Handover'}];
+  return <div className="quick-actions">{actions.map(a=>(<button key={a.id} className="qa-btn" onClick={()=>onAction(a.id)}><span className="qa-icon">{a.icon}</span><span className="qa-label">{a.label}</span></button>))}</div>;
+}
+
+/* ═══ SHIFT HANDOVER ═══ */
+function ShiftHandover({open,onClose}:{open:boolean;onClose:()=>void}){
+  const[data,setData]=useState<any>(null);const[loading,setLoading]=useState(true);
+  useEffect(()=>{if(!open)return;setLoading(true);fetch('/api/shift-handover?t='+Date.now()).then(r=>r.ok?r.json():null).then(d=>{if(d)setData(d);setLoading(false)}).catch(()=>setLoading(false))},[open]);
+  if(!open)return null;
+  const statusIcon:Record<string,string>={open:'🔴',resolved:'✅',monitoring:'👁'};
+  return <div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:560}}><div className="modal-hd"><div><h3 style={{fontSize:'.95rem'}}>🔄 Shift Handover</h3><p className="muted" style={{fontSize:'.65rem'}}>Last 8 hours summary</p></div><button className="modal-close" onClick={onClose}>✕</button></div><div className="modal-body">{loading?<div style={{textAlign:'center',padding:24}}><span className="spin" style={{display:'inline-block'}}/>Generating handover...</div>:<>{data?.summary&&<div style={{fontSize:'.82rem',fontWeight:600,marginBottom:12,color:'var(--t1)',lineHeight:1.6}}>{data.summary}</div>}{(data?.items||[]).map((item:any,i:number)=>(<div key={i} style={{display:'flex',gap:8,padding:'8px 0',borderBottom:'1px solid var(--brd)'}}><span style={{fontSize:'.9rem'}}>{statusIcon[item.status]||'⚪'}</span><div style={{flex:1}}><div style={{fontSize:'.78rem',fontWeight:600}}>{item.title}</div><div style={{fontSize:'.68rem',color:'var(--t2)',marginTop:2}}>{item.detail}</div></div><span className={`sev sev-${item.priority}`} style={{alignSelf:'flex-start'}}>{item.priority}</span></div>))}</>}</div></div></div>;
 }
 
 /* ═══ OVERVIEW CHARTS ═══ */
@@ -358,8 +401,8 @@ function OvCharts({m,sparks,enabledTools}:any){
 
 /* ═══ OVERVIEW ═══ */
 
-function Ov({m,cov,alerts,zsc,sparks,enabledTools,onAskAI,onRefresh,setTlDetail}:any){
-  return <><div style={{display:'flex',justifyContent:'flex-end',gap:6,marginBottom:8}}><button className="tc-btn" onClick={onRefresh} style={{fontSize:'.66rem',padding:'3px 8px'}}>↻ Refresh All</button><ExecSummary metrics={m} alerts={alerts} coverage={cov}/></div><KpiSection m={m} cov={cov} zsc={zsc} sparks={sparks} enabledTools={enabledTools} alerts={alerts}/><OvCharts m={m} sparks={sparks} enabledTools={enabledTools}/><NLQuery/><div className="g23"><div><div className="panel"><div className="panel-hd"><h3>⚡ Critical &amp; High</h3><span className="count">{alerts.filter((a:Al)=>a.severity==='critical'||a.severity==='high').length}</span></div><div className="tbl-wrap" style={{maxHeight:320}}><table className="tbl"><thead><tr><th>Alert</th><th>Source</th><th>Sev</th><th>Device</th><th>Time</th></tr></thead><tbody>{alerts.filter((a:Al)=>a.severity==='critical'||a.severity==='high').sort((a,b)=>SO[a.severity]-SO[b.severity]).slice(0,10).map((a:Al)=>(<tr key={a.id} onClick={()=>onAskAI?.(a)} style={{cursor:'pointer'}} className="clickable-row"><td style={{fontWeight:600}}>{a.title}</td><td><span className={`src ${sc(a.source)}`}>{a.source}</span></td><td><span className={`sev sev-${a.severity}`}>{a.severity}</span></td><td className="device">{a.device||'—'}</td><td className="ts">{ago(a.timestamp)}</td></tr>))}</tbody></table></div></div>{m&&m.topSources&&<div className="panel"><div className="panel-hd"><h3>📊 Sources</h3></div><div style={{padding:14}}>{m.topSources.map((s:any)=>(<div key={s.source} style={{display:'flex',alignItems:'center',gap:8,marginBottom:7}}><span className={`src ${sc(s.source)}`} style={{minWidth:80}}>{s.source}</span><div className="bar-wrap" style={{flex:1}}><div className="bar-track"><div className="bar-fill" style={{width:`${s.pct}%`,background:'var(--accent)'}}/></div></div><span className="mono" style={{fontSize:'.72rem'}}>{s.count}</span></div>))}</div></div>}</div><div className="panel" style={{overflow:'hidden'}}><div className="panel-hd"><h3>🕐 Timeline</h3></div><div style={{overflowY:'auto',maxHeight:460,padding:'6px 14px'}}>{(alerts.length>0?alerts.slice(0,10).map((a:Al)=>({id:a.id,time:a.timestamp,title:a.title,source:a.source,icon:a.severity==='critical'?'🔴':a.severity==='high'?'🟠':'🟡'})):TL).map(t=>(<div key={t.id} className="tl-item clickable-row" style={{cursor:'pointer'}} onClick={()=>setTlDetail(t)}><div className="tl-icon">{t.icon}</div><div className="tl-body"><div className="tl-title">{t.title}</div><div className="tl-meta"><span className={`src ${sc(t.source)}`}>{t.source}</span><span className="ts">{ago(t.time)}</span></div></div></div>))}</div></div></div></>;
+function Ov({m,cov,alerts,zsc,sparks,enabledTools,onAskAI,onRefresh,setTlDetail,onQuickAction}:any){
+  return <><div className="war-room"><div className="wr-left"><PostureGauge/><QuickActions onAction={onQuickAction}/><KpiSection m={m} cov={cov} zsc={zsc} sparks={sparks} enabledTools={enabledTools} alerts={alerts}/></div><div className="wr-right"><AlertStream alerts={alerts} onAlert={onAskAI}/></div></div><OvCharts m={m} sparks={sparks} enabledTools={enabledTools}/><NLQuery/><div className="g23"><div>{m&&m.topSources&&<div className="panel"><div className="panel-hd"><h3>📊 Sources</h3></div><div style={{padding:14}}>{m.topSources.map((s:any)=>(<div key={s.source} style={{display:'flex',alignItems:'center',gap:8,marginBottom:7}}><span className={`src ${sc(s.source)}`} style={{minWidth:80}}>{s.source}</span><div className="bar-wrap" style={{flex:1}}><div className="bar-track"><div className="bar-fill" style={{width:`${s.pct}%`}}/></div></div><span className="mono" style={{fontSize:'.72rem'}}>{s.count}</span></div>))}</div></div>}</div><div className="panel" style={{overflow:'hidden'}}><div className="panel-hd"><h3>🕐 Timeline</h3></div><div style={{overflowY:'auto',maxHeight:300,padding:'6px 14px'}}>{(alerts.length>0?alerts.slice(0,10).map((a:Al)=>({id:a.id,time:a.timestamp,title:a.title,source:a.source,icon:a.severity==='critical'?'🔴':a.severity==='high'?'🟠':'🟡'})):TL).map(t=>(<div key={t.id} className="tl-item clickable-row" style={{cursor:'pointer'}} onClick={()=>setTlDetail(t)}><div className="tl-icon">{t.icon}</div><div className="tl-body"><div className="tl-title">{t.title}</div><div className="tl-meta"><span className={`src ${sc(t.source)}`}>{t.source}</span><span className="ts">{ago(t.time)}</span></div></div></div>))}</div></div></div></>;
 }
 
 /* ═══ ALERTS ═══ */
@@ -490,6 +533,69 @@ body{background:var(--bg0);color:var(--t1);font-family:var(--fs);font-size:14px;
 .refresh-btn{height:30px;padding:0 10px;border-radius:var(--r);border:1px solid var(--brd);background:var(--bg2);cursor:pointer;font-size:.72rem;font-family:var(--fs);color:var(--t2);transition:all .15s}.refresh-btn:hover{border-color:var(--accent);color:var(--accent)}
 .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s ease-in-out infinite;flex-shrink:0}@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 8px var(--green)}50%{opacity:.4;box-shadow:0 0 2px var(--green)}}
 .main{flex:1;padding:14px 16px 16px;max-width:1480px;margin:0 auto;width:100%}
+.tv-wall{position:fixed;inset:0;background:var(--bg0);z-index:999;display:flex;flex-direction:column;cursor:pointer}
+.tv-slide{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;animation:tvFade .6s ease}
+@keyframes tvFade{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}
+.tv-title{font-size:1.1rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--t3);margin-bottom:30px}
+.tv-kpi-row{display:flex;gap:40px;justify-content:center;margin-top:30px}
+.tv-kpi{text-align:center}
+.tv-kpi-val{font-size:3rem;font-weight:900;font-family:var(--fm);letter-spacing:-3px;line-height:1}
+.tv-kpi-label{font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-top:4px}
+.tv-posture-row{transform:scale(1.5);margin:20px 0 40px}
+.tv-alert-list{width:100%;max-width:800px}
+.tv-alert{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--brd);font-size:.85rem}
+.tv-alert-sev{width:4px;height:20px;border-radius:2px;flex-shrink:0}
+.tv-alert-title{flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tv-footer{display:flex;align-items:center;justify-content:center;gap:16px;padding:16px;border-top:1px solid var(--brd);font-size:.7rem;color:var(--t3)}
+.tv-clock{font-family:var(--fm);font-size:1rem;font-weight:700;color:var(--t1);letter-spacing:1px}
+.tv-exit{font-size:.6rem;color:var(--t4)}
+.tv-indicators{display:flex;gap:6px;justify-content:center;padding:12px}
+.tv-ind{width:8px;height:8px;border-radius:50%;background:var(--bg3);transition:all .3s}
+.tv-ind.active{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.war-room{display:grid;grid-template-columns:1fr 280px;gap:10px;margin-bottom:10px}
+.wr-left{display:flex;flex-direction:column;gap:10px}
+.wr-right{display:flex;flex-direction:column}
+@media(max-width:768px){.tv-wall{position:fixed;inset:0;background:var(--bg0);z-index:999;display:flex;flex-direction:column;cursor:pointer}
+.tv-slide{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;animation:tvFade .6s ease}
+@keyframes tvFade{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}
+.tv-title{font-size:1.1rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--t3);margin-bottom:30px}
+.tv-kpi-row{display:flex;gap:40px;justify-content:center;margin-top:30px}
+.tv-kpi{text-align:center}
+.tv-kpi-val{font-size:3rem;font-weight:900;font-family:var(--fm);letter-spacing:-3px;line-height:1}
+.tv-kpi-label{font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-top:4px}
+.tv-posture-row{transform:scale(1.5);margin:20px 0 40px}
+.tv-alert-list{width:100%;max-width:800px}
+.tv-alert{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--brd);font-size:.85rem}
+.tv-alert-sev{width:4px;height:20px;border-radius:2px;flex-shrink:0}
+.tv-alert-title{flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tv-footer{display:flex;align-items:center;justify-content:center;gap:16px;padding:16px;border-top:1px solid var(--brd);font-size:.7rem;color:var(--t3)}
+.tv-clock{font-family:var(--fm);font-size:1rem;font-weight:700;color:var(--t1);letter-spacing:1px}
+.tv-exit{font-size:.6rem;color:var(--t4)}
+.tv-indicators{display:flex;gap:6px;justify-content:center;padding:12px}
+.tv-ind{width:8px;height:8px;border-radius:50%;background:var(--bg3);transition:all .3s}
+.tv-ind.active{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.war-room{grid-template-columns:1fr}.wr-right{max-height:300px}}
+.posture-card{background:linear-gradient(135deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:var(--r2);padding:16px;display:flex;gap:16px;align-items:center}
+@media(max-width:768px){.posture-card{flex-direction:column}}
+.posture-gauge{position:relative;flex-shrink:0;width:140px;height:120px}
+.posture-score{position:absolute;top:52px;left:50%;transform:translateX(-50%);font-size:2.2rem;font-weight:900;font-family:var(--fm);letter-spacing:-3px}
+.posture-grade{position:absolute;top:85px;left:50%;transform:translateX(-50%);font-size:.7rem;font-weight:800;letter-spacing:1px}
+.posture-label{position:absolute;top:102px;left:50%;transform:translateX(-50%);font-size:.48rem;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
+.posture-factors{flex:1;min-width:0}
+.posture-factor{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--brd)}
+.posture-factor:last-child{border-bottom:none}
+.alert-stream{background:linear-gradient(180deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:var(--r2);display:flex;flex-direction:column;height:100%;min-height:300px}
+.stream-hd{padding:10px 12px;border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center;font-size:.68rem;font-weight:700;color:var(--t1);text-transform:uppercase;letter-spacing:.5px}
+.stream-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s ease-in-out infinite}
+.stream-body{flex:1;overflow-y:auto;padding:4px}
+.stream-body::-webkit-scrollbar{width:2px}.stream-body::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:2px}
+.stream-item{display:flex;gap:8px;padding:6px 8px;border-radius:6px;align-items:flex-start;margin-bottom:2px}
+.stream-sev{width:3px;height:24px;border-radius:2px;flex-shrink:0;margin-top:2px}
+.quick-actions{display:flex;gap:6px;flex-wrap:wrap}
+.qa-btn{display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;border:1px solid var(--brd);background:linear-gradient(135deg,var(--bg2),var(--bg3));color:var(--t2);font-size:.66rem;font-family:var(--fs);font-weight:600;cursor:pointer;transition:all .2s}
+.qa-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-s);transform:translateY(-1px);box-shadow:0 4px 12px var(--accent-s)}
+.qa-icon{font-size:.82rem}
+.qa-label{white-space:nowrap}
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:7px;margin-bottom:10px}.kpi{background:linear-gradient(135deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:var(--r2);padding:14px 16px;position:relative;overflow:hidden;transition:all .25s ease;backdrop-filter:blur(8px)}.kpi:hover{border-color:var(--accent);box-shadow:var(--glow),0 0 0 1px var(--accent)20;transform:translateY(-1px)}.kpi-top{display:flex;justify-content:space-between;align-items:flex-start}.kpi-label{font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;font-weight:700}.kpi-val{font-size:1.7rem;font-weight:900;font-family:var(--fm);letter-spacing:-2px;margin-top:4px;line-height:1;background:linear-gradient(135deg,var(--t1),var(--t2));-webkit-background-clip:text;background-clip:text}.kpi-unit{font-size:.65rem;color:var(--t3);font-weight:500}.kpi-sub{font-size:.64rem;color:var(--t3);margin-top:5px}.kpi-trend{font-size:.6rem;font-weight:700;padding:1px 5px;border-radius:3px}.kpi-trend.good{color:var(--green);background:var(--greens)}.kpi-trend.bad{color:var(--red);background:var(--reds)}.kpi-trend.warn{color:var(--amber);background:var(--ambers)}.kpi-spark{position:absolute;bottom:0;right:0;opacity:.4}
 .hero-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}.hero-panel{min-height:0}
 .panel{background:linear-gradient(180deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:var(--r2);margin-bottom:10px;overflow:hidden;transition:all .25s ease}.panel:hover{border-color:var(--brd2);box-shadow:var(--glow)}.panel-hd{padding:9px 14px;border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center}.panel-hd h3{font-size:.76rem;font-weight:700;display:flex;align-items:center;gap:5px}.panel-hd .count{font-size:.62rem;color:var(--t3);font-family:var(--fm);background:var(--bg3);padding:1px 6px;border-radius:10px}
@@ -525,8 +631,134 @@ body{background:var(--bg0);color:var(--t1);font-family:var(--fs);font-size:14px;
 /* Mobile */
 .mob-menu{display:none;background:none;border:none;color:var(--t1);font-size:1.2rem;cursor:pointer;padding:4px 8px}.mob-nav{display:none;background:var(--bg1);border-bottom:1px solid var(--brd);padding:8px 16px;gap:4px;flex-wrap:wrap}.mnav-btn{padding:8px 14px;border-radius:var(--r);border:1px solid var(--brd);background:var(--bg2);color:var(--t2);font-size:.8rem;font-family:var(--fs);cursor:pointer}.mnav-btn.active{background:var(--accent-s);color:var(--accent);border-color:var(--accent)}
 .desk-only{}.mob-only{display:none!important}
-@media(max-width:768px){.desk-only{display:none!important}.mob-only{display:flex!important}.mob-menu{display:block}.mob-nav{display:flex}.topbar{padding:0 12px;gap:8px}.main{padding:10px 10px 20px}.kpi-grid{grid-template-columns:repeat(2,1fr);gap:5px}.hero-grid{grid-template-columns:1fr 1fr;gap:6px}.g2r,.g23{grid-template-columns:1fr}.tool-grid{grid-template-columns:1fr}}
-@media(max-width:480px){.kpi-grid{grid-template-columns:1fr 1fr}.hero-grid{grid-template-columns:1fr}.kpi{padding:10px 12px}.kpi-val{font-size:1.2rem}}
+@media(max-width:768px){.desk-only{display:none!important}.mob-only{display:flex!important}.mob-menu{display:block}.mob-nav{display:flex}.topbar{padding:0 12px;gap:8px}.main{padding:10px 10px 20px}.tv-wall{position:fixed;inset:0;background:var(--bg0);z-index:999;display:flex;flex-direction:column;cursor:pointer}
+.tv-slide{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;animation:tvFade .6s ease}
+@keyframes tvFade{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}
+.tv-title{font-size:1.1rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--t3);margin-bottom:30px}
+.tv-kpi-row{display:flex;gap:40px;justify-content:center;margin-top:30px}
+.tv-kpi{text-align:center}
+.tv-kpi-val{font-size:3rem;font-weight:900;font-family:var(--fm);letter-spacing:-3px;line-height:1}
+.tv-kpi-label{font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-top:4px}
+.tv-posture-row{transform:scale(1.5);margin:20px 0 40px}
+.tv-alert-list{width:100%;max-width:800px}
+.tv-alert{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--brd);font-size:.85rem}
+.tv-alert-sev{width:4px;height:20px;border-radius:2px;flex-shrink:0}
+.tv-alert-title{flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tv-footer{display:flex;align-items:center;justify-content:center;gap:16px;padding:16px;border-top:1px solid var(--brd);font-size:.7rem;color:var(--t3)}
+.tv-clock{font-family:var(--fm);font-size:1rem;font-weight:700;color:var(--t1);letter-spacing:1px}
+.tv-exit{font-size:.6rem;color:var(--t4)}
+.tv-indicators{display:flex;gap:6px;justify-content:center;padding:12px}
+.tv-ind{width:8px;height:8px;border-radius:50%;background:var(--bg3);transition:all .3s}
+.tv-ind.active{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.war-room{display:grid;grid-template-columns:1fr 280px;gap:10px;margin-bottom:10px}
+.wr-left{display:flex;flex-direction:column;gap:10px}
+.wr-right{display:flex;flex-direction:column}
+@media(max-width:768px){.tv-wall{position:fixed;inset:0;background:var(--bg0);z-index:999;display:flex;flex-direction:column;cursor:pointer}
+.tv-slide{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;animation:tvFade .6s ease}
+@keyframes tvFade{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}
+.tv-title{font-size:1.1rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--t3);margin-bottom:30px}
+.tv-kpi-row{display:flex;gap:40px;justify-content:center;margin-top:30px}
+.tv-kpi{text-align:center}
+.tv-kpi-val{font-size:3rem;font-weight:900;font-family:var(--fm);letter-spacing:-3px;line-height:1}
+.tv-kpi-label{font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-top:4px}
+.tv-posture-row{transform:scale(1.5);margin:20px 0 40px}
+.tv-alert-list{width:100%;max-width:800px}
+.tv-alert{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--brd);font-size:.85rem}
+.tv-alert-sev{width:4px;height:20px;border-radius:2px;flex-shrink:0}
+.tv-alert-title{flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tv-footer{display:flex;align-items:center;justify-content:center;gap:16px;padding:16px;border-top:1px solid var(--brd);font-size:.7rem;color:var(--t3)}
+.tv-clock{font-family:var(--fm);font-size:1rem;font-weight:700;color:var(--t1);letter-spacing:1px}
+.tv-exit{font-size:.6rem;color:var(--t4)}
+.tv-indicators{display:flex;gap:6px;justify-content:center;padding:12px}
+.tv-ind{width:8px;height:8px;border-radius:50%;background:var(--bg3);transition:all .3s}
+.tv-ind.active{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.war-room{grid-template-columns:1fr}.wr-right{max-height:300px}}
+.posture-card{background:linear-gradient(135deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:var(--r2);padding:16px;display:flex;gap:16px;align-items:center}
+@media(max-width:768px){.posture-card{flex-direction:column}}
+.posture-gauge{position:relative;flex-shrink:0;width:140px;height:120px}
+.posture-score{position:absolute;top:52px;left:50%;transform:translateX(-50%);font-size:2.2rem;font-weight:900;font-family:var(--fm);letter-spacing:-3px}
+.posture-grade{position:absolute;top:85px;left:50%;transform:translateX(-50%);font-size:.7rem;font-weight:800;letter-spacing:1px}
+.posture-label{position:absolute;top:102px;left:50%;transform:translateX(-50%);font-size:.48rem;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
+.posture-factors{flex:1;min-width:0}
+.posture-factor{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--brd)}
+.posture-factor:last-child{border-bottom:none}
+.alert-stream{background:linear-gradient(180deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:var(--r2);display:flex;flex-direction:column;height:100%;min-height:300px}
+.stream-hd{padding:10px 12px;border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center;font-size:.68rem;font-weight:700;color:var(--t1);text-transform:uppercase;letter-spacing:.5px}
+.stream-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s ease-in-out infinite}
+.stream-body{flex:1;overflow-y:auto;padding:4px}
+.stream-body::-webkit-scrollbar{width:2px}.stream-body::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:2px}
+.stream-item{display:flex;gap:8px;padding:6px 8px;border-radius:6px;align-items:flex-start;margin-bottom:2px}
+.stream-sev{width:3px;height:24px;border-radius:2px;flex-shrink:0;margin-top:2px}
+.quick-actions{display:flex;gap:6px;flex-wrap:wrap}
+.qa-btn{display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;border:1px solid var(--brd);background:linear-gradient(135deg,var(--bg2),var(--bg3));color:var(--t2);font-size:.66rem;font-family:var(--fs);font-weight:600;cursor:pointer;transition:all .2s}
+.qa-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-s);transform:translateY(-1px);box-shadow:0 4px 12px var(--accent-s)}
+.qa-icon{font-size:.82rem}
+.qa-label{white-space:nowrap}
+.kpi-grid{grid-template-columns:repeat(2,1fr);gap:5px}.hero-grid{grid-template-columns:1fr 1fr;gap:6px}.g2r,.g23{grid-template-columns:1fr}.tool-grid{grid-template-columns:1fr}}
+@media(max-width:480px){.tv-wall{position:fixed;inset:0;background:var(--bg0);z-index:999;display:flex;flex-direction:column;cursor:pointer}
+.tv-slide{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;animation:tvFade .6s ease}
+@keyframes tvFade{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}
+.tv-title{font-size:1.1rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--t3);margin-bottom:30px}
+.tv-kpi-row{display:flex;gap:40px;justify-content:center;margin-top:30px}
+.tv-kpi{text-align:center}
+.tv-kpi-val{font-size:3rem;font-weight:900;font-family:var(--fm);letter-spacing:-3px;line-height:1}
+.tv-kpi-label{font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-top:4px}
+.tv-posture-row{transform:scale(1.5);margin:20px 0 40px}
+.tv-alert-list{width:100%;max-width:800px}
+.tv-alert{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--brd);font-size:.85rem}
+.tv-alert-sev{width:4px;height:20px;border-radius:2px;flex-shrink:0}
+.tv-alert-title{flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tv-footer{display:flex;align-items:center;justify-content:center;gap:16px;padding:16px;border-top:1px solid var(--brd);font-size:.7rem;color:var(--t3)}
+.tv-clock{font-family:var(--fm);font-size:1rem;font-weight:700;color:var(--t1);letter-spacing:1px}
+.tv-exit{font-size:.6rem;color:var(--t4)}
+.tv-indicators{display:flex;gap:6px;justify-content:center;padding:12px}
+.tv-ind{width:8px;height:8px;border-radius:50%;background:var(--bg3);transition:all .3s}
+.tv-ind.active{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.war-room{display:grid;grid-template-columns:1fr 280px;gap:10px;margin-bottom:10px}
+.wr-left{display:flex;flex-direction:column;gap:10px}
+.wr-right{display:flex;flex-direction:column}
+@media(max-width:768px){.tv-wall{position:fixed;inset:0;background:var(--bg0);z-index:999;display:flex;flex-direction:column;cursor:pointer}
+.tv-slide{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;animation:tvFade .6s ease}
+@keyframes tvFade{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}
+.tv-title{font-size:1.1rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--t3);margin-bottom:30px}
+.tv-kpi-row{display:flex;gap:40px;justify-content:center;margin-top:30px}
+.tv-kpi{text-align:center}
+.tv-kpi-val{font-size:3rem;font-weight:900;font-family:var(--fm);letter-spacing:-3px;line-height:1}
+.tv-kpi-label{font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-top:4px}
+.tv-posture-row{transform:scale(1.5);margin:20px 0 40px}
+.tv-alert-list{width:100%;max-width:800px}
+.tv-alert{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--brd);font-size:.85rem}
+.tv-alert-sev{width:4px;height:20px;border-radius:2px;flex-shrink:0}
+.tv-alert-title{flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tv-footer{display:flex;align-items:center;justify-content:center;gap:16px;padding:16px;border-top:1px solid var(--brd);font-size:.7rem;color:var(--t3)}
+.tv-clock{font-family:var(--fm);font-size:1rem;font-weight:700;color:var(--t1);letter-spacing:1px}
+.tv-exit{font-size:.6rem;color:var(--t4)}
+.tv-indicators{display:flex;gap:6px;justify-content:center;padding:12px}
+.tv-ind{width:8px;height:8px;border-radius:50%;background:var(--bg3);transition:all .3s}
+.tv-ind.active{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.war-room{grid-template-columns:1fr}.wr-right{max-height:300px}}
+.posture-card{background:linear-gradient(135deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:var(--r2);padding:16px;display:flex;gap:16px;align-items:center}
+@media(max-width:768px){.posture-card{flex-direction:column}}
+.posture-gauge{position:relative;flex-shrink:0;width:140px;height:120px}
+.posture-score{position:absolute;top:52px;left:50%;transform:translateX(-50%);font-size:2.2rem;font-weight:900;font-family:var(--fm);letter-spacing:-3px}
+.posture-grade{position:absolute;top:85px;left:50%;transform:translateX(-50%);font-size:.7rem;font-weight:800;letter-spacing:1px}
+.posture-label{position:absolute;top:102px;left:50%;transform:translateX(-50%);font-size:.48rem;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
+.posture-factors{flex:1;min-width:0}
+.posture-factor{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--brd)}
+.posture-factor:last-child{border-bottom:none}
+.alert-stream{background:linear-gradient(180deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:var(--r2);display:flex;flex-direction:column;height:100%;min-height:300px}
+.stream-hd{padding:10px 12px;border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center;font-size:.68rem;font-weight:700;color:var(--t1);text-transform:uppercase;letter-spacing:.5px}
+.stream-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s ease-in-out infinite}
+.stream-body{flex:1;overflow-y:auto;padding:4px}
+.stream-body::-webkit-scrollbar{width:2px}.stream-body::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:2px}
+.stream-item{display:flex;gap:8px;padding:6px 8px;border-radius:6px;align-items:flex-start;margin-bottom:2px}
+.stream-sev{width:3px;height:24px;border-radius:2px;flex-shrink:0;margin-top:2px}
+.quick-actions{display:flex;gap:6px;flex-wrap:wrap}
+.qa-btn{display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;border:1px solid var(--brd);background:linear-gradient(135deg,var(--bg2),var(--bg3));color:var(--t2);font-size:.66rem;font-family:var(--fs);font-weight:600;cursor:pointer;transition:all .2s}
+.qa-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-s);transform:translateY(-1px);box-shadow:0 4px 12px var(--accent-s)}
+.qa-icon{font-size:.82rem}
+.qa-label{white-space:nowrap}
+.kpi-grid{grid-template-columns:1fr 1fr}.hero-grid{grid-template-columns:1fr}.kpi{padding:10px 12px}.kpi-val{font-size:1.2rem}}
 /* IOC Search */
 .search-trigger{height:30px;padding:0 10px;border-radius:var(--r);border:1px solid var(--brd);background:var(--bg2);cursor:pointer;font-size:.72rem;font-family:var(--fs);color:var(--t2);display:flex;align-items:center;gap:4px;transition:all .15s}.search-trigger:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-s)}
 .ioc-result{padding:8px 10px;border:1px solid var(--brd);border-radius:var(--r);margin-bottom:6px;background:var(--bg2);transition:border-color .15s}.ioc-result:hover{border-color:var(--brd2)}
