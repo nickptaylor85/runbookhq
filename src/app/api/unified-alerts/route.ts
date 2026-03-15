@@ -65,10 +65,10 @@ export async function GET() {
   }
 
   if (alerts.length === 0) {
-    return NextResponse.json({ demo: false, alerts: [], errors: errors.length ? errors : ['No alerts from connected tools'], noTools: !Object.values(tools).some(Boolean) });
+    return NextResponse.json({ demo: false, alerts: [], errors: errors.length ? errors : ['No alerts from connected tools'], noTools: !Object.values(tools).some(Boolean), _debug: { tools, errorCount: errors.length } });
   }
 
   const filtered = alerts.filter(a => a.severity === 'critical' || a.severity === 'high');
   filtered.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-  return NextResponse.json({ demo: false, alerts: filtered, errors: errors.length ? errors : undefined });
+  return NextResponse.json({ demo: false, alerts: filtered, totalBeforeFilter: alerts.length, errors: errors.length ? errors : undefined, _debug: { tools, sources: [...new Set(alerts.map((a:any)=>a.source))] } });
 }
