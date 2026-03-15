@@ -59,3 +59,6 @@ export async function GET() {
 
   return NextResponse.json(debug, { headers: { 'Cache-Control': 'no-store' } });
 }
+
+// This won't affect the existing GET - just adding for reference
+// To test: visit /api/debug/assets
