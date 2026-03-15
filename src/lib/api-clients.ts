@@ -91,8 +91,10 @@ export async function getTaegisToken(): Promise<{ token: string; base: string } 
     });
     const data = await res.json();
     if (data.access_token) return { token: data.access_token, base };
+    // Store error for debug
+    (globalThis as any).__taegisAuthError = { status: res.status, body: JSON.stringify(data).substring(0, 300), base };
     return null;
-  } catch { return null; }
+  } catch (e) { (globalThis as any).__taegisAuthError = { error: String(e) }; return null; }
 }
 
 export async function taegisGraphQL(query: string, variables: any, token: string, base?: string) {
