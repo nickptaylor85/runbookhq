@@ -8,20 +8,44 @@ export async function POST(req: Request) {
   const headers = await tenableHeaders();
   if (!headers) return NextResponse.json({ demo: true, hosts: [] });
 
-  const pid = String(pluginId).replace('CVE-','').replace('PID-','');
+  const pid = String(pluginId).replace('PID-','');
 
   try {
-    // Get assets affected by this plugin
-    const res = await fetch(`https://cloud.tenable.com/workbenches/assets?filter.0.filter=plugin_id&filter.0.quality=eq&filter.0.value=${pid}`, { headers, cache: 'no-store' });
+    const res = await fetch(`https://cloud.tenable.com/workbenches/vulnerabilities/${pid}/outputs`, { headers, cache: 'no-store' });
     const data = await res.json();
-    const hosts = (data.assets || []).map((a: any) => ({
-      hostname: a.agent_name?.[0] || a.fqdn?.[0] || a.netbios_name?.[0] || a.hostname?.[0] || a.ipv4?.[0] || 'Unknown',
-      ip: a.ipv4?.[0] || '',
-      os: a.operating_system?.[0] || '',
-      lastSeen: a.last_seen || '',
-      hasAgent: a.has_agent || false,
-      state: 'open',
-    }));
+
+    // Parse the nested structure: outputs[].states[].results[].assets[]
+    const hostMap = new Map();
+    (data.outputs || []).forEach((output: any) => {
+      // Extract CVEs from plugin_output
+      const cveMatch = output.plugin_output?.match(/Cves\s*:\s*(.+)/);
+      const cves = cveMatch ? cveMatch[1].trim() : '';
+
+      (output.states || []).forEach((state: any) => {
+        (state.results || []).forEach((result: any) => {
+          (result.assets || []).forEach((asset: any) => {
+            const key = asset.id || asset.uuid;
+            if (!hostMap.has(key)) {
+              hostMap.set(key, {
+                hostname: asset.hostname || asset.fqdn?.split('.')[0] || asset.netbios_name || asset.ipv4?.split(',')[0] || 'Unknown',
+                fqdn: asset.fqdn || '',
+                ip: asset.ipv4?.split(',')[0] || '',
+                netbios: asset.netbios_name || '',
+                firstSeen: asset.first_seen || '',
+                lastSeen: asset.last_seen || '',
+                state: state.name || 'active',
+                severity: result.severity || 0,
+                port: result.port || 0,
+                protocol: result.transport_protocol || '',
+                cves,
+              });
+            }
+          });
+        });
+      });
+    });
+
+    const hosts = Array.from(hostMap.values()).sort((a: any, b: any) => new Date(b.lastSeen).getTime() - new Date(a.lastSeen).getTime());
 
     return NextResponse.json({ demo: false, pluginId: pid, hostCount: hosts.length, hosts });
   } catch (e) {
