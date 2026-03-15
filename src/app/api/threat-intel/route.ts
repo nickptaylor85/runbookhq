@@ -31,7 +31,7 @@ export async function GET(req: Request) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514', max_tokens: 1000,
         tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        messages: [{ role: 'user', content: `Today is ${today}. Search for the latest cybersecurity threats, vulnerabilities, and attack campaigns specifically targeting the ${activeIndustry} industry in the last 7 days. Then return ONLY a JSON array (no markdown, no backticks) of 5-8 threat intel items, each with: {"id": "unique", "title": "threat title", "severity": "critical|high|medium|low", "type": "ransomware|apt|vulnerability|phishing|malware|data_breach|supply_chain|insider", "summary": "2-3 sentence summary", "iocs": ["any IOCs mentioned"], "mitre": ["relevant MITRE techniques"], "source": "source name", "date": "YYYY-MM-DD", "industry_relevance": "why this matters for ${activeIndustry}"}` }],
+        messages: [{ role: 'user', content: `Today is ${today}. Search for the latest cybersecurity threats, vulnerabilities, and attack campaigns specifically targeting the ${activeIndustry} industry in the last 7 days. Then return ONLY a JSON array (no markdown, no backticks) of 5-8 threat intel items, each with: {"id": "unique", "title": "threat title", "severity": "critical|high|medium|low", "type": "ransomware|apt|vulnerability|phishing|malware|data_breach|supply_chain|insider", "summary": "2-3 sentence summary", "iocs": ["any IOCs mentioned"], "mitre": ["relevant MITRE techniques"], "source": "source name", "url": "source article URL if found", "date": "YYYY-MM-DD", "industry_relevance": "why this matters for ${activeIndustry}"}` }],
       }),
     });
     const data = await res.json();
