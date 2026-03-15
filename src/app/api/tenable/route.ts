@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
 import { tenableHeaders, tenableAPI } from '@/lib/api-clients';
-import { DEMO_TENABLE_VULNS } from '@/lib/demo-data';
 
 export async function GET() {
   const headers = await tenableHeaders();
-  if (!headers) return NextResponse.json({ demo: true, ...DEMO_TENABLE_VULNS });
+  if (!headers) return NextResponse.json({ demo: false, summary: { total: 0, critical: 0, high: 0, medium: 0, low: 0 }, assetCounts: { total: 0, scanned: 0, withCritical: 0, withHigh: 0 }, scanHealth: { coverage: 0 }, allVulns: [], topCritical: [], topHosts: [], noCredentials: true });
 
   try {
     const [vulnData, assetData] = await Promise.all([
@@ -59,6 +58,6 @@ export async function GET() {
       topHosts,
     });
   } catch (e) {
-    return NextResponse.json({ demo: true, ...DEMO_TENABLE_VULNS, error: String(e) });
+    return NextResponse.json({ demo: false, summary: { total: 0, critical: 0, high: 0, medium: 0, low: 0 }, assetCounts: { total: 0, scanned: 0, withCritical: 0, withHigh: 0 }, scanHealth: { coverage: 0 }, allVulns: [], topCritical: [], topHosts: [], error: String(e) });
   }
 }

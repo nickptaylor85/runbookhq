@@ -1,10 +1,32 @@
 import { NextResponse } from 'next/server';
+import { loadToolConfigs } from '@/lib/config-store';
+
 export async function GET() {
-  return NextResponse.json({ predictions: [
-    {id:'p1',type:'volume',confidence:82,title:'Alert spike expected Monday 08:00-10:00',detail:'12-week pattern: brute force 3x on Monday mornings. Extra analyst coverage recommended.',impact:'Potential SLA breach if understaffed. Historical: 23 min avg MTTR on Mondays vs 15 min other days.',action:'Schedule extra SOC analyst for Monday 07:30-11:00. Pre-stage response playbooks for brute force.',timeframe:'Monday',severity:'medium',icon:'📈'},
-    {id:'p2',type:'exploit',confidence:91,title:'CVE-2024-3400 exploitation likely within 48h',detail:'EPSS 0.97, your VPN gateways unpatched. Active scanning from 3 known threat actor IPs detected.',impact:'Full network compromise via VPN gateway. 5,001 assets at risk. Similar attacks led to ransomware deployment in 72% of cases.',action:'Emergency patch VPN gateways. If patching delayed >4h, apply firewall rules to block known scanner IPs. Enable enhanced logging on VPN concentrators.',timeframe:'48h',severity:'critical',icon:'🔴'},
-    {id:'p3',type:'phishing',confidence:74,title:'Finance team phishing campaign predicted',detail:'Q1 tax-themed phishing peaks in March. Finance 2.3x more targeted historically.',impact:'Credential compromise → BEC fraud. Average loss per incident: £125,000. 3 similar incidents in sector this month.',action:'Send targeted phishing awareness to finance team. Enable MFA prompt for any new device logins. Brief finance leadership.',timeframe:'This week',severity:'high',icon:'🎣'},
-    {id:'p4',type:'coverage',confidence:88,title:'Tenable coverage will drop below 90%',detail:'6 new devices onboarding, agent rollout takes 4-5 days. Current coverage gap growing.',impact:'Unscanned devices represent blind spots. Compliance audit finding if coverage drops below threshold.',action:'Expedite Nessus agent deployment on new devices. Add to next change window. Track via coverage dashboard.',timeframe:'Friday',severity:'medium',icon:'📉'},
-    {id:'p5',type:'sla',confidence:78,title:'Night shift MTTR SLA breach risk',detail:'Exceeded target 3 of 5 nights. Analyst fatigue trending up, ticket backlog growing.',impact:'SLA breach triggers management escalation. Pattern suggests burnout risk for night shift analysts.',action:'Review night shift workload distribution. Consider rotating an additional analyst. Automate low-severity ticket triage.',timeframe:'Tonight',severity:'high',icon:'⏱'},
-  ], demo: true });
+  const configs = await loadToolConfigs();
+  const apiKey = configs.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY;
+  
+  if (!apiKey) {
+    return NextResponse.json({ predictions: [], noPredictions: true, reason: 'No Anthropic API key configured' });
+  }
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514', max_tokens: 800,
+        system: 'You are a SOC predictive analytics engine. Return ONLY a JSON array of 5 predictions based on common security patterns. Each: {"id":"p1","type":"volume|exploit|phishing|coverage|sla","confidence":80,"title":"short title","detail":"1 sentence detail","impact":"1 sentence impact","action":"1 sentence recommended action","timeframe":"Monday|48h|This week|Friday|Tonight","severity":"critical|high|medium","icon":"📈|🔴|🎣|📉|⏱"}. No markdown, no backticks.',
+        messages: [{ role: 'user', content: 'Generate 5 realistic SOC predictions for the coming week based on typical enterprise security patterns. Make them actionable and specific.' }],
+      }),
+    });
+    const data = await res.json();
+    const text = (data.content || []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('');
+    try {
+      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      if (jsonMatch) return NextResponse.json({ predictions: JSON.parse(jsonMatch[0]), demo: false });
+    } catch {}
+    return NextResponse.json({ predictions: [], error: 'Failed to parse predictions' });
+  } catch (e) {
+    return NextResponse.json({ predictions: [], error: String(e) });
+  }
 }

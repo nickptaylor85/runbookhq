@@ -1,30 +1,44 @@
 import { NextResponse } from 'next/server';
 import { loadToolConfigs } from '@/lib/config-store';
-async function getAnthropicKeyFromRedis(): Promise<string|null> {
-  try { const c = await loadToolConfigs(); return c.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || null; } catch { return null; }
-}
-import { DEMO_DEFENDER_ALERTS, DEMO_TAEGIS_ALERTS, DEMO_METRICS, DEMO_COVERAGE, DEMO_TENABLE_VULNS } from '@/lib/demo-data';
+import { tenableAPI, tenableHeaders, getTaegisToken, taegisGraphQL } from '@/lib/api-clients';
+
 export async function POST(req: Request) {
   const { query } = await req.json();
-  const apiKey = process.env.ANTHROPIC_API_KEY || await getAnthropicKeyFromRedis();
-  const allAlerts = [...DEMO_DEFENDER_ALERTS, ...DEMO_TAEGIS_ALERTS];
-  if (!apiKey) return NextResponse.json({ demo: true, ...demoQ(query, allAlerts) });
+  const configs = await loadToolConfigs();
+  const apiKey = configs.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) return NextResponse.json({ answer: 'Configure Anthropic API key to use NL Query', results: [] });
+
+  // Gather context from real sources
+  let context = '';
+  const headers = await tenableHeaders();
+  if (headers) {
+    try {
+      const vulnData = await tenableAPI('/workbenches/vulnerabilities?date_range=30');
+      const vulns = vulnData.vulnerabilities || [];
+      context += `Tenable: ${vulns.length} vulns (${vulns.filter((v:any)=>v.severity===4).length} critical, ${vulns.filter((v:any)=>v.severity===3).length} high). Top: ${vulns.slice(0,5).map((v:any)=>v.plugin_name).join('; ')}. `;
+    } catch {}
+  }
+  const taegisAuth = await getTaegisToken();
+  if (taegisAuth) {
+    try {
+      const data = await taegisGraphQL(`query { alertsServiceSearch(in: { cql_query: "FROM alert WHERE severity >= 0.6 EARLIEST=-1d", offset: 0, limit: 5 }) { alerts { total_results list { id metadata { title severity } } } } }`, {}, taegisAuth.token, taegisAuth.base);
+      const total = data.data?.alertsServiceSearch?.alerts?.total_results || 0;
+      const list = data.data?.alertsServiceSearch?.alerts?.list || [];
+      context += `Taegis: ${total} critical+high alerts in 24h. Recent: ${list.map((a:any)=>a.metadata?.title).join('; ')}. `;
+    } catch {}
+  }
+
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 800, system: 'You are a SOC query engine. Answer using the provided data. Return JSON: { "answer": "summary", "results": [items], "query_interpreted": "what you searched", "count": number }',
-        messages: [{ role: 'user', content: `Data: ${JSON.stringify({alerts:allAlerts,metrics:DEMO_METRICS})}\n\nQuery: ${query}` }] }) });
-    const data = await res.json(); const text = data.content?.[0]?.text || '{}';
-    try { return NextResponse.json({ demo: false, ...JSON.parse(text.replace(/```json|```/g,'').trim()) }); } catch { return NextResponse.json({ demo: false, answer: text, results: [], count: 0 }); }
-  } catch (e) { return NextResponse.json({ demo: true, ...demoQ(query, allAlerts) }); }
-}
-function demoQ(q: string, alerts: any[]) {
-  const ql = q.toLowerCase(); let results = alerts; let interp = q;
-  if (ql.includes('critical')) { results = alerts.filter(a => a.severity === 'critical'); interp = 'Critical alerts'; }
-  else if (ql.includes('high')) { results = alerts.filter(a => a.severity === 'high'); interp = 'High alerts'; }
-  else if (ql.includes('defender')) { results = alerts.filter(a => a.source.includes('Defender')); interp = 'Defender alerts'; }
-  else if (ql.includes('taegis')) { results = alerts.filter(a => a.source.includes('Taegis')); interp = 'Taegis alerts'; }
-  else if (ql.includes('powershell')||ql.includes('t1059')) { results = alerts.filter(a => a.mitre?.includes('T1059') || a.title.toLowerCase().includes('powershell')); interp = 'PowerShell alerts'; }
-  else if (ql.includes('lateral')) { results = alerts.filter(a => a.category?.includes('Lateral')); interp = 'Lateral movement'; }
-  else if (ql.includes('credential')||ql.includes('brute')) { results = alerts.filter(a => a.category?.includes('Credential') || a.title.toLowerCase().includes('brute')); interp = 'Credential attacks'; }
-  return { answer: `Found ${results.length} results`, results, count: results.length, query_interpreted: interp };
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 300,
+        system: 'You are a SOC query assistant. Answer questions about the security data provided. Be concise.',
+        messages: [{ role: 'user', content: `Security data context: ${context || 'No tools connected.'}\n\nUser query: ${query}` }] }),
+    });
+    const data = await res.json();
+    const text = (data.content || []).filter((b:any) => b.type === 'text').map((b:any) => b.text).join('');
+    return NextResponse.json({ answer: text, results: [], demo: false });
+  } catch (e) {
+    return NextResponse.json({ answer: 'Query failed: ' + String(e), results: [] });
+  }
 }

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { getDefenderToken, defenderAPI, getMDEToken, mdeAPI, getTaegisToken, taegisGraphQL, getConfiguredTools } from '@/lib/api-clients';
-import { DEMO_DEFENDER_ALERTS, DEMO_TAEGIS_ALERTS } from '@/lib/demo-data';
 
 export async function GET() {
   const tools = await getConfiguredTools();
@@ -65,13 +64,8 @@ export async function GET() {
     } catch (e) { errors.push('Taegis: ' + (e as Error).message); }
   }
 
-  // If no tools configured or no alerts fetched, return demo data
   if (alerts.length === 0) {
-    return NextResponse.json({
-      demo: true,
-      alerts: [...DEMO_DEFENDER_ALERTS, ...DEMO_TAEGIS_ALERTS].filter((a: any) => a.severity === 'critical' || a.severity === 'high').sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
-      errors: errors.length ? errors : undefined,
-    });
+    return NextResponse.json({ demo: false, alerts: [], errors: errors.length ? errors : ['No alerts from connected tools'], noTools: !Object.values(tools).some(Boolean) });
   }
 
   const filtered = alerts.filter(a => a.severity === 'critical' || a.severity === 'high');

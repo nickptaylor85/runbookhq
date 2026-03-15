@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { getConfiguredTools, tenableHeaders, tenableAPI } from '@/lib/api-clients';
-import { DEMO_COVERAGE, DEMO_METRICS, DEMO_ZSCALER } from '@/lib/demo-data';
 
 export async function GET() {
   const tools = await getConfiguredTools();
@@ -89,12 +88,12 @@ export async function GET() {
 
       return NextResponse.json({
         demo: false, source: 'tenable-live',
-        coverage, metrics, zscaler: DEMO_ZSCALER, tools,
+        coverage, metrics, zscaler: null, tools,
       });
     } catch (e) {
-      return NextResponse.json({ demo: true, coverage: DEMO_COVERAGE, metrics: DEMO_METRICS, zscaler: DEMO_ZSCALER, tools, error: String(e) });
+      return NextResponse.json({ demo: false, coverage: { totalDevices: 0, tools: {}, gaps: [], osBreakdown: [], agentCoverage: 0, staleCount: 0 }, metrics: { alertsLast24h: { total: 0, critical: 0, high: 0, medium: 0, low: 0 }, mttr: { current: 0, previous: 0, target: 30 }, mttd: { current: 0, previous: 0, target: 10 }, incidentsOpen: 0, slaCompliance: 0, topSources: [] }, zscaler: null, tools, error: String(e) });
     }
   }
 
-  return NextResponse.json({ demo: true, coverage: DEMO_COVERAGE, metrics: DEMO_METRICS, zscaler: DEMO_ZSCALER, tools });
+  return NextResponse.json({ demo: false, coverage: { totalDevices: 0, tools: {}, gaps: [], osBreakdown: [], agentCoverage: 0, staleCount: 0 }, metrics: { alertsLast24h: { total: 0, critical: 0, high: 0, medium: 0, low: 0 }, mttr: { current: 0, previous: 0, target: 30 }, mttd: { current: 0, previous: 0, target: 10 }, incidentsOpen: 0, slaCompliance: 0, topSources: [] }, zscaler: null, tools, noTools: !Object.values(tools).some(Boolean) });
 }
