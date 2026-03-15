@@ -81,20 +81,23 @@ export async function getTaegisToken(): Promise<{ token: string; base: string } 
   const clientSecret = getCred('taegis', 'TAEGIS_CLIENT_SECRET', c);
   const region = (getCred('taegis', 'TAEGIS_REGION', c) || 'us').toLowerCase();
   if (!clientId || !clientSecret) return null;
-  const base = TAEGIS_REGIONS[region] || TAEGIS_REGIONS['us'];
-  try {
-    // OAuth2 client_credentials flow - must be form-encoded
-    const res = await fetch(base + '/auth/api/v2/auth/token', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `grant_type=client_credentials&client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}`,
-    });
-    const data = await res.json();
-    if (data.access_token) return { token: data.access_token, base };
-    // Store error for debug
-    (globalThis as any).__taegisAuthError = { status: res.status, body: JSON.stringify(data).substring(0, 300), base };
-    return null;
-  } catch (e) { (globalThis as any).__taegisAuthError = { error: String(e) }; return null; }
+  // Try saved region first, then all others
+  const savedBase = TAEGIS_REGIONS[region] || TAEGIS_REGIONS['us'];
+  const allBases = [savedBase, ...Object.values(TAEGIS_REGIONS).filter(b => b !== savedBase)];
+  const body = `grant_type=client_credentials&client_id=${encodeURIComponent(clientId)}&client_secret=${encodeURIComponent(clientSecret)}`;
+  for (const base of allBases) {
+    try {
+      const res = await fetch(base + '/auth/api/v2/auth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body,
+      });
+      const data = await res.json();
+      if (data.access_token) return { token: data.access_token, base };
+    } catch { continue; }
+  }
+  (globalThis as any).__taegisAuthError = { tried: allBases.length + ' regions', savedRegion: region };
+  return null;
 }
 
 export async function taegisGraphQL(query: string, variables: any, token: string, base?: string) {
