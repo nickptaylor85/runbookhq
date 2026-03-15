@@ -6,12 +6,31 @@ export async function GET() {
   if (!taegisAuth) return NextResponse.json({ ok: false, error: 'Taegis auth failed', endpoints: [] });
 
   try {
-    const query = `query { endpointAssets(first: 50) { edges { node { id hostId hostname hostInfo { os osVersion } sensorVersion isolationStatus lastConnectedAt } } totalCount } }`;
+    // Use alertsServiceSearch to find unique hosts from recent alerts
+    const query = `query { alertsServiceSearch(in: { cql_query: "FROM alert EARLIEST=-7d", offset: 0, limit: 50 }) { alerts { list { id metadata { title severity } entities { hostnames devices { hostnames } } } } } }`;
     const data = await taegisGraphQL(query, {}, taegisAuth.token, taegisAuth.base);
-    if (data.errors) return NextResponse.json({ ok: false, error: data.errors[0]?.message, endpoints: [], raw: JSON.stringify(data).substring(0, 500) });
-    const edges = data.data?.endpointAssets?.edges || [];
-    const endpoints = edges.map((e: any) => ({ id: e.node.id, hostId: e.node.hostId, hostname: e.node.hostname, os: e.node.hostInfo?.os || '', osVersion: e.node.hostInfo?.osVersion || '', sensorVersion: e.node.sensorVersion || '', isolated: e.node.isolationStatus === 'isolated', lastSeen: e.node.lastConnectedAt || '' }));
-    return NextResponse.json({ ok: true, total: data.data?.endpointAssets?.totalCount || endpoints.length, endpoints });
+    
+    if (data.errors) {
+      // Fallback: just get alert titles grouped by host
+      const simpleQuery = `query { alertsServiceSearch(in: { cql_query: "FROM alert WHERE severity >= 0.3 EARLIEST=-7d", offset: 0, limit: 100 }) { alerts { total_results list { id metadata { title severity } status } } } }`;
+      const simple = await taegisGraphQL(simpleQuery, {}, taegisAuth.token, taegisAuth.base);
+      const alerts = simple.data?.alertsServiceSearch?.alerts?.list || [];
+      return NextResponse.json({ ok: true, total: simple.data?.alertsServiceSearch?.alerts?.total_results || 0, endpoints: [], alerts: alerts.slice(0, 20).map((a: any) => ({ id: a.id, title: a.metadata?.title, severity: a.metadata?.severity, status: a.status })), source: 'alerts-fallback' });
+    }
+
+    const list = data.data?.alertsServiceSearch?.alerts?.list || [];
+    const hostMap = new Map();
+    list.forEach((a: any) => {
+      const hosts = a.entities?.hostnames || a.entities?.devices?.flatMap((d: any) => d.hostnames || []) || [];
+      hosts.forEach((h: string) => {
+        if (!hostMap.has(h)) hostMap.set(h, { hostname: h, alertCount: 0, lastAlert: '' });
+        const entry = hostMap.get(h);
+        entry.alertCount++;
+        entry.lastAlert = a.metadata?.title || '';
+      });
+    });
+
+    return NextResponse.json({ ok: true, total: hostMap.size, endpoints: Array.from(hostMap.values()).sort((a: any, b: any) => b.alertCount - a.alertCount) });
   } catch (e) {
     return NextResponse.json({ ok: false, error: String(e), endpoints: [] });
   }

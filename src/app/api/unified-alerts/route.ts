@@ -45,16 +45,16 @@ export async function GET() {
     try {
       const taegisAuth = await getTaegisToken();
       if (taegisAuth) {
-        const query = `query { alertsServiceSearch(in: { cql_query: "FROM alert WHERE severity >= 0.4 EARLIEST=-7d", offset: 0, limit: 20 }) { reason alerts { total_results list { id metadata { title severity } status } } } }`;
+        const query = `query { alertsServiceSearch(in: { cql_query: "FROM alert WHERE severity >= 0.4 EARLIEST=-7d", offset: 0, limit: 50 }) { reason alerts { total_results list { id metadata { title severity } status } } } }`;
         const data = await taegisGraphQL(query, {}, taegisAuth.token, taegisAuth.base);
         const alertList = data.data?.alertsServiceSearch?.alerts?.list || [];
         if (alertList.length > 0) {
           alerts.push(...alertList.map((a: any) => ({
             id: a.id, title: a.metadata?.title || 'Taegis Alert',
-            severity: a.metadata?.severity >= 0.8 ? 'critical' : a.metadata?.severity >= 0.6 ? 'high' : a.metadata?.severity >= 0.4 ? 'medium' : 'low',
+            severity: a.metadata?.severity >= 0.7 ? 'critical' : a.metadata?.severity >= 0.5 ? 'high' : a.metadata?.severity >= 0.3 ? 'medium' : 'low',
             status: (a.status || 'open').toLowerCase(), source: 'Taegis XDR',
             category: null, device: null, user: null,
-            timestamp: new Date().toISOString(), mitre: null,
+            timestamp: a.id?.match(/:(\d+):/)?.[1] ? new Date(parseInt(a.id.match(/:(\d+):/)[1])).toISOString() : new Date().toISOString(), mitre: null,
           })));
         }
         if (data.errors) errors.push('Taegis GraphQL: ' + JSON.stringify(data.errors).substring(0, 200));
