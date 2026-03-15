@@ -69,11 +69,12 @@ export async function GET() {
   if (alerts.length === 0) {
     return NextResponse.json({
       demo: true,
-      alerts: [...DEMO_DEFENDER_ALERTS, ...DEMO_TAEGIS_ALERTS].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
+      alerts: [...DEMO_DEFENDER_ALERTS, ...DEMO_TAEGIS_ALERTS].filter((a: any) => a.severity === 'critical' || a.severity === 'high').sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()),
       errors: errors.length ? errors : undefined,
     });
   }
 
-  alerts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-  return NextResponse.json({ demo: false, alerts, errors: errors.length ? errors : undefined });
+  const filtered = alerts.filter(a => a.severity === 'critical' || a.severity === 'high');
+  filtered.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  return NextResponse.json({ demo: false, alerts: filtered, errors: errors.length ? errors : undefined });
 }
