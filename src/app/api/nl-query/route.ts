@@ -21,7 +21,7 @@ export async function POST(req: Request) {
   const taegisAuth = await getTaegisToken();
   if (taegisAuth) {
     try {
-      const data = await taegisGraphQL(`query { alertsServiceSearch(in: { cql_query: "FROM alert WHERE severity >= 0.6 EARLIEST=-1d", offset: 0, limit: 5 }) { alerts { total_results list { id metadata { title severity } } } } }`, {}, taegisAuth.token, taegisAuth.base);
+      const data = await taegisGraphQL(`query { alertsServiceSearch(in: { cql_query: "FROM alert WHERE severity >= 0.4 EARLIEST=-7d", offset: 0, limit: 5 }) { alerts { total_results list { id metadata { title severity } } } } }`, {}, taegisAuth.token, taegisAuth.base);
       const total = data.data?.alertsServiceSearch?.alerts?.total_results || 0;
       const list = data.data?.alertsServiceSearch?.alerts?.list || [];
       context += `Taegis: ${total} critical+high alerts in 24h. Recent: ${list.map((a:any)=>a.metadata?.title).join('; ')}. `;

@@ -45,7 +45,7 @@ export async function GET() {
     debug.steps.taegisToken = { ok: !!taegisAuth, base: taegisAuth?.base || null, tokenPrefix: taegisAuth ? taegisAuth.token.substring(0, 15) + '...' : null, authError: (globalThis as any).__taegisAuthError || null };
     if (taegisAuth) {
       try {
-        const query = `query { alertsServiceSearch(in: { cql_query: "FROM alert WHERE severity >= 0.6 EARLIEST=-1d", offset: 0, limit: 3 }) { reason alerts { total_results list { id metadata { title severity } status } } } }`;
+        const query = `query { alertsServiceSearch(in: { cql_query: "FROM alert WHERE severity >= 0.4 EARLIEST=-7d", offset: 0, limit: 3 }) { reason alerts { total_results list { id metadata { title severity } status } } } }`;
         const data = await taegisGraphQL(query, {}, taegisAuth.token, taegisAuth.base);
         debug.steps.taegisApi = {
           ok: !data.errors,
