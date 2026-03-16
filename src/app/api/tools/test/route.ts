@@ -1,8 +1,10 @@
+import { getTenantFromRequest } from '@/lib/config-store';
 import { NextResponse } from 'next/server';
 import { loadToolConfigs, hasKVStore } from '@/lib/config-store';
 import { tenableHeaders, tenableAPI, getConfiguredTools } from '@/lib/api-clients';
 
 export async function POST(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
   const { toolId } = await req.json();
   const results: any = { toolId, steps: [] };
 
@@ -11,7 +13,7 @@ export async function POST(req: Request) {
 
   let configs;
   try {
-    configs = await loadToolConfigs();
+    configs = await loadToolConfigs(tenantId || undefined);
     const tc = configs.tools?.[toolId];
     results.steps.push({ step: 'Config loaded', ok: !!tc, enabled: tc?.enabled, keys: tc?.credentials ? Object.entries(tc.credentials).map(([k, v]) => ({ key: k, len: (v as string)?.length || 0 })) : [] });
   } catch (e) {
@@ -23,7 +25,7 @@ export async function POST(req: Request) {
   results.steps.push({ step: 'Tools detected', data: configured });
 
   if (toolId === 'tenable') {
-    const headers = await tenableHeaders();
+    const headers = await tenableHeaders(tenantId || undefined);
     results.steps.push({ step: 'Headers built', ok: !!headers });
     if (headers) {
       try {

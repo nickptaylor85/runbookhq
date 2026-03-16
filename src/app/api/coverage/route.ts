@@ -1,9 +1,11 @@
+import { getTenantFromRequest } from '@/lib/config-store';
 import { NextResponse } from 'next/server';
 import { getConfiguredTools, tenableHeaders, tenableAPI } from '@/lib/api-clients';
 
-export async function GET() {
-  const tools = await getConfiguredTools();
-  const headers = await tenableHeaders();
+export async function GET(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
+  const tools = await getConfiguredTools(tenantId || undefined);
+  const headers = await tenableHeaders(tenantId || undefined);
 
   // If Tenable is connected, build coverage from real asset data
   if (headers) {

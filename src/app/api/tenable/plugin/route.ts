@@ -1,12 +1,14 @@
+import { getTenantFromRequest } from '@/lib/config-store';
 import { NextResponse } from 'next/server';
 import { tenableHeaders } from '@/lib/api-clients';
 
 export async function GET(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'No plugin id' }, { status: 400 });
 
-  const headers = await tenableHeaders();
+  const headers = await tenableHeaders(tenantId || undefined);
   if (!headers) return NextResponse.json({ error: 'No Tenable credentials' });
 
   try {

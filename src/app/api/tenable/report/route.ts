@@ -1,8 +1,10 @@
+import { getTenantFromRequest } from '@/lib/config-store';
 import { NextResponse } from 'next/server';
 import { tenableHeaders, tenableAPI } from '@/lib/api-clients';
 
-export async function GET() {
-  const headers = await tenableHeaders();
+export async function GET(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
+  const headers = await tenableHeaders(tenantId || undefined);
   if (!headers) return NextResponse.json({ error: 'No Tenable credentials' });
   try {
     const vulnData = await tenableAPI('/workbenches/vulnerabilities?date_range=30');

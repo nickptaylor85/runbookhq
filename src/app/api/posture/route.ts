@@ -1,15 +1,17 @@
+import { getTenantFromRequest } from '@/lib/config-store';
 import { NextResponse } from 'next/server';
 import { tenableAPI, tenableHeaders, getTaegisToken, taegisGraphQL, getConfiguredTools } from '@/lib/api-clients';
 
-export async function GET() {
-  const tools = await getConfiguredTools();
+export async function GET(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
+  const tools = await getConfiguredTools(tenantId || undefined);
   let score = 50; // Base score
   const factors: any[] = [];
   const anyTool = Object.values(tools).some(Boolean);
   if (!anyTool) return NextResponse.json({ score: 0, grade: '?', factors: [{ name: 'No tools connected', impact: 0, detail: 'Connect Tenable or Taegis' }] });
 
   // Tenable: vuln posture
-  const headers = await tenableHeaders();
+  const headers = await tenableHeaders(tenantId || undefined);
   if (headers) {
     try {
       const data = await tenableAPI('/workbenches/vulnerabilities?date_range=30');
@@ -36,7 +38,7 @@ export async function GET() {
   }
 
   // Taegis: alert posture
-  const taegisAuth = await getTaegisToken();
+  const taegisAuth = await getTaegisToken(tenantId || undefined);
   if (taegisAuth) {
     try {
       const q = `query { alertsServiceSearch(in: { cql_query: "FROM alert WHERE severity >= 0.5 EARLIEST=-1d", offset: 0, limit: 1 }) { alerts { total_results } } }`;

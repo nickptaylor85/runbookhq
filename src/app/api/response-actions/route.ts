@@ -1,12 +1,14 @@
+import { getTenantFromRequest } from '@/lib/config-store';
 import { NextResponse } from 'next/server';
 import { getTaegisToken, taegisGraphQL } from '@/lib/api-clients';
 
 export async function POST(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
   const { action, target, tool, alertId } = await req.json();
 
   // Real Taegis isolation
   if (action === 'isolate_device' && target) {
-    const taegisAuth = await getTaegisToken();
+    const taegisAuth = await getTaegisToken(tenantId || undefined);
     if (taegisAuth) {
       try {
         const searchQuery = `query { endpointAssets(filter: { hostname: "${target.split('.')[0]}" }, first: 5) { edges { node { id hostId hostname isolationStatus } } } }`;

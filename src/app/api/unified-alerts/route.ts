@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getDefenderToken, defenderAPI, getMDEToken, mdeAPI, getTaegisToken, taegisGraphQL, getConfiguredTools } from '@/lib/api-clients';
+import { getTenantFromRequest } from '@/lib/config-store';
 
-export async function GET() {
-  const tools = await getConfiguredTools();
+export async function GET(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
+  const tools = await getConfiguredTools(tenantId || undefined);
   const alerts: any[] = [];
   const errors: string[] = [];
 
@@ -43,7 +45,7 @@ export async function GET() {
 
   if (tools.taegis) {
     try {
-      const taegisAuth = await getTaegisToken();
+      const taegisAuth = await getTaegisToken(tenantId || undefined);
       if (taegisAuth) {
         const query = `query { alertsServiceSearch(in: { cql_query: "FROM alert WHERE severity >= 0.4 EARLIEST=-7d", offset: 0, limit: 50 }) { reason alerts { total_results list { id metadata { title severity } status } } } }`;
         const data = await taegisGraphQL(query, {}, taegisAuth.token, taegisAuth.base);

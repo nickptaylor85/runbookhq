@@ -1,8 +1,10 @@
+import { getTenantFromRequest } from '@/lib/config-store';
 import { NextResponse } from 'next/server';
 import { tenableHeaders, tenableAPI } from '@/lib/api-clients';
 
-export async function GET() {
-  const headers = await tenableHeaders();
+export async function GET(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
+  const headers = await tenableHeaders(tenantId || undefined);
   if (!headers) return NextResponse.json({ error: 'No Tenable credentials' });
   try {
     const data = await tenableAPI('/scans');
@@ -12,8 +14,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
   const { scanId } = await req.json();
-  const headers = await tenableHeaders();
+  const headers = await tenableHeaders(tenantId || undefined);
   if (!headers) return NextResponse.json({ error: 'No Tenable credentials' });
   try {
     const res = await fetch(`https://cloud.tenable.com/scans/${scanId}/launch`, { method: 'POST', headers, cache: 'no-store' });

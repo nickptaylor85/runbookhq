@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { loadToolConfigs } from '@/lib/config-store';
+import { getTenantFromRequest } from '@/lib/config-store';
 async function getAnthropicKeyFromRedis(): Promise<string|null> {
-  try { const c = await loadToolConfigs(); return c.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || null; } catch { return null; }
+  try { const c = await loadToolConfigs(tenantId || undefined); return c.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || null; } catch { return null; }
 }
 
 export async function POST(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
   const { alert, question, context } = await req.json();
   const apiKey = process.env.ANTHROPIC_API_KEY || await getAnthropicKeyFromRedis();
 

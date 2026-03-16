@@ -1,5 +1,4 @@
-// Redis REST store (Upstash compatible)
-// Upstash REST API: POST https://url with body ["COMMAND", "args..."]
+// Redis REST store (Upstash compatible) with tenant isolation
 
 async function getRedisUrl() {
   return process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_REST_URL || null;
@@ -28,7 +27,7 @@ async function redisCmd(...args: string[]): Promise<any> {
 }
 
 export interface ToolConfig { id: string; enabled: boolean; credentials: Record<string, string>; status?: string }
-export interface AllToolConfigs { tools: Record<string, ToolConfig>; updatedAt: string }
+export interface AllToolConfigs { tools: Record<string, ToolConfig>; updatedAt: string; [key: string]: any }
 
 export async function hasKVStore(): Promise<boolean> {
   const url = await getRedisUrl();
@@ -36,22 +35,80 @@ export async function hasKVStore(): Promise<boolean> {
   return !!(url && token);
 }
 
-export async function loadToolConfigs(): Promise<AllToolConfigs> {
+// ═══ PLATFORM-LEVEL (users, tenants, audit — shared) ═══
+export async function loadPlatformData(): Promise<any> {
+  const raw = await redisCmd('GET', 'secops:platform');
+  if (raw) {
+    try { return typeof raw === 'string' ? JSON.parse(raw) : raw; } catch {}
+  }
+  return { users: {}, tenants: {}, auditLog: [] };
+}
+
+export async function savePlatformData(data: any): Promise<boolean> {
+  data.updatedAt = new Date().toISOString();
+  const result = await redisCmd('SET', 'secops:platform', JSON.stringify(data));
+  return result === 'OK';
+}
+
+// ═══ TENANT-LEVEL (tool configs — isolated per tenant) ═══
+export async function loadTenantConfigs(tenantId: string): Promise<AllToolConfigs> {
+  if (!tenantId) return buildFromEnv();
+  const raw = await redisCmd('GET', `secops:tenant:${tenantId}:configs`);
+  if (raw) {
+    try {
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      if (parsed?.tools) return parsed as AllToolConfigs;
+    } catch {}
+  }
+  return { tools: {}, updatedAt: '' };
+}
+
+export async function saveTenantConfigs(tenantId: string, c: AllToolConfigs): Promise<boolean> {
+  if (!tenantId) return false;
+  c.updatedAt = new Date().toISOString();
+  const result = await redisCmd('SET', `secops:tenant:${tenantId}:configs`, JSON.stringify(c));
+  return result === 'OK';
+}
+
+// ═══ BACKWARDS COMPAT — loadToolConfigs reads old shared key OR tenant-scoped ═══
+// Used by api-clients.ts which doesn't have request context
+export async function loadToolConfigs(tenantId?: string): Promise<AllToolConfigs> {
+  // If tenant specified, use tenant-scoped
+  if (tenantId) {
+    const tc = await loadTenantConfigs(tenantId);
+    if (tc.updatedAt) return tc;
+  }
+  // Fallback: old shared key (for migration + superadmin)
   const raw = await redisCmd('GET', 'secops:configs');
   if (raw) {
     try {
       const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
       if (parsed?.tools) return parsed as AllToolConfigs;
-    } catch (e) {
-      console.error('Redis parse error:', e);
-    }
+    } catch {}
   }
   return buildFromEnv();
 }
 
-export async function saveToolConfigs(c: AllToolConfigs): Promise<boolean> {
+export async function saveToolConfigs(c: any): Promise<boolean> {
+  // Platform data (has users/tenants) goes to platform key
+  if (c.users || c.tenants || c.auditLog) {
+    return savePlatformData(c);
+  }
+  // Tool configs go to shared key (legacy)
+  c.updatedAt = new Date().toISOString();
   const result = await redisCmd('SET', 'secops:configs', JSON.stringify(c));
   return result === 'OK';
+}
+
+// ═══ HELPER: extract tenant from request cookies ═══
+export function getTenantFromRequest(req: Request): { email: string | null; tenantId: string | null } {
+  const cookie = req.headers.get('cookie') || '';
+  const authMatch = cookie.match(/secops-auth=([^;]+)/);
+  const tenantMatch = cookie.match(/secops-tenant=([^;]+)/);
+  return {
+    email: authMatch?.[1] ? decodeURIComponent(authMatch[1]) : null,
+    tenantId: tenantMatch?.[1] ? decodeURIComponent(tenantMatch[1]) : null,
+  };
 }
 
 function buildFromEnv(): AllToolConfigs {

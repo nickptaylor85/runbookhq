@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { loadToolConfigs } from '@/lib/config-store';
+import { loadPlatformData } from '@/lib/config-store';
 
 export async function GET(req: Request) {
   const cookie = req.headers.get('cookie') || '';
@@ -7,7 +7,7 @@ export async function GET(req: Request) {
   const email = authMatch?.[1] ? decodeURIComponent(authMatch[1]) : null;
   if (!email || !email.includes('@')) return NextResponse.json({ user: null });
 
-  const configs = await loadToolConfigs();
+  const configs = await loadPlatformData();
   const user = configs.users?.[email];
   if (!user) return NextResponse.json({ user: null });
 

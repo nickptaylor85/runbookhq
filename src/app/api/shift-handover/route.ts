@@ -1,21 +1,23 @@
 import { NextResponse } from 'next/server';
 import { loadToolConfigs } from '@/lib/config-store';
+import { getTenantFromRequest } from '@/lib/config-store';
 import { tenableAPI, tenableHeaders, getTaegisToken, taegisGraphQL } from '@/lib/api-clients';
 
-export async function GET() {
-  const configs = await loadToolConfigs();
+export async function GET(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
+  const configs = await loadToolConfigs(tenantId || undefined);
   const apiKey = configs.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY;
 
   // Gather real data
   let context = '';
-  const headers = await tenableHeaders();
+  const headers = await tenableHeaders(tenantId || undefined);
   if (headers) {
     try {
       const d = await tenableAPI('/workbenches/vulnerabilities?date_range=1');
       context += `Tenable (24h): ${d.vulnerabilities?.length || 0} vulns found. Critical: ${d.vulnerabilities?.filter((v:any)=>v.severity===4).length || 0}. `;
     } catch {}
   }
-  const taegisAuth = await getTaegisToken();
+  const taegisAuth = await getTaegisToken(tenantId || undefined);
   if (taegisAuth) {
     try {
       const d = await taegisGraphQL(`query { alertsServiceSearch(in: { cql_query: "FROM alert WHERE severity >= 0.3 EARLIEST=-8h", offset: 0, limit: 1 }) { alerts { total_results } } }`, {}, taegisAuth.token, taegisAuth.base);

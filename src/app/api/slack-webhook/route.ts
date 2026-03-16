@@ -1,5 +1,7 @@
+import { getTenantFromRequest } from '@/lib/config-store';
 import { NextResponse } from 'next/server';
 export async function POST(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
   const {action,alert}=await req.json();
   const url=process.env.SLACK_WEBHOOK_URL||process.env.TEAMS_WEBHOOK_URL;
   if(action==='test'){

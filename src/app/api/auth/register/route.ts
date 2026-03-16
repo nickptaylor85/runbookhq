@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { loadToolConfigs, saveToolConfigs } from '@/lib/config-store';
+import { loadPlatformData, savePlatformData } from '@/lib/config-store';
 
 function hashPassword(pw: string): string {
   // Simple hash for demo - in production use bcrypt
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   if (password.length < 8) return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 });
 
   // Load existing users from Redis
-  const configs = await loadToolConfigs();
+  const configs = await loadPlatformData();
   if (!configs.users) configs.users = {};
 
   // Check if user exists
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
   configs.auditLog.push({ action: 'user_registered', email, tenantId, plan, time: new Date().toISOString() });
 
   configs.updatedAt = new Date().toISOString();
-  await saveToolConfigs(configs);
+  await savePlatformData(configs);
 
   // Set auth cookie
   const res = NextResponse.json({ ok: true, tenantId, plan });

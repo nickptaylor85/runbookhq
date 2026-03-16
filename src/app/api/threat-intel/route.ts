@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
 import { loadToolConfigs, saveToolConfigs } from '@/lib/config-store';
+import { getTenantFromRequest } from '@/lib/config-store';
 
 const INDUSTRIES = ['Healthcare','Financial Services','Government','Education','Manufacturing','Retail','Energy & Utilities','Technology','Legal','Construction','Transportation','Telecommunications'];
 
 export async function GET(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
   const { searchParams } = new URL(req.url);
   const industry = searchParams.get('industry');
 
   // Load saved industry preference
-  const configs = await loadToolConfigs();
+  const configs = await loadToolConfigs(tenantId || undefined);
   const savedIndustry = configs.tools?.settings?.credentials?.INDUSTRY || null;
   const activeIndustry = industry || savedIndustry || null;
 
@@ -59,9 +61,10 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
   const { industry } = await req.json();
   // Save industry preference to Redis
-  const configs = await loadToolConfigs();
+  const configs = await loadToolConfigs(tenantId || undefined);
   if (!configs.tools.settings) configs.tools.settings = { id: 'settings', enabled: true, credentials: {} };
   configs.tools.settings.credentials.INDUSTRY = industry;
   configs.updatedAt = new Date().toISOString();

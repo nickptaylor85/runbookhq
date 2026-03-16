@@ -1,8 +1,10 @@
+import { getTenantFromRequest } from '@/lib/config-store';
 import { NextResponse } from 'next/server';
 import { getTaegisToken, taegisGraphQL } from '@/lib/api-clients';
 
-export async function GET() {
-  const taegisAuth = await getTaegisToken();
+export async function GET(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
+  const taegisAuth = await getTaegisToken(tenantId || undefined);
   if (!taegisAuth) return NextResponse.json({ ok: false, error: 'Taegis auth failed', endpoints: [] });
 
   try {

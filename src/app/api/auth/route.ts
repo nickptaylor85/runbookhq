@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { loadToolConfigs } from '@/lib/config-store';
+import { loadPlatformData } from '@/lib/config-store';
 
 function hashPassword(pw: string): string {
   let hash = 0;
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
 
   // New: email/password auth
   if (email && password) {
-    const configs = await loadToolConfigs();
+    const configs = await loadPlatformData();
     const user = configs.users?.[email];
     if (!user || user.password !== hashPassword(password)) {
       return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     // Audit log
     if (!configs.auditLog) configs.auditLog = [];
     configs.auditLog.push({ action: 'user_login', email, time: new Date().toISOString() });
-    try { const { saveToolConfigs: save } = require('@/lib/config-store'); await save(configs); } catch {}
+    try { const { savePlatformData: save } = require('@/lib/config-store'); await save(configs); } catch {}
 
     return res;
   }

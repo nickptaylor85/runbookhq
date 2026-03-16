@@ -1,3 +1,4 @@
+import { getTenantFromRequest } from '@/lib/config-store';
 import { NextResponse } from 'next/server';
 
 async function redis(...args: string[]): Promise<any> {
@@ -12,6 +13,7 @@ async function redis(...args: string[]): Promise<any> {
 }
 
 export async function GET(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
   const { searchParams } = new URL(req.url);
   const alertId = searchParams.get('alertId');
   if (!alertId) return NextResponse.json({ notes: [] });
@@ -21,6 +23,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
   const { alertId, note, analyst } = await req.json();
   if (!alertId || !note) return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
   const key = `secops:notes:${alertId}`;

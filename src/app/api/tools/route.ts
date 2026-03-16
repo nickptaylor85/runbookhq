@@ -1,32 +1,45 @@
 import { NextResponse } from 'next/server';
-import { loadToolConfigs, saveToolConfigs, hasKVStore } from '@/lib/config-store';
-import { TOOLS } from '@/lib/tool-registry-client';
+import { loadTenantConfigs, saveTenantConfigs, getTenantFromRequest, loadToolConfigs } from '@/lib/config-store';
 
-export async function GET() {
-  const c = await loadToolConfigs();
-  const kv = await hasKVStore();
-  const ts = TOOLS.map(t => ({ id: t.id, name: t.name, shortName: t.shortName, category: t.categoryLabel, color: t.color, icon: t.icon, configured: !!c.tools[t.id], enabled: c.tools[t.id]?.enabled ?? false, status: c.tools[t.id]?.status ?? 'untested', fieldsSet: t.fields.map(f => ({ key: f.key, label: f.label, hasValue: !!c.tools[t.id]?.credentials?.[f.key] })) }));
-  return NextResponse.json({ tools: ts, kvAvailable: kv, enabledCount: ts.filter(t => t.enabled).length, configuredCount: ts.filter(t => t.configured).length });
+export async function GET(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
+  const configs = tenantId ? await loadTenantConfigs(tenantId) : await loadToolConfigs();
+  return NextResponse.json(configs);
 }
 
 export async function POST(req: Request) {
-  const b = await req.json();
-  const kv = await hasKVStore();
-  if (!kv) return NextResponse.json({ error: 'Redis not configured. Add UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN to Vercel env vars.' }, { status: 400 });
-  const c = await loadToolConfigs();
-  if (b.action === 'save_credentials') {
-    c.tools[b.toolId] = { id: b.toolId, enabled: true, credentials: b.credentials, status: 'untested' };
-    c.updatedAt = new Date().toISOString();
-    const ok = await saveToolConfigs(c);
-    return NextResponse.json({ ok });
+  const { tenantId } = getTenantFromRequest(req);
+  if (!tenantId) return NextResponse.json({ error: 'No tenant context' }, { status: 401 });
+
+  const body = await req.json();
+  const configs = await loadTenantConfigs(tenantId);
+  if (!configs.tools) configs.tools = {};
+
+  if (body.toolId && body.credentials) {
+    configs.tools[body.toolId] = {
+      id: body.toolId,
+      enabled: body.enabled !== false,
+      credentials: body.credentials,
+      status: 'untested',
+    };
+  } else if (body.tools) {
+    configs.tools = body.tools;
   }
-  if (b.action === 'toggle') {
-    if (c.tools[b.toolId]) { c.tools[b.toolId].enabled = b.enabled; c.updatedAt = new Date().toISOString(); await saveToolConfigs(c); }
-    return NextResponse.json({ ok: true });
+
+  configs.updatedAt = new Date().toISOString();
+  await saveTenantConfigs(tenantId, configs);
+  return NextResponse.json({ ok: true, updatedAt: configs.updatedAt });
+}
+
+export async function DELETE(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
+  if (!tenantId) return NextResponse.json({ error: 'No tenant context' }, { status: 401 });
+
+  const { toolId } = await req.json();
+  const configs = await loadTenantConfigs(tenantId);
+  if (configs.tools?.[toolId]) {
+    delete configs.tools[toolId];
+    await saveTenantConfigs(tenantId, configs);
   }
-  if (b.action === 'remove') {
-    delete c.tools[b.toolId]; c.updatedAt = new Date().toISOString(); await saveToolConfigs(c);
-    return NextResponse.json({ ok: true });
-  }
-  return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
+  return NextResponse.json({ ok: true });
 }

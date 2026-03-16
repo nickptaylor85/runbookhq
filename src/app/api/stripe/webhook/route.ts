@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { loadToolConfigs, saveToolConfigs } from '@/lib/config-store';
+import { loadPlatformData, savePlatformData } from '@/lib/config-store';
 
 export async function POST(req: Request) {
   const body = await req.text();
   // In production, verify webhook signature with STRIPE_WEBHOOK_SECRET
   try {
     const event = JSON.parse(body);
-    const configs = await loadToolConfigs();
+    const configs = await loadPlatformData();
     if (!configs.auditLog) configs.auditLog = [];
 
     switch (event.type) {
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     }
 
     configs.updatedAt = new Date().toISOString();
-    await saveToolConfigs(configs);
+    await savePlatformData(configs);
     return NextResponse.json({ received: true });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 400 });

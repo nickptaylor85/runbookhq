@@ -1,11 +1,13 @@
+import { getTenantFromRequest } from '@/lib/config-store';
 import { NextResponse } from 'next/server';
 import { tenableHeaders } from '@/lib/api-clients';
 
 export async function POST(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
   const { pluginId } = await req.json();
   if (!pluginId) return NextResponse.json({ error: 'No pluginId' }, { status: 400 });
 
-  const headers = await tenableHeaders();
+  const headers = await tenableHeaders(tenantId || undefined);
   if (!headers) return NextResponse.json({ demo: true, hosts: [] });
 
   const pid = String(pluginId).replace('PID-','');

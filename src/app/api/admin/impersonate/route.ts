@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { loadToolConfigs } from '@/lib/config-store';
+import { loadPlatformData } from '@/lib/config-store';
 
 export async function POST(req: Request) {
   const cookie = req.headers.get('cookie') || '';
   const authMatch = cookie.match(/secops-auth=([^;]+)/);
   const adminEmail = authMatch?.[1] ? decodeURIComponent(authMatch[1]) : null;
   
-  const configs = await loadToolConfigs();
+  const configs = await loadPlatformData();
   if (!adminEmail || configs.users?.[adminEmail]?.role !== 'superadmin') {
     return NextResponse.json({ error: 'Superadmin access required' }, { status: 403 });
   }
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   res.cookies.set('secops-admin-original', adminEmail, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 60 * 60 * 2, path: '/' });
   
   configs.auditLog?.push({ action: 'admin_impersonate', admin: adminEmail, target: email, time: new Date().toISOString() });
-  try { const { saveToolConfigs: save } = require('@/lib/config-store'); await save(configs); } catch {}
+  try { const { savePlatformData: save } = require('@/lib/config-store'); await save(configs); } catch {}
   
   return res;
 }

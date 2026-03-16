@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { loadToolConfigs, saveToolConfigs } from '@/lib/config-store';
+import { loadPlatformData, savePlatformData } from '@/lib/config-store';
 
 function hashPassword(pw: string): string {
   let hash = 0;
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 
   if (!email || !password) return NextResponse.json({ error: 'Email and password required' }, { status: 400 });
 
-  const configs = await loadToolConfigs();
+  const configs = await loadPlatformData();
   if (!configs.users) configs.users = {};
   if (!configs.tenants) configs.tenants = {};
   if (!configs.auditLog) configs.auditLog = [];
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
 
   configs.auditLog.push({ action: 'superadmin_seeded', email, time: new Date().toISOString() });
   configs.updatedAt = new Date().toISOString();
-  await saveToolConfigs(configs);
+  await savePlatformData(configs);
 
   return NextResponse.json({ ok: true, message: `Super admin created: ${email}`, tenantId });
 }

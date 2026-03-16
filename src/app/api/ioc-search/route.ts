@@ -1,7 +1,9 @@
+import { getTenantFromRequest } from '@/lib/config-store';
 import { NextResponse } from 'next/server';
 import { tenableHeaders, tenableAPI, getTaegisToken, taegisGraphQL } from '@/lib/api-clients';
 
 export async function POST(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
   const { ioc } = await req.json();
   if (!ioc || ioc.length < 3) return NextResponse.json({ ioc, resultCount: 0, results: [] });
 
@@ -9,7 +11,7 @@ export async function POST(req: Request) {
   const q = ioc.toLowerCase();
 
   // Search Tenable
-  const headers = await tenableHeaders();
+  const headers = await tenableHeaders(tenantId || undefined);
   if (headers) {
     try {
       const data = await tenableAPI(`/workbenches/assets?filter.0.filter=host.hostname&filter.0.quality=match&filter.0.value=${encodeURIComponent(ioc)}`);
@@ -28,7 +30,7 @@ export async function POST(req: Request) {
   }
 
   // Search Taegis
-  const taegisAuth = await getTaegisToken();
+  const taegisAuth = await getTaegisToken(tenantId || undefined);
   if (taegisAuth) {
     try {
       const query = `query { alertsServiceSearch(in: { cql_query: "FROM alert WHERE severity >= 0.4 AND (metadata.title CONTAINS '${ioc.replace(/'/g, '')}') EARLIEST=-7d", offset: 0, limit: 5 }) { alerts { list { id metadata { title severity } status } } } }`;

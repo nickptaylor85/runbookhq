@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { loadToolConfigs } from '@/lib/config-store';
+import { loadPlatformData } from '@/lib/config-store';
 
 export async function POST(req: Request) {
   const { email } = await req.json();
   const stripeKey = process.env.STRIPE_SECRET_KEY;
   if (!stripeKey) return NextResponse.json({ error: 'Stripe not configured' });
 
-  const configs = await loadToolConfigs();
+  const configs = await loadPlatformData();
   const user = configs.users?.[email];
   if (!user?.stripeCustomerId) return NextResponse.json({ error: 'No billing account found' });
 

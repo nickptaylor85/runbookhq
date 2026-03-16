@@ -75,8 +75,8 @@ const TAEGIS_REGIONS: Record<string, string> = {
   'eu2': 'https://api.golf.taegis.secureworks.com',
 };
 
-export async function getTaegisToken(): Promise<{ token: string; base: string } | null> {
-  const c = await getConfigs();
+export async function getTaegisToken(tenantId?: string): Promise<{ token: string; base: string } | null> {
+  const c = await getConfigs(tenantId);
   const clientId = getCred('taegis', 'TAEGIS_CLIENT_ID', c);
   const clientSecret = getCred('taegis', 'TAEGIS_CLIENT_SECRET', c);
   const region = (getCred('taegis', 'TAEGIS_REGION', c) || 'us').toLowerCase();
@@ -118,8 +118,8 @@ export async function tenableHeaders(): Promise<Record<string, string> | null> {
   return { 'X-ApiKeys': `accessKey=${accessKey};secretKey=${secretKey}`, 'Content-Type': 'application/json' };
 }
 
-export async function tenableAPI(path: string) {
-  const headers = await tenableHeaders();
+export async function tenableAPI(path: string, tenantId?: string) {
+  const headers = await tenableHeaders(tenantId);
   if (!headers) throw new Error('No Tenable credentials');
   const res = await fetch(`https://cloud.tenable.com${path}`, { headers, cache: 'no-store' });
   return res.json();

@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { loadToolConfigs, saveToolConfigs } from '@/lib/config-store';
+import { loadPlatformData, savePlatformData } from '@/lib/config-store';
 
 async function requireSuperAdmin(req: Request) {
   const cookie = req.headers.get('cookie') || '';
   const authMatch = cookie.match(/secops-auth=([^;]+)/);
   const email = authMatch?.[1] ? decodeURIComponent(authMatch[1]) : null;
   if (!email) return null;
-  const configs = await loadToolConfigs();
+  const configs = await loadPlatformData();
   const user = configs.users?.[email];
   if (!user || user.role !== 'superadmin') return null;
   return { email, configs };
@@ -39,7 +39,7 @@ export async function PUT(req: Request) {
   auth.configs.auditLog.push({ action: 'admin_user_update', target: email, by: auth.email, changes: { plan, role, disabled }, time: new Date().toISOString() });
   
   auth.configs.updatedAt = new Date().toISOString();
-  await saveToolConfigs(auth.configs);
+  await savePlatformData(auth.configs);
   return NextResponse.json({ ok: true, message: `Updated ${email}` });
 }
 
@@ -54,6 +54,6 @@ export async function DELETE(req: Request) {
   delete auth.configs.users[email];
   auth.configs.auditLog?.push({ action: 'admin_user_deleted', target: email, by: auth.email, time: new Date().toISOString() });
   auth.configs.updatedAt = new Date().toISOString();
-  await saveToolConfigs(auth.configs);
+  await savePlatformData(auth.configs);
   return NextResponse.json({ ok: true });
 }

@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { loadToolConfigs, saveToolConfigs } from '@/lib/config-store';
+import { loadPlatformData, savePlatformData } from '@/lib/config-store';
 
 async function requireSuperAdmin(req: Request) {
   const cookie = req.headers.get('cookie') || '';
   const authMatch = cookie.match(/secops-auth=([^;]+)/);
   const email = authMatch?.[1] ? decodeURIComponent(authMatch[1]) : null;
   if (!email) return null;
-  const configs = await loadToolConfigs();
+  const configs = await loadPlatformData();
   const user = configs.users?.[email];
   if (!user || user.role !== 'superadmin') return null;
   return { email, configs };

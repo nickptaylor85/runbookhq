@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import { loadToolConfigs } from '@/lib/config-store';
+import { getTenantFromRequest } from '@/lib/config-store';
 
 export async function POST(req: Request) {
+  const { tenantId } = getTenantFromRequest(req);
   const { alerts } = await req.json();
-  const configs = await loadToolConfigs();
+  const configs = await loadToolConfigs(tenantId || undefined);
   const apiKey = configs.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY;
 
   if (!apiKey || !alerts?.length) {
