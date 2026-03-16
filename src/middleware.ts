@@ -2,28 +2,41 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const password = process.env.DASHBOARD_PASSWORD;
-  if (!password) return NextResponse.next(); // No password set = no protection
+  const path = request.nextUrl.pathname;
 
-  // Skip auth for login API and static files
-  if (request.nextUrl.pathname.startsWith('/api/auth') || request.nextUrl.pathname.startsWith('/_next')) {
+  // Public routes - no auth needed
+  if (path === '/' || path.startsWith('/login') || path.startsWith('/signup') || path.startsWith('/api/auth') || path.startsWith('/api/stripe') || path.startsWith('/_next')) {
     return NextResponse.next();
   }
 
-  const cookie = request.cookies.get('secops-auth');
-  if (cookie?.value === password) {
+  // Protected routes
+  const authCookie = request.cookies.get('secops-auth');
+
+  if (!authCookie?.value) {
+    // API routes return 401
+    if (path.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    // Dashboard routes redirect to login
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
+
+  // Legacy: check if it's a simple password
+  const dashPw = process.env.DASHBOARD_PASSWORD;
+  if (dashPw && authCookie.value === dashPw) {
     return NextResponse.next();
   }
 
-  // If requesting API, return 401
-  if (request.nextUrl.pathname.startsWith('/api/')) {
+  // New: email-based auth - cookie contains email
+  if (authCookie.value.includes('@')) {
+    return NextResponse.next();
+  }
+
+  // Invalid cookie
+  if (path.startsWith('/api/')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-
-  // Redirect to login
-  const url = request.nextUrl.clone();
-  url.pathname = '/login';
-  return NextResponse.rewrite(url);
+  return NextResponse.redirect(new URL('/login', request.url));
 }
 
 export const config = {

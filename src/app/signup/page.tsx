@@ -1,20 +1,22 @@
 'use client';
 import { useState } from 'react';
 
-export default function Login() {
+export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [org, setOrg] = useState('');
+  const [plan, setPlan] = useState('pro');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);setError('');
     try {
-      const r = await fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+      const r = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, org, plan }) });
       const d = await r.json();
       if (d.ok) window.location.href = '/dashboard';
-      else setError(d.error || 'Invalid credentials');
+      else setError(d.error || 'Registration failed');
     } catch { setError('Network error'); }
     setLoading(false);
   }
@@ -24,15 +26,17 @@ export default function Login() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo"><div className="auth-logo-icon">S</div>RunbookHQ</div>
-        <h1 className="auth-title">Welcome back</h1>
-        <p className="auth-sub">Sign in to your SOC dashboard.</p>
-        <form onSubmit={handleLogin}>
-          <div className="auth-field"><label>Email</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@company.com" required /></div>
-          <div className="auth-field"><label>Password</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" required /></div>
+        <h1 className="auth-title">Create your account</h1>
+        <p className="auth-sub">Start your 14-day free trial. No credit card required.</p>
+        <form onSubmit={handleSignup}>
+          <div className="auth-field"><label>Organisation name</label><input type="text" value={org} onChange={e=>setOrg(e.target.value)} placeholder="Acme Security" required /></div>
+          <div className="auth-field"><label>Work email</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@company.com" required /></div>
+          <div className="auth-field"><label>Password</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Min 8 characters" required minLength={8} /></div>
+          <div className="auth-field"><label>Plan</label><select value={plan} onChange={e=>setPlan(e.target.value)}><option value="starter">Starter (Free)</option><option value="pro">Pro (£49/mo)</option><option value="enterprise">Enterprise (£199/mo)</option></select></div>
           {error && <div className="auth-error">{error}</div>}
-          <button className="auth-btn" type="submit" disabled={loading}>{loading ? 'Signing in...' : 'Sign In'}</button>
+          <button className="auth-btn" type="submit" disabled={loading}>{loading ? 'Creating account...' : 'Start Free Trial →'}</button>
         </form>
-        <p className="auth-link">No account yet? <a href="/signup">Start free trial</a></p>
+        <p className="auth-link">Already have an account? <a href="/login">Sign in</a></p>
       </div>
     </div>
   </>);
@@ -48,12 +52,14 @@ const CSS = `@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@
 .auth-sub{font-size:.78rem;color:#8896b8;text-align:center;margin-bottom:28px}
 .auth-field{margin-bottom:16px}
 .auth-field label{display:block;font-size:.72rem;font-weight:600;color:#8896b8;margin-bottom:5px}
-.auth-field input{width:100%;padding:10px 14px;background:#0f1219;border:1px solid #1e2840;border-radius:10px;color:#eaf0ff;font-size:.85rem;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s}
-.auth-field input:focus{border-color:#5b9aff}
+.auth-field input,.auth-field select{width:100%;padding:10px 14px;background:#0f1219;border:1px solid #1e2840;border-radius:10px;color:#eaf0ff;font-size:.85rem;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s}
+.auth-field input:focus,.auth-field select:focus{border-color:#5b9aff}
 .auth-field input::placeholder{color:#4a5672}
+.auth-field select{cursor:pointer}
 .auth-error{background:rgba(255,68,102,.1);border:1px solid rgba(255,68,102,.15);color:#ff4466;padding:8px 12px;border-radius:8px;font-size:.76rem;margin-bottom:12px}
 .auth-btn{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#5b9aff,#8b6fff);color:#fff;font-size:.88rem;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .25s;box-shadow:0 4px 16px rgba(91,154,255,.25);margin-top:4px}
 .auth-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(91,154,255,.35)}
 .auth-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
 .auth-link{text-align:center;margin-top:20px;font-size:.76rem;color:#4a5672}
-.auth-link a{color:#5b9aff;text-decoration:none;font-weight:600}`;
+.auth-link a{color:#5b9aff;text-decoration:none;font-weight:600}
+.auth-link a:hover{text-decoration:underline}`;
