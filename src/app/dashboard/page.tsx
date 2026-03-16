@@ -592,13 +592,11 @@ body{background:var(--bg0);color:var(--t1);font-family:var(--fs);font-size:14px;
 .refresh-btn{height:30px;padding:0 10px;border-radius:var(--r);border:1px solid var(--brd);background:var(--bg2);cursor:pointer;font-size:.72rem;font-family:var(--fs);color:var(--t2);transition:all .15s}
 .refresh-btn:hover{border-color:var(--accent);color:var(--accent)}
 .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s ease-in-out infinite;flex-shrink:0}
-@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 8px var(--green)}
-50%{opacity:.4;box-shadow:0 0 2px var(--green)}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 8px var(--green)}50%{opacity:.4;box-shadow:0 0 2px var(--green)}}
 .main{flex:1;padding:14px 16px 16px;max-width:1480px;margin:0 auto;width:100%}
 .tv-wall{position:fixed;inset:0;background:var(--bg0);z-index:999;display:flex;flex-direction:column;cursor:pointer}
 .tv-slide{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;animation:tvFade .6s ease}
-@keyframes tvFade{from{opacity:0;transform:scale(.98)}
-to{opacity:1;transform:scale(1)}
+@keyframes tvFade{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}
 .tv-title{font-size:1.1rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--t3);margin-bottom:30px}
 .tv-kpi-row{display:flex;gap:40px;justify-content:center;margin-top:30px}
 .tv-kpi{text-align:center}
@@ -646,7 +644,7 @@ to{opacity:1;transform:scale(1)}
 .war-room{display:grid;grid-template-columns:1fr 300px;gap:12px;margin-bottom:12px}
 .wr-left{display:flex;flex-direction:column;gap:10px}
 .wr-right{display:flex;flex-direction:column}
-@media(max-width:768px){.tv-wall{position:fixed;inset:0;background:var(--bg0);z-index:999;display:flex;flex-direction:column;cursor:pointer}
+@media(max-width:768px){.tv-wall{position:fixed;inset:0;background:var(--bg0);z-index:999;display:flex;flex-direction:column;cursor:pointer}}
 .posture-card{background:linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 50%,var(--bg1) 100%);border:1px solid var(--brd);border-radius:16px;padding:20px;display:flex;gap:20px;align-items:center;position:relative;overflow:hidden}
 .posture-card::before{content:'';position:absolute;top:-50%;right:-50%;width:100%;height:100%;background:radial-gradient(circle,var(--accent)05 0%,transparent 70%);pointer-events:none}
 .posture-gauge{position:relative;flex-shrink:0;width:140px;height:120px}
@@ -747,11 +745,11 @@ to{opacity:1;transform:scale(1)}
 .dot-off{background:var(--t4)}
 .loading{display:flex;align-items:center;justify-content:center;gap:8px;padding:60px;color:var(--t3);font-size:.82rem}
 .spin{width:18px;height:18px;border:2px solid var(--brd);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}
-@keyframes crit-flash{0%,100%{border-color:var(--brd);box-shadow:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes crit-flash{0%,100%{border-color:var(--brd);box-shadow:none}50%{border-color:var(--red);box-shadow:0 0 30px rgba(255,68,102,.15)}}
 .crit-flash .topbar{animation:topbar-flash 2s ease infinite}
 .crit-flash .kpi:first-child{animation:crit-flash 2s ease infinite}
-@keyframes topbar-flash{0%,100%{border-bottom-color:var(--brd)}
+@keyframes topbar-flash{0%,100%{border-bottom-color:var(--brd)}50%{border-bottom-color:var(--red)}}
 /* Tool chips */
 .tool-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:.62rem;font-weight:600;border:1px solid;background:var(--bg2);font-family:var(--fm);transition:all .2s}
 .tool-chip:hover{transform:scale(1.05);box-shadow:0 0 12px currentColor}
@@ -811,7 +809,7 @@ select.field-input{font-family:var(--fs)}
 .mob-menu{display:block}
 .g2r,.g23{grid-template-columns:1fr}
 .tool-grid{grid-template-columns:1fr}
-@media(max-width:480px){.tv-wall{position:fixed;inset:0;background:var(--bg0);z-index:999;display:flex;flex-direction:column;cursor:pointer}
+@media(max-width:480px){.tv-wall{position:fixed;inset:0;background:var(--bg0);z-index:999;display:flex;flex-direction:column;cursor:pointer}}
 /* IOC Search */
 .search-trigger{height:30px;padding:0 10px;border-radius:var(--r);border:1px solid var(--brd);background:var(--bg2);cursor:pointer;font-size:.72rem;font-family:var(--fs);color:var(--t2);display:flex;align-items:center;gap:4px;transition:all .15s}
 .search-trigger:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-s)}
@@ -833,7 +831,7 @@ select.field-input{font-family:var(--fs)}
 /* User Guide */
 .guide-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:200;display:flex;justify-content:flex-end}
 .guide-panel{width:420px;max-width:90vw;background:var(--bg1);border-left:1px solid var(--brd);display:flex;flex-direction:column;animation:slideIn .2s ease}
-@keyframes slideIn{from{transform:translateX(100%)}
+@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
 .guide-hd{display:flex;justify-content:space-between;align-items:flex-start;padding:16px;border-bottom:1px solid var(--brd)}
 .guide-body{flex:1;overflow-y:auto;padding:16px}
 .guide-section{margin-bottom:16px}
@@ -882,8 +880,8 @@ select.field-input{font-family:var(--fs)}
 .crit-popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);display:flex;align-items:flex-start;justify-content:center;z-index:300;padding-top:80px}
 .crit-popup{background:linear-gradient(135deg,var(--bg1),var(--bg2));border:2px solid var(--red);border-radius:16px;padding:20px;max-width:440px;width:100%;box-shadow:0 0 60px rgba(255,68,102,.2),0 20px 60px rgba(0,0,0,.5);animation:critSlide .3s ease}
 .crit-popup-pulse{position:absolute;inset:-2px;border-radius:16px;border:2px solid var(--red);animation:critPulseRing 2s ease infinite;pointer-events:none}
-@keyframes critSlide{from{transform:translateY(-20px);opacity:0}
-@keyframes critPulseRing{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,68,102,.4)}
+@keyframes critSlide{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes critPulseRing{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,68,102,.4)}50%{opacity:.6;box-shadow:0 0 0 12px rgba(255,68,102,0)}}
 .clickable-row{transition:all .15s ease;cursor:pointer}
 .clickable-row:hover{background:var(--accent-s)!important;box-shadow:inset 3px 0 0 var(--accent)}
 .ti-card{padding:10px 12px;border-left:3px solid;margin-bottom:6px;background:var(--bg2);border-radius:0 var(--r) var(--r) 0;cursor:pointer;transition:all .15s}
