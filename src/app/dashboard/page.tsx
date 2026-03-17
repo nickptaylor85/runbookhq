@@ -3,6 +3,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { TOOLS, type ToolInfo, type ToolField } from '@/lib/tool-registry-client';
 import React from 'react';
 
+class DashErrorBoundary extends React.Component<{children:React.ReactNode},{error:any}>{
+  constructor(props:any){super(props);this.state={error:null}}
+  static getDerivedStateFromError(error:any){return{error}}
+  render(){if(this.state.error)return React.createElement('div',{style:{padding:40,background:'#0a0d15',color:'#ff4466',minHeight:'100vh',fontFamily:'monospace'}},React.createElement('h1',null,'Dashboard Error'),React.createElement('pre',{style:{whiteSpace:'pre-wrap',fontSize:14,marginTop:20,color:'#eaf0ff'}},String(this.state.error?.message||this.state.error)),React.createElement('pre',{style:{whiteSpace:'pre-wrap',fontSize:11,marginTop:10,color:'#8896b8'}},String(this.state.error?.stack||'')),React.createElement('a',{href:'/test',style:{color:'#5b9aff',marginTop:20,display:'block'}},'Go to diagnostic page'));return this.props.children}
+}
+
 
 /* ═══ SVG COMPONENTS ═══ */
 function Spark({ data, color = '#4f8fff', h = 30, w = 94 }: { data: number[]; color?: string; h?: number; w?: number }) {
@@ -286,7 +292,7 @@ function TVWall({alerts,m,cov,sparks,slide,onExit}:{alerts:any[];m:any;cov:any;s
 }
 
 /* ═══ MAIN ═══ */
-export default function Dashboard(){
+function DashboardInner(){
   const[tab,setTab]=useState<Tab>('overview');
   const[data,setData]=useState<any>(null);
   const[alerts,setAlerts]=useState<Al[]>([]);
@@ -888,3 +894,5 @@ select.field-input{font-family:var(--fs)}
 .ti-card:hover{background:var(--bg3)}
 /* Triage */
 .triage-badge{display:inline-flex;flex-direction:column;align-items:center;padding:2px 5px;border-radius:4px;background:var(--bg3);border:1px solid var(--brd);min-width:32px}`;
+
+export default function Dashboard(){return React.createElement(DashErrorBoundary,null,React.createElement(DashboardInner));}
