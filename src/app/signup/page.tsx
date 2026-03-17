@@ -15,7 +15,7 @@ export default function Signup() {
     try {
       const r = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, org, plan }) });
       const d = await r.json();
-      if (d.ok) window.location.href = '/dashboard';
+      if (d.ok) window.location.href = '/setup';
       else setError(d.error || 'Registration failed');
     } catch { setError('Network error'); }
     setLoading(false);

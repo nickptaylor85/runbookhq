@@ -4,6 +4,12 @@ import { getConfiguredTools, tenableHeaders, tenableAPI } from '@/lib/api-client
 
 export async function GET(req: Request) {
   const { tenantId } = getTenantFromRequest(req);
+  // Demo mode
+  const tenantConfigs = await loadToolConfigs(tenantId || undefined);
+  if (tenantConfigs?.tools?.['_demo']?.enabled) {
+    return NextResponse.json({ metrics: { totalAlerts: 14, critical: 3, high: 6, medium: 4, low: 1 }, coverage: { totalDevices: 847, agentCoverage: 76, staleCount: 23, tools: { 'Defender': { installed: 680, healthy: 652, degraded: 28 }, 'Taegis': { installed: 512, healthy: 498, degraded: 14 } } }, zscaler: { zia: { blockedThreats: 1247, dlpViolations: 3 } }, demo: true });
+  }
+
   const tools = await getConfiguredTools(tenantId || undefined);
   const headers = await tenableHeaders(tenantId || undefined);
 
