@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-type Tab = 'security'|'team'|'sessions';
+type Tab = 'security'|'team'|'sessions'|'apikeys'|'webhooks';
 
 export default function Settings() {
   const [tab, setTab] = useState<Tab>('security');
@@ -16,6 +16,8 @@ export default function Settings() {
   const [invEmail, setInvEmail] = useState('');
   const [invRole, setInvRole] = useState('analyst');
   const [invResult, setInvResult] = useState<any>(null);
+  const [apiKeys, setApiKeys] = useState<any[]>([]);const [newKeyName, setNewKeyName] = useState('');const [newKeyResult, setNewKeyResult] = useState<any>(null);
+  const [webhooks, setWebhooks] = useState<any[]>([]);const [whUrl, setWhUrl] = useState('');const [whName, setWhName] = useState('');
 
   function flash(m: string) { setMsg(m); setErr(''); setTimeout(() => setMsg(''), 4000); }
   function flashErr(e: string) { setErr(e); setMsg(''); setTimeout(() => setErr(''), 4000); }
@@ -23,6 +25,8 @@ export default function Settings() {
   useEffect(() => {
     fetch('/api/auth/me').then(r => r.json()).then(d => setUser(d));
     fetch('/api/auth/invite').then(r => r.json()).then(d => { if (d.members) setMembers(d.members); if (d.pendingInvites) setInvites(d.pendingInvites); });
+    fetch('/api/auth/api-keys').then(r => r.json()).then(d => { if (d.keys) setApiKeys(d.keys); });
+    fetch('/api/webhooks').then(r => r.json()).then(d => { if (d.webhooks) setWebhooks(d.webhooks); });
     fetch('/api/auth/sessions').then(r => r.json()).then(d => { if (d.sessions) setSessions(d.sessions); });
   }, []);
 
@@ -69,6 +73,8 @@ export default function Settings() {
     if (!confirm('Revoke all other sessions? You will stay logged in.')) return;
     await fetch('/api/auth/sessions', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ all: true }) });
     flash('All other sessions revoked');
+    fetch('/api/auth/api-keys').then(r => r.json()).then(d => { if (d.keys) setApiKeys(d.keys); });
+    fetch('/api/webhooks').then(r => r.json()).then(d => { if (d.webhooks) setWebhooks(d.webhooks); });
     fetch('/api/auth/sessions').then(r => r.json()).then(d => { if (d.sessions) setSessions(d.sessions); });
   }
 
@@ -83,6 +89,8 @@ export default function Settings() {
           <button className={'sp-tab ' + (tab === 'security' ? 'active' : '')} onClick={() => setTab('security')}>🔒 Security</button>
           <button className={'sp-tab ' + (tab === 'team' ? 'active' : '')} onClick={() => setTab('team')}>👥 Team</button>
           <button className={'sp-tab ' + (tab === 'sessions' ? 'active' : '')} onClick={() => setTab('sessions')}>📱 Sessions</button>
+          <button className={'sp-tab ' + (tab === 'apikeys' ? 'active' : '')} onClick={() => setTab('apikeys')}>🔑 API Keys</button>
+          <button className={'sp-tab ' + (tab === 'webhooks' ? 'active' : '')} onClick={() => setTab('webhooks')}>🔗 Webhooks</button>
           <a href="/dashboard" className="sp-tab">← Dashboard</a>
         </div>
       </div>
@@ -169,6 +177,42 @@ export default function Settings() {
             </tbody>
           </table>
         </div>
+      </div>}
+
+      {tab === 'apikeys' && <div className="sp-section">
+        <h2>API Keys</h2>
+        <div className="sp-card" style={{marginBottom:16}}>
+          <div style={{display:'flex',gap:8}}>
+            <input type="text" value={newKeyName} onChange={e => setNewKeyName(e.target.value)} placeholder="Key name (e.g. SIEM Integration)" style={{flex:1,padding:'8px 12px',background:'#0f1219',border:'1px solid #1e2840',borderRadius:8,color:'#eaf0ff',fontSize:'.82rem',fontFamily:'DM Sans,sans-serif',outline:'none'}} />
+            <button className="sp-btn sp-btn-primary" onClick={() => { fetch('/api/auth/api-keys', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: newKeyName, scopes: ['read', 'write'] }) }).then(r => r.json()).then(d => { if (d.ok) { setNewKeyResult(d); setNewKeyName(''); fetch('/api/auth/api-keys').then(r => r.json()).then(d => { if (d.keys) setApiKeys(d.keys); }); } else flashErr(d.error); }); }}>Generate Key</button>
+          </div>
+          {newKeyResult && <div style={{marginTop:12,padding:'12px',background:'rgba(52,232,165,.08)',border:'1px solid rgba(52,232,165,.15)',borderRadius:8}}><div style={{fontWeight:700,color:'#34e8a5',fontSize:'.78rem'}}>✓ Key created — copy it now</div><div style={{fontFamily:'JetBrains Mono,monospace',fontSize:'.72rem',color:'#eaf0ff',background:'#1e2840',padding:'8px 12px',borderRadius:6,marginTop:8,wordBreak:'break-all'}}>{newKeyResult.key}</div><div style={{fontSize:'.65rem',color:'#4a5672',marginTop:6}}>This key will not be shown again. Use it as X-API-Key header or Bearer token.</div></div>}
+        </div>
+        <div className="sp-card">
+          <table className="sp-tbl"><thead><tr><th>Name</th><th>Key</th><th>Scopes</th><th>Created</th><th>Last Used</th><th>Actions</th></tr></thead><tbody>
+            {apiKeys.map(k => (<tr key={k.id}><td style={{fontWeight:600}}>{k.name}</td><td style={{fontFamily:'JetBrains Mono,monospace',fontSize:'.68rem',color:'#4a5672'}}>{k.prefix}</td><td style={{fontSize:'.65rem'}}>{k.scopes?.join(', ')}</td><td style={{fontSize:'.68rem',color:'#4a5672'}}>{k.createdAt ? new Date(k.createdAt).toLocaleDateString() : '—'}</td><td style={{fontSize:'.68rem',color:'#4a5672'}}>{k.lastUsedAt ? new Date(k.lastUsedAt).toLocaleDateString() : 'Never'}</td><td><button className="sp-btn-sm sp-btn-danger" onClick={() => { if (confirm('Revoke this API key?')) fetch('/api/auth/api-keys', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: k.id }) }).then(() => fetch('/api/auth/api-keys').then(r => r.json()).then(d => { if (d.keys) setApiKeys(d.keys); })); }}>Revoke</button></td></tr>))}
+            {apiKeys.length === 0 && <tr><td colSpan={6} style={{textAlign:'center',color:'#4a5672',padding:20}}>No API keys yet</td></tr>}
+          </tbody></table>
+        </div>
+        <div style={{marginTop:12,fontSize:'.72rem',color:'#4a5672'}}><strong>Usage:</strong> Include <code style={{background:'#1e2840',padding:'1px 4px',borderRadius:3}}>X-API-Key: rbhq_xxx</code> header in requests to any /api/ endpoint.</div>
+      </div>}
+
+      {tab === 'webhooks' && <div className="sp-section">
+        <h2>Outbound Webhooks</h2>
+        <div className="sp-card" style={{marginBottom:16}}>
+          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+            <input type="text" value={whName} onChange={e => setWhName(e.target.value)} placeholder="Name" style={{width:140,padding:'8px 12px',background:'#0f1219',border:'1px solid #1e2840',borderRadius:8,color:'#eaf0ff',fontSize:'.82rem',fontFamily:'DM Sans,sans-serif',outline:'none'}} />
+            <input type="url" value={whUrl} onChange={e => setWhUrl(e.target.value)} placeholder="https://your-siem.com/webhook" style={{flex:1,minWidth:200,padding:'8px 12px',background:'#0f1219',border:'1px solid #1e2840',borderRadius:8,color:'#eaf0ff',fontSize:'.82rem',fontFamily:'DM Sans,sans-serif',outline:'none'}} />
+            <button className="sp-btn sp-btn-primary" onClick={() => { fetch('/api/webhooks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'create', name: whName, url: whUrl }) }).then(r => r.json()).then(d => { if (d.ok) { setWhUrl(''); setWhName(''); flash('Webhook created'); fetch('/api/webhooks').then(r => r.json()).then(d => { if (d.webhooks) setWebhooks(d.webhooks); }); } }); }}>Add Webhook</button>
+          </div>
+        </div>
+        <div className="sp-card">
+          <table className="sp-tbl"><thead><tr><th>Name</th><th>URL</th><th>Events</th><th>Created</th><th>Actions</th></tr></thead><tbody>
+            {webhooks.map((w: any) => (<tr key={w.id}><td style={{fontWeight:600}}>{w.name}</td><td style={{fontFamily:'JetBrains Mono,monospace',fontSize:'.65rem',color:'#4a5672',maxWidth:200,overflow:'hidden',textOverflow:'ellipsis'}}>{w.url}</td><td style={{fontSize:'.6rem'}}>{w.events?.join(', ')}</td><td style={{fontSize:'.68rem',color:'#4a5672'}}>{w.createdAt ? new Date(w.createdAt).toLocaleDateString() : '—'}</td><td><button className="sp-btn-sm sp-btn-danger" onClick={() => { fetch('/api/webhooks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'delete', webhookId: w.id }) }).then(() => fetch('/api/webhooks').then(r => r.json()).then(d => { if (d.webhooks) setWebhooks(d.webhooks); })); }}>Delete</button></td></tr>))}
+            {webhooks.length === 0 && <tr><td colSpan={5} style={{textAlign:'center',color:'#4a5672',padding:20}}>No webhooks configured</td></tr>}
+          </tbody></table>
+        </div>
+        <div style={{marginTop:12,fontSize:'.72rem',color:'#4a5672'}}><strong>Events:</strong> alert.critical, sla.breach, incident.created, incident.closed. Webhook receives POST with JSON payload.</div>
       </div>}
     </div>
   </>);

@@ -122,3 +122,20 @@ export function checkRateLimit(key: string, maxAttempts: number = 5, windowMs: n
 export function generateSessionToken(): string {
   return randomBytes(32).toString('hex');
 }
+
+// ═══ API KEY VALIDATION ═══
+export async function validateApiKey(req: Request): Promise<{ valid: boolean; tenantId?: string; email?: string; scopes?: string[] }> {
+  const header = req.headers.get('x-api-key') || req.headers.get('authorization')?.replace('Bearer ', '');
+  if (!header || !header.startsWith('rbhq_')) return { valid: false };
+  
+  // Dynamic import to avoid circular deps
+  const { loadPlatformData } = await import('@/lib/config-store');
+  const platform = await loadPlatformData();
+  const key = (platform.apiKeys || []).find((k: any) => k.key === header && !k.revoked);
+  if (!key) return { valid: false };
+  
+  key.lastUsedAt = new Date().toISOString();
+  try { const { savePlatformData } = await import('@/lib/config-store'); await savePlatformData(platform); } catch {}
+  
+  return { valid: true, tenantId: key.tenantId, email: key.createdBy, scopes: key.scopes };
+}

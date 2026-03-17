@@ -4,38 +4,43 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
-  // Public routes - no auth needed
+  // Public routes
   if (path === '/' || path.startsWith('/login') || path.startsWith('/signup') || path.startsWith('/api/auth') || path.startsWith('/api/stripe') || path.startsWith('/_next')) {
     return NextResponse.next();
   }
 
-  // Protected routes
-  const authCookie = request.cookies.get('secops-auth');
+  // API routes: accept cookie OR API key
+  if (path.startsWith('/api/')) {
+    const authCookie = request.cookies.get('secops-auth');
+    const apiKey = request.headers.get('x-api-key') || request.headers.get('authorization')?.replace('Bearer ', '');
 
-  if (!authCookie?.value) {
-    // API routes return 401
-    if (path.startsWith('/api/')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // API key auth (validated in the route handler via validateApiKey)
+    if (apiKey && apiKey.startsWith('rbhq_')) {
+      return NextResponse.next();
     }
-    // Dashboard routes redirect to login
+
+    // Cookie auth
+    if (authCookie?.value) {
+      const dashPw = process.env.DASHBOARD_PASSWORD;
+      if ((dashPw && authCookie.value === dashPw) || authCookie.value.includes('@')) {
+        return NextResponse.next();
+      }
+    }
+
+    return NextResponse.json({ error: 'Unauthorized. Provide a valid session cookie or X-API-Key header.' }, { status: 401 });
+  }
+
+  // Dashboard/settings/admin routes: cookie only
+  const authCookie = request.cookies.get('secops-auth');
+  if (!authCookie?.value) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Legacy: check if it's a simple password
   const dashPw = process.env.DASHBOARD_PASSWORD;
-  if (dashPw && authCookie.value === dashPw) {
+  if ((dashPw && authCookie.value === dashPw) || authCookie.value.includes('@')) {
     return NextResponse.next();
   }
 
-  // New: email-based auth - cookie contains email
-  if (authCookie.value.includes('@')) {
-    return NextResponse.next();
-  }
-
-  // Invalid cookie
-  if (path.startsWith('/api/')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
   return NextResponse.redirect(new URL('/login', request.url));
 }
 
