@@ -373,7 +373,7 @@ function DashboardInner(){
 
   const m=data?.metrics,cov=data?.coverage,zsc=data?.zscaler;
   const hasCrit=alerts.filter(a=>a.severity==='critical'&&a.status==='new').length>0;
-  const enabledTools=toolsData?.tools?.filter((t:any)=>t.enabled)||[];
+  const enabledTools=(Array.isArray(toolsData?.tools)?toolsData.tools:Object.values(toolsData?.tools||{})).filter((t:any)=>t.enabled).map((t:any)=>{const reg=TOOLS.find((r:any)=>r.id===t.id);return{...t,icon:reg?.icon||'🔌',shortName:reg?.shortName||t.id,color:reg?.color||'#8896b8'}})||[];
   const critCount=alerts.filter(a=>a.severity==='critical'&&a.status==='new').length;
   const highCount=alerts.filter(a=>a.severity==='high').length;
   const tabs:{k:Tab;l:string;i:string;badge?:number}[]=[{k:'overview',l:'Overview',i:'◉'},{k:'alerts',l:'Alerts',i:'⚡',badge:critCount},{k:'coverage',l:'Coverage',i:'🛡'},{k:'vulns',l:'Vulns',i:'🔓'},{k:'intel',l:'Intel',i:'🛡'},{k:'tools',l:`Tools (${enabledTools.length})`,i:'🔌'}];
