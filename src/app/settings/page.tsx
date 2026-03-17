@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 
-type Tab = 'security'|'team'|'sessions'|'apikeys'|'webhooks';
+type Tab = 'security'|'team'|'sessions'|'apikeys'|'webhooks'|'emails';
 
 export default function Settings() {
   const [tab, setTab] = useState<Tab>('security');
@@ -18,6 +18,7 @@ export default function Settings() {
   const [invResult, setInvResult] = useState<any>(null);
   const [apiKeys, setApiKeys] = useState<any[]>([]);const [newKeyName, setNewKeyName] = useState('');const [newKeyResult, setNewKeyResult] = useState<any>(null);
   const [webhooks, setWebhooks] = useState<any[]>([]);const [whUrl, setWhUrl] = useState('');const [whName, setWhName] = useState('');
+  const [emailPrefs, setEmailPrefs] = useState<any>({ dailyDigest: false, weeklyReport: false, alertNotify: false });
 
   function flash(m: string) { setMsg(m); setErr(''); setTimeout(() => setMsg(''), 4000); }
   function flashErr(e: string) { setErr(e); setMsg(''); setTimeout(() => setErr(''), 4000); }
@@ -91,6 +92,7 @@ export default function Settings() {
           <button className={'sp-tab ' + (tab === 'sessions' ? 'active' : '')} onClick={() => setTab('sessions')}>📱 Sessions</button>
           <button className={'sp-tab ' + (tab === 'apikeys' ? 'active' : '')} onClick={() => setTab('apikeys')}>🔑 API Keys</button>
           <button className={'sp-tab ' + (tab === 'webhooks' ? 'active' : '')} onClick={() => setTab('webhooks')}>🔗 Webhooks</button>
+          <button className={'sp-tab ' + (tab === 'emails' ? 'active' : '')} onClick={() => setTab('emails')}>📧 Emails</button>
           <a href="/dashboard" className="sp-tab">← Dashboard</a>
         </div>
       </div>
@@ -197,6 +199,18 @@ export default function Settings() {
         <div style={{marginTop:12,fontSize:'.72rem',color:'#4a5672'}}><strong>Usage:</strong> Include <code style={{background:'#1e2840',padding:'1px 4px',borderRadius:3}}>X-API-Key: wt_xxx</code> header in requests to any /api/ endpoint.</div>
       </div>}
 
+      {tab === 'emails' && <div className="sp-section">
+        <h2>Email Notifications</h2>
+        <div className="sp-card">
+          <div style={{display:'flex',flexDirection:'column',gap:14}}>
+            <label style={{display:'flex',justifyContent:'space-between',alignItems:'center',cursor:'pointer'}}><div><div style={{fontWeight:700,fontSize:'.85rem'}}>📊 Daily Digest</div><div style={{fontSize:'.7rem',color:'#8896b8',marginTop:2}}>Morning summary of incidents, SLA status, and AI stats at 8am UTC</div></div><label className="sp-toggle"><input type="checkbox" checked={emailPrefs.dailyDigest} onChange={e => { const p = { ...emailPrefs, dailyDigest: e.target.checked }; setEmailPrefs(p); fetch('/api/tools', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ toolId: '_emailPrefs', credentials: p, enabled: true }) }); }} /><span className="sp-toggle-slider" /></label></label>
+            <label style={{display:'flex',justifyContent:'space-between',alignItems:'center',cursor:'pointer'}}><div><div style={{fontWeight:700,fontSize:'.85rem'}}>📈 Weekly Report</div><div style={{fontSize:'.7rem',color:'#8896b8',marginTop:2}}>Monday morning email with link to your full PDF posture report</div></div><label className="sp-toggle"><input type="checkbox" checked={emailPrefs.weeklyReport} onChange={e => { const p = { ...emailPrefs, weeklyReport: e.target.checked }; setEmailPrefs(p); fetch('/api/tools', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ toolId: '_emailPrefs', credentials: p, enabled: true }) }); }} /><span className="sp-toggle-slider" /></label></label>
+            <label style={{display:'flex',justifyContent:'space-between',alignItems:'center',cursor:'pointer'}}><div><div style={{fontWeight:700,fontSize:'.85rem'}}>🚨 Critical Alerts</div><div style={{fontSize:'.7rem',color:'#8896b8',marginTop:2}}>Immediate email for new critical severity alerts</div></div><label className="sp-toggle"><input type="checkbox" checked={emailPrefs.alertNotify} onChange={e => { const p = { ...emailPrefs, alertNotify: e.target.checked }; setEmailPrefs(p); fetch('/api/tools', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ toolId: '_emailPrefs', credentials: p, enabled: true }) }); }} /><span className="sp-toggle-slider" /></label></label>
+          </div>
+          <div style={{marginTop:14,fontSize:'.68rem',color:'#4a5672'}}>Requires RESEND_API_KEY environment variable. Cron runs hourly via Vercel.</div>
+        </div>
+      </div>}
+
       {tab === 'webhooks' && <div className="sp-section">
         <h2>Outbound Webhooks</h2>
         <div className="sp-card" style={{marginBottom:16}}>
@@ -259,5 +273,11 @@ const CSS = `@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@
 .sp-btn{padding:6px 12px;font-size:.7rem}
 .sp-section h2{font-size:.9rem}
 }
+.sp-toggle{position:relative;width:40px;height:22px;cursor:pointer}
+.sp-toggle input{opacity:0;width:0;height:0}
+.sp-toggle-slider{position:absolute;inset:0;background:#1e2840;border-radius:22px;transition:.3s}
+.sp-toggle-slider::before{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#4a5672;bottom:3px;left:3px;transition:.3s}
+.sp-toggle input:checked+.sp-toggle-slider{background:#5b9aff30}
+.sp-toggle input:checked+.sp-toggle-slider::before{transform:translateX(18px);background:#5b9aff}
 .sp-role.admin{background:#5b9aff15;color:#5b9aff}.sp-role.analyst{background:#34e8a515;color:#34e8a5}.sp-role.viewer{background:#ffb34015;color:#ffb340}.sp-role.superadmin{background:#8b6fff15;color:#8b6fff}
 `;
