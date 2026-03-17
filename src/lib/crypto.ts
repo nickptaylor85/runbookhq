@@ -31,61 +31,72 @@ export function verifyPassword(password: string, stored: string): boolean {
 // ═══ TOTP (RFC 6238 — zero dependencies) ═══
 const TOTP_DIGITS = 6;
 const TOTP_PERIOD = 30;
-const TOTP_WINDOW = 1; // Allow 1 step before/after
+const TOTP_WINDOW = 1;
+
+const B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+
+function base32Encode(buf: Buffer): string {
+  let bits = '';
+  for (const b of buf) bits += b.toString(2).padStart(8, '0');
+  let out = '';
+  for (let i = 0; i < bits.length; i += 5) {
+    out += B32[parseInt(bits.substring(i, i + 5).padEnd(5, '0'), 2)];
+  }
+  return out;
+}
+
+function base32Decode(str: string): Buffer {
+  const s = str.replace(/[= ]/g, '').toUpperCase();
+  let bits = '';
+  for (const ch of s) {
+    const idx = B32.indexOf(ch);
+    if (idx === -1) continue;
+    bits += idx.toString(2).padStart(5, '0');
+  }
+  const bytes: number[] = [];
+  for (let i = 0; i + 8 <= bits.length; i += 8) {
+    bytes.push(parseInt(bits.substring(i, i + 8), 2));
+  }
+  return Buffer.from(bytes);
+}
 
 export function generateTotpSecret(): string {
-  return randomBytes(20).toString('hex');
+  // Return base32-encoded secret (this is what authenticator apps use)
+  return base32Encode(randomBytes(20));
 }
 
-function hexToBytes(hex: string): Buffer {
-  return Buffer.from(hex, 'hex');
-}
-
-function dynamicTruncate(hmacResult: Buffer): number {
-  const offset = hmacResult[hmacResult.length - 1] & 0xf;
-  const code = ((hmacResult[offset] & 0x7f) << 24) |
-    ((hmacResult[offset + 1] & 0xff) << 16) |
-    ((hmacResult[offset + 2] & 0xff) << 8) |
-    (hmacResult[offset + 3] & 0xff);
-  return code % Math.pow(10, TOTP_DIGITS);
-}
-
-function generateTotp(secret: string, counter: number): string {
+function hotpCode(secret: string, counter: number): string {
+  // secret is base32 — decode to bytes for HMAC
+  const key = base32Decode(secret);
   const buf = Buffer.alloc(8);
   let tmp = counter;
-  for (let i = 7; i >= 0; i--) { buf[i] = tmp & 0xff; tmp >>= 8; }
-  const hmac = createHmac('sha1', hexToBytes(secret));
+  for (let i = 7; i >= 0; i--) { buf[i] = tmp & 0xff; tmp = Math.floor(tmp / 256); }
+  const hmac = createHmac('sha1', key);
   hmac.update(buf);
-  const code = dynamicTruncate(hmac.digest());
-  return code.toString().padStart(TOTP_DIGITS, '0');
+  const digest = hmac.digest();
+  const offset = digest[digest.length - 1] & 0xf;
+  const code = ((digest[offset] & 0x7f) << 24) | ((digest[offset + 1] & 0xff) << 16) | ((digest[offset + 2] & 0xff) << 8) | (digest[offset + 3] & 0xff);
+  return (code % Math.pow(10, TOTP_DIGITS)).toString().padStart(TOTP_DIGITS, '0');
 }
 
 export function getTotpCode(secret: string): string {
-  const counter = Math.floor(Date.now() / 1000 / TOTP_PERIOD);
-  return generateTotp(secret, counter);
+  return hotpCode(secret, Math.floor(Date.now() / 1000 / TOTP_PERIOD));
 }
 
 export function verifyTotp(secret: string, token: string): boolean {
   const counter = Math.floor(Date.now() / 1000 / TOTP_PERIOD);
   for (let i = -TOTP_WINDOW; i <= TOTP_WINDOW; i++) {
-    if (generateTotp(secret, counter + i) === token) return true;
+    if (hotpCode(secret, counter + i) === token.trim()) return true;
   }
   return false;
 }
 
 export function getTotpUri(secret: string, email: string, issuer: string = 'RunbookHQ'): string {
-  // Convert hex secret to base32 for authenticator apps
-  const base32Chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-  const bytes = hexToBytes(secret);
-  let bits = '';
-  for (const byte of bytes) bits += byte.toString(2).padStart(8, '0');
-  let base32 = '';
-  for (let i = 0; i < bits.length; i += 5) {
-    const chunk = bits.substring(i, i + 5).padEnd(5, '0');
-    base32 += base32Chars[parseInt(chunk, 2)];
-  }
-  return `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(email)}?secret=${base32}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=${TOTP_DIGITS}&period=${TOTP_PERIOD}`;
+  // secret is already base32
+  return `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(email)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=${TOTP_DIGITS}&period=${TOTP_PERIOD}`;
 }
+
+
 
 // ═══ RATE LIMITING ═══
 const rateLimitStore: Map<string, { count: number; resetAt: number }> = new Map();
