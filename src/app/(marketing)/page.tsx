@@ -104,7 +104,38 @@ body{background:#05070c;color:#eaf0ff;font-family:'DM Sans',sans-serif;-webkit-f
 @keyframes heroGlow{from{opacity:.8;transform:translateX(-50%) scale(1)}to{opacity:1;transform:translateX(-50%) scale(1.05)}}
 .ld-hero-badge{display:inline-block;padding:6px 16px;border-radius:20px;background:rgba(91,154,255,.1);border:1px solid rgba(91,154,255,.15);color:#5b9aff;font-size:.72rem;font-weight:600;letter-spacing:.3px;margin-bottom:24px}
 .ld-h1{font-size:3.5rem;font-weight:900;letter-spacing:-2.5px;line-height:1.1;margin-bottom:20px}
-@media(max-width:768px){.ld-h1{font-size:2.2rem}.ld-nav{padding:12px 16px}.ld-nav-links{gap:12px}.ld-hero{padding:60px 16px 40px}.ld-grid{grid-template-columns:1fr!important}.ld-price-grid{grid-template-columns:1fr!important}}
+@media(max-width:768px){
+.ld-h1{font-size:2rem;letter-spacing:-1.5px}
+.ld-sub{font-size:.88rem}
+.ld-nav{padding:10px 14px}
+.ld-nav-links{gap:8px}
+.ld-nav-links a{font-size:.72rem}
+.ld-btn-primary,.ld-btn-ghost{padding:8px 14px;font-size:.76rem}
+.ld-btn-lg{padding:12px 20px;font-size:.82rem}
+.ld-hero{padding:48px 16px 36px}
+.ld-hero-badge{font-size:.65rem;padding:5px 12px}
+.ld-grid{grid-template-columns:1fr!important;gap:10px}
+.ld-card{padding:20px}
+.ld-card-icon{font-size:1.4rem;margin-bottom:8px}
+.ld-card h3{font-size:.9rem}
+.ld-price-grid{grid-template-columns:1fr!important;gap:12px}
+.ld-price-card{padding:24px 20px}
+.ld-price-amount{font-size:2.2rem}
+.ld-features{padding:40px 16px}
+.ld-pricing{padding:40px 16px}
+.ld-cta{flex-direction:column;align-items:center;gap:8px}
+.ld-social-proof{flex-direction:column;gap:12px}
+.ld-sp-sep{width:40px;height:1px}
+.ld-sp-item{padding:0}
+.ld-cta-section{padding:48px 16px}
+.ld-trust{padding:24px 16px}
+.ld-h2{font-size:1.5rem;margin-bottom:32px}
+}
+@media(max-width:480px){
+.ld-nav-links a:not(.ld-btn-primary):not(.ld-btn-ghost){display:none}
+.ld-h1{font-size:1.7rem}
+.ld-hero{padding:36px 12px 28px}
+}
 .ld-gradient{background:linear-gradient(135deg,#5b9aff,#8b6fff,#ff4466);-webkit-background-clip:text;background-clip:text;color:transparent}
 .ld-sub{font-size:1.05rem;color:#8896b8;max-width:580px;margin:0 auto 32px;line-height:1.6}
 .ld-cta{display:flex;gap:12px;justify-content:center;margin-bottom:48px}

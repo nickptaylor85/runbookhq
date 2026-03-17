@@ -62,4 +62,11 @@ const CSS = `@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@
 .auth-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
 .auth-link{text-align:center;margin-top:20px;font-size:.76rem;color:#4a5672}
 .auth-link a{color:#5b9aff;text-decoration:none;font-weight:600}
-.auth-link a:hover{text-decoration:underline}`;
+.auth-link a:hover{text-decoration:underline}
+@media(max-width:768px){
+.auth-page{padding:16px}
+.auth-card{padding:28px 20px;border-radius:16px}
+.auth-title{font-size:1.2rem}
+.auth-field input,.auth-field select{padding:11px 12px;font-size:.88rem}
+.auth-btn{padding:13px;font-size:.9rem}
+}`;

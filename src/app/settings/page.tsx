@@ -247,5 +247,17 @@ const CSS = `@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@
 .sp-tbl td{padding:8px;border-bottom:1px solid #0f1219}
 .sp-tbl tr:hover td{background:#0a0d1580}
 .sp-role{font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.3px}
+@media(max-width:768px){
+.sp{padding:12px}
+.sp-hd{flex-direction:column;gap:8px}
+.sp-nav{flex-wrap:wrap;gap:3px}
+.sp-tab{padding:5px 10px;font-size:.68rem}
+.sp-card{padding:14px}
+.sp-tbl{font-size:.7rem}
+.sp-tbl th{font-size:.52rem;padding:5px 4px}
+.sp-tbl td{padding:5px 4px}
+.sp-btn{padding:6px 12px;font-size:.7rem}
+.sp-section h2{font-size:.9rem}
+}
 .sp-role.admin{background:#5b9aff15;color:#5b9aff}.sp-role.analyst{background:#34e8a515;color:#34e8a5}.sp-role.viewer{background:#ffb34015;color:#ffb340}.sp-role.superadmin{background:#8b6fff15;color:#8b6fff}
 `;

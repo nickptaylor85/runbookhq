@@ -216,6 +216,21 @@ const CSS = `@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@
 .ap-btn-primary:disabled{opacity:.5;cursor:not-allowed}
 .ap-action{font-family:'JetBrains Mono',monospace;font-size:.6rem;background:#1e2840;padding:2px 6px;border-radius:4px;color:#8896b8}
 .ap-plan{font-size:.58rem;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.5px}
+@media(max-width:768px){
+.ap{padding:12px}
+.ap-hd{flex-direction:column;gap:8px}
+.ap-nav{flex-wrap:wrap;gap:3px}
+.ap-tab{padding:5px 8px;font-size:.65rem}
+.ap-kpi-grid{grid-template-columns:repeat(2,1fr)!important;gap:8px}
+.ap-kpi-val{font-size:1.1rem}
+.ap-grid2{grid-template-columns:1fr!important}
+.ap-tbl{font-size:.68rem}
+.ap-tbl th{font-size:.5rem;padding:5px 4px}
+.ap-tbl td{padding:5px 4px}
+.ap-section h2{font-size:.95rem}
+.ap-flag-form{flex-direction:column}
+.ap-search{min-width:auto;width:100%}
+}
 .ap-plan.starter{background:#1e284040;color:#8896b8}.ap-plan.pro{background:#5b9aff15;color:#5b9aff}.ap-plan.enterprise{background:#8b6fff15;color:#8b6fff}
 .ap-status{font-size:.6rem;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.3px}
 .ap-flag-form{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
