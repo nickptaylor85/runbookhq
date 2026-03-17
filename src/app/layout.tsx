@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'RunbookHQ — SOC Dashboard',
+  title: 'Watchtower — SOC Dashboard',
   description: 'Single pane of glass for security operations. AI-powered triage, unified alerts, automated runbooks.',
 };
 

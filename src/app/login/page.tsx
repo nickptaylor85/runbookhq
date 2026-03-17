@@ -26,7 +26,7 @@ export default function Login() {
     <style dangerouslySetInnerHTML={{__html: CSS}} />
     <div className="auth-page">
       <div className="auth-card">
-        <div className="auth-logo"><div className="auth-logo-icon">S</div>RunbookHQ</div>
+        <div className="auth-logo"><div className="auth-logo-icon">W</div>Watchtower</div>
         <h1 className="auth-title">{needs2fa ? 'Two-Factor Authentication' : 'Welcome back'}</h1>
         <p className="auth-sub">{needs2fa ? 'Enter the code from your authenticator app.' : 'Sign in to your SOC dashboard.'}</p>
         <form onSubmit={handleLogin}>

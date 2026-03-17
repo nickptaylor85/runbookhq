@@ -6,7 +6,7 @@ export async function POST(req: Request) {
   const url=process.env.SLACK_WEBHOOK_URL||process.env.TEAMS_WEBHOOK_URL;
   if(action==='test'){
     if(!url)return NextResponse.json({error:'No SLACK_WEBHOOK_URL or TEAMS_WEBHOOK_URL set',demo:true});
-    try{await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'🔔 SecOps Dashboard connected!'})});return NextResponse.json({ok:true})}catch{return NextResponse.json({error:'Webhook failed'},{status:500})}
+    try{await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:'🔔 Watchtower connected!'})});return NextResponse.json({ok:true})}catch{return NextResponse.json({error:'Webhook failed'},{status:500})}
   }
   if(action==='send'&&alert){
     const sev:Record<string,string>={critical:'🔴',high:'🟠',medium:'🟡',low:'🔵'};

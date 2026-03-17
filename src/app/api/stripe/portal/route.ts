@@ -16,7 +16,7 @@ export async function POST(req: Request) {
       headers: { 'Authorization': `Bearer ${stripeKey}`, 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         'customer': user.stripeCustomerId,
-        'return_url': `${req.headers.get('origin') || 'https://runbookhq.vercel.app'}/dashboard`,
+        'return_url': `${req.headers.get('origin') || 'https://watchtower.vercel.app'}/dashboard`,
       }).toString(),
     });
     const session = await res.json();

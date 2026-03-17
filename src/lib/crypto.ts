@@ -91,7 +91,7 @@ export function verifyTotp(secret: string, token: string): boolean {
   return false;
 }
 
-export function getTotpUri(secret: string, email: string, issuer: string = 'RunbookHQ'): string {
+export function getTotpUri(secret: string, email: string, issuer: string = 'Watchtower'): string {
   // secret is already base32
   return `otpauth://totp/${encodeURIComponent(issuer)}:${encodeURIComponent(email)}?secret=${secret}&issuer=${encodeURIComponent(issuer)}&algorithm=SHA1&digits=${TOTP_DIGITS}&period=${TOTP_PERIOD}`;
 }
@@ -126,7 +126,7 @@ export function generateSessionToken(): string {
 // ═══ API KEY VALIDATION ═══
 export async function validateApiKey(req: Request): Promise<{ valid: boolean; tenantId?: string; email?: string; scopes?: string[] }> {
   const header = req.headers.get('x-api-key') || req.headers.get('authorization')?.replace('Bearer ', '');
-  if (!header || !header.startsWith('rbhq_')) return { valid: false };
+  if (!header || !header.startsWith('wt_')) return { valid: false };
   
   // Dynamic import to avoid circular deps
   const { loadPlatformData } = await import('@/lib/config-store');

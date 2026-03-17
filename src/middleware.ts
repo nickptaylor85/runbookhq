@@ -15,7 +15,7 @@ export function middleware(request: NextRequest) {
     const apiKey = request.headers.get('x-api-key') || request.headers.get('authorization')?.replace('Bearer ', '');
 
     // API key auth (validated in the route handler via validateApiKey)
-    if (apiKey && apiKey.startsWith('rbhq_')) {
+    if (apiKey && apiKey.startsWith('wt_')) {
       return NextResponse.next();
     }
 

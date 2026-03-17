@@ -8,7 +8,7 @@ export default function Landing() {
     <style dangerouslySetInnerHTML={{__html: LCSS}} />
     <div className="ld">
       <nav className="ld-nav">
-        <div className="ld-logo"><div className="ld-logo-icon">S</div>RunbookHQ</div>
+        <div className="ld-logo"><div className="ld-logo-icon">W</div>Watchtower</div>
         <div className="ld-nav-links">
           <a href="#features">Features</a>
           <a href="#pricing">Pricing</a>
@@ -20,7 +20,7 @@ export default function Landing() {
       <section className="ld-hero">
         <div className="ld-hero-badge">AI-Powered SOC Operations</div>
         <h1 className="ld-h1">Your entire SOC.<br/><span className="ld-gradient">One pane of glass.</span></h1>
-        <p className="ld-sub">RunbookHQ unifies Tenable, Taegis, Defender, and 15+ security tools into a single dashboard with AI-powered triage, automated runbooks, and real-time threat intelligence.</p>
+        <p className="ld-sub">Watchtower unifies Tenable, Taegis, Defender, and 15+ security tools into a single dashboard with AI-powered triage, automated runbooks, and real-time threat intelligence.</p>
         <div className="ld-cta">
           <a href="/signup" className="ld-btn-primary ld-btn-lg">Start Free Trial →</a>
           <a href="/login" className="ld-btn-ghost ld-btn-lg">Sign In</a>
@@ -79,9 +79,9 @@ export default function Landing() {
       </section>
 
       <footer className="ld-footer">
-        <div className="ld-logo" style={{marginBottom:16}}><div className="ld-logo-icon" style={{width:22,height:22,fontSize:'.55rem'}}>S</div>RunbookHQ</div>
+        <div className="ld-logo" style={{marginBottom:16}}><div className="ld-logo-icon" style={{width:22,height:22,fontSize:'.55rem'}}>W</div>Watchtower</div>
         <p style={{fontSize:'.72rem',color:'#8896b8'}}>Single pane of glass for security operations.</p>
-        <p style={{fontSize:'.62rem',color:'#4a5672',marginTop:8}}>© 2026 RunbookHQ. All rights reserved.</p>
+        <p style={{fontSize:'.62rem',color:'#4a5672',marginTop:8}}>© 2026 Watchtower. All rights reserved.</p>
       </footer>
     </div>
   </>);

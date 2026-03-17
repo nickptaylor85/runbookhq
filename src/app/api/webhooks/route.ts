@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     const matching = configs.webhooks.filter((w: any) => w.enabled && (!w.events || w.events.includes(event)));
     const results = await Promise.all(matching.map(async (w: any) => {
       try {
-        const r = await fetch(w.url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-RunbookHQ-Event': event || 'unknown' }, body: JSON.stringify({ event, payload, timestamp: new Date().toISOString() }) });
+        const r = await fetch(w.url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Watchtower-Event': event || 'unknown' }, body: JSON.stringify({ event, payload, timestamp: new Date().toISOString() }) });
         return { url: w.url, ok: r.ok, status: r.status };
       } catch (e) { return { url: w.url, ok: false, error: String(e) }; }
     }));

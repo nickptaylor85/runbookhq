@@ -25,7 +25,7 @@ export default function Signup() {
     <style dangerouslySetInnerHTML={{__html: CSS}} />
     <div className="auth-page">
       <div className="auth-card">
-        <div className="auth-logo"><div className="auth-logo-icon">S</div>RunbookHQ</div>
+        <div className="auth-logo"><div className="auth-logo-icon">W</div>Watchtower</div>
         <h1 className="auth-title">Create your account</h1>
         <p className="auth-sub">Start your 14-day free trial. No credit card required.</p>
         <form onSubmit={handleSignup}>

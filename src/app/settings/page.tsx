@@ -84,7 +84,7 @@ export default function Settings() {
     <style dangerouslySetInnerHTML={{ __html: CSS }} />
     <div className="sp">
       <div className="sp-hd">
-        <div className="sp-logo"><div className="sp-logo-icon">S</div>RunbookHQ <span style={{color:'#8896b8',fontWeight:500,fontSize:'.82rem',marginLeft:4}}>Settings</span></div>
+        <div className="sp-logo"><div className="sp-logo-icon">W</div>Watchtower <span style={{color:'#8896b8',fontWeight:500,fontSize:'.82rem',marginLeft:4}}>Settings</span></div>
         <div className="sp-nav">
           <button className={'sp-tab ' + (tab === 'security' ? 'active' : '')} onClick={() => setTab('security')}>🔒 Security</button>
           <button className={'sp-tab ' + (tab === 'team' ? 'active' : '')} onClick={() => setTab('team')}>👥 Team</button>
@@ -194,7 +194,7 @@ export default function Settings() {
             {apiKeys.length === 0 && <tr><td colSpan={6} style={{textAlign:'center',color:'#4a5672',padding:20}}>No API keys yet</td></tr>}
           </tbody></table>
         </div>
-        <div style={{marginTop:12,fontSize:'.72rem',color:'#4a5672'}}><strong>Usage:</strong> Include <code style={{background:'#1e2840',padding:'1px 4px',borderRadius:3}}>X-API-Key: rbhq_xxx</code> header in requests to any /api/ endpoint.</div>
+        <div style={{marginTop:12,fontSize:'.72rem',color:'#4a5672'}}><strong>Usage:</strong> Include <code style={{background:'#1e2840',padding:'1px 4px',borderRadius:3}}>X-API-Key: wt_xxx</code> header in requests to any /api/ endpoint.</div>
       </div>}
 
       {tab === 'webhooks' && <div className="sp-section">

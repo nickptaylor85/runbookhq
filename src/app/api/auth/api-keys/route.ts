@@ -21,7 +21,7 @@ export async function POST(req: Request) {
   const { name, scopes } = await req.json();
   if (!name) return NextResponse.json({ error: 'Key name required' }, { status: 400 });
 
-  const rawKey = 'rbhq_' + randomBytes(32).toString('hex');
+  const rawKey = 'wt_' + randomBytes(32).toString('hex');
   const id = 'key_' + Date.now().toString(36);
 
   if (!platform.apiKeys) platform.apiKeys = [];

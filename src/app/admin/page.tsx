@@ -91,7 +91,7 @@ export default function AdminPanel() {
     <style dangerouslySetInnerHTML={{ __html: CSS }} />
     <div className="ap">
       <div className="ap-hd">
-        <div className="ap-logo"><div className="ap-logo-icon">S</div>RunbookHQ <span className="ap-badge">ADMIN</span></div>
+        <div className="ap-logo"><div className="ap-logo-icon">W</div>Watchtower <span className="ap-badge">ADMIN</span></div>
         <div className="ap-nav">
           {(['overview','users','tenants','health','flags','announcements','audit'] as Tab[]).map(t => (<button key={t} className={'ap-tab ' + (tab === t ? 'active' : '')} onClick={() => setTab(t)}>{{overview:'📊',users:'👥',tenants:'🏢',health:'🏥',flags:'🚩',announcements:'📢',audit:'📋'}[t]} {t.charAt(0).toUpperCase()+t.slice(1)}</button>))}
           <a href="/dashboard" className="ap-tab">← Dashboard</a>

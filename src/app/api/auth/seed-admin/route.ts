@@ -18,14 +18,14 @@ export async function POST(req: Request) {
   const tenantId = platform.users[email]?.tenantId || 'tn_admin_' + Date.now().toString(36);
 
   platform.users[email] = {
-    email, password: hashPassword(password), org: 'RunbookHQ Admin',
+    email, password: hashPassword(password), org: 'Watchtower Admin',
     plan: 'enterprise', role: 'superadmin', tenantId,
     createdAt: new Date().toISOString(), trialEndsAt: null,
     totpEnabled: false, totpSecret: null,
   };
 
   if (!platform.tenants[tenantId]) {
-    platform.tenants[tenantId] = { id: tenantId, name: 'RunbookHQ Admin', plan: 'enterprise', owner: email, members: [email], createdAt: new Date().toISOString() };
+    platform.tenants[tenantId] = { id: tenantId, name: 'Watchtower Admin', plan: 'enterprise', owner: email, members: [email], createdAt: new Date().toISOString() };
   }
 
   platform.auditLog.push({ action: 'superadmin_seeded', email, time: new Date().toISOString() });
