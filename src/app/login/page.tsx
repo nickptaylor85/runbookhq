@@ -4,6 +4,8 @@ import { useState } from 'react';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [totpCode, setTotpCode] = useState('');
+  const [needs2fa, setNeeds2fa] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -11,9 +13,10 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);setError('');
     try {
-      const r = await fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+      const r = await fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, totpCode: needs2fa ? totpCode : undefined }) });
       const d = await r.json();
       if (d.ok) window.location.href = '/dashboard';
+      else if (d.requires2fa) { setNeeds2fa(true); setError(''); }
       else setError(d.error || 'Invalid credentials');
     } catch { setError('Network error'); }
     setLoading(false);
@@ -24,21 +27,25 @@ export default function Login() {
     <div className="auth-page">
       <div className="auth-card">
         <div className="auth-logo"><div className="auth-logo-icon">S</div>RunbookHQ</div>
-        <h1 className="auth-title">Welcome back</h1>
-        <p className="auth-sub">Sign in to your SOC dashboard.</p>
+        <h1 className="auth-title">{needs2fa ? 'Two-Factor Authentication' : 'Welcome back'}</h1>
+        <p className="auth-sub">{needs2fa ? 'Enter the code from your authenticator app.' : 'Sign in to your SOC dashboard.'}</p>
         <form onSubmit={handleLogin}>
-          <div className="auth-field"><label>Email</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@company.com" required /></div>
-          <div className="auth-field"><label>Password</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" required /></div>
+          {!needs2fa && <>
+            <div className="auth-field"><label>Email</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@company.com" required /></div>
+            <div className="auth-field"><label>Password</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" required /></div>
+          </>}
+          {needs2fa && <div className="auth-field"><label>Authenticator Code</label><input type="text" value={totpCode} onChange={e=>setTotpCode(e.target.value.replace(/\D/g,'').substring(0,6))} placeholder="000000" required autoFocus maxLength={6} style={{fontSize:'1.5rem',textAlign:'center',letterSpacing:'8px',fontFamily:'JetBrains Mono,monospace'}} /></div>}
           {error && <div className="auth-error">{error}</div>}
-          <button className="auth-btn" type="submit" disabled={loading}>{loading ? 'Signing in...' : 'Sign In'}</button>
+          <button className="auth-btn" type="submit" disabled={loading}>{loading ? 'Verifying...' : needs2fa ? 'Verify →' : 'Sign In'}</button>
         </form>
-        <p className="auth-link">No account yet? <a href="/signup">Start free trial</a></p>
+        {needs2fa && <button onClick={()=>{setNeeds2fa(false);setTotpCode('');setError('')}} style={{background:'none',border:'none',color:'#5b9aff',cursor:'pointer',fontSize:'.76rem',marginTop:12,display:'block',textAlign:'center',width:'100%'}}>← Back to login</button>}
+        {!needs2fa && <p className="auth-link">No account yet? <a href="/signup">Start free trial</a></p>}
       </div>
     </div>
   </>);
 }
 
-const CSS = `@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
+const CSS = `@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}body{background:#05070c;color:#eaf0ff;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased}
 .auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 50% 30%,rgba(91,154,255,.04),transparent 60%)}
 .auth-card{width:100%;max-width:420px;background:linear-gradient(145deg,#0a0d15,#0f1219);border:1px solid #141928;border-radius:20px;padding:40px 32px}

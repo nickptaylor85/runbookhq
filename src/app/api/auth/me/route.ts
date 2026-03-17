@@ -7,13 +7,18 @@ export async function GET(req: Request) {
   const email = authMatch?.[1] ? decodeURIComponent(authMatch[1]) : null;
   if (!email || !email.includes('@')) return NextResponse.json({ user: null });
 
-  const configs = await loadPlatformData();
-  const user = configs.users?.[email];
+  const platform = await loadPlatformData();
+  const user = platform.users?.[email];
   if (!user) return NextResponse.json({ user: null });
 
-  const tenant = configs.tenants?.[user.tenantId];
+  const tenant = platform.tenants?.[user.tenantId];
   return NextResponse.json({
-    user: { email: user.email, org: user.org, plan: user.plan, role: user.role, tenantId: user.tenantId, createdAt: user.createdAt, trialEndsAt: user.trialEndsAt },
-    tenant: tenant ? { id: tenant.id, name: tenant.name, plan: tenant.plan, members: tenant.members } : null,
+    user: {
+      email: user.email, org: user.org, plan: user.plan, role: user.role,
+      tenantId: user.tenantId, createdAt: user.createdAt,
+      trialEndsAt: user.trialEndsAt, totpEnabled: !!user.totpEnabled,
+      lastLoginAt: user.lastLoginAt,
+    },
+    tenant: tenant ? { id: tenant.id, name: tenant.name, plan: tenant.plan, members: tenant.members, memberCount: tenant.members?.length || 0 } : null,
   });
 }

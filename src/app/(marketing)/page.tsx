@@ -72,7 +72,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="ld-cta-section">
+      <section className="ld-trust"><div style={{display:'flex',gap:32,justifyContent:'center',alignItems:'center',flexWrap:'wrap',opacity:.4}}><span style={{fontSize:'.82rem',fontWeight:700,letterSpacing:'1px'}}>TENABLE</span><span style={{fontSize:'.82rem',fontWeight:700,letterSpacing:'1px'}}>SECUREWORKS</span><span style={{fontSize:'.82rem',fontWeight:700,letterSpacing:'1px'}}>MICROSOFT</span><span style={{fontSize:'.82rem',fontWeight:700,letterSpacing:'1px'}}>CROWDSTRIKE</span><span style={{fontSize:'.82rem',fontWeight:700,letterSpacing:'1px'}}>ZSCALER</span></div></section><section className="ld-cta-section">
         <h2 className="ld-h2" style={{color:'#fff'}}>Ready to unify your SOC?</h2>
         <p className="ld-sub" style={{color:'rgba(255,255,255,.7)',maxWidth:460,margin:'0 auto 30px'}}>Connect your first tool in under 2 minutes. No credit card required.</p>
         <a href="/signup" className="ld-btn-primary ld-btn-lg">Start Free Trial →</a>
@@ -100,7 +100,8 @@ body{background:#05070c;color:#eaf0ff;font-family:'DM Sans',sans-serif;-webkit-f
 .ld-logo-icon{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#5b9aff,#8b6fff);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#fff;font-weight:900}
 
 .ld-hero{text-align:center;padding:100px 24px 80px;position:relative;overflow:hidden}
-.ld-hero::before{content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:800px;height:800px;background:radial-gradient(circle,rgba(91,154,255,.08) 0%,rgba(139,111,255,.04) 40%,transparent 70%);pointer-events:none}
+.ld-hero::before{content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:900px;height:900px;background:radial-gradient(circle at 30% 40%,rgba(91,154,255,.1) 0%,transparent 50%),radial-gradient(circle at 70% 60%,rgba(139,111,255,.08) 0%,transparent 50%),radial-gradient(circle at 50% 50%,rgba(255,68,102,.03) 0%,transparent 40%);pointer-events:none;animation:heroGlow 8s ease-in-out infinite alternate}
+@keyframes heroGlow{from{opacity:.8;transform:translateX(-50%) scale(1)}to{opacity:1;transform:translateX(-50%) scale(1.05)}}
 .ld-hero-badge{display:inline-block;padding:6px 16px;border-radius:20px;background:rgba(91,154,255,.1);border:1px solid rgba(91,154,255,.15);color:#5b9aff;font-size:.72rem;font-weight:600;letter-spacing:.3px;margin-bottom:24px}
 .ld-h1{font-size:3.5rem;font-weight:900;letter-spacing:-2.5px;line-height:1.1;margin-bottom:20px}
 @media(max-width:768px){.ld-h1{font-size:2.2rem}.ld-nav{padding:12px 16px}.ld-nav-links{gap:12px}.ld-hero{padding:60px 16px 40px}.ld-grid{grid-template-columns:1fr!important}.ld-price-grid{grid-template-columns:1fr!important}}
@@ -123,7 +124,7 @@ body{background:#05070c;color:#eaf0ff;font-family:'DM Sans',sans-serif;-webkit-f
 .ld-h2{font-size:2rem;font-weight:900;letter-spacing:-1.5px;text-align:center;margin-bottom:48px}
 .ld-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 .ld-card{background:linear-gradient(145deg,#0a0d15,#0f1219);border:1px solid #141928;border-radius:16px;padding:28px;transition:all .3s}
-.ld-card:hover{border-color:#1e2840;transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.ld-card:hover{border-color:#5b9aff30;transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.3),0 0 0 1px #5b9aff15}
 .ld-card-icon{font-size:1.8rem;margin-bottom:12px}
 .ld-card h3{font-size:1rem;font-weight:800;margin-bottom:8px;letter-spacing:-.3px}
 .ld-card p{font-size:.78rem;color:#8896b8;line-height:1.6}
@@ -131,7 +132,8 @@ body{background:#05070c;color:#eaf0ff;font-family:'DM Sans',sans-serif;-webkit-f
 .ld-pricing{padding:80px 40px;max-width:1000px;margin:0 auto}
 .ld-price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
 .ld-price-card{background:linear-gradient(145deg,#0a0d15,#0f1219);border:1px solid #141928;border-radius:16px;padding:32px 24px;position:relative;transition:all .3s}
-.ld-price-card.featured{border-color:#5b9aff;box-shadow:0 0 40px rgba(91,154,255,.1)}
+.ld-price-card.featured{border-color:#5b9aff;box-shadow:0 0 60px rgba(91,154,255,.12),0 0 0 1px #5b9aff30}
+.ld-price-card:hover{transform:translateY(-3px)}
 .ld-price-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#5b9aff,#8b6fff);color:#fff;padding:4px 16px;border-radius:20px;font-size:.62rem;font-weight:700;letter-spacing:.5px;white-space:nowrap}
 .ld-price-name{font-size:.82rem;font-weight:700;color:#8896b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
 .ld-price-amount{font-size:2.8rem;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:-3px;margin-bottom:20px}
@@ -141,6 +143,7 @@ body{background:#05070c;color:#eaf0ff;font-family:'DM Sans',sans-serif;-webkit-f
 .ld-price-features li{padding:6px 0;font-size:.78rem;color:#8896b8;border-bottom:1px solid #141928}
 .ld-price-features li::before{content:'✓ ';color:#34e8a5;font-weight:700}
 
+.ld-trust{padding:40px 24px;text-align:center;border-top:1px solid #141928;border-bottom:1px solid #141928}
 .ld-cta-section{text-align:center;padding:80px 24px;background:linear-gradient(180deg,transparent,rgba(91,154,255,.05),transparent)}
 .ld-footer{text-align:center;padding:40px 24px;border-top:1px solid #141928}
 `;
