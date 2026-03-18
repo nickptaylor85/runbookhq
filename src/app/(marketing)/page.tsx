@@ -22,7 +22,7 @@ export default function Landing() {
         <h1 className="ld-h1">Your entire SOC.<br/><span className="ld-gradient">One pane of glass.</span></h1>
         <p className="ld-sub">Watchtower unifies Tenable, Taegis, Defender, and 15+ security tools into a single dashboard with AI-powered triage, automated runbooks, and real-time threat intelligence.</p>
         <div className="ld-cta">
-          <a href="/signup" className="ld-btn-primary ld-btn-lg">Start Free Trial →</a>
+          <a href="/signup" className="ld-btn-primary ld-btn-lg">Start Free Trial →</a><a href="/demo" className="ld-btn-ghost ld-btn-lg">Try Live Demo →</a>
           <a href="/login" className="ld-btn-ghost ld-btn-lg">Sign In</a>
         </div>
         <div className="ld-social-proof">
@@ -46,7 +46,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <section className="ld-pricing" id="pricing">
+      <section className="ld-roi" id="roi"><div className="ld-container"><h2 className="ld-h2">💰 ROI Calculator</h2><p className="ld-roi-sub">See how much Watchtower saves your SOC team</p><div className="ld-roi-calc"><div className="ld-roi-inputs"><div className="ld-roi-field"><label>SOC Analysts</label><input id="roi-analysts" type="range" min="1" max="20" defaultValue="3" onChange={() => { const a = parseInt((document.getElementById('roi-analysts') as any).value); const s = parseInt((document.getElementById('roi-salary') as any).value); const h = parseFloat((document.getElementById('roi-hours') as any).value); const saved = a * h * 260; const cost = Math.round(saved * (s / 2080)); const plan = 49 * 12; (document.getElementById('roi-out-hours') as any).innerText = Math.round(saved) + ' hours/year'; (document.getElementById('roi-out-cost') as any).innerText = '£' + cost.toLocaleString() + '/year'; (document.getElementById('roi-out-roi') as any).innerText = Math.round(cost / plan) + 'x'; (document.getElementById('roi-analysts-val') as any).innerText = a; }} /><span id="roi-analysts-val" style={{fontFamily:'JetBrains Mono,monospace',color:'#5b9aff',fontWeight:700}}>3</span></div><div className="ld-roi-field"><label>Avg Analyst Salary (£/year)</label><input id="roi-salary" type="range" min="25000" max="80000" step="5000" defaultValue="45000" onChange={() => { (document.getElementById('roi-analysts') as any).dispatchEvent(new Event('change')); (document.getElementById('roi-salary-val') as any).innerText = '£' + parseInt((document.getElementById('roi-salary') as any).value).toLocaleString(); }} /><span id="roi-salary-val" style={{fontFamily:'JetBrains Mono,monospace',color:'#5b9aff',fontWeight:700}}>£45,000</span></div><div className="ld-roi-field"><label>Hours saved per analyst per day</label><input id="roi-hours" type="range" min="0.5" max="4" step="0.5" defaultValue="1.5" onChange={() => { (document.getElementById('roi-analysts') as any).dispatchEvent(new Event('change')); (document.getElementById('roi-hours-val') as any).innerText = parseFloat((document.getElementById('roi-hours') as any).value) + 'h'; }} /><span id="roi-hours-val" style={{fontFamily:'JetBrains Mono,monospace',color:'#5b9aff',fontWeight:700}}>1.5h</span></div></div><div className="ld-roi-results"><div className="ld-roi-result"><div className="ld-roi-result-val" id="roi-out-hours">1,170 hours/year</div><div className="ld-roi-result-label">Time Saved</div></div><div className="ld-roi-result"><div className="ld-roi-result-val" id="roi-out-cost" style={{color:'#34e8a5'}}>£25,324/year</div><div className="ld-roi-result-label">Cost Saved</div></div><div className="ld-roi-result"><div className="ld-roi-result-val" id="roi-out-roi" style={{color:'#8b6fff'}}>43x</div><div className="ld-roi-result-label">ROI vs Pro Plan</div></div></div></div></div></section><section className="ld-pricing" id="pricing">
         <h2 className="ld-h2">Simple, transparent pricing</h2>
         <p className="ld-sub" style={{maxWidth:500,margin:'0 auto 40px'}}>Start free. Upgrade when you need more tools and AI features.</p>
         <div className="ld-price-grid">
@@ -75,7 +75,7 @@ export default function Landing() {
       <section className="ld-trust"><div style={{display:'flex',gap:32,justifyContent:'center',alignItems:'center',flexWrap:'wrap',opacity:.4}}><span style={{fontSize:'.82rem',fontWeight:700,letterSpacing:'1px'}}>TENABLE</span><span style={{fontSize:'.82rem',fontWeight:700,letterSpacing:'1px'}}>SECUREWORKS</span><span style={{fontSize:'.82rem',fontWeight:700,letterSpacing:'1px'}}>MICROSOFT</span><span style={{fontSize:'.82rem',fontWeight:700,letterSpacing:'1px'}}>CROWDSTRIKE</span><span style={{fontSize:'.82rem',fontWeight:700,letterSpacing:'1px'}}>ZSCALER</span></div></section><section className="ld-cta-section">
         <h2 className="ld-h2" style={{color:'#fff'}}>Ready to unify your SOC?</h2>
         <p className="ld-sub" style={{color:'rgba(255,255,255,.7)',maxWidth:460,margin:'0 auto 30px'}}>Connect your first tool in under 2 minutes. No credit card required.</p>
-        <a href="/signup" className="ld-btn-primary ld-btn-lg">Start Free Trial →</a>
+        <a href="/signup" className="ld-btn-primary ld-btn-lg">Start Free Trial →</a><a href="/demo" className="ld-btn-ghost ld-btn-lg">Try Live Demo →</a>
       </section>
 
       <footer className="ld-footer">
@@ -128,6 +128,18 @@ body{background:#05070c;color:#eaf0ff;font-family:'DM Sans',sans-serif;-webkit-f
 .ld-sp-sep{width:40px;height:1px}
 .ld-sp-item{padding:0}
 .ld-cta-section{padding:48px 16px}
+.ld-roi{padding:60px 24px;text-align:center}
+.ld-roi-sub{font-size:.88rem;color:#8896b8;margin-bottom:32px;margin-top:-16px}
+.ld-roi-calc{max-width:700px;margin:0 auto;background:linear-gradient(145deg,#0a0d15,#0f1219);border:1px solid #141928;border-radius:20px;padding:32px}
+.ld-roi-inputs{display:flex;flex-direction:column;gap:20px;margin-bottom:28px}
+.ld-roi-field{display:flex;align-items:center;gap:12px}
+.ld-roi-field label{font-size:.78rem;font-weight:600;color:#8896b8;min-width:200px;text-align:right}
+.ld-roi-field input[type=range]{flex:1;accent-color:#5b9aff;height:6px}
+.ld-roi-results{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.ld-roi-result{background:#141928;border-radius:12px;padding:18px;text-align:center}
+.ld-roi-result-val{font-size:1.5rem;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:-1px;color:#eaf0ff}
+.ld-roi-result-label{font-size:.6rem;font-weight:700;color:#4a5672;text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+@media(max-width:768px){.ld-roi-field{flex-direction:column;align-items:stretch}.ld-roi-field label{text-align:left;min-width:auto}.ld-roi-results{grid-template-columns:1fr}}
 .ld-trust{padding:24px 16px}
 .ld-h2{font-size:1.5rem;margin-bottom:32px}
 }
@@ -174,6 +186,18 @@ body{background:#05070c;color:#eaf0ff;font-family:'DM Sans',sans-serif;-webkit-f
 .ld-price-features li{padding:6px 0;font-size:.78rem;color:#8896b8;border-bottom:1px solid #141928}
 .ld-price-features li::before{content:'✓ ';color:#34e8a5;font-weight:700}
 
+.ld-roi{padding:60px 24px;text-align:center}
+.ld-roi-sub{font-size:.88rem;color:#8896b8;margin-bottom:32px;margin-top:-16px}
+.ld-roi-calc{max-width:700px;margin:0 auto;background:linear-gradient(145deg,#0a0d15,#0f1219);border:1px solid #141928;border-radius:20px;padding:32px}
+.ld-roi-inputs{display:flex;flex-direction:column;gap:20px;margin-bottom:28px}
+.ld-roi-field{display:flex;align-items:center;gap:12px}
+.ld-roi-field label{font-size:.78rem;font-weight:600;color:#8896b8;min-width:200px;text-align:right}
+.ld-roi-field input[type=range]{flex:1;accent-color:#5b9aff;height:6px}
+.ld-roi-results{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.ld-roi-result{background:#141928;border-radius:12px;padding:18px;text-align:center}
+.ld-roi-result-val{font-size:1.5rem;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:-1px;color:#eaf0ff}
+.ld-roi-result-label{font-size:.6rem;font-weight:700;color:#4a5672;text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+@media(max-width:768px){.ld-roi-field{flex-direction:column;align-items:stretch}.ld-roi-field label{text-align:left;min-width:auto}.ld-roi-results{grid-template-columns:1fr}}
 .ld-trust{padding:40px 24px;text-align:center;border-top:1px solid #141928;border-bottom:1px solid #141928}
 .ld-cta-section{text-align:center;padding:80px 24px;background:linear-gradient(180deg,transparent,rgba(91,154,255,.05),transparent)}
 .ld-footer{text-align:center;padding:40px 24px;border-top:1px solid #141928}

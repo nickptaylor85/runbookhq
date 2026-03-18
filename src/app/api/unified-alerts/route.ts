@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDefenderToken, defenderAPI, getMDEToken, mdeAPI, getTaegisToken, taegisGraphQL, getConfiguredTools } from '@/lib/api-clients';
-import { getTenantFromRequest } from '@/lib/config-store';
+import { getTenantFromRequest, loadToolConfigs } from '@/lib/config-store';
 
 export async function GET(req: Request) {
   const { tenantId } = getTenantFromRequest(req);

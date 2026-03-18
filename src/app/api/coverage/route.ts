@@ -1,4 +1,4 @@
-import { getTenantFromRequest } from '@/lib/config-store';
+import { getTenantFromRequest, loadToolConfigs } from '@/lib/config-store';
 import { NextResponse } from 'next/server';
 import { getConfiguredTools, tenableHeaders, tenableAPI } from '@/lib/api-clients';
 
