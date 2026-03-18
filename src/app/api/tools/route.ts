@@ -11,6 +11,7 @@ export async function GET(req: Request) {
     if (shared.tools && Object.keys(shared.tools).length > 0) {
       return NextResponse.json({
         ...configs,
+        kvAvailable: !!(process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL),
         _migrationAvailable: true,
         _sharedToolCount: Object.keys(shared.tools).length,
         _sharedToolIds: Object.keys(shared.tools),
@@ -18,7 +19,25 @@ export async function GET(req: Request) {
     }
   }
 
-  return NextResponse.json(configs);
+  // Add kvAvailable flag
+  const hasKV = !!(process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL);
+  const result = { ...configs, kvAvailable: hasKV };
+
+  // If demo mode, simulate all tools being connected
+  if (result.tools?.['_demo']?.enabled) {
+    const demoTools: Record<string, any> = {
+      _demo: { id: '_demo', enabled: true, credentials: { mode: 'demo' }, status: 'ok' },
+      tenable: { id: 'tenable', enabled: true, credentials: { demo: true }, status: 'ok' },
+      taegis: { id: 'taegis', enabled: true, credentials: { demo: true }, status: 'ok' },
+      defender: { id: 'defender', enabled: true, credentials: { demo: true }, status: 'ok' },
+      crowdstrike: { id: 'crowdstrike', enabled: true, credentials: { demo: true }, status: 'ok' },
+      zscaler: { id: 'zscaler', enabled: true, credentials: { demo: true }, status: 'ok' },
+      anthropic: { id: 'anthropic', enabled: true, credentials: { demo: true }, status: 'ok' },
+    };
+    result.tools = { ...demoTools, ...(result.tools || {}) };
+  }
+
+  return NextResponse.json(result);
 }
 
 export async function POST(req: Request) {

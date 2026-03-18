@@ -2,6 +2,15 @@ import { NextResponse } from 'next/server';
 import { loadTenantConfigs, saveTenantConfigs, getTenantFromRequest } from '@/lib/config-store';
 
 export async function GET(req: Request) {
+  const { isDemoMode } = await import('@/lib/demo-check');
+  if (await isDemoMode(getTenantFromRequest(req).tenantId)) {
+    return NextResponse.json({ enabled: true, autoCloseThreshold: 95, stats: { totalProcessed: 285, autoClosed: 247, escalated: 38, timeSavedMins: 1976, weeklyData: [
+      { week: 'W1', processed: 68, autoClosed: 59, escalated: 9, timeSaved: 472 },
+      { week: 'W2', processed: 72, autoClosed: 63, escalated: 9, timeSaved: 504 },
+      { week: 'W3', processed: 71, autoClosed: 61, escalated: 10, timeSaved: 488 },
+      { week: 'W4', processed: 74, autoClosed: 64, escalated: 10, timeSaved: 512 },
+    ] }, demo: true });
+  }
   const { tenantId } = getTenantFromRequest(req);
   if (!tenantId) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
 

@@ -7,7 +7,7 @@ export async function GET() {
 
   // CISA Known Exploited Vulnerabilities (no key needed)
   try {
-    const r = await fetch('https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json', { next: { revalidate: 3600 } });
+    const r = await fetch('https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json', { signal: AbortSignal.timeout(8000) });
     if (r.ok) {
       const d = await r.json();
       const recent = (d.vulnerabilities || []).slice(-10).reverse().map((v: any) => ({
@@ -26,7 +26,7 @@ export async function GET() {
   // Abuse.ch ThreatFox — recent IOCs (no key needed)
   try {
     const r = await fetch('https://threatfox-api.abuse.ch/api/v1/', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(8000),
       body: JSON.stringify({ query: 'get_iocs', days: 1 }),
     });
     if (r.ok) {
@@ -45,7 +45,7 @@ export async function GET() {
 
   // Abuse.ch URLhaus — recent malware URLs (no key)
   try {
-    const r = await fetch('https://urlhaus-api.abuse.ch/v1/urls/recent/limit/10/');
+    const r = await fetch('https://urlhaus-api.abuse.ch/v1/urls/recent/limit/10/', { signal: AbortSignal.timeout(8000) });
     if (r.ok) {
       const d = await r.json();
       const urls = (d.urls || []).slice(0, 8).map((u: any) => ({
