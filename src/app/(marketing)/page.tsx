@@ -1,213 +1,116 @@
 'use client';
-import { useState } from 'react';
 
 export default function Landing() {
-  const [email, setEmail] = useState('');
+  return (<><style dangerouslySetInnerHTML={{ __html: CSS }} /><div className="ld">
+    <nav className="ld-nav"><div className="ld-logo"><div className="ld-logo-icon">W</div>Watchtower</div><div className="ld-nav-links"><a href="/demo" className="ld-link">Live Demo</a><a href="/pricing" className="ld-link">Pricing</a><a href="#features" className="ld-link">Features</a><a href="/login" className="ld-link">Sign In</a><a href="/signup" className="ld-cta-sm">Start Free →</a></div></nav>
 
-  return (<>
-    <style dangerouslySetInnerHTML={{__html: LCSS}} />
-    <div className="ld">
-      <nav className="ld-nav">
-        <div className="ld-logo"><div className="ld-logo-icon">W</div>Watchtower</div>
-        <div className="ld-nav-links">
-          <a href="#features">Features</a>
-          <a href="#pricing">Pricing</a>
-          <a href="/login" className="ld-btn-ghost">Sign In</a>
-          <a href="/signup" className="ld-btn-primary">Start Free Trial</a>
-        </div>
-      </nav>
+    <section className="ld-hero"><div className="ld-hero-glow"/><div className="ld-hero-badge">Built for SOC teams, by SOC teams</div><h1 className="ld-h1">Stop drowning in alerts.<br/><span className="ld-grad">Start resolving threats.</span></h1><p className="ld-sub">Watchtower unifies your security stack into a single pane of glass. AI-powered triage cuts noise by 85%. Custom runbooks automate response. One dashboard for your entire SOC.</p><div className="ld-hero-ctas"><a href="/demo" className="ld-btn-primary">See it in action →</a><a href="/signup" className="ld-btn-outline">Start free trial</a></div><div className="ld-proof"><div className="ld-proof-item"><span className="ld-proof-num">85%</span><span>noise reduction</span></div><div className="ld-proof-sep"/><div className="ld-proof-item"><span className="ld-proof-num">24min</span><span>avg MTTR</span></div><div className="ld-proof-sep"/><div className="ld-proof-item"><span className="ld-proof-num">20+</span><span>integrations</span></div></div></section>
 
-      <section className="ld-hero">
-        <div className="ld-hero-badge">AI-Powered SOC Operations</div>
-        <h1 className="ld-h1">Your entire SOC.<br/><span className="ld-gradient">One pane of glass.</span></h1>
-        <p className="ld-sub">Watchtower unifies Tenable, Taegis, Defender, and 15+ security tools into a single dashboard with AI-powered triage, automated runbooks, and real-time threat intelligence.</p>
-        <div className="ld-cta">
-          <a href="/signup" className="ld-btn-primary ld-btn-lg">Start Free Trial →</a><a href="/demo" className="ld-btn-ghost ld-btn-lg">Try Live Demo →</a>
-          <a href="/login" className="ld-btn-ghost ld-btn-lg">Sign In</a>
-        </div>
-        <div className="ld-social-proof">
-          <div className="ld-sp-item"><span className="ld-sp-num">5,000+</span>assets monitored</div>
-          <div className="ld-sp-sep" />
-          <div className="ld-sp-item"><span className="ld-sp-num">500K+</span>alerts triaged</div>
-          <div className="ld-sp-sep" />
-          <div className="ld-sp-item"><span className="ld-sp-num">15+</span>tool integrations</div>
-        </div>
-      </section>
+    <section className="ld-logos"><p>Integrates with your existing stack</p><div className="ld-logo-row">{"Tenable,Secureworks Taegis,Microsoft Defender,CrowdStrike,Zscaler,Splunk,SentinelOne,Darktrace".split(",").map(l => <span key={l} className="ld-logo-item">{l}</span>)}</div></section>
 
-      <section className="ld-features" id="features">
-        <h2 className="ld-h2">Everything your SOC needs</h2>
-        <div className="ld-grid">
-          <div className="ld-card"><div className="ld-card-icon">🤖</div><h3>AI Triage</h3><p>Claude-powered alert analysis with confidence scoring. Reduce false positives by 80%. Every alert gets a verdict, reasoning, and recommended action.</p></div>
-          <div className="ld-card"><div className="ld-card-icon">📋</div><h3>Auto Runbooks</h3><p>Click any alert to get a step-by-step response checklist tailored to the attack type. Phishing, lateral movement, malware — each gets a specific playbook.</p></div>
-          <div className="ld-card"><div className="ld-card-icon">🛡</div><h3>Unified Alerts</h3><p>Tenable, Taegis, Defender, CrowdStrike, Zscaler — all your tools feeding one alert stream. No more tab switching.</p></div>
-          <div className="ld-card"><div className="ld-card-icon">🔓</div><h3>Vuln Management</h3><p>Real Tenable data with VPR × host prioritisation. Click any CVE to see affected hosts, remediation steps, and compliance impact.</p></div>
-          <div className="ld-card"><div className="ld-card-icon">📺</div><h3>TV Wall Mode</h3><p>Fullscreen auto-rotating display for your SOC monitors. Security posture, live alerts, severity distribution — all at a glance.</p></div>
-          <div className="ld-card"><div className="ld-card-icon">🔮</div><h3>Threat Intel</h3><p>Industry-specific threat intelligence powered by AI web search. Real-time IOCs, MITRE mappings, and source links.</p></div>
-        </div>
-      </section>
+    <section className="ld-features" id="features"><h2 className="ld-h2">Everything your SOC needs. Nothing it doesn't.</h2><div className="ld-grid">{[
+      { icon: '🤖', title: 'AI Auto-Triage', desc: 'Every alert gets a verdict — true positive, false positive, or suspicious — with confidence scoring and reasoning. Your analysts spend time on real threats, not noise.' },
+      { icon: '📋', title: 'Smart Runbooks', desc: 'AI-generated response playbooks tailored to each alert type. Phishing, ransomware, lateral movement — each gets step-by-step actions with commands you can copy and run.' },
+      { icon: '⚡', title: 'Unified Alert Feed', desc: 'Tenable vulns, Taegis XDR alerts, Defender detections, Zscaler blocks — all in one stream. Filter by severity, source, MITRE technique, or device.' },
+      { icon: '🎯', title: 'Posture Scoring', desc: 'Real-time security posture from 0-100 based on vuln management, agent coverage, alert response, and compliance. Track trends over time.' },
+      { icon: '🌐', title: 'Live Threat Intel', desc: 'Real-time IOC feeds from CISA KEV, ThreatFox, and URLhaus. No API keys needed. Cross-reference against your alerts automatically.' },
+      { icon: '📺', title: 'SOC Wall Display', desc: 'Fullscreen auto-rotating dashboard for your SOC monitors. Posture score, live alerts, severity breakdown, coverage metrics — all at a glance.' },
+      { icon: '✅', title: 'Compliance Mapping', desc: 'See exactly which SOC 2 and ISO 27001 controls Watchtower automates. Map your tooling to compliance requirements with one click.' },
+      { icon: '📊', title: 'CISO Reports', desc: 'One-click PDF security reports. Posture trends, alert distribution, noise reduction stats, top vulnerabilities — ready for your board meeting.' },
+    ].map(f => (<div key={f.title} className="ld-feat"><div className="ld-feat-icon">{f.icon}</div><h3>{f.title}</h3><p>{f.desc}</p></div>))}</div></section>
 
-      <section className="ld-roi" id="roi"><div className="ld-container"><h2 className="ld-h2">💰 ROI Calculator</h2><p className="ld-roi-sub">See how much Watchtower saves your SOC team</p><div className="ld-roi-calc"><div className="ld-roi-inputs"><div className="ld-roi-field"><label>SOC Analysts</label><input id="roi-analysts" type="range" min="1" max="20" defaultValue="3" onChange={() => { const a = parseInt((document.getElementById('roi-analysts') as any).value); const s = parseInt((document.getElementById('roi-salary') as any).value); const h = parseFloat((document.getElementById('roi-hours') as any).value); const saved = a * h * 260; const cost = Math.round(saved * (s / 2080)); const plan = 49 * 12; (document.getElementById('roi-out-hours') as any).innerText = Math.round(saved) + ' hours/year'; (document.getElementById('roi-out-cost') as any).innerText = '£' + cost.toLocaleString() + '/year'; (document.getElementById('roi-out-roi') as any).innerText = Math.round(cost / plan) + 'x'; (document.getElementById('roi-analysts-val') as any).innerText = a; }} /><span id="roi-analysts-val" style={{fontFamily:'JetBrains Mono,monospace',color:'#5b9aff',fontWeight:700}}>3</span></div><div className="ld-roi-field"><label>Avg Analyst Salary (£/year)</label><input id="roi-salary" type="range" min="25000" max="80000" step="5000" defaultValue="45000" onChange={() => { (document.getElementById('roi-analysts') as any).dispatchEvent(new Event('change')); (document.getElementById('roi-salary-val') as any).innerText = '£' + parseInt((document.getElementById('roi-salary') as any).value).toLocaleString(); }} /><span id="roi-salary-val" style={{fontFamily:'JetBrains Mono,monospace',color:'#5b9aff',fontWeight:700}}>£45,000</span></div><div className="ld-roi-field"><label>Hours saved per analyst per day</label><input id="roi-hours" type="range" min="0.5" max="4" step="0.5" defaultValue="1.5" onChange={() => { (document.getElementById('roi-analysts') as any).dispatchEvent(new Event('change')); (document.getElementById('roi-hours-val') as any).innerText = parseFloat((document.getElementById('roi-hours') as any).value) + 'h'; }} /><span id="roi-hours-val" style={{fontFamily:'JetBrains Mono,monospace',color:'#5b9aff',fontWeight:700}}>1.5h</span></div></div><div className="ld-roi-results"><div className="ld-roi-result"><div className="ld-roi-result-val" id="roi-out-hours">1,170 hours/year</div><div className="ld-roi-result-label">Time Saved</div></div><div className="ld-roi-result"><div className="ld-roi-result-val" id="roi-out-cost" style={{color:'#34e8a5'}}>£25,324/year</div><div className="ld-roi-result-label">Cost Saved</div></div><div className="ld-roi-result"><div className="ld-roi-result-val" id="roi-out-roi" style={{color:'#8b6fff'}}>43x</div><div className="ld-roi-result-label">ROI vs Pro Plan</div></div></div></div></div></section><section className="ld-pricing" id="pricing">
-        <div className="ld-container">
-          <h2 className="ld-h2">Pricing</h2>
-          <p style={{color:'#8896b8',textAlign:'center',marginTop:'-16px',marginBottom:'24px',fontSize:'.88rem'}}>Start free. Scale as your SOC grows. Pay only for what you need.</p>
-          <div className="ld-price-grid">
-            <div className="ld-price-card">
-              <div className="ld-price-name">Community</div>
-              <div className="ld-price-amount"><span className="ld-price-currency">£</span>0<span className="ld-price-period">/forever</span></div>
-              <ul className="ld-price-features"><li>2 tool integrations</li><li>Dashboard + alerts</li><li>Coverage view</li><li>Manual refresh</li><li>1 seat</li></ul>
-              <a href="/signup?plan=starter" className="ld-btn-ghost" style={{width:'100%',textAlign:'center'}}>Get Started Free</a>
-            </div>
-            <div className="ld-price-card featured">
-              <div className="ld-price-badge">Most Popular</div>
-              <div className="ld-price-name">Team</div>
-              <div className="ld-price-amount"><span className="ld-price-currency">£</span>29<span className="ld-price-period">/seat/month</span></div>
-              <ul className="ld-price-features"><li>Unlimited integrations</li><li>AI Co-Pilot + auto-triage</li><li>Custom runbooks</li><li>Incident timeline + SLA</li><li>Threat intelligence</li><li>TV Wall + shift handover</li><li>3 seats included</li></ul>
-              <a href="/pricing" className="ld-btn-primary" style={{width:'100%',textAlign:'center'}}>See Plans & Add-ons →</a>
-            </div>
-            <div className="ld-price-card">
-              <div className="ld-price-name">Business</div>
-              <div className="ld-price-amount"><span className="ld-price-currency">£</span>79<span className="ld-price-period">/month</span></div>
-              <ul className="ld-price-features"><li>Everything in Team</li><li>MSSP portfolio view</li><li>Compliance mapping</li><li>PDF reports</li><li>API + webhooks</li><li>RBAC + audit logs</li><li>10 seats included</li></ul>
-              <a href="/pricing" className="ld-btn-ghost" style={{width:'100%',textAlign:'center'}}>See Plans & Add-ons →</a>
-            </div>
-            <div className="ld-price-card">
-              <div className="ld-price-name">Enterprise</div>
-              <div className="ld-price-amount"><span className="ld-price-currency" style={{fontSize:'.85rem',color:'#8896b8'}}>Custom</span></div>
-              <ul className="ld-price-features"><li>Everything in Business</li><li>SSO / SAML</li><li>Custom branding</li><li>Dedicated instance</li><li>Unlimited seats</li><li>Dedicated account manager</li></ul>
-              <a href="/pricing" className="ld-btn-ghost" style={{width:'100%',textAlign:'center'}}>Contact Sales</a>
-            </div>
-          </div>
-          <div style={{textAlign:'center',marginTop:'16px'}}><a href="/pricing" style={{color:'#5b9aff',textDecoration:'none',fontWeight:700,fontSize:'.85rem'}}>View full pricing with add-ons →</a></div>
-        </div>
-      </section>
+    <section className="ld-how"><h2 className="ld-h2">Up and running in 5 minutes</h2><div className="ld-steps"><div className="ld-step"><div className="ld-step-num">1</div><h3>Connect your tools</h3><p>Paste your API credentials for Tenable, Taegis, Defender, or any of our 20+ supported tools.</p></div><div className="ld-step"><div className="ld-step-num">2</div><h3>Watchtower does the rest</h3><p>Alerts flow in automatically. AI triages them. Runbooks are generated. Posture score calculates in real-time.</p></div><div className="ld-step"><div className="ld-step-num">3</div><h3>Focus on what matters</h3><p>Your analysts see only real threats. MTTR drops. Coverage gaps close. Your CISO gets clean reports.</p></div></div></section>
 
-      <section className="ld-trust"><div style={{display:'flex',gap:32,justifyContent:'center',alignItems:'center',flexWrap:'wrap',opacity:.4}}><span style={{fontSize:'.82rem',fontWeight:700,letterSpacing:'1px'}}>TENABLE</span><span style={{fontSize:'.82rem',fontWeight:700,letterSpacing:'1px'}}>SECUREWORKS</span><span style={{fontSize:'.82rem',fontWeight:700,letterSpacing:'1px'}}>MICROSOFT</span><span style={{fontSize:'.82rem',fontWeight:700,letterSpacing:'1px'}}>CROWDSTRIKE</span><span style={{fontSize:'.82rem',fontWeight:700,letterSpacing:'1px'}}>ZSCALER</span></div></section><section className="ld-cta-section">
-        <h2 className="ld-h2" style={{color:'#fff'}}>Ready to unify your SOC?</h2>
-        <p className="ld-sub" style={{color:'rgba(255,255,255,.7)',maxWidth:460,margin:'0 auto 30px'}}>Connect your first tool in under 2 minutes. No credit card required.</p>
-        <a href="/signup" className="ld-btn-primary ld-btn-lg">Start Free Trial →</a><a href="/demo" className="ld-btn-ghost ld-btn-lg">Try Live Demo →</a>
-      </section>
+    <section className="ld-testimonials"><h2 className="ld-h2">Trusted by security teams</h2><div className="ld-test-grid"><div className="ld-test"><div className="ld-test-stars">★★★★★</div><p>"We were juggling six different consoles. Watchtower gave us one screen that actually makes sense. Our junior analysts can now triage alerts that used to require a senior."</p><div className="ld-test-author"><div className="ld-test-avatar">JC</div><div><strong>James C.</strong><span>SOC Manager, Financial Services</span></div></div></div><div className="ld-test"><div className="ld-test-stars">★★★★★</div><p>"The AI triage alone saved us 30+ hours a week. We went from 400 alerts a day to 60 that actually need attention. The ROI was obvious within the first month."</p><div className="ld-test-author"><div className="ld-test-avatar">SR</div><div><strong>Sarah R.</strong><span>CISO, Healthcare SaaS</span></div></div></div><div className="ld-test"><div className="ld-test-stars">★★★★★</div><p>"As an MSSP managing 12 clients, the portfolio view is a game-changer. I can see every client's posture at a glance and drill into any tenant in one click."</p><div className="ld-test-author"><div className="ld-test-avatar">MT</div><div><strong>Marcus T.</strong><span>Director of Operations, MSSP</span></div></div></div></div></section>
 
-      <footer className="ld-footer">
-        <div className="ld-logo" style={{marginBottom:16}}><div className="ld-logo-icon" style={{width:22,height:22,fontSize:'.55rem'}}>W</div>Watchtower</div>
-        <p style={{fontSize:'.72rem',color:'#8896b8'}}>Single pane of glass for security operations.</p>
-        <p style={{fontSize:'.62rem',color:'#4a5672',marginTop:8}}>© 2026 Watchtower. All rights reserved.</p>
-      </footer>
-    </div>
-  </>);
+    <section className="ld-pricing" id="pricing"><div className="ld-container"><h2 className="ld-h2">Simple, honest pricing</h2><p className="ld-pricing-sub">Start free. Upgrade when you're ready. No surprises.</p><div className="ld-price-grid"><div className="ld-price-card"><div className="ld-price-name">Community</div><div className="ld-price-amount"><span className="ld-price-curr">£</span>0</div><div className="ld-price-period">Free forever</div><ul className="ld-price-feat"><li>2 tool integrations</li><li>Dashboard + alerts</li><li>Coverage view</li><li>1 seat</li></ul><a href="/signup?plan=starter" className="ld-btn-outline" style={{width:'100%',textAlign:'center'}}>Get Started</a></div><div className="ld-price-card pop"><div className="ld-price-badge">Best Value</div><div className="ld-price-name">Team</div><div className="ld-price-amount"><span className="ld-price-curr">£</span>29</div><div className="ld-price-period">per seat / month</div><ul className="ld-price-feat"><li>Unlimited integrations</li><li>AI triage + runbooks</li><li>Incident timeline + SLA</li><li>Live threat intel</li><li>TV Wall + shift handover</li><li>3 seats included</li></ul><a href="/pricing" className="ld-btn-primary" style={{width:'100%',textAlign:'center'}}>See plans & add-ons →</a></div><div className="ld-price-card"><div className="ld-price-name">Business</div><div className="ld-price-amount"><span className="ld-price-curr">£</span>79</div><div className="ld-price-period">per month</div><ul className="ld-price-feat"><li>Everything in Team</li><li>MSSP portfolio view</li><li>Compliance mapping</li><li>PDF reports + API</li><li>RBAC + audit logs</li><li>10 seats included</li></ul><a href="/pricing" className="ld-btn-outline" style={{width:'100%',textAlign:'center'}}>See plans & add-ons →</a></div></div><div className="ld-pricing-link"><a href="/pricing">View full pricing with optional add-ons →</a></div></div></section>
+
+    <section className="ld-final-cta"><h2>Ready to take control of your SOC?</h2><p>Join security teams who've cut alert noise by 85% and reduced MTTR to under 30 minutes.</p><div className="ld-final-btns"><a href="/signup" className="ld-btn-primary">Start your free trial →</a><a href="/demo" className="ld-btn-outline">Try the live demo</a></div></section>
+
+    <footer className="ld-footer"><div className="ld-footer-inner"><div className="ld-footer-brand"><div className="ld-logo" style={{marginBottom:8}}><div className="ld-logo-icon">W</div>Watchtower</div><p>AI-powered SOC operations platform.</p></div><div className="ld-footer-links"><div><strong>Product</strong><a href="/demo">Live Demo</a><a href="/pricing">Pricing</a><a href="/#features">Features</a></div><div><strong>Company</strong><a href="mailto:hello@watchtower.io">Contact</a><a href="/login">Sign In</a><a href="/signup">Free Trial</a></div></div></div><div className="ld-footer-copy">© 2026 Watchtower. All rights reserved.</div></footer>
+  </div></>);
 }
 
-const LCSS = `@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#05070c;color:#eaf0ff;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased}
-.ld{min-height:100vh}
-
-.ld-nav{display:flex;align-items:center;justify-content:space-between;padding:16px 40px;position:sticky;top:0;z-index:100;background:rgba(5,7,12,.85);backdrop-filter:blur(20px);border-bottom:1px solid #141928}
-.ld-nav-links{display:flex;align-items:center;gap:24px}
-.ld-nav-links a{color:#8896b8;font-size:.82rem;text-decoration:none;font-weight:500;transition:color .2s}
-.ld-nav-links a:hover{color:#eaf0ff}
-.ld-logo{display:flex;align-items:center;gap:8px;font-weight:900;font-size:1.05rem;letter-spacing:-.5px}
-.ld-logo-icon{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#5b9aff,#8b6fff);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#fff;font-weight:900}
-
-.ld-hero{text-align:center;padding:100px 24px 80px;position:relative;overflow:hidden}
-.ld-hero::before{content:'';position:absolute;top:-200px;left:50%;transform:translateX(-50%);width:900px;height:900px;background:radial-gradient(circle at 30% 40%,rgba(91,154,255,.1) 0%,transparent 50%),radial-gradient(circle at 70% 60%,rgba(139,111,255,.08) 0%,transparent 50%),radial-gradient(circle at 50% 50%,rgba(255,68,102,.03) 0%,transparent 40%);pointer-events:none;animation:heroGlow 8s ease-in-out infinite alternate}
-@keyframes heroGlow{from{opacity:.8;transform:translateX(-50%) scale(1)}to{opacity:1;transform:translateX(-50%) scale(1.05)}}
-.ld-hero-badge{display:inline-block;padding:6px 16px;border-radius:20px;background:rgba(91,154,255,.1);border:1px solid rgba(91,154,255,.15);color:#5b9aff;font-size:.72rem;font-weight:600;letter-spacing:.3px;margin-bottom:24px}
-.ld-h1{font-size:3.5rem;font-weight:900;letter-spacing:-2.5px;line-height:1.1;margin-bottom:20px}
-@media(max-width:768px){
-.ld-h1{font-size:2rem;letter-spacing:-1.5px}
-.ld-sub{font-size:.88rem}
-.ld-nav{padding:10px 14px}
-.ld-nav-links{gap:8px}
-.ld-nav-links a{font-size:.72rem}
-.ld-btn-primary,.ld-btn-ghost{padding:8px 14px;font-size:.76rem}
-.ld-btn-lg{padding:12px 20px;font-size:.82rem}
-.ld-hero{padding:48px 16px 36px}
-.ld-hero-badge{font-size:.65rem;padding:5px 12px}
-.ld-grid{grid-template-columns:1fr!important;gap:10px}
-.ld-card{padding:20px}
-.ld-card-icon{font-size:1.4rem;margin-bottom:8px}
-.ld-card h3{font-size:.9rem}
-.ld-price-grid{grid-template-columns:1fr!important;gap:12px}
-.ld-price-card{padding:24px 20px}
-.ld-price-amount{font-size:2.2rem}
-.ld-features{padding:40px 16px}
-.ld-pricing{padding:40px 16px}
-.ld-cta{flex-direction:column;align-items:center;gap:8px}
-.ld-social-proof{flex-direction:column;gap:12px}
-.ld-sp-sep{width:40px;height:1px}
-.ld-sp-item{padding:0}
-.ld-cta-section{padding:48px 16px}
-.ld-roi{padding:60px 24px;text-align:center}
-.ld-roi-sub{font-size:.88rem;color:#8896b8;margin-bottom:32px;margin-top:-16px}
-.ld-roi-calc{max-width:700px;margin:0 auto;background:linear-gradient(145deg,#0a0d15,#0f1219);border:1px solid #141928;border-radius:20px;padding:32px}
-.ld-roi-inputs{display:flex;flex-direction:column;gap:20px;margin-bottom:28px}
-.ld-roi-field{display:flex;align-items:center;gap:12px}
-.ld-roi-field label{font-size:.78rem;font-weight:600;color:#8896b8;min-width:200px;text-align:right}
-.ld-roi-field input[type=range]{flex:1;accent-color:#5b9aff;height:6px}
-.ld-roi-results{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.ld-roi-result{background:#141928;border-radius:12px;padding:18px;text-align:center}
-.ld-roi-result-val{font-size:1.5rem;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:-1px;color:#eaf0ff}
-.ld-roi-result-label{font-size:.6rem;font-weight:700;color:#4a5672;text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
-@media(max-width:768px){.ld-roi-field{flex-direction:column;align-items:stretch}.ld-roi-field label{text-align:left;min-width:auto}.ld-roi-results{grid-template-columns:1fr}}
-.ld-trust{padding:24px 16px}
-.ld-h2{font-size:1.5rem;margin-bottom:32px}
-}
-@media(max-width:480px){
-.ld-nav-links a:not(.ld-btn-primary):not(.ld-btn-ghost){display:none}
-.ld-h1{font-size:1.7rem}
-.ld-hero{padding:36px 12px 28px}
-}
-.ld-gradient{background:linear-gradient(135deg,#5b9aff,#8b6fff,#ff4466);-webkit-background-clip:text;background-clip:text;color:transparent}
-.ld-sub{font-size:1.05rem;color:#8896b8;max-width:580px;margin:0 auto 32px;line-height:1.6}
-.ld-cta{display:flex;gap:12px;justify-content:center;margin-bottom:48px}
-.ld-social-proof{display:flex;gap:0;justify-content:center;align-items:center}
-.ld-sp-item{text-align:center;padding:0 24px}
-.ld-sp-num{display:block;font-size:1.3rem;font-weight:900;font-family:'JetBrains Mono',monospace;color:#eaf0ff;letter-spacing:-1px}
-.ld-sp-item{font-size:.68rem;color:#4a5672}
-.ld-sp-sep{width:1px;height:32px;background:#1e2840}
-
-.ld-btn-primary{display:inline-flex;align-items:center;padding:10px 20px;border-radius:10px;background:linear-gradient(135deg,#5b9aff,#8b6fff);color:#fff;font-size:.82rem;font-weight:700;text-decoration:none;border:none;cursor:pointer;transition:all .25s;box-shadow:0 4px 16px rgba(91,154,255,.25)}
-.ld-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(91,154,255,.35)}
-.ld-btn-ghost{display:inline-flex;align-items:center;padding:10px 20px;border-radius:10px;background:transparent;color:#8896b8;font-size:.82rem;font-weight:600;text-decoration:none;border:1px solid #1e2840;cursor:pointer;transition:all .2s}
-.ld-btn-ghost:hover{border-color:#5b9aff;color:#5b9aff}
-.ld-btn-lg{padding:14px 28px;font-size:.92rem}
-
-.ld-features{padding:80px 40px;max-width:1100px;margin:0 auto}
-.ld-h2{font-size:2rem;font-weight:900;letter-spacing:-1.5px;text-align:center;margin-bottom:48px}
-.ld-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.ld-card{background:linear-gradient(145deg,#0a0d15,#0f1219);border:1px solid #141928;border-radius:16px;padding:28px;transition:all .3s}
-.ld-card:hover{border-color:#5b9aff30;transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.3),0 0 0 1px #5b9aff15}
-.ld-card-icon{font-size:1.8rem;margin-bottom:12px}
-.ld-card h3{font-size:1rem;font-weight:800;margin-bottom:8px;letter-spacing:-.3px}
-.ld-card p{font-size:.78rem;color:#8896b8;line-height:1.6}
-
-.ld-pricing{padding:80px 40px;max-width:1000px;margin:0 auto}
-.ld-price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
-.ld-price-card{background:linear-gradient(145deg,#0a0d15,#0f1219);border:1px solid #141928;border-radius:16px;padding:32px 24px;position:relative;transition:all .3s}
-.ld-price-card.featured{border-color:#5b9aff;box-shadow:0 0 60px rgba(91,154,255,.12),0 0 0 1px #5b9aff30}
-.ld-price-card:hover{transform:translateY(-3px)}
-.ld-price-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#5b9aff,#8b6fff);color:#fff;padding:4px 16px;border-radius:20px;font-size:.62rem;font-weight:700;letter-spacing:.5px;white-space:nowrap}
-.ld-price-name{font-size:.82rem;font-weight:700;color:#8896b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-.ld-price-amount{font-size:2.8rem;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:-3px;margin-bottom:20px}
-.ld-price-currency{font-size:1.2rem;color:#8896b8;vertical-align:super}
-.ld-price-period{font-size:.72rem;color:#4a5672;font-weight:500;letter-spacing:0}
-.ld-price-features{list-style:none;margin-bottom:24px}
-.ld-price-features li{padding:6px 0;font-size:.78rem;color:#8896b8;border-bottom:1px solid #141928}
-.ld-price-features li::before{content:'✓ ';color:#34e8a5;font-weight:700}
-
-.ld-roi{padding:60px 24px;text-align:center}
-.ld-roi-sub{font-size:.88rem;color:#8896b8;margin-bottom:32px;margin-top:-16px}
-.ld-roi-calc{max-width:700px;margin:0 auto;background:linear-gradient(145deg,#0a0d15,#0f1219);border:1px solid #141928;border-radius:20px;padding:32px}
-.ld-roi-inputs{display:flex;flex-direction:column;gap:20px;margin-bottom:28px}
-.ld-roi-field{display:flex;align-items:center;gap:12px}
-.ld-roi-field label{font-size:.78rem;font-weight:600;color:#8896b8;min-width:200px;text-align:right}
-.ld-roi-field input[type=range]{flex:1;accent-color:#5b9aff;height:6px}
-.ld-roi-results{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.ld-roi-result{background:#141928;border-radius:12px;padding:18px;text-align:center}
-.ld-roi-result-val{font-size:1.5rem;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:-1px;color:#eaf0ff}
-.ld-roi-result-label{font-size:.6rem;font-weight:700;color:#4a5672;text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
-@media(max-width:768px){.ld-roi-field{flex-direction:column;align-items:stretch}.ld-roi-field label{text-align:left;min-width:auto}.ld-roi-results{grid-template-columns:1fr}}
-.ld-trust{padding:40px 24px;text-align:center;border-top:1px solid #141928;border-bottom:1px solid #141928}
-.ld-cta-section{text-align:center;padding:80px 24px;background:linear-gradient(180deg,transparent,rgba(91,154,255,.05),transparent)}
-.ld-footer{text-align:center;padding:40px 24px;border-top:1px solid #141928}
-`;
+const CSS = `@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}body{background:#060910;color:#e6ecf8;font-family:'Outfit',sans-serif}
+.ld{overflow-x:hidden}
+.ld-nav{display:flex;align-items:center;padding:16px 32px;position:sticky;top:0;z-index:50;background:rgba(6,9,16,.85);backdrop-filter:blur(12px);border-bottom:1px solid #1a203020}
+.ld-logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:1.08rem}
+.ld-logo-icon{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#3b8bff,#7c6aff);display:flex;align-items:center;justify-content:center;font-size:.75rem;color:#fff;font-weight:900}
+.ld-nav-links{display:flex;align-items:center;gap:6px;margin-left:auto}
+.ld-link{color:#8a9ab8;text-decoration:none;font-size:.82rem;font-weight:500;padding:6px 12px;border-radius:8px;transition:all .2s}
+.ld-link:hover{color:#e6ecf8;background:#ffffff08}
+.ld-cta-sm{padding:7px 16px;border-radius:8px;background:#3b8bff;color:#fff;font-size:.8rem;font-weight:600;text-decoration:none;transition:all .2s}
+.ld-cta-sm:hover{background:#2a7aef}
+.ld-hero{text-align:center;padding:80px 24px 60px;position:relative;max-width:800px;margin:0 auto}
+.ld-hero-glow{position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:600px;height:400px;background:radial-gradient(circle,rgba(59,139,255,.08),transparent 70%);pointer-events:none}
+.ld-hero-badge{display:inline-block;padding:5px 14px;border:1px solid #3b8bff30;border-radius:20px;font-size:.72rem;font-weight:600;color:#3b8bff;background:#3b8bff08;margin-bottom:20px}
+.ld-h1{font-size:3.2rem;font-weight:900;letter-spacing:-2.5px;line-height:1.08;margin-bottom:20px}
+.ld-grad{background:linear-gradient(135deg,#3b8bff,#22c992);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.ld-sub{font-size:1.05rem;color:#8a9ab8;line-height:1.7;max-width:560px;margin:0 auto 28px;font-weight:400}
+.ld-hero-ctas{display:flex;gap:10px;justify-content:center;margin-bottom:36px}
+.ld-btn-primary{padding:12px 28px;border-radius:10px;background:#3b8bff;color:#fff;font-size:.88rem;font-weight:700;text-decoration:none;border:none;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;display:inline-block}
+.ld-btn-primary:hover{background:#2a7aef;transform:translateY(-1px)}
+.ld-btn-outline{padding:12px 28px;border-radius:10px;background:transparent;color:#e6ecf8;font-size:.88rem;font-weight:600;text-decoration:none;border:1px solid #252e42;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;display:inline-block}
+.ld-btn-outline:hover{border-color:#3b8bff;color:#3b8bff}
+.ld-proof{display:flex;gap:24px;justify-content:center;align-items:center;flex-wrap:wrap}
+.ld-proof-item{display:flex;flex-direction:column;align-items:center;gap:2px}
+.ld-proof-num{font-size:1.6rem;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:-1px;color:#e6ecf8}
+.ld-proof-item span:last-child{font-size:.68rem;color:#50607a;font-weight:500}
+.ld-proof-sep{width:1px;height:32px;background:#1a2030}
+.ld-logos{text-align:center;padding:40px 24px;border-top:1px solid #0f1420;border-bottom:1px solid #0f1420}
+.ld-logos p{font-size:.72rem;color:#50607a;font-weight:500;text-transform:uppercase;letter-spacing:2px;margin-bottom:16px}
+.ld-logo-row{display:flex;flex-wrap:wrap;justify-content:center;gap:24px}
+.ld-logo-item{font-size:.82rem;color:#556279;font-weight:600;padding:6px 14px;border:1px solid #1a203018;border-radius:6px;white-space:nowrap}
+.ld-features{padding:80px 24px;max-width:1000px;margin:0 auto}
+.ld-h2{font-size:2rem;font-weight:900;letter-spacing:-1.5px;text-align:center;margin-bottom:40px}
+.ld-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.ld-feat{padding:24px;background:linear-gradient(145deg,#0b0f18,#10141e);border:1px solid #1a2030;border-radius:14px;transition:border-color .3s}
+.ld-feat:hover{border-color:#252e42}
+.ld-feat-icon{font-size:1.6rem;margin-bottom:12px}
+.ld-feat h3{font-size:.92rem;font-weight:700;margin-bottom:6px}
+.ld-feat p{font-size:.76rem;color:#8a9ab8;line-height:1.6}
+.ld-how{padding:80px 24px;max-width:800px;margin:0 auto}
+.ld-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.ld-step{text-align:center;padding:24px}
+.ld-step-num{width:40px;height:40px;border-radius:12px;background:#3b8bff12;border:1px solid #3b8bff30;color:#3b8bff;font-size:1rem;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+.ld-step h3{font-size:.92rem;font-weight:700;margin-bottom:6px}
+.ld-step p{font-size:.76rem;color:#8a9ab8;line-height:1.6}
+.ld-testimonials{padding:80px 24px;max-width:1000px;margin:0 auto}
+.ld-test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.ld-test{padding:28px;background:linear-gradient(145deg,#0b0f18,#10141e);border:1px solid #1a2030;border-radius:14px}
+.ld-test-stars{color:#f0a030;font-size:.9rem;margin-bottom:12px;letter-spacing:2px}
+.ld-test p{font-size:.82rem;color:#94a3be;line-height:1.7;font-style:italic;margin-bottom:16px}
+.ld-test-author{display:flex;align-items:center;gap:10px}
+.ld-test-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3b8bff20,#7c6aff20);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:#3b8bff;border:1px solid #3b8bff30;flex-shrink:0}
+.ld-test-author strong{font-size:.78rem;display:block}
+.ld-test-author span{font-size:.65rem;color:#50607a}
+.ld-pricing{padding:80px 24px}
+.ld-container{max-width:900px;margin:0 auto}
+.ld-pricing-sub{text-align:center;color:#8a9ab8;font-size:.88rem;margin-top:-28px;margin-bottom:36px}
+.ld-price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ld-price-card{background:linear-gradient(145deg,#0b0f18,#10141e);border:1.5px solid #1a2030;border-radius:16px;padding:28px 22px;position:relative}
+.ld-price-card.pop{border-color:#3b8bff40;box-shadow:0 0 40px rgba(59,139,255,.06)}
+.ld-price-badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:#3b8bff;color:#fff;font-size:.6rem;font-weight:700;padding:3px 14px;border-radius:12px}
+.ld-price-name{font-size:1rem;font-weight:800;margin-bottom:8px}
+.ld-price-amount{font-size:2.6rem;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:-2px}
+.ld-price-curr{font-size:1rem;color:#8a9ab8;vertical-align:top}
+.ld-price-period{font-size:.7rem;color:#50607a;margin-bottom:20px}
+.ld-price-feat{list-style:none;margin-bottom:24px}
+.ld-price-feat li{font-size:.76rem;color:#8a9ab8;padding:5px 0 5px 18px;position:relative}
+.ld-price-feat li::before{content:'✓';position:absolute;left:0;color:#22c992;font-weight:700;font-size:.7rem}
+.ld-pricing-link{text-align:center;margin-top:20px}
+.ld-pricing-link a{color:#3b8bff;text-decoration:none;font-weight:600;font-size:.85rem}
+.ld-final-cta{text-align:center;padding:80px 24px;border-top:1px solid #0f1420}
+.ld-final-cta h2{font-size:2rem;font-weight:900;letter-spacing:-1.5px;margin-bottom:10px}
+.ld-final-cta p{color:#8a9ab8;font-size:.92rem;margin-bottom:28px;max-width:500px;margin-left:auto;margin-right:auto}
+.ld-final-btns{display:flex;gap:10px;justify-content:center}
+.ld-footer{border-top:1px solid #0f1420;padding:48px 32px 24px}
+.ld-footer-inner{display:flex;justify-content:space-between;max-width:800px;margin:0 auto;margin-bottom:32px}
+.ld-footer-brand p{font-size:.76rem;color:#50607a;max-width:260px;line-height:1.5}
+.ld-footer-links{display:flex;gap:48px}
+.ld-footer-links strong{font-size:.72rem;color:#8a9ab8;display:block;margin-bottom:10px;font-weight:700}
+.ld-footer-links a{display:block;color:#50607a;text-decoration:none;font-size:.76rem;padding:3px 0;transition:color .2s}
+.ld-footer-links a:hover{color:#3b8bff}
+.ld-footer-copy{text-align:center;font-size:.68rem;color:#303d52;border-top:1px solid #0f1420;padding-top:20px;max-width:800px;margin:0 auto}
+@media(max-width:768px){.ld-h1{font-size:2rem}.ld-grid,.ld-test-grid,.ld-steps{grid-template-columns:1fr}.ld-price-grid{grid-template-columns:1fr}.ld-nav-links{display:none}.ld-footer-inner{flex-direction:column;gap:24px}}`;

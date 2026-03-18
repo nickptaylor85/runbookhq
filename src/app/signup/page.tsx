@@ -42,26 +42,26 @@ export default function Signup() {
   </>);
 }
 
-const CSS = `@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}body{background:#05070c;color:#eaf0ff;font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased}
+const CSS = `@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}body{background:#060910;color:#e6ecf8;font-family:'Outfit',sans-serif;-webkit-font-smoothing:antialiased}
 .auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 50% 30%,rgba(91,154,255,.04),transparent 60%)}
-.auth-card{width:100%;max-width:420px;background:linear-gradient(145deg,#0a0d15,#0f1219);border:1px solid #141928;border-radius:20px;padding:40px 32px}
+.auth-card{width:100%;max-width:420px;background:linear-gradient(145deg,#0b0f18,#10141e);border:1px solid #1a2030;border-radius:20px;padding:40px 32px}
 .auth-logo{display:flex;align-items:center;gap:8px;font-weight:900;font-size:1rem;margin-bottom:28px;justify-content:center}
-.auth-logo-icon{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#5b9aff,#8b6fff);display:flex;align-items:center;justify-content:center;font-size:.65rem;color:#fff;font-weight:900}
+.auth-logo-icon{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#3b8bff,#7c6aff);display:flex;align-items:center;justify-content:center;font-size:.65rem;color:#fff;font-weight:900}
 .auth-title{font-size:1.4rem;font-weight:900;letter-spacing:-1px;text-align:center;margin-bottom:6px}
-.auth-sub{font-size:.78rem;color:#8896b8;text-align:center;margin-bottom:28px}
+.auth-sub{font-size:.78rem;color:#8a9ab8;text-align:center;margin-bottom:28px}
 .auth-field{margin-bottom:16px}
-.auth-field label{display:block;font-size:.72rem;font-weight:600;color:#8896b8;margin-bottom:5px}
-.auth-field input,.auth-field select{width:100%;padding:10px 14px;background:#0f1219;border:1px solid #1e2840;border-radius:10px;color:#eaf0ff;font-size:.85rem;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s}
-.auth-field input:focus,.auth-field select:focus{border-color:#5b9aff}
-.auth-field input::placeholder{color:#4a5672}
+.auth-field label{display:block;font-size:.72rem;font-weight:600;color:#8a9ab8;margin-bottom:5px}
+.auth-field input,.auth-field select{width:100%;padding:10px 14px;background:#10141e;border:1px solid #252e42;border-radius:10px;color:#e6ecf8;font-size:.85rem;font-family:'Outfit',sans-serif;outline:none;transition:border-color .2s}
+.auth-field input:focus,.auth-field select:focus{border-color:#3b8bff}
+.auth-field input::placeholder{color:#50607a}
 .auth-field select{cursor:pointer}
-.auth-error{background:rgba(255,68,102,.1);border:1px solid rgba(255,68,102,.15);color:#ff4466;padding:8px 12px;border-radius:8px;font-size:.76rem;margin-bottom:12px}
-.auth-btn{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#5b9aff,#8b6fff);color:#fff;font-size:.88rem;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .25s;box-shadow:0 4px 16px rgba(91,154,255,.25);margin-top:4px}
+.auth-error{background:rgba(255,68,102,.1);border:1px solid rgba(255,68,102,.15);color:#f0405e;padding:8px 12px;border-radius:8px;font-size:.76rem;margin-bottom:12px}
+.auth-btn{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#3b8bff,#7c6aff);color:#fff;font-size:.88rem;font-weight:700;font-family:'Outfit',sans-serif;cursor:pointer;transition:all .25s;box-shadow:0 4px 16px rgba(91,154,255,.25);margin-top:4px}
 .auth-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(91,154,255,.35)}
 .auth-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
-.auth-link{text-align:center;margin-top:20px;font-size:.76rem;color:#4a5672}
-.auth-link a{color:#5b9aff;text-decoration:none;font-weight:600}
+.auth-link{text-align:center;margin-top:20px;font-size:.76rem;color:#50607a}
+.auth-link a{color:#3b8bff;text-decoration:none;font-weight:600}
 .auth-link a:hover{text-decoration:underline}
 @media(max-width:768px){
 .auth-page{padding:16px}
