@@ -31,3 +31,4 @@ Make sure `.env` file exists with a valid `DATABASE_URL`. Copy from `.env.exampl
 
 **Build fails on Vercel:**
 Ensure all 5 environment variables are set in Vercel project settings.
+# Wed Mar 18 02:36:40 GMT 2026
