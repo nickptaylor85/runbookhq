@@ -34,7 +34,7 @@ export async function GET(req: Request) {
         score += coverageBonus;
         factors.push({ name: 'Agent Coverage', impact: coverageBonus, detail: `${Math.round(coveragePct * 100)}% of ${total} assets`, count: withAgent });
       }
-    } catch {}
+    } catch(e) {}
   }
 
   // Taegis: alert posture
@@ -51,7 +51,7 @@ export async function GET(req: Request) {
       // Bonus for having XDR
       score += 10;
       factors.push({ name: 'XDR Connected', impact: 10, detail: 'Taegis XDR active monitoring' });
-    } catch {}
+    } catch(e) {}
   }
 
   score = Math.max(0, Math.min(100, Math.round(score)));

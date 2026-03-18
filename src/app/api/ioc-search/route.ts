@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       (data.assets || []).forEach((a: any) => {
         results.push({ tool: 'Tenable.io', type: 'asset', severity: 'info', match: a.agent_name?.[0] || a.fqdn?.[0] || a.ipv4?.[0] || ioc, detail: `OS: ${a.operating_system?.[0] || 'Unknown'}, IP: ${a.ipv4?.[0] || ''}` });
       });
-    } catch {}
+    } catch(e) {}
 
     // Also search vulns
     try {
@@ -26,7 +26,7 @@ export async function POST(req: Request) {
       (data.vulnerabilities || []).filter((v: any) => (v.plugin_name || '').toLowerCase().includes(q) || String(v.plugin_id).includes(q)).slice(0, 5).forEach((v: any) => {
         results.push({ tool: 'Tenable.io', type: 'vulnerability', severity: v.severity >= 4 ? 'critical' : v.severity >= 3 ? 'high' : 'medium', match: v.plugin_name, detail: `Plugin ${v.plugin_id}, ${v.count || 0} hosts, VPR ${v.vpr_score || 'N/A'}` });
       });
-    } catch {}
+    } catch(e) {}
   }
 
   // Search Taegis
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       (data.data?.alertsServiceSearch?.alerts?.list || []).forEach((a: any) => {
         results.push({ tool: 'Taegis XDR', type: 'alert', severity: (a.metadata?.severity || 0) >= 0.8 ? 'critical' : 'high', match: a.metadata?.title || 'Taegis Alert', detail: `Status: ${a.status || 'unknown'}` });
       });
-    } catch {}
+    } catch(e) {}
   }
 
   return NextResponse.json({ ioc, resultCount: results.length, results, demo: false });

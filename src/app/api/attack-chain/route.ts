@@ -29,7 +29,7 @@ export async function GET(req: Request) {
         const parsed = JSON.parse(jsonMatch[0]);
         return NextResponse.json({ ...parsed, demo: false });
       }
-    } catch {}
+    } catch(e) {}
     return NextResponse.json({ nodes: [], edges: [], error: 'Parse failed' });
   } catch (e) {
     return NextResponse.json({ nodes: [], edges: [], error: String(e) });

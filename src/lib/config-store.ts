@@ -39,7 +39,7 @@ export async function hasKVStore(): Promise<boolean> {
 export async function loadPlatformData(): Promise<any> {
   const raw = await redisCmd('GET', 'secops:platform');
   if (raw) {
-    try { return typeof raw === 'string' ? JSON.parse(raw) : raw; } catch {}
+    try { return typeof raw === 'string' ? JSON.parse(raw) : raw; } catch(e) {}
   }
   return { users: {}, tenants: {}, auditLog: [] };
 }
@@ -58,7 +58,7 @@ export async function loadTenantConfigs(tenantId: string): Promise<AllToolConfig
     try {
       const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
       if (parsed?.tools) return parsed as AllToolConfigs;
-    } catch {}
+    } catch(e) {}
   }
   return { tools: {}, updatedAt: '' };
 }
@@ -84,7 +84,7 @@ export async function loadToolConfigs(tenantId?: string): Promise<AllToolConfigs
     try {
       const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
       if (parsed?.tools) return parsed as AllToolConfigs;
-    } catch {}
+    } catch(e) {}
   }
   return buildFromEnv();
 }

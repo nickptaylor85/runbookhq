@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   res.cookies.set('secops-admin-original', adminEmail, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 60 * 60 * 2, path: '/' });
   
   configs.auditLog?.push({ action: 'admin_impersonate', admin: adminEmail, target: email, time: new Date().toISOString() });
-  try { const { savePlatformData: save } = require('@/lib/config-store'); await save(configs); } catch {}
+  try { const { savePlatformData: save } = require('@/lib/config-store'); await save(configs); } catch(e) {}
   
   return res;
 }

@@ -26,7 +26,7 @@ export async function GET(req: Request) {
     try {
       const jsonMatch = text.match(/\[[\s\S]*\]/);
       if (jsonMatch) return NextResponse.json({ predictions: JSON.parse(jsonMatch[0]), demo: false });
-    } catch {}
+    } catch(e) {}
     return NextResponse.json({ predictions: [], error: 'Failed to parse predictions' });
   } catch (e) {
     return NextResponse.json({ predictions: [], error: String(e) });

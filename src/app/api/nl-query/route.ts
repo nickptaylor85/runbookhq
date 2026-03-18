@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       const vulnData = await tenableAPI('/workbenches/vulnerabilities?date_range=30');
       const vulns = vulnData.vulnerabilities || [];
       context += `Tenable: ${vulns.length} vulns (${vulns.filter((v:any)=>v.severity===4).length} critical, ${vulns.filter((v:any)=>v.severity===3).length} high). Top: ${vulns.slice(0,5).map((v:any)=>v.plugin_name).join('; ')}. `;
-    } catch {}
+    } catch(e) {}
   }
   const taegisAuth = await getTaegisToken(tenantId || undefined);
   if (taegisAuth) {
@@ -27,7 +27,7 @@ export async function POST(req: Request) {
       const total = data.data?.alertsServiceSearch?.alerts?.total_results || 0;
       const list = data.data?.alertsServiceSearch?.alerts?.list || [];
       context += `Taegis: ${total} critical+high alerts in 24h. Recent: ${list.map((a:any)=>a.metadata?.title).join('; ')}. `;
-    } catch {}
+    } catch(e) {}
   }
 
   try {

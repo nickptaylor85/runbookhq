@@ -15,14 +15,14 @@ export async function GET(req: Request) {
     try {
       const d = await tenableAPI('/workbenches/vulnerabilities?date_range=1');
       context += `Tenable (24h): ${d.vulnerabilities?.length || 0} vulns found. Critical: ${d.vulnerabilities?.filter((v:any)=>v.severity===4).length || 0}. `;
-    } catch {}
+    } catch(e) {}
   }
   const taegisAuth = await getTaegisToken(tenantId || undefined);
   if (taegisAuth) {
     try {
       const d = await taegisGraphQL(`query { alertsServiceSearch(in: { cql_query: "FROM alert WHERE severity >= 0.3 EARLIEST=-8h", offset: 0, limit: 1 }) { alerts { total_results } } }`, {}, taegisAuth.token, taegisAuth.base);
       context += `Taegis (8h shift): ${d.data?.alertsServiceSearch?.alerts?.total_results || 0} alerts. `;
-    } catch {}
+    } catch(e) {}
   }
 
   if (!apiKey) return NextResponse.json({ summary: 'Configure Anthropic API key for shift handover summaries', items: [] });

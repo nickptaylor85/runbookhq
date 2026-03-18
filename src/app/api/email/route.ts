@@ -15,7 +15,6 @@ async function sendEmail(to: string, subject: string, html: string): Promise<{ o
   } catch (e) { return { ok: false, error: String(e) }; }
 }
 
-export { sendEmail };
 
 // POST: Send a notification email
 export async function POST(req: Request) {

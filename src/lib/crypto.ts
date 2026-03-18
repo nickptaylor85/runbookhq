@@ -135,7 +135,7 @@ export async function validateApiKey(req: Request): Promise<{ valid: boolean; te
   if (!key) return { valid: false };
   
   key.lastUsedAt = new Date().toISOString();
-  try { const { savePlatformData } = await import('@/lib/config-store'); await savePlatformData(platform); } catch {}
+  try { const { savePlatformData } = await import('@/lib/config-store'); await savePlatformData(platform); } catch(e) {}
   
   return { valid: true, tenantId: key.tenantId, email: key.createdBy, scopes: key.scopes };
 }
