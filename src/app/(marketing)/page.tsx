@@ -47,28 +47,37 @@ export default function Landing() {
       </section>
 
       <section className="ld-roi" id="roi"><div className="ld-container"><h2 className="ld-h2">💰 ROI Calculator</h2><p className="ld-roi-sub">See how much Watchtower saves your SOC team</p><div className="ld-roi-calc"><div className="ld-roi-inputs"><div className="ld-roi-field"><label>SOC Analysts</label><input id="roi-analysts" type="range" min="1" max="20" defaultValue="3" onChange={() => { const a = parseInt((document.getElementById('roi-analysts') as any).value); const s = parseInt((document.getElementById('roi-salary') as any).value); const h = parseFloat((document.getElementById('roi-hours') as any).value); const saved = a * h * 260; const cost = Math.round(saved * (s / 2080)); const plan = 49 * 12; (document.getElementById('roi-out-hours') as any).innerText = Math.round(saved) + ' hours/year'; (document.getElementById('roi-out-cost') as any).innerText = '£' + cost.toLocaleString() + '/year'; (document.getElementById('roi-out-roi') as any).innerText = Math.round(cost / plan) + 'x'; (document.getElementById('roi-analysts-val') as any).innerText = a; }} /><span id="roi-analysts-val" style={{fontFamily:'JetBrains Mono,monospace',color:'#5b9aff',fontWeight:700}}>3</span></div><div className="ld-roi-field"><label>Avg Analyst Salary (£/year)</label><input id="roi-salary" type="range" min="25000" max="80000" step="5000" defaultValue="45000" onChange={() => { (document.getElementById('roi-analysts') as any).dispatchEvent(new Event('change')); (document.getElementById('roi-salary-val') as any).innerText = '£' + parseInt((document.getElementById('roi-salary') as any).value).toLocaleString(); }} /><span id="roi-salary-val" style={{fontFamily:'JetBrains Mono,monospace',color:'#5b9aff',fontWeight:700}}>£45,000</span></div><div className="ld-roi-field"><label>Hours saved per analyst per day</label><input id="roi-hours" type="range" min="0.5" max="4" step="0.5" defaultValue="1.5" onChange={() => { (document.getElementById('roi-analysts') as any).dispatchEvent(new Event('change')); (document.getElementById('roi-hours-val') as any).innerText = parseFloat((document.getElementById('roi-hours') as any).value) + 'h'; }} /><span id="roi-hours-val" style={{fontFamily:'JetBrains Mono,monospace',color:'#5b9aff',fontWeight:700}}>1.5h</span></div></div><div className="ld-roi-results"><div className="ld-roi-result"><div className="ld-roi-result-val" id="roi-out-hours">1,170 hours/year</div><div className="ld-roi-result-label">Time Saved</div></div><div className="ld-roi-result"><div className="ld-roi-result-val" id="roi-out-cost" style={{color:'#34e8a5'}}>£25,324/year</div><div className="ld-roi-result-label">Cost Saved</div></div><div className="ld-roi-result"><div className="ld-roi-result-val" id="roi-out-roi" style={{color:'#8b6fff'}}>43x</div><div className="ld-roi-result-label">ROI vs Pro Plan</div></div></div></div></div></section><section className="ld-pricing" id="pricing">
-        <h2 className="ld-h2">Simple, transparent pricing</h2>
-        <p className="ld-sub" style={{maxWidth:500,margin:'0 auto 40px'}}>Start free. Upgrade when you need more tools and AI features.</p>
-        <div className="ld-price-grid">
-          <div className="ld-price-card">
-            <div className="ld-price-name">Starter</div>
-            <div className="ld-price-amount"><span className="ld-price-currency">£</span>0<span className="ld-price-period">/month</span></div>
-            <ul className="ld-price-features"><li>2 tool integrations</li><li>Dashboard + alerts</li><li>Coverage view</li><li>Manual refresh</li><li>Community support</li></ul>
-            <a href="/signup?plan=starter" className="ld-btn-ghost" style={{width:'100%',textAlign:'center'}}>Get Started Free</a>
+        <div className="ld-container">
+          <h2 className="ld-h2">Pricing</h2>
+          <p style={{color:'#8896b8',textAlign:'center',marginTop:'-16px',marginBottom:'24px',fontSize:'.88rem'}}>Start free. Scale as your SOC grows. Pay only for what you need.</p>
+          <div className="ld-price-grid">
+            <div className="ld-price-card">
+              <div className="ld-price-name">Community</div>
+              <div className="ld-price-amount"><span className="ld-price-currency">£</span>0<span className="ld-price-period">/forever</span></div>
+              <ul className="ld-price-features"><li>2 tool integrations</li><li>Dashboard + alerts</li><li>Coverage view</li><li>Manual refresh</li><li>1 seat</li></ul>
+              <a href="/signup?plan=starter" className="ld-btn-ghost" style={{width:'100%',textAlign:'center'}}>Get Started Free</a>
+            </div>
+            <div className="ld-price-card featured">
+              <div className="ld-price-badge">Most Popular</div>
+              <div className="ld-price-name">Team</div>
+              <div className="ld-price-amount"><span className="ld-price-currency">£</span>29<span className="ld-price-period">/seat/month</span></div>
+              <ul className="ld-price-features"><li>Unlimited integrations</li><li>AI Co-Pilot + auto-triage</li><li>Custom runbooks</li><li>Incident timeline + SLA</li><li>Threat intelligence</li><li>TV Wall + shift handover</li><li>3 seats included</li></ul>
+              <a href="/pricing" className="ld-btn-primary" style={{width:'100%',textAlign:'center'}}>See Plans & Add-ons →</a>
+            </div>
+            <div className="ld-price-card">
+              <div className="ld-price-name">Business</div>
+              <div className="ld-price-amount"><span className="ld-price-currency">£</span>79<span className="ld-price-period">/month</span></div>
+              <ul className="ld-price-features"><li>Everything in Team</li><li>MSSP portfolio view</li><li>Compliance mapping</li><li>PDF reports</li><li>API + webhooks</li><li>RBAC + audit logs</li><li>10 seats included</li></ul>
+              <a href="/pricing" className="ld-btn-ghost" style={{width:'100%',textAlign:'center'}}>See Plans & Add-ons →</a>
+            </div>
+            <div className="ld-price-card">
+              <div className="ld-price-name">Enterprise</div>
+              <div className="ld-price-amount"><span className="ld-price-currency" style={{fontSize:'.85rem',color:'#8896b8'}}>Custom</span></div>
+              <ul className="ld-price-features"><li>Everything in Business</li><li>SSO / SAML</li><li>Custom branding</li><li>Dedicated instance</li><li>Unlimited seats</li><li>Dedicated account manager</li></ul>
+              <a href="/pricing" className="ld-btn-ghost" style={{width:'100%',textAlign:'center'}}>Contact Sales</a>
+            </div>
           </div>
-          <div className="ld-price-card featured">
-            <div className="ld-price-badge">Most Popular</div>
-            <div className="ld-price-name">Pro</div>
-            <div className="ld-price-amount"><span className="ld-price-currency">£</span>49<span className="ld-price-period">/month</span></div>
-            <ul className="ld-price-features"><li>Unlimited tool integrations</li><li>AI Co-Pilot + triage</li><li>Auto runbooks</li><li>Threat intelligence</li><li>TV Wall mode</li><li>Shift handover</li><li>30s auto-refresh</li><li>Priority support</li></ul>
-            <a href="/signup?plan=pro" className="ld-btn-primary" style={{width:'100%',textAlign:'center'}}>Start Free Trial →</a>
-          </div>
-          <div className="ld-price-card">
-            <div className="ld-price-name">Enterprise</div>
-            <div className="ld-price-amount"><span className="ld-price-currency">£</span>199<span className="ld-price-period">/month</span></div>
-            <ul className="ld-price-features"><li>Everything in Pro</li><li>Multi-tenant (MSSP)</li><li>RBAC + audit logs</li><li>Custom integrations</li><li>SLA reporting</li><li>API access</li><li>SSO / SAML</li><li>Dedicated support</li></ul>
-            <a href="/signup?plan=enterprise" className="ld-btn-ghost" style={{width:'100%',textAlign:'center'}}>Contact Sales</a>
-          </div>
+          <div style={{textAlign:'center',marginTop:'16px'}}><a href="/pricing" style={{color:'#5b9aff',textDecoration:'none',fontWeight:700,fontSize:'.85rem'}}>View full pricing with add-ons →</a></div>
         </div>
       </section>
 
