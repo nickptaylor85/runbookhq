@@ -135,7 +135,7 @@ export async function GET(req: Request) {
         const { getSentinelToken } = await import('@/lib/api-clients');
         const auth = await getSentinelToken(tenantId || undefined);
         if (auth) {
-          const r = await fetch(\`https://management.azure.com/subscriptions/\${auth.workspaceId}/providers/Microsoft.SecurityInsights/incidents?api-version=2023-11-01&$top=20&$orderby=properties/createdTimeUtc desc\`, { headers: { Authorization: \`Bearer \${auth.token}\` } });
+          const r = await fetch(`https://management.azure.com/subscriptions/${auth.workspaceId}/providers/Microsoft.SecurityInsights/incidents?api-version=2023-11-01&$top=20&$orderby=properties/createdTimeUtc desc`, { headers: { Authorization: `Bearer ${auth.token}` } });
           const d = await r.json();
           (d?.value || []).forEach((inc: any) => {
             alerts.push({ id: 'sn-' + inc.name, title: inc.properties?.title || 'Sentinel Incident', severity: (inc.properties?.severity || 'medium').toLowerCase(), status: (inc.properties?.status || 'new').toLowerCase(), source: 'Sentinel', device: '', user: '', timestamp: inc.properties?.createdTimeUtc || new Date().toISOString(), mitre: '' });
