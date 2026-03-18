@@ -18,7 +18,7 @@ export default function Login() {
       if (d.ok) window.location.href = '/dashboard';
       else if (d.requires2fa) { setNeeds2fa(true); setError(''); }
       else setError(d.error || 'Invalid credentials');
-    } catch { setError('Network error'); }
+    } catch(e) { setError('Network error'); }
     setLoading(false);
   }
 

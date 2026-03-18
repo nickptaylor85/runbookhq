@@ -39,6 +39,6 @@ export async function GET(req: Request) {
     try {
       const parsed = JSON.parse(text.replace(/```json|```/g, '').trim());
       return NextResponse.json({ ...parsed, demo: false });
-    } catch { return NextResponse.json({ summary: text.substring(0, 200), items: [] }); }
+    } catch(e) { return NextResponse.json({ summary: text.substring(0, 200), items: [] }); }
   } catch (e) { return NextResponse.json({ summary: 'Handover generation failed', items: [], error: String(e) }); }
 }

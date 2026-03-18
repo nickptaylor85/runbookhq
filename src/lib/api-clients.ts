@@ -35,7 +35,7 @@ export async function getDefenderToken(): Promise<string | null> {
     });
     const data = await res.json();
     return data.access_token || null;
-  } catch { return null; }
+  } catch(e) { return null; }
 }
 
 export async function getMDEToken(): Promise<string | null> {
@@ -51,7 +51,7 @@ export async function getMDEToken(): Promise<string | null> {
     });
     const data = await res.json();
     return data.access_token || null;
-  } catch { return null; }
+  } catch(e) { return null; }
 }
 
 export async function defenderAPI(path: string, token: string) {
@@ -94,7 +94,7 @@ export async function getTaegisToken(tenantId?: string): Promise<{ token: string
       });
       const data = await res.json();
       if (data.access_token) return { token: data.access_token, base };
-    } catch { continue; }
+    } catch(e) { continue; }
   }
   (globalThis as any).__taegisAuthError = { tried: allBases.length + ' regions', savedRegion: region };
   return null;

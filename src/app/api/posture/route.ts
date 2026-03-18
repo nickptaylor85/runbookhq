@@ -3,6 +3,17 @@ import { NextResponse } from 'next/server';
 import { tenableAPI, tenableHeaders, getTaegisToken, taegisGraphQL, getConfiguredTools } from '@/lib/api-clients';
 
 export async function GET(req: Request) {
+  const { isDemoMode } = await import('@/lib/demo-check');
+  const demoMode = await isDemoMode(getTenantFromRequest(req).tenantId);
+  if (demoMode) {
+    return NextResponse.json({ score: 68, grade: 'C', factors: [
+      { name: 'Vulnerability Management', score: 45, detail: '24 critical, 142 high vulns' },
+      { name: 'Agent Coverage', score: 76, detail: '76% of 847 assets' },
+      { name: 'Alert Response', score: 82, detail: 'MTTR 24m, MTTD 8m' },
+      { name: 'Compliance', score: 61, detail: 'SOC 2 partial coverage' },
+      { name: 'Patch Cadence', score: 55, detail: '12 overdue patches' },
+    ], demo: true });
+  }
   const { tenantId } = getTenantFromRequest(req);
   const tools = await getConfiguredTools(tenantId || undefined);
   let score = 50; // Base score

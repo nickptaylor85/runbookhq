@@ -32,7 +32,7 @@ export async function GET() {
       });
       const text = await res.text();
       let parsed;
-      try { parsed = JSON.parse(text); } catch { parsed = text.substring(0, 200); }
+      try { parsed = JSON.parse(text); } catch(e) { parsed = text.substring(0, 200); }
       results.attempts.push({
         region, base, method: 'form-body',
         status: res.status,
@@ -57,7 +57,7 @@ export async function GET() {
     });
     const text = await res.text();
     let parsed;
-    try { parsed = JSON.parse(text); } catch { parsed = text.substring(0, 200); }
+    try { parsed = JSON.parse(text); } catch(e) { parsed = text.substring(0, 200); }
     results.attempts.push({
       region: savedRegion, base, method: 'basic-auth',
       status: res.status,
@@ -78,7 +78,7 @@ export async function GET() {
     });
     const text = await res.text();
     let parsed;
-    try { parsed = JSON.parse(text); } catch { parsed = text.substring(0, 200); }
+    try { parsed = JSON.parse(text); } catch(e) { parsed = text.substring(0, 200); }
     results.attempts.push({
       region: savedRegion, base, method: 'json-body',
       status: res.status,

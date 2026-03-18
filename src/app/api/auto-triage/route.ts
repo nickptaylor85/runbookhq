@@ -29,6 +29,6 @@ export async function POST(req: Request) {
       const triageMap: Record<string, any> = {};
       triaged.forEach((t: any) => { triageMap[t.id] = t.triage; });
       return NextResponse.json({ alerts: alerts.map((a: any) => ({ ...a, triage: triageMap[a.id] || null })), demo: false });
-    } catch { return NextResponse.json({ alerts }); }
-  } catch { return NextResponse.json({ alerts }); }
+    } catch(e) { return NextResponse.json({ alerts }); }
+  } catch(e) { return NextResponse.json({ alerts }); }
 }

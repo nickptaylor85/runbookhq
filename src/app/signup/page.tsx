@@ -17,7 +17,7 @@ export default function Signup() {
       const d = await r.json();
       if (d.ok) window.location.href = '/setup';
       else setError(d.error || 'Registration failed');
-    } catch { setError('Network error'); }
+    } catch(e) { setError('Network error'); }
     setLoading(false);
   }
 

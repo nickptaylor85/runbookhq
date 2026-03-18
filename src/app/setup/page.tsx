@@ -30,7 +30,7 @@ export default function SetupWizard() {
       const r = await fetch('/api/tools/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ toolId, credentials: creds[toolId] }) });
       const d = await r.json();
       setTestResults(p => ({ ...p, [toolId]: d }));
-    } catch { setTestResults(p => ({ ...p, [toolId]: { error: 'Test failed' } })); }
+    } catch(e) { setTestResults(p => ({ ...p, [toolId]: { error: 'Test failed' } })); }
     setTesting(null);
   }
 

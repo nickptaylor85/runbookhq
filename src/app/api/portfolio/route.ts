@@ -42,7 +42,7 @@ export async function GET(req: Request) {
           return 'inactive';
         })(),
       };
-    } catch { return { id: tenant.id, name: tenant.name, plan: tenant.plan, status: 'error', tools: 0, openIncidents: 0, slaActive: 0, slaBreached: 0, members: 0 }; }
+    } catch(e) { return { id: tenant.id, name: tenant.name, plan: tenant.plan, status: 'error', tools: 0, openIncidents: 0, slaActive: 0, slaBreached: 0, members: 0 }; }
   }));
 
   const totals = {

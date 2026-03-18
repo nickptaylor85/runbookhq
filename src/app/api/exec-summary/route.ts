@@ -5,7 +5,7 @@ import { getTenantFromRequest } from '@/lib/config-store';
 async function getApiKey(): Promise<string | null> {
   // Check env first, then Redis
   if (process.env.ANTHROPIC_API_KEY) return process.env.ANTHROPIC_API_KEY;
-  try { const c = await loadToolConfigs(tenantId || undefined); return c.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || null; } catch { return null; }
+  try { const c = await loadToolConfigs(tenantId || undefined); return c.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || null; } catch(e) { return null; }
 }
 
 export async function POST(req: Request) {

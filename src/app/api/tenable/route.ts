@@ -3,6 +3,12 @@ import { NextResponse } from 'next/server';
 import { tenableHeaders, tenableAPI } from '@/lib/api-clients';
 
 export async function GET(req: Request) {
+  const { isDemoMode } = await import('@/lib/demo-check');
+  const demoMode = await isDemoMode(getTenantFromRequest(req).tenantId);
+  if (demoMode) {
+    const { DEMO_TENABLE_VULNS } = await import('@/lib/demo-data');
+    return NextResponse.json({ ...DEMO_TENABLE_VULNS, demo: true, source: 'demo-mode' });
+  }
   const { tenantId } = getTenantFromRequest(req);
   const headers = await tenableHeaders(tenantId || undefined);
   if (!headers) return NextResponse.json({ demo: false, summary: { total: 0, critical: 0, high: 0, medium: 0, low: 0 }, assetCounts: { total: 0, scanned: 0, withCritical: 0, withHigh: 0 }, scanHealth: { coverage: 0 }, allVulns: [], topCritical: [], topHosts: [], noCredentials: true });
