@@ -5,9 +5,9 @@ import { getTenantFromRequest } from '@/lib/config-store';
 export async function POST(req: Request) {
   // Demo mode — return fake triage results
   const { isDemoMode } = await import('@/lib/demo-check');
-  const { getTenantFromRequest } = await import('@/lib/config-store');
-  const { tenantId } = getTenantFromRequest(req);
-  if (await isDemoMode(tenantId)) {
+  const { getTenantFromRequest: _gtr } = await import('@/lib/config-store');
+  const { tenantId: _tid } = _gtr(req);
+  if (await isDemoMode(_tid)) {
     const body = await req.json();
     const alerts = body.alerts || [];
     const verdicts = ['tp', 'fp', 'suspicious', 'fp', 'fp', 'tp', 'fp', 'suspicious', 'fp', 'fp'];

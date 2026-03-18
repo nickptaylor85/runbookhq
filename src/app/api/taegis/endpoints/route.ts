@@ -4,9 +4,9 @@ import { getTaegisToken, taegisGraphQL } from '@/lib/api-clients';
 
 export async function GET(req: Request) {
   const { isDemoMode } = await import('@/lib/demo-check');
-  const { getTenantFromRequest } = await import('@/lib/config-store');
-  const { tenantId } = getTenantFromRequest(req);
-  if (await isDemoMode(tenantId)) {
+  const { getTenantFromRequest: _gtr } = await import('@/lib/config-store');
+  const { tenantId: _tid } = _gtr(req);
+  if (await isDemoMode(_tid)) {
     return NextResponse.json({ endpoints: [
       { id: 'ep-001', hostname: 'WS042.corp.local', os: 'Windows', osVersion: '11 23H2', sensorVersion: '4.2.1', isolated: false, lastSeen: new Date(Date.now()-1800000).toISOString() },
       { id: 'ep-002', hostname: 'SRV-DC01.corp.local', os: 'Windows Server', osVersion: '2022', sensorVersion: '4.2.1', isolated: false, lastSeen: new Date(Date.now()-900000).toISOString() },
