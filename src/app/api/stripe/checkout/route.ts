@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 
 const PRICES: Record<string, string> = {
-  // Base plans
   team: process.env.STRIPE_PRICE_TEAM || '',
+  team_annual: process.env.STRIPE_PRICE_TEAM_ANNUAL || '',
   business: process.env.STRIPE_PRICE_BUSINESS || '',
-  enterprise: process.env.STRIPE_PRICE_ENTERPRISE || '',
-  // Add-ons
+  business_annual: process.env.STRIPE_PRICE_BUSINESS_ANNUAL || '',
+  mssp: process.env.STRIPE_PRICE_MSSP || '',
   addon_seats: process.env.STRIPE_PRICE_SEATS || '',
   addon_ai: process.env.STRIPE_PRICE_AI || '',
   addon_intel: process.env.STRIPE_PRICE_INTEL || '',
@@ -16,27 +16,24 @@ const PRICES: Record<string, string> = {
 };
 
 export async function POST(req: Request) {
-  const { plan, email, addons, seatQty } = await req.json();
+  const { plan, email, addons, seatQty, annual } = await req.json();
   const stripeKey = process.env.STRIPE_SECRET_KEY;
-  if (!stripeKey) return NextResponse.json({ error: 'Stripe not configured. Add STRIPE_SECRET_KEY to env vars.' });
+  if (!stripeKey) return NextResponse.json({ error: 'Stripe not configured. Add STRIPE_SECRET_KEY to Vercel env vars.' });
 
   const lineItems: Array<{ price: string; quantity: number }> = [];
 
-  // Base plan
-  const basePriceId = PRICES[plan];
+  // Base plan (annual variant if selected)
+  const planKey = annual ? plan + '_annual' : plan;
+  const basePriceId = PRICES[planKey] || PRICES[plan];
   if (basePriceId) {
-    lineItems.push({ price: basePriceId, quantity: 1 });
-  }
-
-  // Additional seats
-  if (seatQty && seatQty > 0 && PRICES.addon_seats) {
-    lineItems.push({ price: PRICES.addon_seats, quantity: seatQty });
+    const baseQty = plan === 'team' ? Math.max(3, (seatQty || 0) + 3) : 1;
+    lineItems.push({ price: basePriceId, quantity: plan === 'team' ? baseQty : 1 });
   }
 
   // Add-ons
   if (addons && Array.isArray(addons)) {
     for (const addon of addons) {
-      const addonPriceId = PRICES[`addon_${addon}`];
+      const addonPriceId = PRICES['addon_' + addon];
       if (addonPriceId) {
         lineItems.push({ price: addonPriceId, quantity: 1 });
       }
@@ -44,30 +41,37 @@ export async function POST(req: Request) {
   }
 
   if (lineItems.length === 0) {
-    return NextResponse.json({ error: 'No valid plan or add-ons selected. Configure STRIPE_PRICE_* env vars.' });
+    return NextResponse.json({
+      error: 'No Stripe prices configured yet.',
+      setup: 'Go to Stripe Dashboard → Product Catalog → create products with these lookup keys: wt_team_monthly, wt_business_monthly, wt_mssp_monthly. Then add Price IDs to Vercel env vars.',
+      envVarsNeeded: Object.entries(PRICES).filter(([_, v]) => !v).map(([k]) => k),
+    });
   }
 
   try {
+    const origin = req.headers.get('origin') || 'https://runbookhq.vercel.app';
     const params = new URLSearchParams();
     params.set('mode', 'subscription');
-    params.set('success_url', `${req.headers.get('origin') || 'https://watchtower.vercel.app'}/dashboard?billing=success`);
-    params.set('cancel_url', `${req.headers.get('origin') || 'https://watchtower.vercel.app'}/signup?billing=cancelled`);
-    params.set('customer_email', email || '');
+    params.set('success_url', origin + '/dashboard?billing=success&session_id={CHECKOUT_SESSION_ID}');
+    params.set('cancel_url', origin + '/pricing?billing=cancelled');
+    if (email) params.set('customer_email', email);
     params.set('subscription_data[trial_period_days]', '14');
     params.set('allow_promotion_codes', 'true');
+    params.set('subscription_data[metadata][plan]', plan);
+    params.set('subscription_data[metadata][source]', 'watchtower');
 
     lineItems.forEach((item, i) => {
-      params.set(`line_items[${i}][price]`, item.price);
-      params.set(`line_items[${i}][quantity]`, String(item.quantity));
+      params.set('line_items[' + i + '][price]', item.price);
+      params.set('line_items[' + i + '][quantity]', String(item.quantity));
     });
 
     const res = await fetch('https://api.stripe.com/v1/checkout/sessions', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${stripeKey}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: { 'Authorization': 'Bearer ' + stripeKey, 'Content-Type': 'application/x-www-form-urlencoded' },
       body: params.toString(),
     });
     const session = await res.json();
-    if (session.url) return NextResponse.json({ ok: true, url: session.url });
+    if (session.url) return NextResponse.json({ ok: true, url: session.url, sessionId: session.id });
     return NextResponse.json({ error: session.error?.message || 'Checkout failed', detail: session });
   } catch(e) {
     return NextResponse.json({ error: String(e) });

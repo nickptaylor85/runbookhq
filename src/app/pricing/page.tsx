@@ -5,6 +5,7 @@ const PLANS = [
   { id: 'community', name: 'Community', price: 0, period: 'forever', seats: 1, desc: 'For individuals exploring security tooling', features: ['2 tool integrations', 'Dashboard + alerts', 'Coverage view', 'Manual refresh', 'Community support'], cta: 'Get Started Free', ctaStyle: 'ghost' },
   { id: 'team', name: 'Team', price: 29, period: '/seat/month', seats: 3, desc: 'For SOC teams of 2-10 analysts', features: ['Unlimited integrations', 'AI Co-Pilot + auto-triage', 'Custom runbooks', 'Incident timeline', 'SLA tracking', 'Threat intelligence', 'TV Wall + shift handover', '30s auto-refresh', '3 seats included', 'Email support'], cta: 'Start Free Trial', ctaStyle: 'primary', popular: true },
   { id: 'business', name: 'Business', price: 79, period: '/month', seats: 10, desc: 'For mature SOCs and MSSPs', features: ['Everything in Team', 'MSSP portfolio view', 'Compliance mapping', 'PDF reports + scheduling', 'API access + webhooks', 'RBAC + audit logs', '10 seats included', 'Priority support'], cta: 'Start Free Trial', ctaStyle: 'primary' },
+  { id: 'mssp', name: 'MSSP', price: 149, period: '/month', seats: 0, desc: 'For managed security providers', features: ['Everything in Business', 'Multi-tenant portfolio', 'Per-client dashboards', 'White-label available', 'Client onboarding tools', 'Unlimited managed clients'], cta: 'Start Free Trial', ctaStyle: 'primary' },
   { id: 'enterprise', name: 'Enterprise', price: null, period: '', seats: 0, desc: 'Custom deployment for large organisations', features: ['Everything in Business', 'SSO / SAML', 'Custom branding', 'Dedicated instance', 'SLA guarantee', 'Custom integrations', 'Unlimited seats', 'Dedicated account manager'], cta: 'Contact Sales', ctaStyle: 'ghost' },
 ];
 
@@ -85,7 +86,7 @@ const CSS = `@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@3
 .pp-toggle button{padding:8px 20px;border:none;border-radius:8px;background:transparent;color:#8a9ab8;font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s}
 .pp-toggle button.active{background:#3b8bff15;color:#3b8bff}
 .pp-save{font-size:.6rem;color:#22c992;font-weight:700;margin-left:4px}
-.pp-plans{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:1100px;margin:0 auto;padding:0 24px 40px}
+.pp-plans{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;max-width:1100px;margin:0 auto;padding:0 24px 40px}
 .pp-plan{background:linear-gradient(145deg,#0b0f18,#10141e);border:2px solid #1a2030;border-radius:16px;padding:24px 20px;cursor:pointer;transition:all .25s;position:relative}
 .pp-plan:hover{border-color:#252e42}
 .pp-plan.selected{border-color:#3b8bff;box-shadow:0 0 30px rgba(91,154,255,.08)}
@@ -135,5 +136,5 @@ const CSS = `@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@3
 .pp-summary-total span{font-size:.65rem;color:#50607a;font-family:'Outfit',sans-serif;margin-left:2px}
 .pp-checkout{padding:12px 28px;border:none;border-radius:10px;background:linear-gradient(135deg,#3b8bff,#7c6aff);color:#fff;font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;box-shadow:0 4px 20px rgba(91,154,255,.3);white-space:nowrap;transition:all .2s}
 .pp-checkout:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(91,154,255,.4)}
-@media(max-width:900px){.pp-plans{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:1100px){.pp-plans{grid-template-columns:repeat(3,1fr)}}@media(max-width:700px){.pp-plans{grid-template-columns:1fr}}
 @media(max-width:600px){.pp-plans{grid-template-columns:1fr}.pp-hero h1{font-size:1.6rem}.pp-summary-inner{flex-direction:column;text-align:center}.pp-summary-right{flex-direction:column;width:100%}.pp-checkout{width:100%}}`;

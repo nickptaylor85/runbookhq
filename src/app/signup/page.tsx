@@ -32,7 +32,7 @@ export default function Signup() {
           <div className="auth-field"><label>Organisation name</label><input type="text" value={org} onChange={e=>setOrg(e.target.value)} placeholder="Acme Security" required /></div>
           <div className="auth-field"><label>Work email</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@company.com" required /></div>
           <div className="auth-field"><label>Password</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Min 8 characters" required minLength={8} /></div>
-          <div className="auth-field"><label>Plan</label><select value={plan} onChange={e=>setPlan(e.target.value)}><option value="starter">Community (Free)</option><option value="team">Team (£29/seat/mo)</option><option value="business">Business (£79/mo)</option><option value="enterprise">Enterprise (Custom)</option></select></div>
+          <div className="auth-field"><label>Plan</label><select value={plan} onChange={e=>setPlan(e.target.value)}><option value="starter">Community (Free)</option><option value="team">Team (£29/seat/mo)</option><option value="business">Business (£79/mo)</option><option value="mssp">MSSP (£149/mo)</option><option value="enterprise">Enterprise (Custom)</option></select></div>
           {error && <div className="auth-error">{error}</div>}
           <button className="auth-btn" type="submit" disabled={loading}>{loading ? 'Creating account...' : 'Start Free Trial →'}</button>
         </form>
