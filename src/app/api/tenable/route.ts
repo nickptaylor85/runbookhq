@@ -8,7 +8,7 @@ export async function GET(req: Request) {
   if (demoMode) {
     return NextResponse.json({
       summary: { critical: 24, high: 142, medium: 891, low: 2340, total: 3397 },
-      vulnerabilities: [
+      allVulns: [
         { id: 168191, name: 'PAN-OS GlobalProtect RCE', severity: 4, sevLabel: 'critical', cvss: 10.0, vpr: 9.8, hosts: 4, family: 'Palo Alto', state: 'Active' },
         { id: 187654, name: 'Ivanti Connect Secure Auth Bypass', severity: 4, sevLabel: 'critical', cvss: 9.1, vpr: 9.4, hosts: 2, family: 'Ivanti', state: 'Active' },
         { id: 190233, name: 'ConnectWise ScreenConnect RCE', severity: 4, sevLabel: 'critical', cvss: 10.0, vpr: 9.6, hosts: 1, family: 'ConnectWise', state: 'Active' },

@@ -3,6 +3,23 @@ import { NextResponse } from 'next/server';
 import { getTaegisToken, taegisGraphQL } from '@/lib/api-clients';
 
 export async function GET(req: Request) {
+  const { isDemoMode } = await import('@/lib/demo-check');
+  const { getTenantFromRequest } = await import('@/lib/config-store');
+  const { tenantId } = getTenantFromRequest(req);
+  if (await isDemoMode(tenantId)) {
+    return NextResponse.json({ endpoints: [
+      { id: 'ep-001', hostname: 'WS042.corp.local', os: 'Windows', osVersion: '11 23H2', sensorVersion: '4.2.1', isolated: false, lastSeen: new Date(Date.now()-1800000).toISOString() },
+      { id: 'ep-002', hostname: 'SRV-DC01.corp.local', os: 'Windows Server', osVersion: '2022', sensorVersion: '4.2.1', isolated: false, lastSeen: new Date(Date.now()-900000).toISOString() },
+      { id: 'ep-003', hostname: 'WS015.corp.local', os: 'Windows', osVersion: '11 23H2', sensorVersion: '4.2.0', isolated: true, lastSeen: new Date(Date.now()-3600000).toISOString() },
+      { id: 'ep-004', hostname: 'FS01.corp.local', os: 'Windows Server', osVersion: '2019', sensorVersion: '4.1.8', isolated: false, lastSeen: new Date(Date.now()-7200000).toISOString() },
+      { id: 'ep-005', hostname: 'SRV-WEB02', os: 'Ubuntu', osVersion: '22.04', sensorVersion: '4.2.1', isolated: false, lastSeen: new Date(Date.now()-1200000).toISOString() },
+      { id: 'ep-006', hostname: 'WS088.corp.local', os: 'Windows', osVersion: '11 23H2', sensorVersion: '4.2.1', isolated: true, lastSeen: new Date(Date.now()-600000).toISOString() },
+      { id: 'ep-007', hostname: 'SRV-APP02.corp.local', os: 'Windows Server', osVersion: '2022', sensorVersion: '4.2.0', isolated: false, lastSeen: new Date(Date.now()-5400000).toISOString() },
+      { id: 'ep-008', hostname: 'WS033.corp.local', os: 'Windows', osVersion: '10 22H2', sensorVersion: '4.1.8', isolated: false, lastSeen: new Date(Date.now()-14400000).toISOString() },
+      { id: 'ep-009', hostname: 'VPN-GW-01', os: 'Linux', osVersion: 'RHEL 9', sensorVersion: '4.2.1', isolated: false, lastSeen: new Date(Date.now()-300000).toISOString() },
+      { id: 'ep-010', hostname: 'MAIL-GW', os: 'Linux', osVersion: 'Ubuntu 20.04', sensorVersion: '4.1.5', isolated: false, lastSeen: new Date(Date.now()-2400000).toISOString() },
+    ], total: 512, demo: true });
+  }
   const { tenantId } = getTenantFromRequest(req);
   const taegisAuth = await getTaegisToken(tenantId || undefined);
   if (!taegisAuth) return NextResponse.json({ ok: false, error: 'Taegis auth failed', endpoints: [] });
