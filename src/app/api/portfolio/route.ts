@@ -8,6 +8,15 @@ export async function GET(req: Request) {
 
   // Only superadmin or users with mssp role
   if (!user || (user.role !== 'superadmin' && user.role !== 'mssp')) {
+    // Calculate health and cross-client correlation
+    const allAlertTitles: Record<string, string[]> = {};
+    portfolio.forEach((t: any) => {
+      // Health RAG: red if incidents+breaches, amber if incidents or stale, green if clean
+      const score = t.openIncidents * 30 + t.slaBreached * 40 + (t.status === 'inactive' ? 20 : 0);
+      t.health = score >= 40 ? 'red' : score > 0 ? 'amber' : 'green';
+      t.healthLabel = score >= 40 ? 'Critical' : score > 0 ? 'Needs Attention' : 'Healthy';
+    });
+
     return NextResponse.json({ error: 'MSSP or superadmin access required' }, { status: 403 });
   }
 
@@ -53,5 +62,14 @@ export async function GET(req: Request) {
     totalTimeSaved: portfolio.reduce((s, p) => s + (p.noiseReduction?.timeSavedMins || 0), 0),
   };
 
-  return NextResponse.json({ portfolio, totals });
+  // Calculate health and cross-client correlation
+    const allAlertTitles: Record<string, string[]> = {};
+    portfolio.forEach((t: any) => {
+      // Health RAG: red if incidents+breaches, amber if incidents or stale, green if clean
+      const score = t.openIncidents * 30 + t.slaBreached * 40 + (t.status === 'inactive' ? 20 : 0);
+      t.health = score >= 40 ? 'red' : score > 0 ? 'amber' : 'green';
+      t.healthLabel = score >= 40 ? 'Critical' : score > 0 ? 'Needs Attention' : 'Healthy';
+    });
+
+    return NextResponse.json({ portfolio, totals });
 }

@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 
 export default function Report() {
-  const [data, setData] = useState<any>(null);const [loading, setLoading] = useState(true);const [period, setPeriod] = useState('7d');
-  useEffect(() => {
+  const [data, setData] = useState<any>(null);const [branding, setBranding] = useState<any>({});const [loading, setLoading] = useState(true);const [period, setPeriod] = useState('7d');
+  useEffect(() => { fetch('/api/mssp/branding').then(r=>r.ok?r.json():{}).then(d=>setBranding(d.branding||{})).catch(()=>{});
     Promise.all([
       fetch('/api/unified-alerts').then(r => r.json()),
       fetch('/api/coverage').then(r => r.json()),

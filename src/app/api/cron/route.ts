@@ -77,6 +77,73 @@ export async function GET(req: Request) {
     }
   }
 
+  // ═══ MSSP: Send per-client reports ═══
+  try {
+    const tenants = Object.values(platform.tenants || {}) as any[];
+    for (const tenant of tenants) {
+      try {
+        const configs = await loadTenantConfigs(tenant.id);
+        const schedule = (configs as any).clientReport;
+        if (!schedule?.enabled || !schedule?.recipients?.length) continue;
+
+        // Check if it's time to send (weekly = Monday, daily = every day)
+        const now = new Date();
+        const isMonday = now.getUTCDay() === 1;
+        const shouldSend = schedule.frequency === 'daily' || (schedule.frequency === 'weekly' && isMonday);
+        if (!shouldSend) continue;
+
+        // Check if already sent today
+        if (schedule.lastSent) {
+          const last = new Date(schedule.lastSent);
+          if (last.toDateString() === now.toDateString()) continue;
+        }
+
+        // Build report content
+        const branding = (configs as any).branding || {};
+        const companyName = branding.companyName || 'Watchtower';
+        const nr = (configs as any).noiseReduction?.stats || {};
+        const incidents = ((configs as any).incidents || []).filter((i: any) => i.status !== 'closed');
+        
+        const reportUrl = req.headers.get('origin') || 'https://runbookhq.vercel.app';
+        const subject = companyName + ' Security Report — ' + tenant.name + ' — ' + now.toLocaleDateString();
+        const html = '<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px">' +
+          '<div style="text-align:center;margin-bottom:20px">' +
+          (branding.logoUrl ? '<img src="' + branding.logoUrl + '" height="40" alt=""/><br/>' : '') +
+          '<h1 style="font-size:18px;color:#0f172a">' + subject + '</h1></div>' +
+          '<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:16px">' +
+          '<h3 style="margin:0 0 8px;font-size:14px">Summary</h3>' +
+          '<p style="margin:4px 0;font-size:13px;color:#475569">Open Incidents: <strong>' + incidents.length + '</strong></p>' +
+          '<p style="margin:4px 0;font-size:13px;color:#475569">AI Alerts Processed: <strong>' + (nr.totalProcessed || 0) + '</strong></p>' +
+          '<p style="margin:4px 0;font-size:13px;color:#475569">Auto-Closed (FP): <strong>' + (nr.autoClosed || 0) + '</strong></p>' +
+          '<p style="margin:4px 0;font-size:13px;color:#475569">Time Saved: <strong>' + Math.round((nr.timeSavedMins || 0) / 60) + ' hours</strong></p>' +
+          '</div>' +
+          '<div style="text-align:center;margin-top:20px">' +
+          '<a href="' + reportUrl + '/report" style="background:#2563eb;color:white;padding:10px 24px;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px">View Full Report →</a>' +
+          '</div>' +
+          (branding.reportFooter ? '<div style="margin-top:20px;font-size:11px;color:#94a3b8;text-align:center">' + branding.reportFooter + '</div>' : '') +
+          (!branding.hideWatchtowerBranding ? '<div style="margin-top:16px;font-size:10px;color:#cbd5e1;text-align:center">Powered by Watchtower</div>' : '') +
+          '</div>';
+
+        // Send via Resend
+        if (resendKey) {
+          for (const recipient of schedule.recipients) {
+            await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: { Authorization: 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ from: fromEmail, to: recipient, subject, html }),
+            });
+          }
+          // Update last sent
+          schedule.lastSent = now.toISOString();
+          schedule.nextSend = new Date(now.getTime() + (schedule.frequency === 'daily' ? 86400000 : 604800000)).toISOString();
+          (configs as any).clientReport = schedule;
+          await saveTenantConfigs(tenant.id, configs);
+          actions.push('client-report:' + tenant.name + ':' + schedule.recipients.length + ' recipients');
+        }
+      } catch(e) { /* skip tenant errors */ }
+    }
+  } catch(e) { /* skip MSSP report errors */ }
+
   return NextResponse.json({ ok: true, processed: users.length, sent: results.filter(r => r.ok).length, results });
 }
 
