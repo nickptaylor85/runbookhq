@@ -5,11 +5,11 @@ import { loadTenantConfigs, saveTenantConfigs, getTenantFromRequest } from '@/li
 export async function GET(req: Request) {
   const { isDemoMode } = await import('@/lib/demo-check');
   if (await isDemoMode(getTenantFromRequest(req).tenantId)) {
-    return NextResponse.json({ active: true, targets: { critical: 60, high: 240, medium: 480 }, tracking: [
-      { id: 'sla-1', alertId: 'da-002', severity: 'critical', createdAt: new Date(Date.now() - 2400000).toISOString(), targetMins: 60, status: 'on_track' },
-      { id: 'sla-2', alertId: 'da-003', severity: 'critical', createdAt: new Date(Date.now() - 3000000).toISOString(), targetMins: 60, status: 'at_risk' },
-      { id: 'sla-3', alertId: 'ta-001', severity: 'high', createdAt: new Date(Date.now() - 7200000).toISOString(), targetMins: 240, status: 'on_track' },
-    ], compliance: 91, demo: true });
+    return NextResponse.json({ active: [
+      { id: 'sla-1', alertId: 'da-002', alertTitle: 'Credential dumping via LSASS', severity: 'critical', createdAt: new Date(Date.now() - 2400000).toISOString(), targetMins: 60, remainingMins: 20, breached: false, urgent: false },
+      { id: 'sla-2', alertId: 'da-003', alertTitle: 'C2 beacon to threat actor IP', severity: 'critical', createdAt: new Date(Date.now() - 3000000).toISOString(), targetMins: 60, remainingMins: 8, breached: false, urgent: true },
+      { id: 'sla-3', alertId: 'ta-001', alertTitle: 'Brute force on VPN gateway', severity: 'high', createdAt: new Date(Date.now() - 7200000).toISOString(), targetMins: 240, remainingMins: 120, breached: false, urgent: false },
+    ], targets: { critical: 60, high: 240, medium: 480 }, compliance: 91, demo: true });
   }
   const { tenantId } = getTenantFromRequest(req);
   if (!tenantId) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });

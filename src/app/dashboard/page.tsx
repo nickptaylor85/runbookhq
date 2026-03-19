@@ -402,7 +402,7 @@ function ShiftHandover({open,onClose}:{open:boolean;onClose:()=>void}){
 
 /* ═══ SLA BAR ═══ */
 function SLABar({sla}:{sla:any}){
-  if(!sla||!sla.active||sla.active.length===0)return null;
+  if(!sla||!Array.isArray(sla.active)||sla.active.length===0)return null;
   const breached=sla.active.filter((a:any)=>a.breached);
   const urgent=sla.active.filter((a:any)=>a.urgent&&!a.breached);
   return <div className="sla-bar"><div className="sla-hd"><span>⏱ SLA Tracking</span><span className="mono" style={{fontSize:'.6rem',color:breached.length>0?'var(--red)':'var(--green)'}}>{breached.length} breached · {urgent.length} urgent · {sla.active.length} active</span></div><div className="sla-items">{sla.active.slice(0,4).map((item:any)=>(<div key={item.alertId} className={`sla-item ${item.breached?'sla-breached':item.urgent?'sla-urgent':''}`}><div className="sla-item-title">{item.alertTitle||item.alertId}</div><div className="sla-item-time" style={{color:item.breached?'var(--red)':item.urgent?'var(--amber)':'var(--green)'}}>{item.breached?'BREACHED':item.remainingMins<60?item.remainingMins+'m left':Math.floor(item.remainingMins/60)+'h '+item.remainingMins%60+'m left'}</div></div>))}</div></div>;
