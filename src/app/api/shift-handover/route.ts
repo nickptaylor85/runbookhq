@@ -4,6 +4,10 @@ import { getTenantFromRequest } from '@/lib/config-store';
 import { tenableAPI, tenableHeaders, getTaegisToken, taegisGraphQL } from '@/lib/api-clients';
 
 export async function GET(req: Request) {
+  const { isDemoMode } = await import('@/lib/demo-check');
+  if (await isDemoMode(getTenantFromRequest(req).tenantId)) {
+    return NextResponse.json({ handover: '🔄 SHIFT HANDOVER — ' + new Date().toLocaleString() + '\n\n**Outgoing:** Day Shift (08:00-16:00)\n**Incoming:** Night Shift (16:00-00:00)\n\n**Active Incidents:**\n• INC-2024-0847 (P1) — Active APT campaign. WS042 and WS015 isolated. admin_svc disabled. C2 IP blocked. Awaiting forensic analysis results.\n\n**Open Items:**\n1. Monitor WS088 for additional ransomware indicators — EDR rolled back initial encryption\n2. Tenable scan running on DMZ — results expected by 18:00\n3. Contractor access review pending — 3 accounts flagged for excessive permissions\n4. Vendor callback expected from Secureworks re: Taegis agent deployment on Mac fleet\n\n**Resolved This Shift:**\n• Phishing campaign targeting finance team — 12 emails quarantined, sender domain blocked\n• VPN brute force from Eastern European IP range — blocked at firewall, monitoring continues\n• Zscaler ZIA blocked 1,247 threats including 3 DLP violations\n\n**AI Triage Summary:** 285 alerts processed, 247 auto-closed (87% FP rate), 38 escalated. 33 analyst hours saved.', demo: true });
+  }
   const { tenantId } = getTenantFromRequest(req);
   const configs = await loadToolConfigs(tenantId || undefined);
   const apiKey = configs.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY;

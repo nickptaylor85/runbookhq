@@ -3,6 +3,14 @@ import { loadTenantConfigs, saveTenantConfigs, getTenantFromRequest } from '@/li
 
 // GET: Get SLA config + current status
 export async function GET(req: Request) {
+  const { isDemoMode } = await import('@/lib/demo-check');
+  if (await isDemoMode(getTenantFromRequest(req).tenantId)) {
+    return NextResponse.json({ active: true, targets: { critical: 60, high: 240, medium: 480 }, tracking: [
+      { id: 'sla-1', alertId: 'da-002', severity: 'critical', createdAt: new Date(Date.now() - 2400000).toISOString(), targetMins: 60, status: 'on_track' },
+      { id: 'sla-2', alertId: 'da-003', severity: 'critical', createdAt: new Date(Date.now() - 3000000).toISOString(), targetMins: 60, status: 'at_risk' },
+      { id: 'sla-3', alertId: 'ta-001', severity: 'high', createdAt: new Date(Date.now() - 7200000).toISOString(), targetMins: 240, status: 'on_track' },
+    ], compliance: 91, demo: true });
+  }
   const { tenantId } = getTenantFromRequest(req);
   if (!tenantId) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   const configs = await loadTenantConfigs(tenantId);

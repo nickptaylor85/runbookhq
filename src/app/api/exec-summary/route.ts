@@ -2,16 +2,19 @@ import { NextResponse } from 'next/server';
 import { loadToolConfigs } from '@/lib/config-store';
 import { getTenantFromRequest } from '@/lib/config-store';
 
-async function getApiKey(): Promise<string | null> {
-  // Check env first, then Redis
+async function getApiKey(tid?: string): Promise<string | null> {
   if (process.env.ANTHROPIC_API_KEY) return process.env.ANTHROPIC_API_KEY;
-  try { const c = await loadToolConfigs(tenantId || undefined); return c.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || null; } catch(e) { return null; }
+  try { const c = await loadToolConfigs(tid || undefined); return c.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || null; } catch(e) { return null; }
 }
 
 export async function POST(req: Request) {
+  const { isDemoMode } = await import('@/lib/demo-check');
+  if (await isDemoMode(getTenantFromRequest(req).tenantId)) {
+    return NextResponse.json({ summary: 'EXECUTIVE SECURITY SUMMARY — ' + new Date().toLocaleDateString() + '\n\nOverall posture score: 68/100 (Grade C). 3 critical and 6 high-severity alerts in the last 24 hours across Defender, Taegis XDR, and CrowdStrike. AI auto-triage classified 87% as false positives, saving approximately 33 analyst hours this week.\n\nKey findings:\n• Active credential harvesting campaign detected targeting domain controller (LSASS dump via T1003.001)\n• C2 beacon to known Cobalt Strike infrastructure blocked by Zscaler ZIA\n• 24 critical vulnerabilities across 847 assets — PAN-OS RCE and Log4Shell remain unpatched on 7 hosts\n• Agent coverage at 76% — 23 stale devices and 5 coverage gaps identified\n\nRecommendations:\n1. Emergency: Rotate krbtgt password and disable compromised service account\n2. Patch PAN-OS GlobalProtect and Log4j on remaining 7 hosts within 48 hours\n3. Deploy agents to 5 identified coverage gaps\n4. Review contractor access policies following data exfiltration attempt', demo: true });
+  }
   const { tenantId } = getTenantFromRequest(req);
   const { metrics, alerts, coverage, vulns } = await req.json();
-  const apiKey = await getApiKey();
+  const apiKey = await getApiKey(tenantId);
 
   const context = `Current SOC Dashboard State:
 - Alerts (24h): ${metrics?.alertsLast24h?.total || 0} total, ${metrics?.alertsLast24h?.critical || 0} critical, ${metrics?.alertsLast24h?.high || 0} high

@@ -29,8 +29,8 @@ export default function AdminPanel() {
     fetch('/api/audit').then(r => r.json()).then(d => { if (d.logs) setAuditLogs(d.logs); });
     fetch('/api/admin/analytics').then(r => r.json()).then(d => { if (d.users) setAnalytics(d); });
     fetch('/api/admin/health').then(r => r.json()).then(d => { if (d.health) setHealth(d); });
-    fetch('/api/admin/feature-flags').then(r => r.json()).then(d => { if (d.flags) setFlags(d.flags); });
-    fetch('/api/admin/announcements').then(r => r.json()).then(d => { if (d.announcements) setAnnouncements(d.announcements); });
+    fetch('/api/admin/health').then(r => r.json()).then(d => { if (d.flags) setFlags(d.flags); });
+    fetch('/api/admin/health').then(r => r.json()).then(d => { if (d.announcements) setAnnouncements(d.announcements); });
   }, []);
 
   function flash(m: string) { setMsg(m); setTimeout(() => setMsg(''), 3000); }
@@ -60,22 +60,22 @@ export default function AdminPanel() {
 
   function createAnnouncement() {
     if (!annMsg) return;
-    fetch('/api/admin/announcements', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: annMsg, type: annType }) })
+    fetch('/api/admin/health', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: annMsg, type: annType }) })
       .then(r => r.json()).then(d => { flash(d.ok ? 'Announcement posted' : d.error); setAnnMsg('');
-        fetch('/api/admin/announcements').then(r => r.json()).then(d => { if (d.announcements) setAnnouncements(d.announcements); });
+        fetch('/api/admin/health').then(r => r.json()).then(d => { if (d.announcements) setAnnouncements(d.announcements); });
       });
   }
 
   function deleteAnnouncement(id: string) {
-    fetch('/api/admin/announcements', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
-      .then(() => fetch('/api/admin/announcements').then(r => r.json()).then(d => { if (d.announcements) setAnnouncements(d.announcements); }));
+    fetch('/api/admin/health', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })
+      .then(() => fetch('/api/admin/health').then(r => r.json()).then(d => { if (d.announcements) setAnnouncements(d.announcements); }));
   }
 
   function saveFlag() {
     if (!flagKey) return;
-    fetch('/api/admin/feature-flags', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tenantId: flagTenant === '_global' ? undefined : flagTenant, flags: { [flagKey]: flagVal } }) })
+    fetch('/api/admin/health', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tenantId: flagTenant === '_global' ? undefined : flagTenant, flags: { [flagKey]: flagVal } }) })
       .then(r => r.json()).then(d => { flash(d.ok ? 'Flag saved' : d.error); setFlagKey('');
-        fetch('/api/admin/feature-flags').then(r => r.json()).then(d => { if (d.flags) setFlags(d.flags); });
+        fetch('/api/admin/health').then(r => r.json()).then(d => { if (d.flags) setFlags(d.flags); });
       });
   }
 
