@@ -43,6 +43,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   }
 
+  if (action === 'delete') {
+    const incidentId = body.incidentId;
+    if (!incidentId) return NextResponse.json({ error: 'incidentId required' }, { status: 400 });
+    const idx = incidents.findIndex((i: any) => i.id === incidentId);
+    if (idx >= 0) {
+      incidents.splice(idx, 1);
+      (configs as any).incidents = incidents;
+      await saveTenantConfigs(tenantId, configs as any);
+      return NextResponse.json({ ok: true, deleted: incidentId });
+    }
+    return NextResponse.json({ error: 'Incident not found' }, { status: 404 });
+  }
+
   if (action === 'update_status' && incidentId && status) {
     const inc = configs.incidents.find((i: any) => i.id === incidentId);
     if (!inc) return NextResponse.json({ error: 'Incident not found' }, { status: 404 });
