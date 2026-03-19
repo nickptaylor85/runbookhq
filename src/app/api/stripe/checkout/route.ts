@@ -13,6 +13,7 @@ const PRICES: Record<string, string> = {
   addon_api: process.env.STRIPE_PRICE_API || '',
   addon_branding: process.env.STRIPE_PRICE_BRANDING || '',
   addon_support: process.env.STRIPE_PRICE_SUPPORT || '',
+  addon_mssp_clients: process.env.STRIPE_PRICE_MSSP_CLIENTS || '',
 };
 
 export async function POST(req: Request) {
