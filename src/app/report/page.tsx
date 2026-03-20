@@ -52,11 +52,11 @@ export default function Report() {
   </div></>);
 }
 
-const CSS = `@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}body{background:#f8fafd;color:#1a1a2e;font-family:'Outfit',sans-serif}
+const CSS = `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}body{background:#f8fafd;color:#1a1a2e;font-family:'Inter',sans-serif}
 .rpt{max-width:900px;margin:0 auto;padding:20px}
 .rpt-header{display:flex;gap:8px;margin-bottom:20px}
-.rpt-btn{padding:10px 20px;border:none;border-radius:10px;background:linear-gradient(135deg,#3b8bff,#7c6aff);color:#fff;font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif}
+.rpt-btn{padding:10px 20px;border:none;border-radius:10px;background:linear-gradient(135deg,#3b8bff,#7c6aff);color:#fff;font-size:.85rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
 .rpt-btn-ghost{background:transparent;border:1px solid #d8e0ef;color:#50607a}
 .rpt-page{background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);padding:48px;border:1px solid #e8ecf4}
 .rpt-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px;padding-bottom:24px;border-bottom:2px solid #eef2f9}

@@ -71,10 +71,10 @@ export default function Pricing() {
   </div></>);
 }
 
-const CSS = `@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}body{background:#060910;color:#eaf0ff;font-family:'Outfit',sans-serif}
+const CSS = `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}body{background:#050508;color:#eaf0ff;font-family:'Inter',sans-serif}
 .pp{min-height:100vh}
-.pp-nav{display:flex;align-items:center;padding:14px 24px;gap:16px;border-bottom:1px solid #1a2030}
+.pp-nav{display:flex;align-items:center;padding:14px 24px;gap:16px;border-bottom:1px solid #141820}
 .pp-logo{display:flex;align-items:center;gap:8px;font-weight:900;font-size:1.05rem;color:#eaf0ff;text-decoration:none;margin-right:auto}
 .pp-logo-icon{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#3b8bff,#7c6aff);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#fff;font-weight:900}
 .pp-link{color:#8a9ab8;text-decoration:none;font-size:.82rem;font-weight:600;transition:color .2s}
@@ -82,12 +82,12 @@ const CSS = `@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@3
 .pp-hero{text-align:center;padding:48px 24px 32px}
 .pp-hero h1{font-size:2.4rem;font-weight:900;letter-spacing:-2px;margin-bottom:8px}
 .pp-hero p{font-size:.95rem;color:#8a9ab8;margin-bottom:24px}
-.pp-toggle{display:inline-flex;background:#0b0f18;border:1px solid #252e42;border-radius:10px;padding:3px}
-.pp-toggle button{padding:8px 20px;border:none;border-radius:8px;background:transparent;color:#8a9ab8;font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s}
+.pp-toggle{display:inline-flex;background:#0a0d14;border:1px solid #252e42;border-radius:10px;padding:3px}
+.pp-toggle button{padding:8px 20px;border:none;border-radius:8px;background:transparent;color:#8a9ab8;font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s}
 .pp-toggle button.active{background:#3b8bff15;color:#3b8bff}
 .pp-save{font-size:.6rem;color:#22c992;font-weight:700;margin-left:4px}
 .pp-plans{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;max-width:1100px;margin:0 auto;padding:0 24px 40px}
-.pp-plan{background:linear-gradient(145deg,#0b0f18,#10141e);border:2px solid #1a2030;border-radius:16px;padding:24px 20px;cursor:pointer;transition:all .25s;position:relative}
+.pp-plan{background:linear-gradient(145deg,#0a0d14,#0f1219);border:2px solid #141820;border-radius:16px;padding:24px 20px;cursor:pointer;transition:all .25s;position:relative}
 .pp-plan:hover{border-color:#252e42}
 .pp-plan.selected{border-color:#3b8bff;box-shadow:0 0 30px rgba(91,154,255,.08)}
 .pp-plan.popular{border-color:#3b8bff40}
@@ -95,13 +95,13 @@ const CSS = `@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@3
 .pp-plan-name{font-size:1rem;font-weight:800;margin-bottom:8px}
 .pp-plan-price{font-size:2.2rem;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:-2px;margin-bottom:4px}
 .pp-currency{font-size:1rem;color:#8a9ab8;vertical-align:top;margin-right:2px}
-.pp-period{font-size:.65rem;color:#50607a;font-weight:500;margin-left:2px;font-family:'Outfit',sans-serif}
-.pp-custom{font-size:1.2rem;color:#8a9ab8;font-family:'Outfit',sans-serif;letter-spacing:0}
+.pp-period{font-size:.65rem;color:#50607a;font-weight:500;margin-left:2px;font-family:'Inter',sans-serif}
+.pp-custom{font-size:1.2rem;color:#8a9ab8;font-family:'Inter',sans-serif;letter-spacing:0}
 .pp-plan-desc{font-size:.72rem;color:#50607a;margin-bottom:16px}
 .pp-features{list-style:none;margin-bottom:20px}
 .pp-features li{font-size:.72rem;color:#8a9ab8;padding:4px 0;padding-left:16px;position:relative}
 .pp-features li::before{content:'✓';position:absolute;left:0;color:#22c992;font-weight:700;font-size:.65rem}
-.pp-cta{width:100%;padding:10px;border:1px solid #252e42;border-radius:10px;background:transparent;color:#8a9ab8;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s}
+.pp-cta{width:100%;padding:10px;border:1px solid #252e42;border-radius:10px;background:transparent;color:#8a9ab8;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s}
 .pp-cta:hover{border-color:#3b8bff;color:#3b8bff}
 .pp-cta-primary{background:linear-gradient(135deg,#3b8bff,#7c6aff);border:none;color:#fff;box-shadow:0 2px 12px rgba(91,154,255,.2)}
 .pp-cta-primary:hover{box-shadow:0 4px 20px rgba(91,154,255,.3)}
@@ -109,7 +109,7 @@ const CSS = `@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@3
 .pp-section h2{font-size:1.2rem;font-weight:900;letter-spacing:-.5px;margin-bottom:4px}
 .pp-section-sub{font-size:.82rem;color:#50607a;margin-bottom:16px}
 .pp-addons{display:flex;flex-direction:column;gap:8px}
-.pp-addon{display:flex;align-items:center;gap:14px;padding:14px 18px;background:linear-gradient(145deg,#0b0f18,#10141e);border:1.5px solid #1a2030;border-radius:12px;cursor:pointer;transition:all .2s}
+.pp-addon{display:flex;align-items:center;gap:14px;padding:14px 18px;background:linear-gradient(145deg,#0a0d14,#0f1219);border:1.5px solid #141820;border-radius:12px;cursor:pointer;transition:all .2s}
 .pp-addon:hover{border-color:#252e42}
 .pp-addon.selected{border-color:#3b8bff;background:#3b8bff05}
 .pp-addon-icon{font-size:1.4rem;flex-shrink:0}
@@ -117,24 +117,24 @@ const CSS = `@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@3
 .pp-addon-name{font-size:.85rem;font-weight:700}
 .pp-addon-desc{font-size:.68rem;color:#50607a;margin-top:2px}
 .pp-addon-price{font-size:1rem;font-weight:900;font-family:'JetBrains Mono',monospace;color:#eaf0ff;white-space:nowrap}
-.pp-addon-price span{font-size:.55rem;color:#50607a;font-family:'Outfit',sans-serif;margin-left:2px}
+.pp-addon-price span{font-size:.55rem;color:#50607a;font-family:'Inter',sans-serif;margin-left:2px}
 .pp-addon-check{width:28px;height:28px;border-radius:50%;border:2px solid #252e42;display:flex;align-items:center;justify-content:center;font-size:.72rem;color:#50607a;flex-shrink:0;transition:all .2s}
 .pp-addon-check.on{background:#3b8bff;border-color:#3b8bff;color:#fff}
 .pp-seats{display:flex;align-items:center;gap:12px}
-.pp-seats button{width:36px;height:36px;border-radius:8px;border:1px solid #252e42;background:transparent;color:#eaf0ff;font-size:1.2rem;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s}
+.pp-seats button{width:36px;height:36px;border-radius:8px;border:1px solid #252e42;background:transparent;color:#eaf0ff;font-size:1.2rem;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s}
 .pp-seats button:hover{border-color:#3b8bff;color:#3b8bff}
 .pp-seats>span:nth-child(2){font-size:1.4rem;font-weight:900;font-family:'JetBrains Mono',monospace;min-width:30px;text-align:center}
 .pp-seats-total{font-size:.78rem;color:#50607a;margin-left:8px}
 .pp-summary{position:sticky;bottom:0;background:linear-gradient(180deg,transparent,#060910 20px);padding:20px 24px}
-.pp-summary-inner{max-width:900px;margin:0 auto;background:linear-gradient(145deg,#0b0f18,#10141e);border:1px solid #252e42;border-radius:14px;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.pp-summary-inner{max-width:900px;margin:0 auto;background:linear-gradient(145deg,#0a0d14,#0f1219);border:1px solid #252e42;border-radius:14px;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
 .pp-summary-left{}
 .pp-summary-plan{font-size:.92rem;font-weight:800}
 .pp-summary-addons{font-size:.72rem;color:#3b8bff;margin-top:2px}
 .pp-summary-savings{font-size:.68rem;color:#22c992;font-weight:600;margin-top:2px}
 .pp-summary-right{display:flex;align-items:center;gap:16px}
 .pp-summary-total{font-size:2rem;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:-2px}
-.pp-summary-total span{font-size:.65rem;color:#50607a;font-family:'Outfit',sans-serif;margin-left:2px}
-.pp-checkout{padding:12px 28px;border:none;border-radius:10px;background:linear-gradient(135deg,#3b8bff,#7c6aff);color:#fff;font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;box-shadow:0 4px 20px rgba(91,154,255,.3);white-space:nowrap;transition:all .2s}
+.pp-summary-total span{font-size:.65rem;color:#50607a;font-family:'Inter',sans-serif;margin-left:2px}
+.pp-checkout{padding:12px 28px;border:none;border-radius:10px;background:linear-gradient(135deg,#3b8bff,#7c6aff);color:#fff;font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;box-shadow:0 4px 20px rgba(91,154,255,.3);white-space:nowrap;transition:all .2s}
 .pp-checkout:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(91,154,255,.4)}
 @media(max-width:1100px){.pp-plans{grid-template-columns:repeat(3,1fr)}}@media(max-width:700px){.pp-plans{grid-template-columns:1fr}}
 @media(max-width:600px){.pp-plans{grid-template-columns:1fr}.pp-hero h1{font-size:1.6rem}.pp-summary-inner{flex-direction:column;text-align:center}.pp-summary-right{flex-direction:column;width:100%}.pp-checkout{width:100%}}`;
