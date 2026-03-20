@@ -91,7 +91,7 @@ export default function AdminPanel() {
     <style dangerouslySetInnerHTML={{ __html: CSS }} />
     <div className="ap">
       <div className="ap-hd">
-        <div className="ap-logo"><div className="ap-logo-icon">W</div>Watchtower <span className="ap-badge">ADMIN</span></div>
+        <div className="ap-logo"><div className="ap-logo-icon">W</div>Watchtower <span className="ap-badge">ADMIN</span><button onClick={()=>fetch('/api/admin/seed-demos',{method:'POST'}).then(r=>r.json()).then(d=>{if(d.ok)alert('Seeded: '+d.tenants.map((t:any)=>t.org+' ('+t.plan+')').join(', ')+'\nAll passwords: demo123');else alert(d.error||'Failed')})} style={{marginLeft:12,padding:'5px 14px',borderRadius:8,background:'#7c6aff',border:'none',color:'#fff',fontSize:'.72rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🎭 Seed Demo Tenants</button></div>
         <div className="ap-nav">
           {(['overview','users','tenants','health','flags','announcements','audit'] as Tab[]).map(t => (<button key={t} className={'ap-tab ' + (tab === t ? 'active' : '')} onClick={() => setTab(t)}>{{overview:'📊',users:'👥',tenants:'🏢',health:'🏥',flags:'🚩',announcements:'📢',audit:'📋'}[t]} {t.charAt(0).toUpperCase()+t.slice(1)}</button>))}
           <a href="/dashboard" className="ap-tab">← Dashboard</a>

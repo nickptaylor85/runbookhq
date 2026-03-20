@@ -72,7 +72,7 @@ export const PLAN_NAMES: Record<PlanId, string> = {
 };
 
 export const TOOL_LIMITS: Record<PlanId, number> = {
-  community: 2,
+  community: 2, // max tool integrations
   team: 99,
   business: 99,
   mssp: 99,
