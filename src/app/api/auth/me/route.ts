@@ -17,8 +17,10 @@ export async function GET(req: Request) {
       email: user.email, org: user.org, plan: user.plan, role: user.role,
       tenantId: user.tenantId, createdAt: user.createdAt,
       trialEndsAt: user.trialEndsAt, totpEnabled: !!user.totpEnabled,
-      lastLoginAt: user.lastLoginAt,
+      lastLoginAt: user.lastLoginAt, addons: user.addons || [],
+      seats: user.seats, seatLimit: user.seatLimit,
     },
+    addons: user.addons || [],
     tenant: tenant ? { id: tenant.id, name: tenant.name, plan: tenant.plan, members: tenant.members, memberCount: tenant.members?.length || 0 } : null,
   });
 }
