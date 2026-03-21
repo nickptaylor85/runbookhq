@@ -7,8 +7,9 @@ export async function GET(req: Request) {
   // Check for demo mode
   const tenantConfigs = await loadToolConfigs(tenantId || undefined);
   if (tenantConfigs?.tools?.['_demo']?.enabled) {
-    const { DEMO_DEFENDER_ALERTS, DEMO_TAEGIS_ALERTS } = await import('@/lib/demo-data');
-    const all = [...DEMO_DEFENDER_ALERTS, ...DEMO_TAEGIS_ALERTS].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    const { DEMO_DEFENDER_ALERTS, DEMO_TAEGIS_ALERTS, DEMO_TENANT_ALERTS } = await import('@/lib/demo-data');
+    const tenantAlerts = DEMO_TENANT_ALERTS[tenantId||''] || null;
+    const all = tenantAlerts ? tenantAlerts.sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()) : [...DEMO_DEFENDER_ALERTS, ...DEMO_TAEGIS_ALERTS].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     return NextResponse.json({ alerts: all, demo: true, source: 'demo-mode' });
   }
 

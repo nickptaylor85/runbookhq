@@ -169,3 +169,49 @@ export const DEMO_TRENDS = {
   alerts: { '7d':[142,158,134,167,155,128,147], '30d':[120,132,145,138,142,158,134,167,155,128,147,162,138,145,152,148,135,142,155,160,148,138,145,150,142,138,155,148,142,147], '90d':[1020,1150,1080,1200,1100,1050,980,1020,1080,1050,1020,1040] },
   vulns_critical: { '7d':[28,26,25,24,24,23,24], '30d':[35,34,32,31,30,29,28,27,28,26,25,26,25,24,25,24,24,23,24,23,24,23,24,24,23,24,24,23,24,24], '90d':[48,45,42,38,35,32,30,28,26,25,24,24] },
 };
+
+// Per-tenant demo alerts — keyed by tenant ID
+const now = Date.now();
+export const DEMO_TENANT_ALERTS: Record<string, any[]> = {
+  // Community — NovaSec: small startup, only 2 tools, few alerts
+  'tn_demo_free': [
+    { id: 'nv-001', title: 'Suspicious login from new IP address', severity: 'medium', status: 'new', source: 'Defender XDR', category: 'Initial Access', device: 'LAPTOP-CEO', user: 'sarah@novasec.io', timestamp: new Date(now - 3600000).toISOString(), mitre: 'T1078' },
+    { id: 'nv-002', title: 'Endpoint protection disabled on LAPTOP-DEV', severity: 'high', status: 'new', source: 'Defender MDE', category: 'Defense Evasion', device: 'LAPTOP-DEV', user: 'tom@novasec.io', timestamp: new Date(now - 7200000).toISOString(), mitre: 'T1562.001' },
+    { id: 'nv-003', title: 'Password spray attack against O365', severity: 'medium', status: 'new', source: 'Defender XDR', category: 'Credential Access', device: 'CLOUD-AAD', user: 'multiple', timestamp: new Date(now - 14400000).toISOString(), mitre: 'T1110.003' },
+    { id: 'nv-004', title: 'USB device with executable files connected', severity: 'low', status: 'new', source: 'Defender MDE', category: 'Initial Access', device: 'LAPTOP-INTERN', user: 'intern01@novasec.io', timestamp: new Date(now - 28800000).toISOString(), mitre: 'T1091' },
+  ],
+
+  // Team — Meridian Financial: mid-size SOC, more tools, finance-targeted threats
+  'tn_demo_team': [
+    { id: 'mf-001', title: 'Wire transfer approval phishing — CFO impersonation', severity: 'critical', status: 'new', source: 'Proofpoint', category: 'Initial Access', device: 'MAIL-GW', user: 'finance-team@meridian.io', timestamp: new Date(now - 1800000).toISOString(), mitre: 'T1566.001' },
+    { id: 'mf-002', title: 'Suspicious PowerShell on trading workstation', severity: 'high', status: 'investigating', source: 'CrowdStrike', category: 'Execution', device: 'TRADE-WS01.meridian.local', user: 'jparker', timestamp: new Date(now - 3600000).toISOString(), mitre: 'T1059.001' },
+    { id: 'mf-003', title: 'LSASS credential dump attempt on DC02', severity: 'critical', status: 'new', source: 'Defender MDE', category: 'Credential Access', device: 'DC02.meridian.local', user: 'admin_svc', timestamp: new Date(now - 2700000).toISOString(), mitre: 'T1003.001' },
+    { id: 'mf-004', title: 'Outbound C2 beacon to 185.220.101.42', severity: 'high', status: 'new', source: 'Taegis XDR', category: 'Command & Control', device: 'TRADE-WS03.meridian.local', user: 'asmith', timestamp: new Date(now - 5400000).toISOString(), mitre: 'T1071.001' },
+    { id: 'mf-005', title: 'Anomalous database query volume on FIN-DB01', severity: 'high', status: 'new', source: 'Splunk', category: 'Collection', device: 'FIN-DB01.meridian.local', user: 'svc_reporting', timestamp: new Date(now - 4200000).toISOString(), mitre: 'T1213' },
+    { id: 'mf-006', title: 'MFA bypass attempt on treasury portal', severity: 'critical', status: 'investigating', source: 'Defender XDR', category: 'Credential Access', device: 'CLOUD-AAD', user: 'cfobrown', timestamp: new Date(now - 1200000).toISOString(), mitre: 'T1621' },
+    { id: 'mf-007', title: 'Suspicious VPN connection from Nigeria', severity: 'medium', status: 'new', source: 'Taegis XDR', category: 'Initial Access', device: 'VPN-GW-01', user: 'jparker', timestamp: new Date(now - 9000000).toISOString(), mitre: 'T1133' },
+    { id: 'mf-008', title: 'Lateral movement via WMI to 4 hosts', severity: 'high', status: 'new', source: 'CrowdStrike', category: 'Lateral Movement', device: 'TRADE-WS01.meridian.local', user: 'admin_svc', timestamp: new Date(now - 3000000).toISOString(), mitre: 'T1047' },
+    { id: 'mf-009', title: 'Data exfiltration — 2.4GB to external cloud storage', severity: 'critical', status: 'new', source: 'Darktrace', category: 'Exfiltration', device: 'FIN-WS09.meridian.local', user: 'contractor-ext', timestamp: new Date(now - 900000).toISOString(), mitre: 'T1567' },
+    { id: 'mf-010', title: 'Kerberoasting detected targeting service accounts', severity: 'high', status: 'new', source: 'Taegis XDR', category: 'Credential Access', device: 'DC02.meridian.local', user: 'unknown', timestamp: new Date(now - 6000000).toISOString(), mitre: 'T1558.003' },
+    { id: 'mf-011', title: 'Scheduled task persistence on FIN-DB01', severity: 'medium', status: 'new', source: 'Sentinel', category: 'Persistence', device: 'FIN-DB01.meridian.local', user: 'svc_backup', timestamp: new Date(now - 7200000).toISOString(), mitre: 'T1053.005' },
+    { id: 'mf-012', title: 'Proofpoint: 8 credential harvesting emails blocked', severity: 'medium', status: 'resolved', source: 'Proofpoint', category: 'Initial Access', device: 'MAIL-GW', user: 'all-staff', timestamp: new Date(now - 10800000).toISOString(), mitre: 'T1566.002' },
+  ],
+
+  // MSSP — IronShield: multi-client, high volume, cross-client threats
+  'tn_demo_mssp': [
+    { id: 'is-001', title: 'Client: Acme Corp — Ransomware pre-cursor detected', severity: 'critical', status: 'new', source: 'CrowdStrike', category: 'Impact', device: 'acme:WS-FIN-04', user: 'acme\\jdoe', timestamp: new Date(now - 900000).toISOString(), mitre: 'T1486' },
+    { id: 'is-002', title: 'Client: Acme Corp — C2 beacon to known Cobalt Strike IP', severity: 'critical', status: 'investigating', source: 'Taegis XDR', category: 'Command & Control', device: 'acme:SRV-DC01', user: 'acme\\admin_svc', timestamp: new Date(now - 1800000).toISOString(), mitre: 'T1071.001' },
+    { id: 'is-003', title: 'Client: Vertex Eng — Same C2 IP as Acme Corp incident', severity: 'critical', status: 'new', source: 'Taegis XDR', category: 'Command & Control', device: 'vertex:ENG-WS07', user: 'vertex\\mchen', timestamp: new Date(now - 2700000).toISOString(), mitre: 'T1071.001' },
+    { id: 'is-004', title: 'Client: BrightPath — Phishing campaign targeting teachers', severity: 'high', status: 'new', source: 'Proofpoint', category: 'Initial Access', device: 'brightpath:MAIL-GW', user: 'staff@brightpath.edu', timestamp: new Date(now - 3600000).toISOString(), mitre: 'T1566.001' },
+    { id: 'is-005', title: 'Client: BrightPath — IOC match: same sender as Acme phish', severity: 'high', status: 'new', source: 'Defender XDR', category: 'Initial Access', device: 'brightpath:MAIL-GW', user: 'multiple', timestamp: new Date(now - 3200000).toISOString(), mitre: 'T1566.001' },
+    { id: 'is-006', title: 'Client: Coastal Logistics — Unusual after-hours RDP access', severity: 'medium', status: 'new', source: 'Splunk', category: 'Lateral Movement', device: 'coastal:DISPATCH-01', user: 'coastal\\night_ops', timestamp: new Date(now - 5400000).toISOString(), mitre: 'T1021.001' },
+    { id: 'is-007', title: 'Client: Summit Financial — Brute force on client portal', severity: 'high', status: 'new', source: 'Taegis XDR', category: 'Credential Access', device: 'summit:WEB-APP01', user: 'external', timestamp: new Date(now - 4200000).toISOString(), mitre: 'T1110' },
+    { id: 'is-008', title: 'Client: Acme Corp — LSASS dump on domain controller', severity: 'critical', status: 'new', source: 'Defender MDE', category: 'Credential Access', device: 'acme:SRV-DC01', user: 'acme\\admin_svc', timestamp: new Date(now - 600000).toISOString(), mitre: 'T1003.001' },
+    { id: 'is-009', title: 'CROSS-CLIENT: APT29 indicators across Acme + Vertex', severity: 'critical', status: 'investigating', source: 'Watchtower AI', category: 'Threat Intelligence', device: 'multiple', user: 'system', timestamp: new Date(now - 300000).toISOString(), mitre: 'T1071' },
+    { id: 'is-010', title: 'Client: Vertex Eng — Suspicious PowerShell encoding', severity: 'high', status: 'new', source: 'CrowdStrike', category: 'Execution', device: 'vertex:ENG-WS07', user: 'vertex\\mchen', timestamp: new Date(now - 2100000).toISOString(), mitre: 'T1059.001' },
+    { id: 'is-011', title: 'Client: Coastal Logistics — GPS tracker API key exposed', severity: 'high', status: 'new', source: 'Wiz', category: 'Cloud Misconfiguration', device: 'coastal:aws-api-gw', user: 'system', timestamp: new Date(now - 7200000).toISOString(), mitre: '' },
+    { id: 'is-012', title: 'Client: Summit Financial — SSL certificate expiring in 3 days', severity: 'medium', status: 'new', source: 'Sentinel', category: 'Compliance', device: 'summit:WEB-APP01', user: 'system', timestamp: new Date(now - 86400000).toISOString(), mitre: '' },
+    { id: 'is-013', title: 'Client: Acme Corp — Lateral movement via SMB to 6 hosts', severity: 'critical', status: 'new', source: 'Defender MDE', category: 'Lateral Movement', device: 'acme:SRV-DC01', user: 'acme\\admin_svc', timestamp: new Date(now - 1500000).toISOString(), mitre: 'T1021.002' },
+    { id: 'is-014', title: 'Client: BrightPath — Student data access anomaly', severity: 'medium', status: 'new', source: 'Splunk', category: 'Collection', device: 'brightpath:SIS-DB01', user: 'brightpath\\registrar', timestamp: new Date(now - 10800000).toISOString(), mitre: 'T1213' },
+  ],
+};

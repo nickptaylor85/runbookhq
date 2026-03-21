@@ -4,7 +4,7 @@ export default function Landing() {
   return (<><style dangerouslySetInnerHTML={{ __html: CSS }} /><div className="ld">
     <nav className="ld-nav"><a href="/" className="ld-logo"><div className="ld-logo-icon">W</div>Watchtower</a><div className="ld-nav-links"><a href="/demo">Demo</a><a href="/pricing">Pricing</a><a href="/login">Sign In</a><a href="/signup" className="ld-nav-cta">Start Free →</a></div></nav>
 
-    <section className="ld-hero"><div className="ld-glow" /><div className="ld-badge">AI-Powered SOC Platform</div><h1>Your SOC,<br/><span>on autopilot.</span></h1><p className="ld-sub">Watchtower connects to your security stack, triages every alert with AI, and responds automatically. Your analysts arrive to a clean queue — threats contained, noise eliminated.</p><div className="ld-ctas"><a href="/demo" className="ld-btn">Watch the demo →</a><a href="/signup" className="ld-btn-ghost">Start free trial</a></div><div className="ld-stats"><div><strong>85%</strong><span>noise eliminated</span></div><div className="ld-sep" /><div><strong>3.2s</strong><span>triage per alert</span></div><div className="ld-sep" /><div><strong>20+</strong><span>integrations</span></div></div></section>
+    <section className="ld-hero"><div className="ld-glow" /><div className="ld-badge">AI-Powered SOC Platform</div><h1>Your SOC,<br/><span>on autopilot.</span></h1><p className="ld-sub">Watchtower connects your entire security stack, triages every alert with AI in 3.2 seconds, and responds automatically. Your analysts arrive to a clean queue — threats contained, noise eliminated.</p><div className="ld-ctas"><a href="/demo" className="ld-btn">Watch the demo →</a><a href="/signup" className="ld-btn-ghost">Start free trial</a></div><div className="ld-stats"><div><strong>85%</strong><span>noise eliminated</span></div><div className="ld-sep" /><div><strong>3.2s</strong><span>triage per alert</span></div><div className="ld-sep" /><div><strong>20+</strong><span>integrations</span></div></div></section>
 
     <section className="ld-ai"><div className="ld-ai-grid"><div className="ld-ai-text"><div className="ld-section-label">THE AI ENGINE</div><h2>Better than your best analyst.<br/>Faster than all of them combined.</h2><p>Every alert is enriched with device history, user context, and cross-alert correlation. The AI returns a verdict — TP, FP, or Suspicious — with a confidence score, evidence chain, and recommended actions. False positives above 95% confidence are auto-closed. Critical threats auto-escalate to incidents with full runbooks.</p><div className="ld-ai-metrics"><div className="ld-ai-metric"><div className="ld-ai-metric-val">98%</div><div>accuracy on credential<br/>access alerts</div></div><div className="ld-ai-metric"><div className="ld-ai-metric-val">42 min</div><div>saved per incident<br/>vs manual triage</div></div><div className="ld-ai-metric"><div className="ld-ai-metric-val">24/7</div><div>autonomous triage<br/>while you sleep</div></div></div></div><div className="ld-ai-card"><div className="ld-ai-card-hd"><div className="ld-ai-dot" />AI Triage Result</div><div className="ld-ai-card-alert">LSASS memory access on domain controller</div><div className="ld-ai-verdict">TRUE POSITIVE — 98%</div><div className="ld-ai-label">Evidence</div><div className="ld-ai-evidence"><div>Domain controller targeted</div><div>Service account used across 3 hosts</div><div>T1003.001 — high-fidelity detection</div></div><div className="ld-ai-label">Auto-Actions Taken</div><div className="ld-ai-actions"><div>✓ Incident #INC-0847 created</div><div>✓ admin_svc account disabled</div><div>✓ SOC Slack channel notified</div><div>✓ 5-step runbook generated</div></div></div></div></section>
 
@@ -42,9 +42,11 @@ const CSS = `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@30
 .ld-nav-links a:hover{color:#e8ecf4}
 .ld-nav-cta{background:#4f8fff!important;color:#fff!important;font-weight:600!important;border-radius:8px!important}
 .ld-hero{text-align:center;padding:100px 24px 80px;position:relative;max-width:720px;margin:0 auto}
+.ld::before{content:'';position:fixed;inset:0;background:linear-gradient(rgba(79,143,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(79,143,255,.02) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}
+.ld>*{position:relative;z-index:1}
 .ld-glow{position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:500px;height:500px;background:radial-gradient(circle,rgba(79,143,255,.06) 0%,transparent 60%);pointer-events:none}
 .ld-badge{display:inline-block;padding:4px 14px;border:1px solid #4f8fff20;border-radius:20px;font-size:.7rem;font-weight:600;color:#4f8fff;margin-bottom:24px;letter-spacing:.3px}
-.ld-hero h1{font-size:3.8rem;font-weight:900;letter-spacing:-3px;line-height:1.05;margin-bottom:20px}
+.ld-hero h1{font-size:4.2rem;font-weight:900;letter-spacing:-3px;line-height:1.05;margin-bottom:20px}
 .ld-hero h1 span{background:linear-gradient(135deg,#4f8fff 0%,#22d49a 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .ld-sub{font-size:1.05rem;color:#6b7a94;line-height:1.75;max-width:520px;margin:0 auto 32px}
 .ld-ctas{display:flex;gap:10px;justify-content:center;margin-bottom:48px}
@@ -127,4 +129,26 @@ const CSS = `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@30
 .ld-ft-links a:hover{color:#a0adc4}
 .ld-ft-copy{text-align:center;font-size:.64rem;color:#2a3040;padding:10px 0}
 @media(max-width:900px){.ld-hero h1{font-size:2.4rem}.ld-ai-grid{grid-template-columns:1fr}.ld-feat-grid,.ld-test-grid{grid-template-columns:1fr}.ld-price-row{grid-template-columns:repeat(2,1fr)}.ld-mssp-grid{grid-template-columns:1fr}.ld-stats{gap:16px}.ld-stats strong{font-size:1.3rem}}
-@media(max-width:600px){.ld-price-row{grid-template-columns:1fr}.ld-nav-links a:not(.ld-nav-cta){display:none}}`;
+@media(max-width:600px){.ld-price-row{grid-template-columns:1fr}.ld-nav-links a:not(.ld-nav-cta){display:none}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(79,143,255,.15)}50%{box-shadow:0 0 40px rgba(79,143,255,.25)}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+.ld-hero{animation:fadeUp .8s ease}
+.ld-hero h1{font-size:4.2rem;line-height:1.02}
+.ld-ai-card{animation:glow 4s ease infinite}
+.ld-ai-actions>div{animation:slideIn .4s ease both}
+.ld-ai-actions>div:nth-child(2){animation-delay:.1s}
+.ld-ai-actions>div:nth-child(3){animation-delay:.2s}
+.ld-ai-actions>div:nth-child(4){animation-delay:.3s}
+.ld-feat{transition:transform .2s,border-color .2s}
+.ld-feat:hover{transform:translateY(-2px);border-color:#4f8fff20}
+.ld-test{transition:transform .2s}
+.ld-test:hover{transform:translateY(-2px)}
+.ld-price{transition:transform .2s}
+.ld-price:hover{transform:translateY(-2px)}
+.ld-price.pop{animation:glow 4s ease infinite}
+.ld-tool{transition:all .2s}
+.ld-tool:hover{transform:translateY(-1px);border-color:#4f8fff40;color:#e8ecf4;background:#4f8fff08}
+.ld-btn{transition:all .2s;box-shadow:0 4px 16px rgba(79,143,255,.25)}
+.ld-btn:hover{box-shadow:0 6px 24px rgba(79,143,255,.35);transform:translateY(-2px)}
+`;
