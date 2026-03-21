@@ -6,6 +6,8 @@ export default function Landing() {
 
     <section className="ld-hero"><div className="ld-glow" /><div className="ld-badge">AI-Powered SOC Platform</div><h1>Your SOC,<br/><span>on autopilot.</span></h1><p className="ld-sub">Watchtower connects your entire security stack, triages every alert with AI in 3.2 seconds, and responds automatically. Your analysts arrive to a clean queue — threats contained, noise eliminated.</p><div className="ld-ctas"><a href="/demo" className="ld-btn">Watch the demo →</a><a href="/signup" className="ld-btn-ghost">Start free trial</a></div><div className="ld-stats"><div><strong>85%</strong><span>noise eliminated</span></div><div className="ld-sep" /><div><strong>3.2s</strong><span>triage per alert</span></div><div className="ld-sep" /><div><strong>20+</strong><span>integrations</span></div></div></section>
 
+    <section className="ld-screenshot"><div className="ld-ss-wrap"><div className="ld-ss-bar"><div className="ld-ss-dots"><span/><span/><span/></div><div className="ld-ss-url">getwatchtower.io/dashboard</div></div><div className="ld-ss-content"><div className="ld-ss-sidebar"><div className="ld-ss-logo">W</div><div className="ld-ss-nav"><div className="ld-ss-nav-item active">📊</div><div className="ld-ss-nav-item">🔔</div><div className="ld-ss-nav-item">🛡</div><div className="ld-ss-nav-item">🔍</div><div className="ld-ss-nav-item">🌐</div></div></div><div className="ld-ss-main"><div className="ld-ss-brief"><span className="ld-ss-ai-dot"/>AI Shift Brief: Processed 23 alerts overnight. Auto-closed 18 FPs. Escalated 3 TPs to incidents. 2 critical alerts need attention.</div><div className="ld-ss-grid"><div className="ld-ss-card"><div className="ld-ss-card-val" style={{color:'#22d49a'}}>B+</div><div className="ld-ss-card-label">Posture</div></div><div className="ld-ss-card"><div className="ld-ss-card-val" style={{color:'#4f8fff'}}>18</div><div className="ld-ss-card-label">Auto-Closed</div></div><div className="ld-ss-card"><div className="ld-ss-card-val" style={{color:'#f0405e'}}>2</div><div className="ld-ss-card-label">Critical</div></div><div className="ld-ss-card"><div className="ld-ss-card-val" style={{color:'#22d49a'}}>33h</div><div className="ld-ss-card-label">Saved</div></div></div><div className="ld-ss-alerts"><div className="ld-ss-alert"><span className="ld-ss-sev crit"/><span className="ld-ss-alert-title">LSASS credential dump on DC01</span><span className="ld-ss-badge tp">TP 98%</span></div><div className="ld-ss-alert"><span className="ld-ss-sev high"/><span className="ld-ss-alert-title">C2 beacon to 185.220.101.42</span><span className="ld-ss-badge tp">TP 94%</span></div><div className="ld-ss-alert"><span className="ld-ss-sev med"/><span className="ld-ss-alert-title">Scheduled task created on SRV-APP02</span><span className="ld-ss-badge sus">SUS 67%</span></div><div className="ld-ss-alert"><span className="ld-ss-sev low"/><span className="ld-ss-alert-title">Windows Update triggered PowerShell</span><span className="ld-ss-badge fp">FP 99%</span></div><div className="ld-ss-alert"><span className="ld-ss-sev med"/><span className="ld-ss-alert-title">Anomalous VPN login from new location</span><span className="ld-ss-badge sus">SUS 72%</span></div></div></div></div></div></section>
+
     <section className="ld-ai"><div className="ld-ai-grid"><div className="ld-ai-text"><div className="ld-section-label">THE AI ENGINE</div><h2>Better than your best analyst.<br/>Faster than all of them combined.</h2><p>Every alert is enriched with device history, user context, and cross-alert correlation. The AI returns a verdict — TP, FP, or Suspicious — with a confidence score, evidence chain, and recommended actions. False positives above 95% confidence are auto-closed. Critical threats auto-escalate to incidents with full runbooks.</p><div className="ld-ai-metrics"><div className="ld-ai-metric"><div className="ld-ai-metric-val">98%</div><div>accuracy on credential<br/>access alerts</div></div><div className="ld-ai-metric"><div className="ld-ai-metric-val">42 min</div><div>saved per incident<br/>vs manual triage</div></div><div className="ld-ai-metric"><div className="ld-ai-metric-val">24/7</div><div>autonomous triage<br/>while you sleep</div></div></div></div><div className="ld-ai-card"><div className="ld-ai-card-hd"><div className="ld-ai-dot" />AI Triage Result</div><div className="ld-ai-card-alert">LSASS memory access on domain controller</div><div className="ld-ai-verdict">TRUE POSITIVE — 98%</div><div className="ld-ai-label">Evidence</div><div className="ld-ai-evidence"><div>Domain controller targeted</div><div>Service account used across 3 hosts</div><div>T1003.001 — high-fidelity detection</div></div><div className="ld-ai-label">Auto-Actions Taken</div><div className="ld-ai-actions"><div>✓ Incident #INC-0847 created</div><div>✓ admin_svc account disabled</div><div>✓ SOC Slack channel notified</div><div>✓ 5-step runbook generated</div></div></div></div></section>
 
     <section className="ld-tools"><div className="ld-section-label" style={{textAlign:'center'}}>INTEGRATIONS</div><h2 className="ld-h2c">Connects to everything you run</h2><div className="ld-tool-row">{['CrowdStrike','Defender','Taegis XDR','SentinelOne','Splunk','Sentinel','Darktrace','Zscaler','Tenable','Proofpoint','Wiz','Carbon Black'].map(t=><span key={t} className="ld-tool">{t}</span>)}</div></section>
@@ -31,7 +33,42 @@ export default function Landing() {
   </div></>);
 }
 
-const CSS = `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+const CSS = `
+.ld-screenshot{padding:0 28px 60px;max-width:900px;margin:0 auto}
+.ld-ss-wrap{border:1px solid #1e2536;border-radius:12px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 40px rgba(79,143,255,.05)}
+.ld-ss-bar{display:flex;align-items:center;gap:12px;padding:8px 14px;background:#0d1018;border-bottom:1px solid #1e2536}
+.ld-ss-dots{display:flex;gap:5px}
+.ld-ss-dots span{width:8px;height:8px;border-radius:50%;background:#2a3040}
+.ld-ss-dots span:first-child{background:#f0405e80}
+.ld-ss-dots span:nth-child(2){background:#f0a03080}
+.ld-ss-dots span:nth-child(3){background:#22c99280}
+.ld-ss-url{font-size:.6rem;color:#4a5568;font-family:'JetBrains Mono',monospace;background:#0a0d14;padding:3px 12px;border-radius:4px;flex:1;text-align:center}
+.ld-ss-content{display:flex;background:#050508;min-height:280px}
+.ld-ss-sidebar{width:44px;background:#0a0d14;border-right:1px solid #141820;padding:10px 0;display:flex;flex-direction:column;align-items:center;gap:4px}
+.ld-ss-logo{width:26px;height:26px;border-radius:6px;background:linear-gradient(135deg,#4f8fff,#8b6fff);display:flex;align-items:center;justify-content:center;font-size:.55rem;color:#fff;font-weight:900;margin-bottom:8px}
+.ld-ss-nav-item{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:.7rem;cursor:default;transition:background .2s}
+.ld-ss-nav-item.active{background:#4f8fff15}
+.ld-ss-main{flex:1;padding:12px 16px}
+.ld-ss-brief{font-size:.62rem;color:#a0adc4;padding:8px 10px;background:linear-gradient(135deg,rgba(79,143,255,.04),rgba(34,201,146,.04));border:1px solid #4f8fff15;border-radius:8px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.ld-ss-ai-dot{width:5px;height:5px;border-radius:50%;background:#4f8fff;box-shadow:0 0 6px #4f8fff;flex-shrink:0}
+.ld-ss-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.ld-ss-card{text-align:center;padding:8px 4px;background:#0a0d14;border:1px solid #141820;border-radius:8px}
+.ld-ss-card-val{font-size:1.1rem;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:-1px}
+.ld-ss-card-label{font-size:.46rem;color:#4a5568;text-transform:uppercase;letter-spacing:.3px;font-weight:600}
+.ld-ss-alerts{display:flex;flex-direction:column;gap:3px}
+.ld-ss-alert{display:flex;align-items:center;gap:6px;padding:5px 8px;background:#0a0d14;border:1px solid #141820;border-radius:6px;font-size:.6rem}
+.ld-ss-sev{width:4px;height:16px;border-radius:2px;flex-shrink:0}
+.ld-ss-sev.crit{background:#f0405e}
+.ld-ss-sev.high{background:#f97316}
+.ld-ss-sev.med{background:#f0a030}
+.ld-ss-sev.low{background:#4f8fff}
+.ld-ss-alert-title{flex:1;color:#a0adc4;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ld-ss-badge{font-size:.48rem;font-weight:800;padding:1px 5px;border-radius:3px;flex-shrink:0}
+.ld-ss-badge.tp{color:#f0405e;background:#f0405e10}
+.ld-ss-badge.fp{color:#22d49a;background:#22d49a10}
+.ld-ss-badge.sus{color:#f0a030;background:#f0a03010}
+@media(max-width:600px){.ld-ss-sidebar{display:none}.ld-ss-grid{grid-template-columns:repeat(2,1fr)}}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}body{background:#050508;color:#e8ecf4;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
 .ld{overflow-x:hidden}
 .ld-nav{display:flex;align-items:center;padding:14px 28px;position:sticky;top:0;z-index:50;background:rgba(5,5,8,.8);backdrop-filter:blur(16px);border-bottom:1px solid #ffffff06}
