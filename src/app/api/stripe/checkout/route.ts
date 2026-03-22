@@ -1,80 +1,55 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-const PRICES: Record<string, string> = {
-  team: process.env.STRIPE_PRICE_TEAM || '',
-  team_annual: process.env.STRIPE_PRICE_TEAM_ANNUAL || '',
-  business: process.env.STRIPE_PRICE_BUSINESS || '',
-  business_annual: process.env.STRIPE_PRICE_BUSINESS_ANNUAL || '',
-  mssp: process.env.STRIPE_PRICE_MSSP || '',
-  addon_seats: process.env.STRIPE_PRICE_SEATS || '',
-  addon_ai: process.env.STRIPE_PRICE_AI || '',
-  addon_intel: process.env.STRIPE_PRICE_INTEL || '',
-  addon_reports: process.env.STRIPE_PRICE_REPORTS || '',
-  addon_api: process.env.STRIPE_PRICE_API || '',
-  addon_branding: process.env.STRIPE_PRICE_BRANDING || '',
-  addon_support: process.env.STRIPE_PRICE_SUPPORT || '',
-  addon_mssp_clients: process.env.STRIPE_PRICE_MSSP_CLIENTS || '',
+const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY || '';
+const BASE_URL = process.env.NEXT_PUBLIC_URL || 'https://getwatchtower.io';
+
+const PRICE_IDS: Record<string, string> = {
+  team:     process.env.STRIPE_TEAM_PRICE_ID     || '',
+  business: process.env.STRIPE_BUSINESS_PRICE_ID || '',
+  mssp:     process.env.STRIPE_MSSP_PRICE_ID     || '',
 };
 
-export async function POST(req: Request) {
-  const { plan, email, addons, seatQty, annual } = await req.json();
-  const stripeKey = process.env.STRIPE_SECRET_KEY;
-  if (!stripeKey) return NextResponse.json({ error: 'Stripe not configured. Add STRIPE_SECRET_KEY to Vercel env vars.' });
-
-  const lineItems: Array<{ price: string; quantity: number }> = [];
-
-  // Base plan (annual variant if selected)
-  const planKey = annual ? plan + '_annual' : plan;
-  const basePriceId = PRICES[planKey] || PRICES[plan];
-  if (basePriceId) {
-    const baseQty = plan === 'team' ? Math.max(3, (seatQty || 0) + 3) : 1;
-    lineItems.push({ price: basePriceId, quantity: plan === 'team' ? baseQty : 1 });
-  }
-
-  // Add-ons
-  if (addons && Array.isArray(addons)) {
-    for (const addon of addons) {
-      const addonPriceId = PRICES['addon_' + addon];
-      if (addonPriceId) {
-        lineItems.push({ price: addonPriceId, quantity: 1 });
-      }
-    }
-  }
-
-  if (lineItems.length === 0) {
-    return NextResponse.json({
-      error: 'No Stripe prices configured yet.',
-      setup: 'Go to Stripe Dashboard → Product Catalog → create products with these lookup keys: wt_team_monthly, wt_business_monthly, wt_mssp_monthly. Then add Price IDs to Vercel env vars.',
-      envVarsNeeded: Object.entries(PRICES).filter(([_, v]) => !v).map(([k]) => k),
-    });
-  }
-
+export async function POST(req: NextRequest) {
   try {
-    const origin = req.headers.get('origin') || 'https://runbookhq.vercel.app';
+    const { plan, email } = await req.json();
+
+    if (!STRIPE_SECRET) return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
+
+    const priceId = PRICE_IDS[plan];
+    if (!priceId) return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
+
     const params = new URLSearchParams();
-    params.set('mode', 'subscription');
-    params.set('success_url', origin + '/dashboard?billing=success&session_id={CHECKOUT_SESSION_ID}');
-    params.set('cancel_url', origin + '/pricing?billing=cancelled');
-    if (email) params.set('customer_email', email);
-    params.set('subscription_data[trial_period_days]', '14');
-    params.set('allow_promotion_codes', 'true');
-    params.set('subscription_data[metadata][plan]', plan);
-    params.set('subscription_data[metadata][source]', 'watchtower');
+    params.append('mode', 'subscription');
+    params.append('line_items[0][price]', priceId);
+    params.append('line_items[0][quantity]', '1');
+    params.append('success_url', `${BASE_URL}/stripe/success?session_id={CHECKOUT_SESSION_ID}&plan=${plan}`);
+    params.append('cancel_url', `${BASE_URL}/pricing`);
+    params.append('allow_promotion_codes', 'true');
+    params.append('billing_address_collection', 'auto');
+    if (email) params.append('customer_email', email);
 
-    lineItems.forEach((item, i) => {
-      params.set('line_items[' + i + '][price]', item.price);
-      params.set('line_items[' + i + '][quantity]', String(item.quantity));
-    });
+    // 14-day trial on all paid plans
+    params.append('subscription_data[trial_period_days]', '14');
 
-    const res = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+    const response = await fetch('https://api.stripe.com/v1/checkout/sessions', {
       method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + stripeKey, 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: {
+        'Authorization': `Bearer ${STRIPE_SECRET}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
       body: params.toString(),
     });
-    const session = await res.json();
-    if (session.url) return NextResponse.json({ ok: true, url: session.url, sessionId: session.id });
-    return NextResponse.json({ error: session.error?.message || 'Checkout failed', detail: session });
-  } catch(e) {
-    return NextResponse.json({ error: String(e) });
+
+    const session = await response.json();
+
+    if (!response.ok) {
+      console.error('Stripe error:', session);
+      return NextResponse.json({ error: session.error?.message || 'Stripe error' }, { status: 500 });
+    }
+
+    return NextResponse.json({ url: session.url });
+  } catch (e) {
+    console.error('Checkout error:', e);
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }
