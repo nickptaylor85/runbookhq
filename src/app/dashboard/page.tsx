@@ -1,1680 +1,834 @@
 'use client';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { TOOLS, type ToolInfo, type ToolField } from '@/lib/tool-registry-client';
+import { useState, useEffect, useCallback } from 'react';
 
-class DashErrorBoundary extends React.Component<{children:React.ReactNode},{error:any}>{
-  constructor(props:any){super(props);this.state={error:null}}
-  static getDerivedStateFromError(error:any){return{error}}
-  render(){if(this.state.error)return React.createElement('div',{style:{padding:40,background:'#0a0d15',color:'#ff4466',minHeight:'100vh',fontFamily:'monospace'}},React.createElement('h1',null,'Dashboard Error'),React.createElement('pre',{style:{whiteSpace:'pre-wrap',fontSize:14,marginTop:20,color:'#eaf0ff'}},String(this.state.error?.message||this.state.error)),React.createElement('pre',{style:{whiteSpace:'pre-wrap',fontSize:11,marginTop:10,color:'#8896b8'}},String(this.state.error?.stack||'')),React.createElement('a',{href:'/test',style:{color:'#5b9aff',marginTop:20,display:'block'}},'Go to diagnostic page'));return this.props.children}
-}
+// ─── Types ────────────────────────────────────────────────────────────────────
+type SevKey = 'Critical'|'High'|'Medium'|'Low';
+type VerdictKey = 'TP'|'FP'|'SUS'|'Pending';
+type AutomationLevel = 0|1|2;
+interface Tool { id:string; name:string; configured:boolean; active:boolean; alertCount?:number; }
+interface Alert { id:string; title:string; severity:SevKey; source:string; device:string; time:string; verdict:VerdictKey; confidence:number; aiReasoning:string; aiActions:string[]; evidenceChain:string[]; runbookSteps:string[]; mitre?:string; incidentId?:string; }
+interface GapDevice { hostname:string; ip:string; os:string; missing:string[]; reason:string; lastSeen:string; }
+interface Vuln { id:string; cve:string; title:string; severity:SevKey; cvss:number; prevalence:number; affected:number; affectedDevices:string[]; description:string; remediation:string[]; kev:boolean; patch?:string; }
+interface IntelItem { id:string; title:string; summary:string; severity:SevKey; source:string; time:string; iocs?:string[]; mitre?:string; industrySpecific:boolean; }
+interface Incident { id:string; title:string; severity:SevKey; status:'Active'|'Contained'|'Closed'; created:string; updated:string; alertCount:number; devices:string[]; mitreTactics:string[]; timeline:{t:string;actor:'AI'|'Analyst';action:string;detail:string}[]; aiSummary:string; }
 
-/* ═══ SVG COMPONENTS ═══ */
+// ─── Constants ────────────────────────────────────────────────────────────────
+const SEV_COLOR:Record<SevKey,string> = { Critical:'#f0405e', High:'#f97316', Medium:'#f0a030', Low:'#4f8fff' };
+const VERDICT_STYLE:Record<VerdictKey,{c:string,bg:string,label:string}> = {
+  TP:{c:'#f0405e',bg:'#f0405e12',label:'True Positive'},
+  FP:{c:'#22d49a',bg:'#22d49a12',label:'False Positive'},
+  SUS:{c:'#f0a030',bg:'#f0a03012',label:'Suspicious'},
+  Pending:{c:'#6b7a94',bg:'#6b7a9412',label:'Pending'},
+};
+const INDUSTRIES = ['Financial Services','Healthcare','Retail & eCommerce','Manufacturing','Energy & Utilities','Government & Public Sector','Legal & Professional','Technology','Education','Telecommunications'];
 
-/* ═══ PLAN GATING ═══ */
-function LockedFeature({featureId,plan,children}:{featureId:string;plan:string;children:React.ReactNode}){
-  const role=(typeof window!=='undefined'?(window as any).__wt_role:null)||'';
-  if(role==='superadmin'||plan==='enterprise')return <>{children}</>;
-  const plans=['community','team','business','mssp','enterprise'];
-  const planIdx=plans.indexOf(plan);
-  const featureMap:Record<string,number>={vulns:1,incidents:1,intel:1,ai_copilot:1,ai_triage_detail:1,automation:1,response_actions:1,device_ai:1,reports:2,api:2,compliance:2,rbac:2,portfolio:3,white_label:3,cross_client:3};
-  const addonMap:Record<string,string>={ai_copilot:'ai',ai_triage_detail:'ai',device_ai:'ai',reports:'reports',api:'api',white_label:'branding'};
-  const minPlanIdx=featureMap[featureId]??0;
-  const addons=(typeof window!=='undefined'?(window as any).__wt_addons:[])||[];
-  const neededAddon=addonMap[featureId];
-  if(neededAddon&&addons.includes(neededAddon))return <>{children}</>;
-  if(planIdx>=minPlanIdx)return <>{children}</>;
-  const minPlan=plans[minPlanIdx]||'team';
-  const upgradeTexts:Record<string,string>={ai_copilot:'AI Co-Pilot analyses alerts with Claude AI, providing evidence chains, risk assessment, and recommended actions.',ai_triage_detail:'See per-alert AI verdicts with confidence scores and evidence chains.',automation:'Control how much AI does automatically — from full auto to recommend only.',response_actions:'AI can automatically isolate devices, block IPs, disable accounts, and quarantine files.',device_ai:'Get AI-powered risk assessment for any device across all your security tools.',vulns:'Vulnerability management with VPR scoring, patch priority, and host-level risk.',incidents:'AI-powered incident management with auto-escalation and response action audit log.',intel:'Live threat intelligence feeds from CISA, ThreatFox, and URLhaus.',reports:'Scheduled PDF reports with posture trends and executive summaries.',portfolio:'Manage multiple client tenants from a single MSSP console.'};
-  return <div style={{position:'relative'}}><div style={{opacity:.3,pointerEvents:'none',filter:'blur(2px)'}}>{children}</div><div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'var(--bg0)dd',backdropFilter:'blur(6px)',borderRadius:'var(--r2)',zIndex:10}}><div style={{maxWidth:320,textAlign:'center',padding:24}}><div style={{fontSize:'2rem',marginBottom:10}}>🔒</div><div style={{fontSize:'.88rem',fontWeight:800,marginBottom:6}}>Upgrade to {minPlan.charAt(0).toUpperCase()+minPlan.slice(1)}</div><div style={{fontSize:'.72rem',color:'var(--t3)',lineHeight:1.6,marginBottom:14}}>{upgradeTexts[featureId]||'Unlock this feature by upgrading your plan.'}</div><button className="tc-btn tc-btn-primary" onClick={()=>window.location.href='/pricing'} style={{fontSize:'.76rem',padding:'8px 20px'}}>View Plans →</button></div></div></div>;
-}
+// ─── Demo Data ─────────────────────────────────────────────────────────────────
+const DEMO_TOOLS:Tool[] = [
+  {id:'crowdstrike',name:'CrowdStrike',configured:true,active:true,alertCount:8},
+  {id:'defender',name:'Defender',configured:true,active:true,alertCount:5},
+  {id:'taegis',name:'Taegis XDR',configured:false,active:false},
+  {id:'darktrace',name:'Darktrace',configured:true,active:true,alertCount:3},
+  {id:'splunk',name:'Splunk',configured:true,active:true,alertCount:12},
+  {id:'sentinel',name:'Sentinel',configured:true,active:true,alertCount:4},
+  {id:'tenable',name:'Tenable',configured:true,active:true},
+  {id:'proofpoint',name:'Proofpoint',configured:true,active:true,alertCount:2},
+];
 
-function Spark({ data, color = '#4f8fff', h = 30, w = 94 }: { data: number[]; color?: string; h?: number; w?: number }) {
-  if (!data.length) return null;
-  const mx = Math.max(...data), mn = Math.min(...data), rng = mx - mn || 1;
-  const pts = data.map((v, i) => `${(i / (data.length - 1)) * w},${h - ((v - mn) / rng) * (h - 4) - 2}`).join(' ');
-  const lastY = h - ((data[data.length - 1] - mn) / rng) * (h - 4) - 2;
-  const gid='sg'+color.replace(/\W/g,'')+'x';
-  return <svg width={w} height={h} style={{ display:'block' }}><defs><linearGradient id={gid} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={color} stopOpacity=".3"/><stop offset="100%" stopColor={color} stopOpacity="0"/></linearGradient><filter id={'gl'+gid}><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><polygon points={`0,${h} ${pts} ${w},${h}`} fill={`url(#${gid})`}/><polyline points={pts} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" filter={`url(#gl${gid})`} style={{opacity:.9}}/><circle cx={w} cy={lastY} r="3" fill={color}><animate attributeName="r" values="3;4;3" dur="2s" repeatCount="indefinite"/></circle></svg>;
-}
-function SevRing({ c, h, m, l, size = 100 }: { c: number; h: number; m: number; l: number; size?: number }) {
-  const total = c + h + m + l || 1, r = (size - 16) / 2, circ = 2 * Math.PI * r;
-  const segs = [{p:c/total,co:'var(--red)',gl:'#f0384a'},{p:h/total,co:'#f97316',gl:'#f97316'},{p:m/total,co:'var(--amber)',gl:'#eda033'},{p:l/total,co:'var(--blue)',gl:'#4f8fff'}];
-  let off = 0;
-  return <div style={{position:'relative',width:size,height:size}}><svg width={size} height={size} style={{transform:'rotate(-90deg)'}}><defs>{segs.map((s,i)=>(<filter key={i} id={'sr'+i}><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>))}</defs><circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--bg3)" strokeWidth="10" opacity=".3"/>{segs.map((s,i)=>{const dash=s.p*circ;const el=<circle key={i} cx={size/2} cy={size/2} r={r} fill="none" stroke={s.co} strokeWidth="10" strokeDasharray={`${dash} ${circ-dash}`} strokeDashoffset={-off} strokeLinecap="round" filter={`url(#sr${i})`} style={{transition:'stroke-dasharray .8s ease'}}/>;off+=dash;return el;})}</svg><div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',textAlign:'center'}}><div style={{fontSize:'1.1rem',fontWeight:900,fontFamily:'var(--fm)',color:'var(--t1)',letterSpacing:'-1px'}}>{total}</div><div style={{fontSize:'.42rem',color:'var(--t3)',fontWeight:700,textTransform:'uppercase',letterSpacing:'1px'}}>Total</div></div></div>;
-}
-function HourlyChart({ data, h = 60, w = 220 }: { data: number[]; h?: number; w?: number }) {
-  const mx = Math.max(...data)||1, bw = w/data.length-1;
-  return <svg width={w} height={h}><defs><linearGradient id="hcg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--accent)" stopOpacity="1"/><stop offset="100%" stopColor="var(--accent)" stopOpacity=".2"/></linearGradient><linearGradient id="hcga" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#7c6aff" stopOpacity="1"/><stop offset="100%" stopColor="var(--accent)" stopOpacity=".4"/></linearGradient><filter id="hcgl"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>{data.map((v,i)=>{const bh=Math.max(2,(v/mx)*(h-12));const isLast=i===data.length-1;return <rect key={i} x={i*(bw+1)} y={h-bh} width={bw} height={bh} rx="2" fill={isLast?'url(#hcga)':'url(#hcg)'} opacity={isLast?1:0.3+((i/data.length)*0.5)} filter={isLast?'url(#hcgl)':'none'} style={{transition:'height .3s ease,y .3s ease'}}/>})}</svg>;
-}
-function Donut({ val, max, color, sz=56, label }: { val:number;max:number;color:string;sz?:number;label:string }) {
-  const pct=Math.round((val/max)*100),r=(sz-10)/2,circ=2*Math.PI*r,off=circ-(pct/100)*circ;
-  const fid='dg'+label.replace(/\W/g,'');
-  return <div style={{textAlign:'center'}}><svg width={sz} height={sz} style={{transform:'rotate(-90deg)'}}><defs><filter id={fid}><feGaussianBlur stdDeviation="2.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><circle cx={sz/2} cy={sz/2} r={r} fill="none" stroke="var(--bg3)" strokeWidth="5" opacity=".3"/><circle cx={sz/2} cy={sz/2} r={r} fill="none" stroke={color} strokeWidth="5" strokeDasharray={circ} strokeDashoffset={off} strokeLinecap="round" filter={`url(#${fid})`} style={{transition:'stroke-dashoffset .8s cubic-bezier(.4,0,.2,1)'}}/></svg><div style={{marginTop:-(sz/2)-6,position:'relative'}}><div style={{fontSize:'.82rem',fontWeight:900,fontFamily:'var(--fm)',color,textShadow:`0 0 12px ${color}40`}}>{pct}%</div></div><div style={{fontSize:'.5rem',color:'var(--t3)',marginTop:10,fontWeight:700,letterSpacing:'.5px',textTransform:'uppercase'}}>{label}</div></div>;
-}
+const DEMO_GAP_DEVICES:GapDevice[] = [
+  {hostname:'SRV-LEGACY01',ip:'10.0.4.22',os:'Windows Server 2008',missing:['EDR','Vuln Scanner'],reason:'Legacy OS — agent incompatible',lastSeen:'2h ago'},
+  {hostname:'laptop-MKTG07',ip:'10.0.2.87',os:'Windows 11',missing:['EDR'],reason:'User-initiated uninstall',lastSeen:'15m ago'},
+  {hostname:'SRV-NAS01',ip:'10.0.3.15',os:'FreeNAS',missing:['EDR','Vuln Scanner','SIEM'],reason:'NAS device — no agent support',lastSeen:'5m ago'},
+  {hostname:'KIOSK-LOBBY',ip:'10.0.1.200',os:'Windows 10 IoT',missing:['Vuln Scanner'],reason:'IoT device — restricted access',lastSeen:'1m ago'},
+  {hostname:'laptop-HR03',ip:'10.0.2.44',os:'macOS 13',missing:['EDR'],reason:'Pending deployment — ticket open',lastSeen:'30m ago'},
+];
 
-/* ═══ REFRESH BUTTON ═══ */
-function RefreshBtn({onClick,loading}:{onClick:()=>void;loading?:boolean}){return <button className="refresh-btn" onClick={onClick} disabled={loading} style={{fontSize:'.6rem',padding:'2px 6px'}}>{loading?<span className="spin" style={{width:12,height:12,display:'inline-block',borderWidth:1.5}}/>:'↻'}</button>}
+const DEMO_ALERTS:Alert[] = [
+  {id:'a1',title:'LSASS memory access — DC01',severity:'Critical',source:'CrowdStrike',device:'DC01',time:'09:14',verdict:'TP',confidence:98,aiReasoning:'Domain controller targeted by LSASS memory access. Service account credentials at high risk. T1003.001 — high-fidelity detection. No maintenance window active. Previous login from this account was legitimate, now accessing LSASS — strong indicator of credential dumping.',evidenceChain:['Domain controller targeted — highest value asset','Service account admin_svc used laterally across 3 hosts','T1003.001 — credential dumping technique, high-fidelity','No scheduled maintenance or admin activity logged','Sequence mirrors known Mimikatz behaviour'],aiActions:['Incident INC-0847 created and assigned to Tier 2','admin_svc account disabled (revert available)','SOC Slack #incidents channel notified','5-step runbook generated and attached'],runbookSteps:['Isolate DC01 from network immediately','Reset admin_svc credentials across all domains','Run forensic memory capture on DC01','Search SIEM for admin_svc lateral movement in last 48h','Notify CISO — potential domain compromise'],mitre:'T1003.001',incidentId:'INC-0847'},
+  {id:'a2',title:'C2 beacon to 185.220.101.42:443',severity:'High',source:'Darktrace',device:'SRV-FINANCE01',time:'09:16',verdict:'TP',confidence:94,aiReasoning:'Darktrace detected anomalous HTTPS beacon with JA3 fingerprint matching known C2. IP 185.220.101.42 appears on ThreatFox with LockBit association. Darktrace device confidence deviation 96/100. Beaconing interval is 300s — consistent with C2 heartbeat.',evidenceChain:['IP 185.220.101.42 on ThreatFox — LockBit C2','Darktrace: device behaviour deviation 96/100','JA3 TLS fingerprint matches known C2 tooling','300s beacon interval — classic C2 heartbeat','Same IP seen in sector threat intel feed 48h ago'],aiActions:['IP blocked at Zscaler perimeter','Darktrace packet capture initiated','Threat intel IOC added to watchlist','SRV-FINANCE01 network access restricted'],runbookSteps:['Block IP at all perimeter controls','Analyse all traffic from SRV-FINANCE01 last 72h','Check for additional beaconing hosts','Preserve memory image before isolation','Report IOC to information sharing group'],mitre:'T1071.001'},
+  {id:'a3',title:'Scheduled task created — SRV-APP02',severity:'Medium',source:'Defender',device:'SRV-APP02',time:'09:22',verdict:'SUS',confidence:67,aiReasoning:'Scheduled task created by non-standard account outside business hours. Technique is consistent with persistence but could be legitimate deployment tooling. User account has no prior history of scheduled task creation. Confidence is moderate — analyst review recommended.',evidenceChain:['Task created at 02:17 AM — outside business hours','Non-standard service account as task creator','No change ticket matching this action','Similar technique seen in APT29 playbook','No other anomalous activity from this account'],aiActions:['Alert flagged for analyst review','Task hash added to monitoring watchlist','No automated action taken — SUS confidence below threshold'],runbookSteps:['Review task definition and target binary','Cross-reference with change management system','Check source account login history','If unconfirmed legitimate — isolate and investigate'],mitre:'T1053.005'},
+  {id:'a4',title:'Windows Update triggered PowerShell',severity:'Low',source:'Splunk',device:'WS-SALES12',time:'09:31',verdict:'FP',confidence:99,aiReasoning:'PowerShell execution traced to Windows Update process (wuauclt.exe → powershell.exe). This is a known Microsoft update pattern. Parent process chain matches legitimate Microsoft signing certificate. Update KB5034441 scheduled for this host. No malicious indicators present.',evidenceChain:['Parent: wuauclt.exe — legitimate Windows Update process','Microsoft-signed certificate chain verified','KB5034441 scheduled for this host at 09:30','No network egress from PowerShell process','No payload or download cradle observed'],aiActions:['Auto-closed — False Positive 99% confidence','Suppression rule created for this update pattern'],runbookSteps:[],mitre:'T1059.001'},
+  {id:'a5',title:'Anomalous VPN login — new geography',severity:'Medium',source:'Sentinel',device:'cloud-vpn',time:'09:38',verdict:'SUS',confidence:72,aiReasoning:'User jsmith@corp logged in from Singapore — their established baseline is UK. Travel is possible but no flight booking detected in calendar. Account has MFA enabled. Timing is 03:00 local time in Singapore — unusual for legitimate travel. Monitoring and MFA re-challenge applied.',evidenceChain:['User baseline: London, UK — current location: Singapore','03:00 AM local login time — unusual pattern','No calendar events indicating travel','MFA enrolled but not challenged recently','No prior Singapore login in 12 months'],aiActions:['MFA re-challenge sent to user','Session maintained pending MFA response','Account flagged for 24h enhanced monitoring','HR calendar integration checked — no travel noted'],runbookSteps:['Await MFA response — escalate if no response in 10m','If MFA passed — continue monitoring for anomalies','If MFA failed — suspend account immediately','Check with user direct via phone'],mitre:'T1078'},
+  {id:'a6',title:'Large file upload to personal cloud',severity:'High',source:'Zscaler',device:'laptop-HR03',time:'10:02',verdict:'TP',confidence:88,aiReasoning:'HR03 user uploaded 18GB to a personal Google Drive account over 2 hours. Upload volume is 36x their daily baseline. User has a resignation notice on file (from HR record cross-reference). Files accessed include payroll data directories. DLP policy triggered.',evidenceChain:['18GB upload — 36x user daily baseline','Destination: personal Google Drive account','User has active resignation notice (HR integrated)','Files included: /finance/payroll/2025 directory','DLP tag: PII and financial data detected'],aiActions:['Upload throttled via Zscaler policy','HR and Legal teams alerted automatically','Files accessed logged to audit trail','Account flagged for enhanced DLP monitoring'],runbookSteps:['Legal team review of acceptable use policy breach','Preserve DLP logs for HR proceedings','Remotely wipe device on departure','Brief IT security on offboarding procedure'],mitre:'T1567.002'},
+];
 
-/* ═══ HELPERS ═══ */
-function gen(b:number,v:number,n=24){const d:number[]=[];let c=b;for(let i=0;i<n;i++){c+=(Math.random()-.45)*v;c=Math.max(0,c);d.push(Math.round(c))}return d}
-function ago(ts:string){const d=(Date.now()-new Date(ts).getTime())/1000;if(d<60)return`${~~d}s`;if(d<3600)return`${~~(d/60)}m`;if(d<86400)return`${~~(d/3600)}h`;return`${~~(d/86400)}d`}
-function sc(s:string){return s.includes('Defender')?'defender':s.includes('Taegis')?'taegis':s.includes('Tenable')?'tenable':s.includes('Zscaler')?'zscaler':s.includes('Crowd')?'crowdstrike':s.includes('Sentinel')?'sentinelone':s.includes('Dark')?'darktrace':s.includes('Recorded')?'recordedfuture':''}
-const SO:Record<string,number>={critical:0,high:1,medium:2,low:3,info:4};
-const TL:any[]=[];
-type Tab='overview'|'alerts'|'coverage'|'vulns'|'intel'|'incidents'|'tools';
-type Al={id:string;title:string;severity:string;status:string;source:string;category:string;device:string;user:string;timestamp:string;mitre:string};
+const DEMO_VULNS:Vuln[] = [
+  {id:'v1',cve:'CVE-2024-21413',title:'Microsoft Outlook NTLM Credential Leak',severity:'Critical',cvss:9.8,prevalence:94,affected:23,affectedDevices:['laptop-CFO01','laptop-SALES03','WS-HR01','+ 20 more'],description:'Critical RCE/NTLM relay vulnerability in Microsoft Outlook. Exploitable via malicious email links without user interaction. Actively exploited in the wild by APT actors.',remediation:['Apply Microsoft patch KB5002112 immediately','Enable Windows Credential Guard on all endpoints','Block outbound SMB (TCP 445) at perimeter','Add to email gateway URL filtering rules','Consider blocking external hyperlinks in email until patched'],kev:true,patch:'KB5002112'},
+  {id:'v2',cve:'CVE-2024-3400',title:'PAN-OS Command Injection — GlobalProtect',severity:'Critical',cvss:10.0,prevalence:88,affected:2,affectedDevices:['FW-EDGE01','FW-BRANCH01'],description:'Critical command injection in Palo Alto GlobalProtect gateway. CVSSv3 10.0. Exploited by nation-state actors (UNC5221) in the wild. Full command execution as root possible.',remediation:['Apply PAN-OS patch 11.1.2-h3 or later immediately','Enable Threat Prevention signatures for CVE-2024-3400','Review GlobalProtect logs for IOCs: sessions from unexpected IPs','Isolate affected firewalls if patch cannot be applied immediately','Contact Palo Alto PSIRT if compromise suspected'],kev:true,patch:'PAN-OS 11.1.2-h3'},
+  {id:'v3',cve:'CVE-2024-27198',title:'JetBrains TeamCity Auth Bypass',severity:'Critical',cvss:9.8,prevalence:76,affected:3,affectedDevices:['SRV-CICD01','SRV-BUILD02','SRV-BUILD03'],description:'Authentication bypass in JetBrains TeamCity build server. Allows unauthenticated remote code execution. APT29 (Cozy Bear) actively exploiting to compromise CI/CD pipelines and inject malicious build artifacts.',remediation:['Upgrade TeamCity to version 2023.11.4 immediately','If upgrade not possible, restrict TeamCity to VPN access only','Review all build logs for unexpected plugin installations','Audit service account permissions used by TeamCity','Check build artifacts for unexpected modifications'],kev:true,patch:'TeamCity 2023.11.4'},
+  {id:'v4',cve:'CVE-2023-46805',title:'Ivanti ICS/IPS Authentication Bypass',severity:'Critical',cvss:8.2,prevalence:71,affected:1,affectedDevices:['IVANTI-GW01'],description:'Authentication bypass affecting Ivanti Connect Secure and Policy Secure. Chained with CVE-2024-21887 for RCE. Mass exploitation observed. CISA emergency directive issued.',remediation:['Apply Ivanti patch immediately or take gateway offline','Run Ivanti Integrity Checker Tool','Reset all passwords for users authenticated via affected gateway','Review SIEM for suspicious authentication patterns','Consider replacing with alternative VPN solution if persistent issues'],kev:true},
+  {id:'v5',cve:'CVE-2024-1708',title:'ConnectWise ScreenConnect Path Traversal',severity:'Critical',cvss:8.4,prevalence:65,affected:1,affectedDevices:['SCREENCONNECT01'],description:'Path traversal vulnerability in ConnectWise ScreenConnect. Allows unauthenticated RCE. Ransomware groups actively using this to gain initial access to MSP-managed networks.',remediation:['Upgrade ScreenConnect to version 23.9.8 or later','If upgrade delayed, disable external access until patched','Review ScreenConnect audit logs for unauthorized sessions','Check all managed endpoints for unauthorized ScreenConnect sessions','Alert clients if you are an MSP using ScreenConnect'],kev:true,patch:'ScreenConnect 23.9.8'},
+  {id:'v6',cve:'CVE-2024-21762',title:'Fortinet FortiOS OOB Write — SSL VPN',severity:'Critical',cvss:9.6,prevalence:82,affected:2,affectedDevices:['FORTI-EDGE01','FORTI-DR01'],description:'Out-of-bounds write in Fortinet FortiOS SSL VPN. No authentication required. Likely exploited in the wild. Fortinet issued emergency patch.',remediation:['Upgrade FortiOS to 7.4.3 or 7.2.7 immediately','Disable SSL VPN if upgrade cannot be applied immediately','Monitor for IOCs: unexpected admin account creation, config changes','Check FortiGuard subscription is active and updated','Verify all admin accounts — delete any unrecognised'],kev:true,patch:'FortiOS 7.4.3'},
+  {id:'v7',cve:'CVE-2024-20767',title:'Adobe ColdFusion RCE — Public Files',severity:'High',cvss:8.7,prevalence:58,affected:4,affectedDevices:['SRV-WEB01','SRV-WEB02','SRV-WEB03','SRV-WEB04'],description:'Remote code execution in Adobe ColdFusion via the administrator panel. Allows arbitrary file read and potential RCE. Web-facing ColdFusion servers at significant risk.',remediation:['Apply Adobe patch APSB24-14 immediately','If ColdFusion admin interface is internet-facing, take offline','Restrict admin interface to management VLAN only','Enable WAF rules for ColdFusion exploit attempts','Review web server logs for scanning activity'],kev:false,patch:'APSB24-14'},
+  {id:'v8',cve:'CVE-2024-22024',title:'Ivanti Connect Secure XXE Injection',severity:'High',cvss:8.3,prevalence:52,affected:1,affectedDevices:['IVANTI-GW01'],description:'XXE injection in Ivanti Connect Secure and Neurons for ZTA. Can be used to access sensitive files. Affects same device as CVE-2023-46805 — prioritise remediation.',remediation:['Covered by same Ivanti patch as CVE-2023-46805','Verify patch applied to both vulnerabilities simultaneously','Run Ivanti ICT scan post-patching','Monitor for XML-related errors in gateway logs'],kev:false},
+  {id:'v9',cve:'CVE-2024-27956',title:'WordPress Automatic Plugin SQL Injection',severity:'High',cvss:9.8,prevalence:45,affected:2,affectedDevices:['SRV-WEB02','SRV-WEB03'],description:'Critical SQL injection in WordPress Automatic plugin. Allows unauthenticated attackers to create admin users and upload webshells. Rapidly weaponised.',remediation:['Update Automatic plugin to version 3.92.1 or later','Scan WordPress installations for unauthorized admin accounts','Check for uploaded files in wp-content/uploads — remove suspicious','Enable WAF plugin (Wordfence) or cloud WAF rule','Consider disabling XML-RPC if not needed'],kev:false,patch:'Automatic plugin 3.92.1'},
+  {id:'v10',cve:'CVE-2023-48788',title:'Fortinet EMS SQL Injection — RCE',severity:'High',cvss:9.3,prevalence:38,affected:1,affectedDevices:['EMS-SERVER01'],description:'SQL injection in Fortinet FortiClientEMS. Enables RCE without authentication. Widely exploited against internet-exposed EMS servers. DoJ charged attackers exploiting this.',remediation:['Upgrade FortiClientEMS to 7.2.3 or 7.0.10','Restrict EMS to internal network — no direct internet exposure','Check EMS logs for unauthorized SQL activity','Audit all managed endpoint agents for unexpected configuration changes'],kev:true,patch:'FortiClientEMS 7.2.3'},
+];
 
-/* ═══ IOC SEARCH ═══ */
-function IOCSearch({open,onClose}:{open:boolean;onClose:()=>void}){
-  const[q,setQ]=useState('');const[results,setResults]=useState<any>(null);const[searching,setSearching]=useState(false);
-  async function search(){if(q.length<3)return;setSearching(true);try{const r=await fetch('/api/ioc-search',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ioc:q})});setResults(await r.json())}catch(e){setResults({error:'Search failed'})}setSearching(false)}
-  if(!open)return null;
-  return(<div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:640}}><div className="modal-hd"><h3 style={{fontSize:'.95rem'}}>🔍 IOC Search — All Tools</h3><button className="modal-close" onClick={onClose}>✕</button></div><div className="modal-body"><div style={{display:'flex',gap:6,marginBottom:12}}><input className="field-input" placeholder="IP, domain, hash, CVE, hostname, username..." value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>e.key==='Enter'&&search()} autoFocus style={{flex:1}}/><button className="tc-btn tc-btn-primary" onClick={search} disabled={searching}>{searching?'Searching...':'Search'}</button></div><div style={{fontSize:'.65rem',color:'var(--t3)',marginBottom:12}}>Searches across: Defender MDE/XDR, Taegis, Tenable, Zscaler ZIA, CrowdStrike, SentinelOne, Darktrace, Recorded Future</div>{results&&<><div style={{fontSize:'.78rem',fontWeight:700,marginBottom:8}}>{results.resultCount||0} results for <span className="mono" style={{color:'var(--accent)'}}>{results.ioc}</span></div>{results.results?.map((r:any,i:number)=>(<div key={i} className="ioc-result"><div style={{display:'flex',gap:6,alignItems:'center',marginBottom:3}}><span className={`src ${sc(r.tool)}`}>{r.tool}</span><span className={`sev sev-${r.severity}`}>{r.severity}</span><span style={{fontSize:'.62rem',color:'var(--t3)',background:'var(--bg3)',padding:'1px 5px',borderRadius:3}}>{r.type.replace(/_/g,' ')}</span></div><div style={{fontSize:'.82rem',fontWeight:600}}>{r.match}</div><div style={{fontSize:'.72rem',color:'var(--t2)'}}>{r.detail}</div></div>))}{results.resultCount===0&&<div style={{textAlign:'center',padding:20,color:'var(--t3)'}}>No matches found across connected tools</div>}</>}</div></div></div>);
-}
+const DEMO_INCIDENTS:Incident[] = [
+  {id:'INC-0847',title:'Domain Controller Compromise — admin_svc Credential Dump',severity:'Critical',status:'Active',created:'2026-03-22 09:14',updated:'2026-03-22 09:47',alertCount:4,devices:['DC01','SRV-FINANCE01','laptop-CFO01'],mitreTactics:['Initial Access','Credential Access','Lateral Movement'],aiSummary:'Multi-stage credential theft attack targeting domain infrastructure. Attacker gained initial access via spear-phish, executed LSASS dump on DC01, and used compromised admin_svc credentials to move laterally to SRV-FINANCE01. C2 beacon detected and blocked. Domain credentials at high risk — immediate reset recommended.',timeline:[
+    {t:'09:14',actor:'AI',action:'Initial alert correlated',detail:'LSASS access on DC01 — Incident created and Tier 2 assigned'},
+    {t:'09:15',actor:'AI',action:'admin_svc account disabled',detail:'Auto-response: account suspended across all domain controllers'},
+    {t:'09:16',actor:'AI',action:'C2 traffic blocked',detail:'IP 185.220.101.42 blocked at Zscaler perimeter. Darktrace PCAP initiated'},
+    {t:'09:22',actor:'Analyst',action:'Confirmed TP — escalated to Incident Commander',detail:'IR team engaged. DC01 isolated. Forensic image requested'},
+    {t:'09:31',actor:'AI',action:'Lateral movement path mapped',detail:'admin_svc lateral path: laptop-CFO01 → DC01 → SRV-FINANCE01'},
+    {t:'09:47',actor:'AI',action:'Updated kill chain analysis',detail:'Full attack timeline generated. MITRE ATT&CK mapping complete'},
+  ]},
+  {id:'INC-0846',title:'Suspected Insider Threat — Data Exfiltration',severity:'High',status:'Contained',created:'2026-03-22 08:45',updated:'2026-03-22 09:12',alertCount:3,devices:['laptop-HR03','cloud-email'],mitreTactics:['Collection','Exfiltration'],aiSummary:'HR employee with active resignation notice uploaded 18GB of payroll and personnel data to personal Google Drive. Email forwarding rule discovered directing inbox to personal Gmail. DLP policies enforced, legal team notified. Data exfiltration contained — no external breach confirmed.',timeline:[
+    {t:'08:45',actor:'AI',action:'DLP alert correlated with HR data',detail:'Zscaler flagged 18GB upload. HR system integration confirmed resignation notice'},
+    {t:'08:47',actor:'AI',action:'Upload throttled',detail:'Zscaler policy updated to block personal cloud storage for this user'},
+    {t:'09:00',actor:'AI',action:'Email forwarding rule discovered and deleted',detail:'3,200 emails forwarded to personal Gmail in 48h. Rule removed. HR and Legal auto-notified'},
+    {t:'09:12',actor:'Analyst',action:'Incident contained — legal review underway',detail:'IT forensics preserving audit trail. Device remote wipe scheduled for departure date'},
+  ]},
+];
 
-/* ═══ RESPONSE ACTIONS ═══ */
-function ActionMenu({alert,onDone}:{alert:any;onDone:()=>void}){
-  const[open,setOpen]=useState(false);const[loading,setLoading]=useState('');const[result,setResult]=useState<any>(null);
-  const actions=[
-    {id:'isolate_device',label:'🔒 Isolate Device (Taegis)',target:alert.device,tool:'Taegis XDR',show:!!alert.device},
-    {id:'restore_device',label:'🔓 Restore Device (Taegis)',target:alert.device,tool:'Taegis XDR',show:!!alert.device},
-    {id:'block_ip',label:'🚫 Block IP',target:'185.220.101.42',tool:'Zscaler ZIA',show:true},
-    {id:'disable_user',label:'👤 Disable User',target:alert.user,tool:'Azure AD',show:!!alert.user},
-    {id:'quarantine_file',label:'📦 Quarantine File',target:alert.device,tool:alert.source,show:!!alert.device},
-    {id:'run_scan',label:'🔍 Run AV Scan',target:alert.device,tool:alert.source,show:!!alert.device},
-    {id:'collect_evidence',label:'🧲 Collect Evidence',target:alert.device,tool:alert.source,show:!!alert.device},
-  ].filter(a=>a.show);
-  async function exec(a:any){setLoading(a.id);try{const r=await fetch('/api/response-actions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:a.id,target:a.target,tool:a.tool,alertId:alert.id})});setResult(await r.json())}catch(e){setResult({error:'Action failed'})}setLoading('')}
-  return(<div style={{position:'relative'}}><button className="tc-btn" onClick={()=>setOpen(!open)} style={{fontSize:'.6rem',padding:'2px 6px'}}>⚡ Act</button>{open&&<div className="action-dropdown">{actions.map(a=>(<button key={a.id} className="action-item" onClick={()=>exec(a)} disabled={!!loading}>{loading===a.id?'Running...':a.label}<span className="muted" style={{fontSize:'.55rem',marginLeft:4}}>{a.target}</span></button>))}{result&&<div className={`action-result ${result.ok?'ok':'err'}`}>{result.ok?`✓ ${result.message}`:result.error}</div>}</div>}</div>);
-}
-
-/* ═══ EXPORT ═══ */
-function ExportBtn({data,filename,label='Export'}:{data:()=>any[];filename:string;label?:string}){
-  function toCSV(){const rows=data();if(!rows.length)return;const keys=Object.keys(rows[0]);const csv=[keys.join(','),...rows.map(r=>keys.map(k=>JSON.stringify(r[k]??'')).join(','))].join('\n');dl(csv,'text/csv',filename+'.csv')}
-  function dl(content:string,mime:string,name:string){const b=new Blob([content],{type:mime});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;a.click();URL.revokeObjectURL(u)}
-  return <div style={{display:'flex',gap:4}}><button className="tc-btn" onClick={toCSV} style={{fontSize:'.62rem',padding:'2px 8px'}}>📥 CSV</button></div>;
-}
-
-/* ═══ MITRE ATT&CK HEATMAP ═══ */
-const TACTICS=[{id:'TA0001',n:'Initial Access',t:['T1566','T1190','T1078']},{id:'TA0002',n:'Execution',t:['T1059.001','T1569.002']},{id:'TA0003',n:'Persistence',t:['T1053.005','T1547.001']},{id:'TA0004',n:'Priv Esc',t:['T1078']},{id:'TA0005',n:'Def Evasion',t:['T1027','T1070','T1036','T1562.001']},{id:'TA0006',n:'Cred Access',t:['T1003.001','T1110']},{id:'TA0007',n:'Discovery',t:['T1018','T1082']},{id:'TA0008',n:'Lateral Mvmt',t:['T1021.002']},{id:'TA0009',n:'Collection',t:[]},{id:'TA0010',n:'Exfiltration',t:['T1048','T1567.002']},{id:'TA0011',n:'C2',t:['T1071.001','T1572']}];
-
-function MitreHeatmap({alerts}:{alerts:Al[]}){
-  // Build technique counts from alerts
-  const techCounts:Record<string,{count:number;sev:string}>={};
-  alerts.forEach(a=>{if(a.mitre){const existing=techCounts[a.mitre];if(!existing||SO[a.severity]<SO[existing.sev])techCounts[a.mitre]={count:(existing?.count||0)+1,sev:a.severity};else if(existing)existing.count++}});
-  // Only show techniques from actual alerts
-  const sevColor=(s:string)=>s==='critical'?'var(--red)':s==='high'?'#f97316':s==='medium'?'var(--amber)':'var(--blue)';
-  return(<div className="panel"><div className="panel-hd"><h3>🗺 MITRE ATT&CK Coverage</h3><span className="count">{Object.keys(techCounts).length} techniques</span></div><div style={{padding:'10px',overflowX:'auto'}}><div style={{display:'grid',gridTemplateColumns:`repeat(${TACTICS.length},1fr)`,gap:3,minWidth:700}}>{TACTICS.map(tac=>(<div key={tac.id}><div style={{fontSize:'.52rem',fontWeight:700,color:'var(--t3)',textAlign:'center',padding:'4px 2px',textTransform:'uppercase',letterSpacing:'.3px',borderBottom:'1px solid var(--brd)',marginBottom:3}}>{tac.n}</div>{tac.t.map(tech=>{const d=techCounts[tech];return <div key={tech} style={{background:d?sevColor(d.sev)+'18':'var(--bg3)',border:`1px solid ${d?sevColor(d.sev)+'30':'var(--brd)'}`,borderRadius:4,padding:'4px 3px',marginBottom:2,textAlign:'center',cursor:'default',transition:'all .15s'}} title={`${tech}: ${d?.count||0} alerts (${d?.sev||'none'})`}><div style={{fontSize:'.52rem',fontFamily:'var(--fm)',fontWeight:600,color:d?sevColor(d.sev):'var(--t4)'}}>{tech.replace('T','')}</div>{d&&<div style={{fontSize:'.62rem',fontWeight:800,fontFamily:'var(--fm)',color:sevColor(d.sev)}}>{d.count}</div>}</div>})}{tac.t.length===0&&<div style={{fontSize:'.55rem',color:'var(--t4)',textAlign:'center',padding:8}}>—</div>}</div>))}</div><div style={{display:'flex',gap:12,justifyContent:'center',marginTop:8,fontSize:'.55rem',color:'var(--t3)'}}><span><span style={{display:'inline-block',width:8,height:8,borderRadius:2,background:'var(--red)',opacity:.6,marginRight:3}}/>Critical</span><span><span style={{display:'inline-block',width:8,height:8,borderRadius:2,background:'#f97316',opacity:.6,marginRight:3}}/>High</span><span><span style={{display:'inline-block',width:8,height:8,borderRadius:2,background:'var(--amber)',opacity:.6,marginRight:3}}/>Medium</span><span><span style={{display:'inline-block',width:8,height:8,borderRadius:2,background:'var(--blue)',opacity:.6,marginRight:3}}/>Low</span><span><span style={{display:'inline-block',width:8,height:8,borderRadius:2,background:'var(--bg3)',border:'1px solid var(--brd)',marginRight:3}}/>No alerts</span></div></div></div>);
-}
-
-/* ═══ TREND CHARTS ═══ */
-function TrendCharts(){
-  const[period,setPeriod]=useState<'7d'|'30d'|'90d'>('7d');
-  const td={mttr:{'7d':[38,35,42,31,28,33,32],'30d':[45,42,40,38,41,39,36,38,35,33,37,34,32,35,33,31,34,32,30,33,31,29,32,30,28,31,29,32,30,32],'90d':[52,48,45,42,40,38,36,35,33,32,31,32]},mttd:{'7d':[12,10,11,9,8,9,8.5],'30d':[15,14,13,12,13,11,12,10,11,10,9,10,9,8,9,8,9,8,8.5,9,8,8.5,8,9,8,8.5,8,8.5,8,8.5],'90d':[18,16,14,13,12,11,10,9.5,9,8.5,8.5,8.5]},alerts:{'7d':[142,158,134,167,155,128,147],'30d':[120,132,145,138,142,158,134,167,155,128,147,162,138,145,152,148,135,142,155,160,148,138,145,150,142,138,155,148,142,147],'90d':[1020,1150,1080,1200,1100,1050,980,1020,1080,1050,1020,1040]},vulns:{'7d':[28,26,25,24,24,23,24],'30d':[35,34,32,31,30,29,28,27,28,26,25,26,25,24,25,24,24,23,24,23,24,23,24,24,23,24,24,23,24,24],'90d':[48,45,42,38,35,32,30,28,26,25,24,24]}};
-  const charts=[{label:'MTTR (min)',d:td.mttr[period],color:'var(--amber)'},{label:'MTTD (min)',d:td.mttd[period],color:'var(--green)'},{label:'Alert Volume',d:td.alerts[period],color:'var(--accent)'},{label:'Critical Vulns',d:td.vulns[period],color:'var(--red)'}];
-  function ChartCard({label,d,color}:{label:string;d:number[];color:string}){const last=d[d.length-1],first=d[0],change=((last-first)/first*100).toFixed(1),isDown=last<first;return <div style={{padding:'8px 10px',background:'var(--bg2)',borderRadius:'var(--r)',border:'1px solid var(--brd)'}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}><span style={{fontSize:'.68rem',fontWeight:700,color:'var(--t2)'}}>{label}</span><span style={{fontSize:'.6rem',fontWeight:700,color:isDown?'var(--green)':'var(--t3)'}}>{Number(change)>0?'+':''}{change}%</span></div><Spark data={d} color={color} w={200} h={40}/><div style={{display:'flex',justifyContent:'space-between',fontSize:'.52rem',color:'var(--t3)',fontFamily:'var(--fm)',marginTop:4}}><span>{period==='7d'?'Mon':'Start'}</span><span style={{fontWeight:700,color:'var(--t1)'}}>{last}</span><span>Now</span></div></div>}
-  return <div className="panel"><div className="panel-hd"><h3>📈 Trends</h3><div className="pills" style={{margin:0}}>{(['7d','30d','90d'] as const).map(p=>(<button key={p} className={`pill ${period===p?'on':''}`} onClick={()=>setPeriod(p)}>{p}</button>))}</div></div><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:8,padding:12}}>{charts.map(ch=>(<ChartCard key={ch.label} label={ch.label} d={ch.d} color={ch.color}/>))}</div></div>;
-}
-
-/* ═══ AI CO-PILOT PANEL ═══ */
-function AICopilot({alert,onClose,allAlerts,customRunbooks}:{alert:Al|null;onClose:()=>void;allAlerts?:Al[];customRunbooks?:any[]}){
-  const[response,setResponse]=useState('');const[loading,setLoading]=useState(false);const[question,setQuestion]=useState('');const[tab,setTab]=useState<'analysis'|'related'|'runbook'>('analysis');
-  async function ask(q?:string){const qText=q||question||'';setLoading(true);setResponse('');try{const r=await fetch('/api/ai-copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alert,question:qText||undefined})});if(!r.ok){setResponse('API error: HTTP '+r.status);setLoading(false);return}const d=await r.json();const text=d.response||d.analysis||d.error||'';setResponse(text||'No response received from AI.');setQuestion('')}catch(e){setResponse('Network error: '+(e as Error).message)}setLoading(false)}
-  useEffect(()=>{if(alert)ask()},[]);
-  if(!alert)return null;
-  const related=(allAlerts||[]).filter(a=>a.id!==alert.id&&(a.device===alert.device||a.user===alert.user)&&alert.device).slice(0,8);
-  const runbook=getRunbook(alert,customRunbooks);
-  return(<div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:640}}><div className="modal-hd"><div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:'1.2rem'}}>🤖</span><div><h3 style={{fontSize:'.9rem'}}>AI Co-Pilot</h3><p className="muted" style={{fontSize:'.62rem'}}>{alert.title}</p></div></div><button className="modal-close" onClick={onClose}>✕</button></div><div style={{display:'flex',borderBottom:'1px solid var(--brd)'}}><button className={`cop-tab ${tab==='analysis'?'active':''}`} onClick={()=>setTab('analysis')}>🤖 Analysis</button><button className={`cop-tab ${tab==='runbook'?'active':''}`} onClick={()=>setTab('runbook')}>📋 Runbook ({runbook.length})</button><button className={`cop-tab ${tab==='related'?'active':''}`} onClick={()=>setTab('related')}>🔗 Related ({related.length})</button></div><div className="modal-body"><div style={{display:'flex',gap:4,marginBottom:10,flexWrap:'wrap'}}><span className={`sev sev-${alert.severity}`}>{alert.severity}</span><span className={`src ${sc(alert.source)}`}>{alert.source}</span>{alert.mitre&&<span className="mitre">{alert.mitre}</span>}{alert.device&&<span className="device">{alert.device}</span>}</div>{tab==='analysis'&&<>{loading?<div style={{padding:20,textAlign:'center'}}><span className="spin" style={{display:'inline-block',marginRight:6}}/><span style={{fontSize:'.76rem',color:'var(--accent)'}}>Analysing with Claude AI...</span></div>:response?<div className="ai-response">{response.split('\n').map((line,i)=>line?<p key={i} style={{marginBottom:6}} dangerouslySetInnerHTML={{__html:line.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')}}/>:null)}</div>:<div style={{padding:16,textAlign:'center',color:'var(--t3)',fontSize:'.72rem'}}>Click an alert to see AI analysis</div>}<div style={{display:'flex',gap:4,marginTop:10}}><input className="field-input" placeholder="Ask a follow-up..." value={question} onChange={e=>setQuestion(e.target.value)} onKeyDown={e=>e.key==='Enter'&&ask()} style={{flex:1}}/><button className="tc-btn tc-btn-primary" onClick={()=>ask()} disabled={loading}>Ask</button></div><div style={{display:'flex',gap:4,marginTop:6,flexWrap:'wrap'}}>{['What should I check first?','Write a containment plan','Is this a known TTP?','Track SLA deadline'].map(q=>(<button key={q} className="tc-btn" style={{fontSize:'.56rem',padding:'2px 5px'}} disabled={loading} onClick={()=>{setQuestion(q);ask(q)}}>{q}</button>))}</div></>}{tab==='runbook'&&<div className="runbook">{runbook.map((step,i)=>(<div key={i} className="rb-step"><div className="rb-num">{i+1}</div><div className="rb-body"><div className="rb-title">{step.title}</div><div className="rb-detail">{step.detail}</div>{step.cmd&&<div className="rb-cmd">{step.cmd}</div>}</div></div>))}</div>}{tab==='related'&&<div>{related.length===0?<div style={{textAlign:'center',padding:20,color:'var(--t3)',fontSize:'.78rem'}}>{alert.device?'No other alerts for '+alert.device:'No device context available'}</div>:related.map(a=>(<div key={a.id} className="stream-item" style={{marginBottom:4,cursor:'default'}}><div className="stream-sev" style={{background:a.severity==='critical'?'var(--red)':'#f97316'}}/><div style={{flex:1}}><div style={{fontSize:'.72rem',fontWeight:600}}>{a.title}</div><div style={{display:'flex',gap:4,marginTop:2}}><span className={`src ${sc(a.source)}`} style={{fontSize:'.48rem'}}>{a.source}</span><span className="ts" style={{fontSize:'.52rem'}}>{ago(a.timestamp)}</span></div></div></div>))}</div>}<div style={{borderTop:'1px solid var(--brd)',paddingTop:8,marginTop:10}}><button className="tc-btn tc-btn-primary" onClick={()=>{fetch('/api/taegis/investigate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:'Investigation: '+alert.title,description:response?.substring(0,500)||alert.title,priority:alert.severity==='critical'?1:2})}).then(r=>r.json()).then(d=>{if(d.ok)setResponse(prev=>prev+'\n\n✅ Investigation created: '+(d.investigation?.short_id||''));else setResponse(prev=>prev+'\n\n❌ '+d.error)})}} style={{fontSize:'.66rem'}}>📋 Create Taegis Investigation</button><button className="tc-btn" onClick={()=>{fetch('/api/incidents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'create',title:alert.title,severity:alert.severity,alertId:alert.id,alertTitle:alert.title})}).then(r=>r.json()).then(d=>{if(d.ok)setResponse(prev=>prev+'\n\n✅ Incident created: '+d.incident?.id);else setResponse(prev=>prev+'\n\n❌ '+(d.error||''))})}} style={{fontSize:'.66rem',marginLeft:4}}>📁 Create Incident</button><button className="tc-btn" onClick={()=>{fetch('/api/sla',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'track',alertId:alert.id,alertTitle:alert.title,severity:alert.severity})}).then(r=>r.json()).then(d=>{if(d.ok)setResponse(prev=>prev+'\n\n✅ SLA tracking started');else setResponse(prev=>prev+'\n\n❌ '+(d.error||''))})}} style={{fontSize:'.66rem',marginLeft:4}}>⏱ Track SLA</button></div></div></div></div>);
-}
-
-function getRunbook(alert:Al,custom?:any[]){
-  if(custom&&custom.length>0){const t=alert.title?.toLowerCase()||'';for(const rb of custom){if(rb.triggerKeywords?.some((k:string)=>t.includes(k.toLowerCase()))){return rb.steps}}}
-  const t=alert.title?.toLowerCase()||'';const steps:any[]=[];
-  if(t.includes('phish')||t.includes('credential')||t.includes('login')){steps.push({title:'Quarantine the email/source',detail:'Isolate the phishing email from all mailboxes. Block sender domain.',cmd:'Search-Mailbox -SearchQuery "from:sender" -DeleteContent'},{title:'Reset affected credentials',detail:'Force password reset for any user who clicked or submitted credentials.',cmd:null},{title:'Check authentication logs',detail:'Review sign-in logs for the affected user for the last 24 hours. Look for impossible travel or new device.',cmd:null},{title:'Block IOCs',detail:'Add sender IP, domain, and any payload hashes to blocklists across all tools.',cmd:null},{title:'Notify affected users',detail:'Send targeted awareness notification to all recipients.',cmd:null})}
-  else if(t.includes('powershell')||t.includes('script')||t.includes('execution')||t.includes('command')){steps.push({title:'Capture the process tree',detail:'Get the full process lineage — what spawned this process and what it spawned.',cmd:null},{title:'Decode the payload',detail:'If base64 encoded, decode and analyse the command. Check for download cradles.',cmd:'echo [encoded] | base64 -d'},{title:'Check for persistence',detail:'Look for new scheduled tasks, registry run keys, or services created around the same time.',cmd:null},{title:'Isolate if active C2',detail:'If command connects to external IP, isolate the device immediately.',cmd:null},{title:'Collect forensic image',detail:'Before cleanup, capture memory dump and disk image for evidence.',cmd:null})}
-  else if(t.includes('lateral')||t.includes('smb')||t.includes('rdp')||t.includes('movement')){steps.push({title:'Identify source and target',detail:'Map the exact path: which account, from which device, to which target.',cmd:null},{title:'Disable compromised account',detail:'Immediately disable the account used for lateral movement.',cmd:null},{title:'Isolate target device',detail:'Network-isolate the target to prevent further spread.',cmd:null},{title:'Check for data access',detail:'Review file access logs on the target for exfiltration indicators.',cmd:null},{title:'Reset service account passwords',detail:'If a service account was used, rotate all credentials.',cmd:null})}
-  else if(t.includes('malware')||t.includes('trojan')||t.includes('virus')||t.includes('ransomware')){steps.push({title:'Isolate the device',detail:'Immediately network-isolate to prevent lateral movement.',cmd:null},{title:'Identify the malware family',detail:'Check hash against VirusTotal. Determine capabilities and IOCs.',cmd:null},{title:'Block IOCs across all tools',detail:'Add file hashes, C2 IPs, and domains to all security tool blocklists.',cmd:null},{title:'Check for other infections',detail:'Search across all endpoints for the same file hash or behaviour.',cmd:null},{title:'Reimage if necessary',detail:'If rootkit or persistent malware, full reimage may be required.',cmd:null})}
-  else{steps.push({title:'Assess the alert',detail:'Determine if this is a true positive. Check the source, context, and affected assets.',cmd:null},{title:'Gather evidence',detail:'Collect logs, screenshots, and artefacts related to this alert.',cmd:null},{title:'Contain if needed',detail:'If confirmed malicious, isolate affected devices and disable compromised accounts.',cmd:null},{title:'Escalate appropriately',detail:'If high impact, escalate to incident response team and notify management.',cmd:null},{title:'Document and close',detail:'Record findings, actions taken, and close the alert with appropriate classification.',cmd:null})}
-  return steps;
-}
-
-/* ═══ EXEC SUMMARY ═══ */
-function OnboardingTour({open,onClose}:{open:boolean;onClose:()=>void}){
-  const[step,setStep]=useState(0);
-  const steps=[
-    {target:'overview',title:'Welcome to Watchtower',desc:'Your single pane of glass for security operations. This overview shows your posture score, active alerts, noise reduction stats, and SLA tracking — all in real-time.',icon:'🏰'},
-    {target:'alerts',title:'Unified Alert Feed',desc:'Every alert from every connected tool in one stream. Click any alert to get AI-powered analysis, or enable Auto-Triage to classify all alerts automatically.',icon:'⚡'},
-    {target:'coverage',title:'Agent Coverage',desc:'See which devices have security agents and which have gaps. Track coverage percentage, stale devices, and OS breakdown across your fleet.',icon:'📡'},
-    {target:'tools',title:'Connect Your Tools',desc:'Add your Tenable, Taegis, CrowdStrike, Defender, and 16+ more tool credentials here. Each tool starts pulling data immediately.',icon:'🔌'},
-    {target:'ai',title:'AI Auto-Triage',desc:'The core of Watchtower. AI analyses every alert with context — device history, user behaviour, MITRE technique — and returns a verdict with evidence. False positives are auto-closed. True positives create incidents.',icon:'🤖'},
-  ];
-  if(!open)return null;
-  const s=steps[step];
-  return <div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:440}}><div className="modal-hd"><div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:'1.5rem'}}>{s.icon}</span><h3 style={{fontSize:'.95rem'}}>{s.title}</h3></div><button className="modal-close" onClick={onClose}>✕</button></div><div className="modal-body"><p style={{fontSize:'.82rem',color:'var(--t2)',lineHeight:1.7}}>{s.desc}</p><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:16}}><div style={{display:'flex',gap:4}}>{steps.map((_,i)=>(<div key={i} style={{width:8,height:8,borderRadius:'50%',background:i===step?'var(--accent)':i<step?'var(--green)':'var(--bg4)',transition:'all .2s'}}/>))}</div><div style={{display:'flex',gap:6}}>{step>0&&<button className="tc-btn" onClick={()=>setStep(step-1)} style={{fontSize:'.72rem',padding:'5px 12px'}}>← Back</button>}{step<steps.length-1?<button className="tc-btn tc-btn-primary" onClick={()=>setStep(step+1)} style={{fontSize:'.72rem',padding:'5px 12px'}}>Next →</button>:<button className="tc-btn tc-btn-primary" onClick={onClose} style={{fontSize:'.72rem',padding:'5px 12px'}}>Get Started →</button>}</div></div></div></div></div>;
-}
-
-function CmdPalette({open,onClose,onSelect}:{open:boolean;onClose:()=>void;onSelect:(tab:string)=>void}){
-  const[q,setQ]=useState('');
-  const items=[
-    {id:'overview',icon:'◉',label:'Overview — War Room',keywords:'home main kpi posture score'},
-    {id:'alerts',icon:'⚡',label:'Alert Feed',keywords:'alerts incidents detections triage'},
-    {id:'coverage',icon:'🛡',label:'Agent Coverage',keywords:'devices endpoints agents gaps taegis'},
-    {id:'vulns',icon:'🔓',label:'Vulnerabilities',keywords:'cve tenable vulns patching compliance scans'},
-    {id:'intel',icon:'🔮',label:'Threat Intelligence',keywords:'intel mitre attack chain predictions'},
-    {id:'tools',icon:'🔌',label:'Tool Integrations',keywords:'settings config credentials api'},
-    {id:'ioc',icon:'🔍',label:'IOC Search',keywords:'search ip domain hash indicator'},
-    {id:'guide',icon:'📖',label:'User Guide',keywords:'help documentation guide shortcuts'},
-    {id:'exec',icon:'📋',label:'Executive Summary',keywords:'report ciso board summary'},
-    {id:'handover',icon:'🔄',label:'Shift Handover',keywords:'handover shift summary briefing'},
-    {id:'tvwall',icon:'📺',label:'TV Wall Mode',keywords:'fullscreen wall tv display monitor soc'},
-    {id:'theme',icon:'🌓',label:'Toggle Theme',keywords:'dark light theme mode'},
-  ];
-  const filtered=q?items.filter(i=>(i.label+' '+i.keywords).toLowerCase().includes(q.toLowerCase())):items;
-  if(!open)return null;
-  return(<div className="modal-overlay" onClick={onClose}><div className="cmd-palette" onClick={e=>e.stopPropagation()}><div className="cmd-input-wrap"><span style={{color:'var(--t3)'}}>⌘</span><input className="cmd-input" placeholder="Jump to..." value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>{if(e.key==='Escape')onClose();if(e.key==='Enter'&&filtered.length>0){onSelect(filtered[0].id);onClose();setQ('')}}} autoFocus/></div><div className="cmd-list">{filtered.map(i=>(<button key={i.id} className="cmd-item" onClick={()=>{onSelect(i.id);onClose();setQ('')}}><span className="cmd-icon">{i.icon}</span>{i.label}</button>))}</div></div></div>);
-}
-
-/* ═══ DEVICE DEEP-DIVE ═══ */
-function DeviceDrawer({hostname,alerts,onClose}:{hostname:string|null;alerts:any[];onClose:()=>void}){
-  const[vulns,setVulns]=useState<any[]>([]);const[coverage,setCoverage]=useState<any>(null);const[aiSummary,setAiSummary]=useState('');const[loadingAi,setLoadingAi]=useState(false);
-  useEffect(()=>{if(!hostname)return;fetch('/api/tenable?t='+Date.now()).then(r=>r.ok?r.json():null).then(d=>{if(d?.topHosts){const h=d.topHosts.find((x:any)=>x.hostname===hostname);if(h)setVulns([{hostname:h.hostname,score:h.exposureScore,critical:h.critical||0,high:h.high||0}])}}).catch(()=>{});fetch('/api/coverage?t='+Date.now()).then(r=>r.ok?r.json():null).then(d=>{if(d)setCoverage(d)}).catch(()=>{})},[hostname]);
-  function getAiSummary(){setLoadingAi(true);setAiSummary('');const da=alerts.filter((a:any)=>a.device===hostname);fetch('/api/ai-copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alert:{title:'Asset investigation: '+hostname,device:hostname,severity:'high'},question:'Analyse this device. It has '+da.length+' alerts from sources: '+[...new Set(da.map((a:any)=>a.source))].join(', ')+'. Alert titles: '+da.map((a:any)=>a.title).join('; ')+'. Give a risk assessment, what the attacker may be doing, and recommended actions.'})}).then(r=>r.ok?r.json():{}).then(d=>{setAiSummary(d.response||d.analysis||'Analysis unavailable');setLoadingAi(false)}).catch(()=>{setAiSummary('AI analysis unavailable');setLoadingAi(false)})}
-  if(!hostname)return null;
-  const da=alerts.filter((a:any)=>a.device===hostname);
-  const sources=[...new Set(da.map((a:any)=>a.source))];
-  const users=[...new Set(da.filter((a:any)=>a.user).map((a:any)=>a.user))];
-  const mitres=[...new Set(da.filter((a:any)=>a.mitre).map((a:any)=>a.mitre))];
-  const crits=da.filter((a:any)=>a.severity==='critical').length;
-  const highs=da.filter((a:any)=>a.severity==='high').length;
-  const risk=crits>0?'CRITICAL':highs>1?'HIGH':highs>0?'MEDIUM':'LOW';
-  const riskCol=risk==='CRITICAL'?'var(--red)':risk==='HIGH'?'#f97316':risk==='MEDIUM'?'var(--amber)':'var(--green)';
-  return(<div className="drawer-overlay" onClick={onClose}><div className="drawer" onClick={e=>e.stopPropagation()} style={{maxWidth:520}}><div className="guide-hd"><div><div style={{display:'flex',alignItems:'center',gap:8}}><h2 style={{fontSize:'.95rem',fontWeight:800,fontFamily:'var(--fm)'}}>{hostname}</h2><span style={{fontSize:'.58rem',fontWeight:800,color:riskCol,background:riskCol+'15',padding:'2px 8px',borderRadius:4}}>{risk} RISK</span></div><p className="muted" style={{fontSize:'.68rem'}}>{da.length} alerts · {sources.length} tools · {users.length>0?users.join(', '):'no user'}</p></div><button className="modal-close" onClick={onClose}>✕</button></div><div className="guide-body"><div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:10}}>{sources.map(s=>(<span key={s} className={`src ${sc(s)}`}>{s}</span>))}</div><div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:6,marginBottom:12}}><div style={{textAlign:'center',padding:8,background:'var(--bg3)',borderRadius:8}}><div style={{fontSize:'1.1rem',fontWeight:900,fontFamily:'var(--fm)',color:'var(--red)'}}>{crits}</div><div style={{fontSize:'.5rem',color:'var(--t3)',fontWeight:600}}>CRITICAL</div></div><div style={{textAlign:'center',padding:8,background:'var(--bg3)',borderRadius:8}}><div style={{fontSize:'1.1rem',fontWeight:900,fontFamily:'var(--fm)',color:'#f97316'}}>{highs}</div><div style={{fontSize:'.5rem',color:'var(--t3)',fontWeight:600}}>HIGH</div></div><div style={{textAlign:'center',padding:8,background:'var(--bg3)',borderRadius:8}}><div style={{fontSize:'1.1rem',fontWeight:900,fontFamily:'var(--fm)',color:'var(--accent)'}}>{sources.length}</div><div style={{fontSize:'.5rem',color:'var(--t3)',fontWeight:600}}>TOOLS</div></div><div style={{textAlign:'center',padding:8,background:'var(--bg3)',borderRadius:8}}><div style={{fontSize:'1.1rem',fontWeight:900,fontFamily:'var(--fm)',color:'var(--t1)'}}>{mitres.length}</div><div style={{fontSize:'.5rem',color:'var(--t3)',fontWeight:600}}>MITRE TTPs</div></div></div>{mitres.length>0&&<div style={{display:'flex',gap:3,flexWrap:'wrap',marginBottom:10}}>{mitres.map(m=>(<span key={m} className="mitre">{m}</span>))}</div>}<div style={{padding:10,background:riskCol+'08',border:'1px solid '+riskCol+'20',borderRadius:8,marginBottom:10}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}><span style={{fontSize:'.65rem',fontWeight:700,color:riskCol}}>AI RISK ASSESSMENT</span><button className="tc-btn tc-btn-primary" onClick={()=>{const p=(window as any).__wt_plan||'community';const r2=(window as any).__wt_role||'';if(p==='community'&&r2!=='superadmin'){alert('AI Device Analysis requires Team plan. Upgrade at /pricing');return}getAiSummary()}} disabled={loadingAi} style={{fontSize:'.58rem',padding:'3px 8px'}}>{loadingAi?'Analysing...':aiSummary?'Re-analyse':'Analyse Device'}</button></div>{aiSummary?<div style={{fontSize:'.72rem',color:'var(--t2)',lineHeight:1.6}}>{aiSummary.split('\n').map((line,i)=>line?<p key={i} style={{marginBottom:4}} dangerouslySetInnerHTML={{__html:line.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')}}/>:null)}</div>:<div style={{fontSize:'.68rem',color:'var(--t3)'}}>Click Analyse for AI-powered risk assessment, attack narrative, and recommended actions</div>}</div><div style={{fontSize:'.72rem',fontWeight:700,marginBottom:6}}>Alerts ({da.length})</div>{da.length===0?<div style={{textAlign:'center',padding:16,color:'var(--t3)'}}>No alerts</div>:da.map((a:any)=>(<div key={a.id} className="device-alert-card"><div style={{display:'flex',gap:4,alignItems:'center',marginBottom:3}}><span className={`sev sev-${a.severity}`}>{a.severity}</span><span className={`src ${sc(a.source)}`}>{a.source}</span><span className="ts">{ago(a.timestamp)}</span></div><div style={{fontSize:'.78rem',fontWeight:600}}>{a.title}</div>{a.mitre&&<span className="mitre" style={{marginTop:3,display:'inline-block'}}>{a.mitre}</span>}{a.user&&<div style={{fontSize:'.68rem',color:'var(--t3)',marginTop:2}}>User: {a.user}</div>}</div>))}<div style={{display:'flex',gap:4,marginTop:10,flexWrap:'wrap'}}><button className="tc-btn tc-btn-primary" onClick={()=>{fetch('/api/taegis/isolate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({hostname})}).then(r=>r.json()).then(d=>{alert(d.ok?'Device isolated':'Error: '+(d.error||''))})}} style={{fontSize:'.64rem'}}>Isolate Device</button><button className="tc-btn" onClick={()=>{fetch('/api/incidents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'create',title:'Investigation: '+hostname,severity:risk.toLowerCase(),alertId:da[0]?.id})}).then(r=>r.json()).then(d=>{alert(d.ok?'Incident created: '+d.incident?.id:'Error')})}} style={{fontSize:'.64rem'}}>Create Incident</button><button className="tc-btn" onClick={()=>{fetch('/api/tenable/scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({hostname})}).then(r=>r.json()).then(d=>{alert(d.ok?'Scan launched':'Error: '+(d.error||''))})}} style={{fontSize:'.64rem'}}>Scan Device</button></div></div></div></div>);
-}
-
-/* ═══ ALERT NOTES ═══ */
-function AlertNotes({alertId,onClose}:{alertId:string|null;onClose:()=>void}){
-  const[notes,setNotes]=useState<any[]>([]);const[text,setText]=useState('');const[loading,setLoading]=useState(false);
-  useEffect(()=>{if(alertId)fetch(`/api/alert-notes?alertId=${alertId}`).then(r=>r.ok?r.json():{notes:[]}).then(d=>setNotes(d.notes||[])).catch(()=>{})},[alertId]);
-  async function addNote(){if(!text.trim()||!alertId)return;setLoading(true);try{const r=await fetch('/api/alert-notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alertId,note:text})});const d=await r.json();if(d.notes)setNotes(d.notes);setText('')}catch(e){}setLoading(false)}
-  if(!alertId)return null;
-  return(<div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:480}}><div className="modal-hd"><h3 style={{fontSize:'.9rem'}}>📝 Investigation Notes</h3><button className="modal-close" onClick={onClose}>✕</button></div><div className="modal-body"><div style={{display:'flex',gap:4,marginBottom:10}}><input className="field-input" placeholder="Add a note..." value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addNote()} style={{flex:1}}/><button className="tc-btn tc-btn-primary" onClick={addNote} disabled={loading}>{loading?'...':'Add'}</button></div>{notes.length===0?<div style={{textAlign:'center',padding:16,color:'var(--t3)',fontSize:'.78rem'}}>No notes yet</div>:notes.map((n:any)=>(<div key={n.id} style={{padding:'8px 0',borderBottom:'1px solid var(--brd)'}}><div style={{display:'flex',justifyContent:'space-between',fontSize:'.65rem',color:'var(--t3)',marginBottom:2}}><span>{n.analyst}</span><span>{ago(n.time)}</span></div><div style={{fontSize:'.8rem'}}>{n.text}</div></div>))}</div></div></div>);
-}
-
-/* ═══ ATTACK CHAIN GRAPH ═══ */
-function TriageBadge({alert}:{alert:any}){
-  const t=alert.triage;if(!t)return null;
-  const col=t.verdict==='tp'||t.verdict==='true_positive'?'var(--red)':t.verdict==='fp'||t.verdict==='false_positive'?'var(--green)':'var(--amber)';
-  const label=t.verdict==='tp'||t.verdict==='true_positive'?'TP':t.verdict==='fp'||t.verdict==='false_positive'?'FP':'SUS';
-  return(<div className="triage-badge" title={t.reasoning||''} style={{borderColor:col+'30'}}><div style={{fontSize:'.55rem',fontWeight:700,color:col}}>{t.confidence}%</div><div style={{fontSize:'.48rem',color:col,fontWeight:700}}>{label}</div>{t.evidence&&<div style={{fontSize:'.42rem',color:'var(--t3)',maxWidth:80,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{t.evidence[0]}</div>}</div>);
-}
-
-/* ═══ VULN HOST DETAIL ═══ */
-function VulnDetail({vuln,onClose}:{vuln:any;onClose:()=>void}){
-  const[hosts,setHosts]=useState<any[]>([]);const[loading,setLoading]=useState(true);const[error,setError]=useState('');
-  const[pluginInfo,setPluginInfo]=useState<any>(null);
-  useEffect(()=>{if(!vuln)return;setLoading(true);const pid=String(vuln.id).replace('PID-','').replace('CVE-','');Promise.all([fetch('/api/tenable/hosts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pluginId:pid})}).then(r=>r.ok?r.json():{hosts:[]}).catch(()=>({hosts:[]})),fetch('/api/tenable/plugin?id='+pid).then(r=>r.ok?r.json():null).catch(()=>null)]).then(([hostData,plugData])=>{setHosts(hostData.hosts||[]);setPluginInfo(plugData);if(hostData.error)setError(hostData.error);setLoading(false)}).catch(e=>{setError(String(e));setLoading(false)})},[vuln]);
-  if(!vuln)return null;
-  return <div className="drawer-overlay" onClick={onClose}><div className="drawer" onClick={e=>e.stopPropagation()}><div className="guide-hd"><div><h2 style={{fontSize:'.9rem',fontWeight:800,fontFamily:'var(--fm)',color:'var(--red)'}}>{vuln.id}</h2><p style={{fontSize:'.78rem',fontWeight:600,color:'var(--t1)',marginTop:2}}>{vuln.name}</p><div style={{display:'flex',gap:6,marginTop:6,flexWrap:'wrap'}}><span className="sev sev-critical" style={{fontFamily:'var(--fm)'}}>CVSS {vuln.cvss}</span>{vuln.vpr&&<span style={{fontSize:'.6rem',fontFamily:'var(--fm)',color:(vuln.vpr||0)>=7?'var(--red)':'#f97316',background:'var(--bg3)',padding:'1px 6px',borderRadius:4,fontWeight:700}}>VPR {vuln.vpr}</span>}<span style={{fontSize:'.62rem',color:'var(--t3)',fontFamily:'var(--fm)',background:'var(--bg3)',padding:'1px 6px',borderRadius:4}}>{vuln.hosts} hosts</span>{vuln.family&&<span style={{fontSize:'.58rem',color:'var(--t3)',background:'var(--bg3)',padding:'1px 6px',borderRadius:4}}>{vuln.family}</span>}{vuln.state&&<span style={{fontSize:'.58rem',color:vuln.state==='Active'?'var(--red)':'var(--green)',background:vuln.state==='Active'?'var(--reds)':'var(--greens)',padding:'1px 6px',borderRadius:4,fontWeight:600}}>{vuln.state}</span>}</div></div><button className="modal-close" onClick={onClose}>✕</button></div><div className="guide-body">{loading?<div style={{textAlign:'center',padding:24}}><span className="spin" style={{display:'inline-block'}}/>Loading affected hosts...</div>:<>{error&&<div style={{fontSize:'.68rem',color:'var(--amber)',marginBottom:8,padding:'4px 8px',background:'var(--ambers)',borderRadius:4}}>{error}</div>}<div style={{fontSize:'.68rem',color:'var(--t3)',marginBottom:8}}>{hosts.length} affected host{hosts.length!==1?'s':''}</div>{hosts.map((h:any,i:number)=>(<div key={i} className="device-alert-card"><div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><div><div style={{fontFamily:'var(--fm)',fontSize:'.8rem',fontWeight:700,color:'var(--t1)'}}>{h.hostname}</div><div style={{fontSize:'.68rem',color:'var(--t3)',fontFamily:'var(--fm)'}}>{h.fqdn||h.ip}{h.port>0&&<span style={{marginLeft:4}}>:{h.port}/{h.protocol}</span>}</div></div><span style={{fontSize:'.58rem',color:h.state==='active'?'var(--red)':'var(--green)',background:h.state==='active'?'var(--reds)':'var(--greens)',padding:'1px 6px',borderRadius:4,fontWeight:600,textTransform:'uppercase'}}>{h.state}</span></div>{h.ip&&<div style={{fontSize:'.65rem',color:'var(--t2)',marginTop:3,fontFamily:'var(--fm)'}}>{h.ip}{h.netbios&&<span style={{marginLeft:6,color:'var(--t3)'}}>({h.netbios})</span>}</div>}{h.lastSeen&&<div style={{fontSize:'.58rem',color:'var(--t3)',fontFamily:'var(--fm)',marginTop:2}}>Last seen: {ago(h.lastSeen)}{h.firstSeen&&<span style={{marginLeft:6}}>First: {ago(h.firstSeen)}</span>}</div>}{h.cves&&<div style={{fontSize:'.55rem',color:'var(--accent)',fontFamily:'var(--fm)',marginTop:3,wordBreak:'break-all'}}>{h.cves.substring(0,80)}{h.cves.length>80?'...':''}</div>}</div>))}{hosts.length===0&&!loading&&<div style={{textAlign:'center',padding:20,color:'var(--t3)'}}>No host details available</div>}{!pluginInfo&&!loading&&<><div style={{marginTop:12,padding:12,background:'var(--bg3)',border:'1px solid var(--brd)',borderRadius:'var(--r)'}}><div style={{fontSize:'.65rem',fontWeight:700,color:'var(--green)',marginBottom:4}}>MITIGATION</div><div style={{fontSize:'.74rem',color:'var(--t2)',lineHeight:1.6}}>{vuln.name?.toLowerCase().includes('log4')?'Update Apache Log4j to version 2.17.1 or later. If immediate patching is not possible, remove the JndiLookup class from the classpath.':vuln.name?.toLowerCase().includes('openssl')?'Upgrade OpenSSL to the latest stable version. Apply vendor-specific patches for your OS distribution.':vuln.name?.toLowerCase().includes('exchange')?'Apply the latest Microsoft Exchange cumulative update. Enable Extended Protection where supported.':'Apply the latest vendor patch for this vulnerability. If a patch is unavailable, apply the recommended workaround or compensating controls.'}</div>{vuln.id&&String(vuln.id).startsWith('PID-')&&<a href={'https://www.tenable.com/plugins/nessus/'+String(vuln.id).replace('PID-','')} target="_blank" rel="noopener" style={{display:'inline-block',marginTop:6,fontSize:'.68rem',color:'var(--accent)',textDecoration:'none'}}>📋 View on Tenable →</a>}</div>{(vuln.name||'').match(/CVE-\d{4}-\d+/)&&<div style={{marginTop:8}}><a href={'https://nvd.nist.gov/vuln/detail/'+(vuln.name||'').match(/CVE-\d{4}-\d+/)?.[0]} target="_blank" rel="noopener" style={{fontSize:'.68rem',color:'var(--accent)',background:'var(--accent-s)',padding:'4px 10px',borderRadius:6,textDecoration:'none',display:'inline-block'}}>🔗 NVD Patch Advisory →</a></div>}</>}{pluginInfo&&pluginInfo.solution&&<div style={{marginTop:12,padding:10,background:'var(--greens)',border:'1px solid var(--green)',borderRadius:'var(--r)'}}><div style={{fontSize:'.65rem',fontWeight:700,color:'var(--green)',marginBottom:3}}>REMEDIATION</div><div style={{fontSize:'.74rem',color:'var(--t1)',lineHeight:1.6}}>{pluginInfo.solution}</div></div>}{pluginInfo&&pluginInfo.synopsis&&<div style={{marginTop:8,padding:10,background:'var(--bg3)',border:'1px solid var(--brd)',borderRadius:'var(--r)'}}><div style={{fontSize:'.65rem',fontWeight:700,color:'var(--t3)',marginBottom:3}}>SYNOPSIS</div><div style={{fontSize:'.74rem',color:'var(--t2)',lineHeight:1.6}}>{pluginInfo.synopsis}</div></div>}{pluginInfo&&pluginInfo.cves&&pluginInfo.cves.length>0&&<div style={{marginTop:8,padding:10,background:'var(--bg3)',border:'1px solid var(--brd)',borderRadius:'var(--r)'}}><div style={{fontSize:'.65rem',fontWeight:700,color:'var(--t3)',marginBottom:3}}>CVEs</div><div style={{display:'flex',gap:3,flexWrap:'wrap'}}>{pluginInfo.cves.map((cv:string)=>(<a key={cv} href={'https://nvd.nist.gov/vuln/detail/'+cv} target="_blank" rel="noopener" style={{fontSize:'.62rem',color:'var(--accent)',fontFamily:'var(--fm)',background:'var(--accent-s)',padding:'1px 5px',borderRadius:3,textDecoration:'none'}}>{cv}</a>))}</div></div>}{pluginInfo&&pluginInfo.seeAlso&&pluginInfo.seeAlso.length>0&&<div style={{marginTop:8,padding:10,background:'var(--bg3)',border:'1px solid var(--brd)',borderRadius:'var(--r)'}}><div style={{fontSize:'.65rem',fontWeight:700,color:'var(--t3)',marginBottom:3}}>REFERENCES</div>{pluginInfo.seeAlso.map((url:string,i:number)=>(<div key={i}><a href={url} target="_blank" rel="noopener" style={{fontSize:'.68rem',color:'var(--accent)',wordBreak:'break-all'}}>{url}</a></div>))}</div>}</>}</div></div></div>;
-}
-
-/* ═══ THREAT INTEL FEED ═══ */
-function ThreatIntelFeed(){
-  const INDUSTRIES=['Healthcare','Financial Services','Government','Education','Manufacturing','Retail','Energy & Utilities','Technology','Legal','Construction','Transportation','Telecommunications'];
-  const[industry,setIndustry]=useState<string|null>(null);const[intel,setIntel]=useState<any[]>([]);const[loading,setLoading]=useState(false);const[demo,setDemo]=useState(true);const[expanded,setExpanded]=useState<string|null>(null);const[saved,setSaved]=useState(false);
-  useEffect(()=>{fetch('/api/threat-intel').then(r=>r.ok?r.json():null).then(d=>{if(d){setIndustry(d.selected);if(d.intel?.length)setIntel(d.intel);setDemo(d.demo!==false)}}).catch(()=>{})},[]);
-  function selectIndustry(ind:string){setIndustry(ind);setLoading(true);fetch('/api/threat-intel',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:ind})}).then(()=>{setSaved(true);setTimeout(()=>setSaved(false),2000);return fetch('/api/threat-intel?industry='+encodeURIComponent(ind))}).then(r=>r.ok?r.json():null).then(d=>{if(d){setIntel(d.intel||[]);setDemo(d.demo!==false)}setLoading(false)}).catch(()=>setLoading(false))}
-  function refresh(){if(!industry)return;setLoading(true);fetch('/api/threat-intel?industry='+encodeURIComponent(industry)+'&t='+Date.now()).then(r=>r.ok?r.json():null).then(d=>{if(d){setIntel(d.intel||[]);setDemo(d.demo!==false)}setLoading(false)}).catch(()=>setLoading(false))}
-  const sevIcon:Record<string,string>={critical:'🔴',high:'🟠',medium:'🟡',low:'🔵'};
-  const typeIcon:Record<string,string>={ransomware:'💀',apt:'🕵️',vulnerability:'🔓',phishing:'🎣',malware:'🦠',data_breach:'📂',supply_chain:'🔗',insider:'👤'};
-  if(!industry)return <div className="panel"><div className="panel-hd"><h3>🛡 Threat Intelligence</h3></div><div style={{padding:16}}><div style={{fontSize:'.82rem',fontWeight:600,marginBottom:8,color:'var(--t1)'}}>Select your industry for tailored threat intel:</div><div style={{display:'flex',flexWrap:'wrap',gap:6}}>{INDUSTRIES.map(ind=>(<button key={ind} className="tc-btn" onClick={()=>selectIndustry(ind)} style={{fontSize:'.72rem',padding:'6px 12px'}}>{ind}</button>))}</div></div></div>;
-  return <div className="panel"><div className="panel-hd"><h3>🛡 Threat Intel — {industry}</h3><div style={{display:'flex',gap:4,alignItems:'center'}}>{demo&&<span style={{fontSize:'.55rem',color:'var(--amber)',background:'var(--ambers)',padding:'1px 5px',borderRadius:3}}>DEMO</span>}{!demo&&<span style={{fontSize:'.55rem',color:'var(--green)',background:'var(--greens)',padding:'1px 5px',borderRadius:3}}>LIVE</span>}<button className="tc-btn" onClick={refresh} disabled={loading} style={{fontSize:'.58rem',padding:'2px 6px'}}>{loading?'...':'↻'}</button><button className="tc-btn" onClick={()=>setIndustry(null)} style={{fontSize:'.58rem',padding:'2px 6px'}}>Change</button></div></div><div style={{padding:8}}>{loading?<div style={{textAlign:'center',padding:20}}><span className="spin" style={{display:'inline-block'}}/>Loading threat intel...</div>:intel.length===0?<div style={{textAlign:'center',padding:20,color:'var(--t3)'}}>No threat intel available</div>:intel.map((t:any)=>(<div key={t.id} className="ti-card" onClick={()=>setExpanded(expanded===t.id?null:t.id)} style={{borderLeftColor:t.severity==='critical'?'var(--red)':t.severity==='high'?'#f97316':t.severity==='medium'?'var(--amber)':'var(--blue)'}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}><div style={{flex:1}}><div style={{display:'flex',gap:4,alignItems:'center',marginBottom:3,flexWrap:'wrap'}}><span>{sevIcon[t.severity]||'⚪'}</span><span className={`sev sev-${t.severity}`}>{t.severity}</span><span style={{fontSize:'.55rem',background:'var(--bg3)',padding:'1px 5px',borderRadius:3,color:'var(--t2)'}}>{typeIcon[t.type]||'🔶'} {t.type?.replace('_',' ')}</span>{t.source&&<span style={{fontSize:'.52rem',color:'var(--t3)',fontFamily:'var(--fm)'}}>{t.source}</span>}{t.url&&<a href={t.url} target="_blank" rel="noopener" onClick={e=>e.stopPropagation()} style={{fontSize:'.54rem',color:'var(--accent)',textDecoration:'none',fontWeight:700,background:'var(--accent-s)',padding:'1px 6px',borderRadius:3}}>🔗 Source Article</a>}</div><div style={{fontSize:'.8rem',fontWeight:700,color:'var(--t1)'}}>{t.title}</div></div><span style={{fontSize:'.55rem',color:'var(--t3)',fontFamily:'var(--fm)',whiteSpace:'nowrap',marginLeft:8}}>{t.date}</span></div>{expanded===t.id&&<div style={{marginTop:8,paddingTop:8,borderTop:'1px solid var(--brd)'}}><div style={{fontSize:'.74rem',color:'var(--t2)',lineHeight:1.6,marginBottom:6}}>{t.summary}</div>{t.industry_relevance&&<div style={{fontSize:'.68rem',color:'var(--accent)',background:'var(--accent-s)',padding:'6px 8px',borderRadius:4,marginBottom:6}}>💡 {t.industry_relevance}</div>}{t.mitre?.length>0&&<div style={{display:'flex',gap:3,flexWrap:'wrap',marginBottom:4}}>{t.mitre.map((m:string)=>(<span key={m} className="mitre">{m}</span>))}</div>}{t.iocs?.length>0&&<div style={{fontSize:'.65rem',fontFamily:'var(--fm)',color:'var(--t2)',marginTop:4}}><span style={{color:'var(--t3)',fontWeight:600}}>IOCs:</span> {t.iocs.join(', ')}</div>}</div>}</div>))}</div></div>;
-}
-
-/* ═══ INTEL TAB ═══ */
-
-/* ═══ LIVE INTEL FEED ═══ */
-function LiveIntelFeed({data}:{data:any}){
-  if(!data||!data.feeds||data.feeds.length===0)return null;
-  const srcColor:Record<string,string>={'CISA KEV':'#ff4466','ThreatFox':'#f97316','URLhaus':'#5b9aff'};
-  const allItems=data.feeds.flatMap((f:any)=>(f.items||[]).map((i:any)=>({...i,feedName:f.name})));
-  return <div className="panel" style={{marginBottom:10}}><div className="panel-hd"><h3>🌐 Live Threat Feeds</h3><span className="muted" style={{fontSize:'.6rem'}}>{data.feeds.filter((f:any)=>f.ok).length} feeds · {allItems.length} indicators · Updated {new Date(data.updatedAt).toLocaleTimeString()}</span></div><div style={{maxHeight:300,overflowY:'auto',padding:'4px 14px'}}>{allItems.slice(0,15).map((item:any,i:number)=>(<div key={i} style={{display:'flex',gap:8,padding:'7px 0',borderBottom:'1px solid var(--brd)',alignItems:'flex-start'}}><div style={{width:3,height:24,borderRadius:2,background:srcColor[item.source]||'var(--accent)',flexShrink:0,marginTop:2}}/><div style={{flex:1,overflow:'hidden'}}><div style={{fontSize:'.72rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.title}</div><div style={{fontSize:'.62rem',color:'var(--t3)',marginTop:2,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.detail}</div><div style={{display:'flex',gap:4,marginTop:3}}><span style={{fontSize:'.5rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:(srcColor[item.source]||'var(--accent)')+'15',color:srcColor[item.source]||'var(--accent)'}}>{item.source}</span><span className="sev" style={{fontSize:'.46rem'}}>{item.severity}</span>{item.link&&<a href={item.link} target="_blank" rel="noopener" style={{fontSize:'.5rem',color:'var(--accent)',textDecoration:'none',fontWeight:700,background:'var(--accent-s)',padding:'0 4px',borderRadius:2}}>Source →</a>}</div></div></div>))}</div></div>;
-}
-
-function IntelTab({alerts,onAskAI,onDeviceDrill,liveIntel}:{alerts:Al[];onAskAI?:(a:Al)=>void;onDeviceDrill?:(h:string)=>void;liveIntel?:any}){
-  const feeds=liveIntel?.feeds||[];const total=feeds.reduce((s:number,f:any)=>s+(f.entries?.length||0),0);
-  return <div className="tab-clean"><div className="tab-summary"><div className="tab-summary-stats"><div className="tss"><span className="tss-val">{feeds.length}</span><span className="tss-label">Active Feeds</span></div><div className="tss"><span className="tss-val">{total}</span><span className="tss-label">IOCs Tracked</span></div></div></div>{feeds.map((feed:any,i:number)=>(<div key={i} className="attn-section"><div className="attn-hd">{feed.name} ({feed.entries?.length||0})</div>{(feed.entries||[]).slice(0,8).map((e:any,j:number)=>(<div key={j} className="alert-row" style={{padding:'4px 8px'}}><div className="alert-row-left"><span style={{fontSize:'.7rem',fontWeight:600}}>{e.title||e.ioc||e.cve||'—'}</span></div><div className="alert-row-right">{e.type&&<span className="pill on" style={{fontSize:'.48rem',padding:'1px 5px'}}>{e.type}</span>}{e.date&&<span className="ts">{new Date(e.date).toLocaleDateString()}</span>}</div></div>))}{(feed.entries?.length||0)>8&&<div style={{fontSize:'.58rem',color:'var(--t3)',padding:'2px 8px'}}>+{feed.entries.length-8} more</div>}</div>))}{feeds.length===0&&<div style={{textAlign:'center',padding:30,color:'var(--t3)'}}><div style={{fontSize:'1.5rem',marginBottom:8}}>🌐</div><div>Live threat intelligence feeds loading...</div></div>}</div>;
-}
-
-
-/* ═══ TV WALL MODE ═══ */
-function TVWall({alerts,m,cov,sparks,slide,onExit}:{alerts:any[];m:any;cov:any;sparks:any;slide:number;onExit:()=>void}){
-  const a=m?.alertsLast24h||{};
-  const slides=[<div key="s0" className="tv-slide"><div className="tv-title">WATCHTOWER SOC</div><div className="tv-posture-row"><PostureGauge/></div><div className="tv-kpi-row"><div className="tv-kpi"><div className="tv-kpi-val" style={{color:'var(--red)'}}>{a.critical||0}</div><div className="tv-kpi-label">CRITICAL</div></div><div className="tv-kpi"><div className="tv-kpi-val" style={{color:'#f97316'}}>{a.high||0}</div><div className="tv-kpi-label">HIGH</div></div><div className="tv-kpi"><div className="tv-kpi-val" style={{color:'var(--green)'}}>{cov?.totalDevices||0}</div><div className="tv-kpi-label">ASSETS</div></div><div className="tv-kpi"><div className="tv-kpi-val" style={{color:'var(--accent)'}}>{a.total||0}</div><div className="tv-kpi-label">ALERTS 24H</div></div></div></div>,<div key="s1" className="tv-slide"><div className="tv-title">LIVE ALERTS</div><div className="tv-alert-list">{alerts.slice(0,12).map((al:any)=>(<div key={al.id} className="tv-alert"><span className="tv-alert-sev" style={{background:al.severity==='critical'?'var(--red)':'#f97316'}}/><span className="tv-alert-title">{al.title}</span><span className={`src ${sc(al.source)}`}>{al.source}</span><span className="ts">{ago(al.timestamp)}</span></div>))}{alerts.length===0&&<div style={{textAlign:'center',color:'var(--t3)',padding:40,fontSize:'1.2rem'}}>No active alerts</div>}</div></div>,<div key="s2" className="tv-slide"><div className="tv-title">SEVERITY DISTRIBUTION</div><div style={{display:'flex',justifyContent:'center',padding:'40px 0'}}><SevRing c={a.critical||0} h={a.high||0} m={a.medium||0} l={a.low||0} size={200}/></div><div className="tv-kpi-row"><div className="tv-kpi"><div className="tv-kpi-val" style={{color:'var(--red)'}}>{a.critical||0}</div><div className="tv-kpi-label">CRITICAL</div></div><div className="tv-kpi"><div className="tv-kpi-val" style={{color:'#f97316'}}>{a.high||0}</div><div className="tv-kpi-label">HIGH</div></div><div className="tv-kpi"><div className="tv-kpi-val" style={{color:'var(--amber)'}}>{a.medium||0}</div><div className="tv-kpi-label">MEDIUM</div></div><div className="tv-kpi"><div className="tv-kpi-val" style={{color:'var(--blue)'}}>{a.low||0}</div><div className="tv-kpi-label">LOW</div></div></div></div>,<div key="s3" className="tv-slide"><div className="tv-title">HOURLY TREND</div><div style={{display:'flex',justifyContent:'center',padding:'40px 0'}}><HourlyChart data={sparks.hourly} w={600} h={200}/></div><div className="tv-kpi-row"><div className="tv-kpi"><div className="tv-kpi-val">{m?.mttr?.current||0}<span style={{fontSize:'.8rem',color:'var(--t3)'}}>min</span></div><div className="tv-kpi-label">MTTR</div></div><div className="tv-kpi"><div className="tv-kpi-val">{m?.mttd?.current||0}<span style={{fontSize:'.8rem',color:'var(--t3)'}}>min</span></div><div className="tv-kpi-label">MTTD</div></div></div></div>,];
-  return <div className="tv-wall" onClick={onExit}><div className="tv-indicators">{[0,1,2,3].map(i=>(<div key={i} className={`tv-ind ${slide===i?'active':''}`}/>))}</div>{slides[slide%slides.length]}<div className="tv-footer"><span className="tv-clock">{new Date().toLocaleTimeString('en-GB')}</span><span className="tv-exit">Click anywhere to exit</span><span className="stream-dot" style={{marginLeft:8}}/>MONITORING</div></div>;
-}
-
-/* ═══ MAIN ═══ */
-function DashboardInner(){
-  const[tab,setTab]=useState<Tab>('overview');useEffect(()=>{const h=(e:any)=>{const t=e.detail;if(t&&['overview','alerts','coverage','vulns','intel','incidents','tools'].includes(t))setTab(t as Tab)};window.addEventListener('wt-tab',h);return()=>window.removeEventListener('wt-tab',h)},[]);
-  const[data,setData]=useState<any>(null);
-  const[alerts,setAlerts]=useState<Al[]>([]);
-  const[toolsData,setToolsData]=useState<any>(null);
-  useEffect(()=>{if(toolsData!==null&&(!toolsData?.tools||Object.keys(toolsData?.tools||{}).length===0)){const skip=typeof window!=='undefined'&&sessionStorage.getItem('wt-skip-setup');if(!skip&&typeof window!=='undefined')window.location.href='/setup'}},[toolsData]);
-  const[loading,setLoading]=useState(true);
-  const[theme,setTheme]=useState<'dark'|'light'>('dark');
-  const[sideOpen,setSideOpen]=useState(false);const[sidePin,setSidePin]=useState(false);
-  const[clock,setClock]=useState('');
-  const[sparks]=useState({al:gen(6,3),mttr:gen(35,8),mttd:gen(9,3),thr:gen(180,40),hourly:gen(12,5)});
-  const[iocOpen,setIocOpen]=useState(false);const[aiAlert,setAiAlert]=useState<Al|null>(null);
-  const[guideOpen,setGuideOpen]=useState(()=>{if(typeof window==='undefined')return false;const seen=localStorage.getItem('wt-tour-seen');return !seen});useEffect(()=>{if(!guideOpen&&typeof window!=='undefined')localStorage.setItem('wt-tour-seen','1')},[guideOpen]);
-  const[cmdOpen,setCmdOpen]=useState(false);
-  const[deviceDrill,setDeviceDrill]=useState<string|null>(null);
-  const[notesAlert,setNotesAlert]=useState<string|null>(null);
-  const[vulnDetail,setVulnDetail]=useState<any>(null);
-  const[tlDetail,setTlDetail]=useState<any>(null);
-  
-  const[handoverOpen,setHandoverOpen]=useState(false);
-  const[userInfo,setUserInfo]=useState<any>(null);const[tenantBranding,setTenantBranding]=useState<any>(null);useEffect(()=>{if(tenantBranding?.primaryColor){document.documentElement.style.setProperty('--accent',tenantBranding.primaryColor);document.documentElement.style.setProperty('--accent-s',tenantBranding.primaryColor+'10')}return()=>{document.documentElement.style.removeProperty('--accent');document.documentElement.style.removeProperty('--accent-s')}},[tenantBranding]);useEffect(()=>{if(userInfo?.user?.plan)(window as any).__wt_plan=userInfo.user.plan},[userInfo]);const[showAccount,setShowAccount]=useState(false);
-  const[slaData,setSlaData]=useState<any>(null);const[aiStats,setAiStats]=useState<any>(null);const[incidents,setIncidents]=useState<any[]>([]);const[incidentModal,setIncidentModal]=useState<any>(null);const[customRunbooks,setCustomRunbooks]=useState<any[]>([]);const[liveIntel,setLiveIntel]=useState<any>(null);
-  const[tvWall,setTvWall]=useState(false);const[tvSlide,setTvSlide]=useState(0);
-  const[isFullscreen,setIsFullscreen]=useState(false);
-  const[refreshInterval,setRefreshInterval]=useState(120);
-  const[prevCritCount,setPrevCritCount]=useState(0);
-  const audioRef=typeof window!=='undefined'?{current:null as AudioContext|null}:{current:null};
-
-  useEffect(()=>{
-    function onKey(e:KeyboardEvent){
-      if(e.target instanceof HTMLInputElement||e.target instanceof HTMLTextAreaElement)return;
-      if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();setCmdOpen(true);return}
-      if(e.key==='/'){{e.preventDefault();setIocOpen(true)}}
-      if(e.key==='?')setGuideOpen(true);
-      if(e.key==='f'&&!e.metaKey&&!e.ctrlKey)toggleFullscreen();
-      if(e.key==='Escape'){setGuideOpen(false);setCmdOpen(false);setIocOpen(false);setAiAlert(null);setDeviceDrill(null);setNotesAlert(null);setVulnDetail(null);setTlDetail(null)}
-    }
-    window.addEventListener('keydown',onKey);return()=>window.removeEventListener('keydown',onKey);
-  },[]);
-  useEffect(()=>{if(!tvWall)return;const ti=setInterval(()=>setTvSlide(s=>(s+1)%4),15000);return()=>clearInterval(ti)},[tvWall]);
-  useEffect(()=>{const tick=()=>setClock(new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'}));tick();const i=setInterval(tick,1000);return()=>clearInterval(i)},[]);
-
-  const refresh=useCallback(async()=>{
-    setLoading(true);
-    try{
-      const[aR,cR,tR]=await Promise.all([fetch('/api/unified-alerts?t='+Date.now()).then(r=>r.ok?r.json():{alerts:[],demo:true}).catch(()=>({alerts:[],demo:true})),fetch('/api/coverage?t='+Date.now()).then(r=>r.ok?r.json():{demo:true,coverage:null,metrics:null,zscaler:null}).catch(()=>({demo:true,coverage:null,metrics:null,zscaler:null})),fetch('/api/tools?t='+Date.now()).then(r=>r.ok?r.json():{tools:[],kvAvailable:false}).catch(()=>({tools:[],kvAvailable:false}))]);
-      setAlerts(aR.alerts||[]);setData(cR);setToolsData(tR);
-    }catch(e){console.error(e)}
-    setLoading(false);
-  },[]);
-
-  useEffect(()=>{refresh();const i=setInterval(refresh,refreshInterval*1000);return()=>clearInterval(i)},[refresh,refreshInterval]);
-  useEffect(()=>{fetch('/api/sla').then(r=>r.ok?r.json():null).then(d=>{if(d)setSlaData(d)}).catch(()=>{});fetch('/api/noise-reduction').then(r=>r.ok?r.json():null).then(d=>{if(d?.stats)setAiStats(d.stats)}).catch(()=>{});fetch('/api/incidents').then(r=>r.ok?r.json():null).then(d=>{if(d?.incidents)setIncidents(d.incidents)}).catch(()=>{});fetch('/api/live-intel').then(r=>r.ok?r.json():null).then(d=>{if(d)setLiveIntel(d)}).catch(()=>{});fetch('/api/auth/me').then(r=>r.ok?r.json():null).then(d=>{if(d?.user){setUserInfo(d);(window as any).__wt_addons=d.user?.addons||d.addons||[];(window as any).__wt_role=d.user?.isImpersonating?'superadmin':d.user?.role||''}}).catch(()=>{});fetch('/api/mssp/branding').then(r=>r.ok?r.json():null).then(d=>{if(d?.branding?.enabled)setTenantBranding(d.branding)}).catch(()=>{})},[]);
-  // Critical alert notification sound
-  useEffect(()=>{
-    const critCount=alerts.filter(a=>a.severity==='critical'&&a.status==='new').length;
-    if(critCount>prevCritCount&&prevCritCount>=0&&alerts.length>0){
-      const newCrits=alerts.filter(a=>a.severity==='critical'&&a.status==='new');
-      
-      try{
-        if(!audioRef.current)audioRef.current=new AudioContext();
-        const ctx=audioRef.current;const o=ctx.createOscillator();const g=ctx.createGain();
-        o.connect(g);g.connect(ctx.destination);o.frequency.value=880;o.type='sine';
-        g.gain.setValueAtTime(0.3,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.5);
-        o.start(ctx.currentTime);o.stop(ctx.currentTime+0.5);
-        // Second beep
-        const o2=ctx.createOscillator();const g2=ctx.createGain();
-        o2.connect(g2);g2.connect(ctx.destination);o2.frequency.value=1100;o2.type='sine';
-        g2.gain.setValueAtTime(0.3,ctx.currentTime+0.15);g2.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.65);
-        o2.start(ctx.currentTime+0.15);o2.stop(ctx.currentTime+0.65);
-        // Browser notification
-        if(typeof Notification!=='undefined'&&Notification.permission==='granted'){new Notification('🔴 Critical Alert',{body:`${critCount} new critical alert(s)`,icon:'/favicon.ico'})}
-        else if(typeof Notification!=='undefined'&&Notification.permission!=='denied'){Notification.requestPermission()}
-      }catch(e){}
-    }
-    setPrevCritCount(critCount);
-  },[alerts]);
-  function toggleFullscreen(){if(!document.fullscreenElement){document.documentElement.requestFullscreen();setIsFullscreen(true)}else{document.exitFullscreen();setIsFullscreen(false)}}
-  useEffect(()=>{document.documentElement.setAttribute('data-theme',theme)},[theme]);
-  function cmdSelect(id:string){if(id==='ioc')setIocOpen(true);else if(id==='guide')setGuideOpen(true);else if(id==='exec'){/* trigger from overview */}else if(id==='fullscreen')toggleFullscreen();else if(id==='theme')setTheme(t=>t==='dark'?'light':'dark');else setTab(id as Tab)}
-
-  const m=data?.metrics,cov=data?.coverage,zsc=data?.zscaler;
-  const hasCrit=alerts.filter(a=>a.severity==='critical'&&a.status==='new').length>0;
-  const enabledTools=(Array.isArray(toolsData?.tools)?toolsData.tools:Object.values(toolsData?.tools||{})).filter((t:any)=>t.enabled).map((t:any)=>{const reg=TOOLS.find((r:any)=>r.id===t.id);return{...t,icon:reg?.icon||'🔌',shortName:reg?.shortName||t.id,color:reg?.color||'#8896b8'}})||[];
-  const critCount=alerts.filter(a=>a.severity==='critical'&&a.status==='new').length;
-  const highCount=alerts.filter(a=>a.severity==='high').length;
-  const tabs:{k:Tab;l:string;i:string;badge?:number}[]=[{k:'overview',l:'Overview',i:'◉'},{k:'alerts',l:'Alerts',i:'⚡',badge:critCount},{k:'coverage',l:'Coverage',i:'🛡'},{k:'vulns',l:'Vulns',i:'🔓'},{k:'intel',l:'Intel',i:'🛡'},{k:'incidents',l:'Incidents',i:'📁'},{k:'tools',l:`Tools (${enabledTools.length})`,i:'🔌'}];
-  const userRole=userInfo?.user?.role||'admin';
-  const visibleTabs=tabs.filter(t=>t.k==='tools'?userRole==='admin'||userRole==='superadmin':t.k==='incidents'?userRole==='admin'||userRole==='superadmin':true);
-
-  if(tvWall)return <><style dangerouslySetInnerHTML={{__html:CSS}}/><TVWall alerts={alerts} m={data?.metrics||m} cov={data?.coverage} sparks={sparks} slide={tvSlide} onExit={()=>{setTvWall(false);document.exitFullscreen?.()}}/></>;
-  const sidebarEl=<>{sideOpen&&!sidePin&&<div className="side-overlay" onClick={()=>setSideOpen(false)}/>}<aside className={`sidebar ${sideOpen||sidePin?'open':''}`} onMouseEnter={()=>{if(!sidePin)setSideOpen(true)}} onMouseLeave={()=>{if(!sidePin)setSideOpen(false)}}><div className="side-top"><div className="side-logo">{tenantBranding?.companyName?<><div className="logo-icon" style={tenantBranding.primaryColor?{background:tenantBranding.primaryColor}:{}}>{tenantBranding.companyName.charAt(0)}</div><span className="side-label">{tenantBranding.companyName}</span></>:<><div className="logo-icon">W</div><span className="side-label">Watchtower</span></>}</div></div><nav className="side-nav">{visibleTabs.map(t=>(<button key={t.k} className={`side-item ${tab===t.k?'active':''}`} onClick={()=>{setTab(t.k);if(!sidePin)setSideOpen(false)}}><span className="side-icon">{t.i}</span><span className="side-label">{t.l}{t.badge&&t.badge>0?<span className="tab-badge">{t.badge}</span>:null}</span></button>))}</nav><div className="side-bottom"><button className="side-item" onClick={()=>setSidePin(!sidePin)}><span className="side-icon">{sidePin?'◀':'▶'}</span><span className="side-label">{sidePin?'Collapse':'Pin open'}</span></button><button className="side-item" onClick={()=>setIocOpen(true)}><span className="side-icon">🔍</span><span className="side-label">IOC Search</span></button><button className="side-item" onClick={()=>setTheme(t=>t==='dark'?'light':'dark')}><span className="side-icon">{theme==='dark'?'☀':'🌙'}</span><span className="side-label">Theme</span></button></div></aside></>;
-  const acctMenu=<>{showAccount&&<div className="acct-menu"><div className="acct-hd">{userInfo?.user?.email||'Account'}</div><div className="acct-org">{userInfo?.user?.org||''}</div><div className="acct-plan">Plan: <strong>{userInfo?.user?.plan||'starter'}</strong></div>{userInfo?.user?.trialEndsAt&&<div className="acct-trial">Trial ends: {new Date(userInfo.user.trialEndsAt).toLocaleDateString()}</div>}<div className="acct-sep"/><button className="acct-btn" onClick={()=>{fetch('/api/stripe/portal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:userInfo?.user?.email})}).then(r=>r.json()).then(d=>{if(d.url)window.open(d.url);else alert(d.error||'Billing not available')})}}>💳 Manage Billing</button><button className="acct-btn" onClick={()=>window.location.href='/settings'}>⚙ Settings & 2FA</button><button className="acct-btn" onClick={()=>window.location.href='/report'}>📊 PDF Report</button><button className="acct-btn" onClick={()=>window.location.href='/pricing'}>⬆ Upgrade Plan</button><button className="acct-btn" onClick={()=>setGuideOpen(true)}>💡 Tour</button><button className="acct-btn" onClick={()=>{document.cookie='secops-auth=;max-age=0;path=/';document.cookie='secops-tenant=;max-age=0;path=/';document.cookie='secops-admin-original=;max-age=0;path=/';window.location.href='/login'}}>🚪 Sign Out</button>{userInfo?.user?.role==='superadmin'&&<><div className="acct-sep"/><button className="acct-btn" onClick={()=>window.location.href='/portfolio'}>🏢 MSSP Portfolio</button></>}</div>}</>;
-  const modalsJsx=<>{iocOpen&&<IOCSearch open={iocOpen} onClose={()=>setIocOpen(false)}/>}{aiAlert&&<AICopilot alert={aiAlert} onClose={()=>setAiAlert(null)} allAlerts={alerts} customRunbooks={customRunbooks}/>}<OnboardingTour open={guideOpen} onClose={()=>setGuideOpen(false)}/><CmdPalette open={cmdOpen} onClose={()=>setCmdOpen(false)} onSelect={cmdSelect}/><DeviceDrawer hostname={deviceDrill} alerts={alerts} onClose={()=>setDeviceDrill(null)}/><AlertNotes alertId={notesAlert} onClose={()=>setNotesAlert(null)}/>{tlDetail&&<div className="modal-overlay" onClick={()=>setTlDetail(null)}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:500}}><div className="modal-hd"><div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:'1.3rem'}}>{tlDetail.icon}</span><div><h3 style={{fontSize:'.9rem'}}>{tlDetail.title}</h3><p className="muted" style={{fontSize:'.68rem'}}>{tlDetail.source} · {new Date(tlDetail.time).toLocaleString()}</p></div></div><button className="modal-close" onClick={()=>setTlDetail(null)}>✕</button></div><div className="modal-body"><div style={{fontSize:'.78rem',color:'var(--t2)',lineHeight:1.7,marginBottom:10}}>{tlDetail.title.includes('Credential')?'Credential dumping attempt detected via LSASS memory access. The attacker used Mimikatz-style techniques to extract credentials from a domain controller. Immediate password rotation recommended for affected accounts.':tlDetail.title.includes('isolated')?'Device WS042 was manually isolated by SOC analyst following detection of C2 beacon activity. Network quarantine applied. Forensic image collection initiated.':tlDetail.title.includes('PowerShell')?'Encoded PowerShell execution detected with base64-obfuscated command. Decoded payload attempts to download secondary payload from external C2 server. Process tree indicates parent was outlook.exe suggesting phishing vector.':tlDetail.title.includes('C2 blocked')?'Outbound connection to known C2 infrastructure blocked by Zscaler ZIA web proxy. IP 185.220.101.42 is associated with Cobalt Strike team server. No data exfiltration detected before block.':tlDetail.title.includes('Scan done')?'Scheduled vulnerability scan completed. 3 new critical vulnerabilities found across 12 assets. Critical findings: CVE-2024-3400 (PAN-OS), CVE-2024-21302 (Windows), unsupported SQL Server instance.':tlDetail.title.includes('VPN')?'Multiple failed VPN authentication attempts from IP range associated with known brute force campaign. 47 unique usernames attempted in 10-minute window. GeoIP: Eastern Europe.':tlDetail.title.includes('Phishing')?'Phishing emails quarantined targeting 12 users with fake Microsoft 365 login pages. Credential harvesting site hosted on compromised WordPress installation. All recipients notified.':tlDetail.title.includes('Darktrace')?'Darktrace AI model breach triggered for unusual data transfer pattern. Internal server communicating with previously unseen external IP on non-standard port. Investigating potential data exfiltration.':tlDetail.title.includes('Shift')?'Shift handover completed. 4 open items transferred: 1 active incident (DC01 compromise), 2 pending investigations, 1 awaiting vendor response on Tenable agent deployment.':'Security event detected and logged. Review alert details for full context and recommended response actions.'}</div><div style={{display:'flex',gap:4,flexWrap:'wrap'}}><span className={`src ${sc(tlDetail.source)}`}>{tlDetail.source}</span></div></div></div></div>}{vulnDetail&&<VulnDetail vuln={vulnDetail} onClose={()=>{setVulnDetail(null);setTlDetail(null)}}/>}<ShiftHandover open={handoverOpen} onClose={()=>setHandoverOpen(false)}/></>;
-  return(<><style dangerouslySetInnerHTML={{__html:CSS}}/><div className={`shell `}>{sidebarEl}<div className="shell-content"><div className="topbar"><button className="side-toggle" onClick={()=>setSideOpen(!sideOpen)}>☰</button><div className="topbar-right"><button className="search-trigger" onClick={()=>setIocOpen(true)}>🔍 <span className="desk-only">IOC Search</span></button><div className="live-dot"/>{userInfo?.user?.isImpersonating&&<span style={{fontSize:'.55rem',color:'var(--amber)',background:'var(--ambers)',padding:'2px 8px',borderRadius:4,fontWeight:700}}>VIEWING: {userInfo?.user?.org||'tenant'}</span>}<TenantSwitcher userInfo={userInfo} onSwitch={(email)=>{fetch('/api/admin/impersonate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})}).then(()=>window.location.reload())}}/><button className="theme-btn desk-only" onClick={()=>{if(userInfo?.user?.plan==='community'&&userInfo?.user?.role!=='superadmin'){alert('TV Wall requires Team plan or higher');return}setTvWall(!tvWall);if(!tvWall)document.documentElement.requestFullscreen?.()}} title="TV Wall Mode">📺</button><button className="theme-btn" onClick={()=>setTheme(t=>t==='dark'?'light':'dark')}>{theme==='dark'?'☀':'🌙'}</button><div className="acct-wrap" style={{position:'relative'}}><button className="theme-btn" onClick={()=>setShowAccount(!showAccount)} title="Account">{userInfo?.user?.email?userInfo.user.email.charAt(0).toUpperCase():'👤'}</button>{acctMenu}</div><button className="refresh-btn desk-only" onClick={refresh}>↻</button></div></div><div className="main">{modalsJsx}{loading?<div className="loading"><span className="spin"/>Loading...</div>:tab==='overview'?<Ov m={m} cov={cov} alerts={alerts} zsc={zsc} sparks={sparks} enabledTools={enabledTools} onAskAI={(a:Al)=>{const p=(window as any).__wt_plan||'community';const r2=(window as any).__wt_role||'';if(p==='community'&&r2!=='superadmin'){if(confirm('AI Co-Pilot requires Team plan or higher.\n\nUpgrade to unlock AI-powered alert analysis, evidence chains, and recommended actions.\n\nView pricing?'))window.location.href='/pricing';return}setAiAlert(a)}} onRefresh={refresh} setTlDetail={setTlDetail} slaData={slaData} aiStats={aiStats} onQuickAction={(a:string)=>{if(a==='ioc')setIocOpen(true);if(a==='handover')setHandoverOpen(true);if(a==='investigate'){fetch('/api/taegis/investigate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:'Manual Investigation - '+new Date().toLocaleDateString(),description:'Investigation created from Watchtower dashboard',priority:2})}).then(r=>r.json()).then(d=>{if(d.ok)alert('✓ Investigation created: '+(d.investigation?.short_id||d.investigation?.id));else alert('✗ '+d.error)})};if(a==='scan'){fetch('/api/tenable/scan').then(r=>r.json()).then(d=>{if(d.scans?.length>0){const s=d.scans[0];if(confirm('Launch scan: '+s.name+'?')){fetch('/api/tenable/scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scanId:s.id})}).then(r=>r.json()).then(r=>{alert(r.ok?'✓ Scan launched':'✗ '+r.error)})}}else alert('No scans found in Tenable')})}}}/>:tab==='alerts'?<Als alerts={alerts} onAskAI={(a:Al)=>{const p=(window as any).__wt_plan||'community';const r2=(window as any).__wt_role||'';if(p==='community'&&r2!=='superadmin'){if(confirm('AI Co-Pilot requires Team plan or higher.\n\nUpgrade to unlock AI-powered alert analysis, evidence chains, and recommended actions.\n\nView pricing?'))window.location.href='/pricing';return}setAiAlert(a)}} onDeviceDrill={(h:string)=>setDeviceDrill(h)} onNotes={(id:string)=>setNotesAlert(id)}/>:tab==='coverage'?<CovTab cov={cov} onRefresh={refresh}/>:tab==='vulns'?<LockedFeature featureId="vulns" plan={(typeof window!=='undefined'?(window as any).__wt_plan:null)||'community'}><Vul onVulnClick={(v:any)=>setVulnDetail(v)}/></LockedFeature>:tab==='incidents'?<LockedFeature featureId="incidents" plan={(typeof window!=='undefined'?(window as any).__wt_plan:null)||'community'}><IncidentList incidents={incidents} onUpdate={()=>fetch('/api/incidents').then(r=>r.ok?r.json():null).then(d=>{if(d?.incidents)setIncidents(d.incidents)})} alerts={alerts}/></LockedFeature>:tab==='intel'?<LockedFeature featureId="intel" plan={(typeof window!=='undefined'?(window as any).__wt_plan:null)||'community'}><IntelTab alerts={alerts} liveIntel={liveIntel} onAskAI={(a:Al)=>{const p=(window as any).__wt_plan||'community';const r2=(window as any).__wt_role||'';if(p==='community'&&r2!=='superadmin'){if(confirm('AI Co-Pilot requires Team plan or higher.\n\nUpgrade to unlock AI-powered alert analysis, evidence chains, and recommended actions.\n\nView pricing?'))window.location.href='/pricing';return}setAiAlert(a)}} onDeviceDrill={(h:string)=>setDeviceDrill(h)}/></LockedFeature>:<ToolsManager toolsData={toolsData} onRefresh={refresh}/>}</div></div></div></>);
-}
-
-/* ═══ KPI SECTION (needs metrics) ═══ */
-function KpiSection({m,cov,zsc,sparks,enabledTools,alerts}:any){
-  if(!m)return null;
-  const a=m.alertsLast24h||{};
-  return <div className="kpi-grid"><div className="kpi"><div className="kpi-top"><div className="kpi-label">Alerts 24h</div></div><div className="kpi-val">{a.total||0}</div><div className="kpi-sub"><span style={{color:'var(--red)'}}>{a.critical||0} crit</span> · <span style={{color:'#f97316'}}>{a.high||0} high</span></div><div className="kpi-spark"><Spark data={sparks.al} color="var(--accent)"/></div></div><div className="kpi"><div className="kpi-top"><div className="kpi-label">MTTR</div></div><div className="kpi-val" style={{color:m.mttr?.current<=m.mttr?.target?'var(--green)':'var(--amber)'}}>{m.mttr?.current||0}<span className="kpi-unit">min</span></div><div className="kpi-sub">Target {m.mttr?.target||30}m</div><div className="kpi-spark"><Spark data={sparks.mttr} color="var(--amber)"/></div></div><div className="kpi"><div className="kpi-top"><div className="kpi-label">MTTD</div></div><div className="kpi-val" style={{color:m.mttd?.current<=m.mttd?.target?'var(--green)':'var(--amber)'}}>{m.mttd?.current||0}<span className="kpi-unit">min</span></div><div className="kpi-sub">Target {m.mttd?.target||10}m</div><div className="kpi-spark"><Spark data={sparks.mttd} color="var(--green)"/></div></div><div className="kpi"><div className="kpi-top"><div className="kpi-label">Open Incidents</div></div><div className="kpi-val" style={{color:m.incidentsOpen>0?'var(--amber)':'var(--green)'}}>{m.incidentsOpen||0}</div><div className="kpi-sub">SLA {m.slaCompliance||0}%</div></div><div className="kpi"><div className="kpi-top"><div className="kpi-label">ZIA Blocked</div></div><div className="kpi-val" style={{color:'var(--green)'}}>{zsc?.zia?.blockedThreats?.toLocaleString()||0}</div><div className="kpi-sub">{zsc?.zia?.dlpViolations||0} DLP</div><div className="kpi-spark"><Spark data={sparks.thr} color="var(--green)"/></div></div><div className="kpi"><div className="kpi-top"><div className="kpi-label">Critical Vulns</div></div><div className="kpi-val" style={{color:'var(--red)'}}>{a.critical||0}</div><div className="kpi-sub">{a.total||0} total alerts</div></div><div className="kpi"><div className="kpi-top"><div className="kpi-label">Tools Active</div></div><div className="kpi-val" style={{color:'var(--accent)'}}>{enabledTools.length}<span className="kpi-unit">/{TOOLS.length}</span></div><div className="kpi-sub">{cov?.totalDevices?.toLocaleString()||0} devices</div></div></div>;
-}
-
-/* ═══ QUIET HOURS ═══ */
-function QuietHours({alerts}:{alerts:any[]}){
-  const[now,setNow]=useState(Date.now());
-  useEffect(()=>{const i=setInterval(()=>setNow(Date.now()),10000);return()=>clearInterval(i)},[]);
-  const lastCrit=alerts.filter(a=>a.severity==='critical').sort((a,b)=>new Date(b.timestamp).getTime()-new Date(a.timestamp).getTime())[0];
-  const lastAny=alerts.sort((a,b)=>new Date(b.timestamp).getTime()-new Date(a.timestamp).getTime())[0];
-  const critMs=lastCrit?now-new Date(lastCrit.timestamp).getTime():0;
-  const anyMs=lastAny?now-new Date(lastAny.timestamp).getTime():0;
-  function fmt(ms:number){if(ms<=0)return'—';const m=Math.floor(ms/60000);if(m<60)return m+'m';const h=Math.floor(m/60);if(h<24)return h+'h '+m%60+'m';return Math.floor(h/24)+'d '+h%24+'h'}
-  const critColor=critMs<3600000?'var(--red)':critMs<86400000?'var(--amber)':'var(--green)';
-  return <div className="quiet-bar"><div className="quiet-item"><div className="quiet-label">Since last critical</div><div className="quiet-val" style={{color:critColor}}>{lastCrit?fmt(critMs):'None'}</div></div><div className="quiet-sep"/><div className="quiet-item"><div className="quiet-label">Since last alert</div><div className="quiet-val" style={{color:'var(--t2)'}}>{lastAny?fmt(anyMs):'None'}</div></div><div className="quiet-sep"/><div className="quiet-item"><div className="quiet-label">Active criticals</div><div className="quiet-val" style={{color:alerts.filter(a=>a.severity==='critical').length>0?'var(--red)':'var(--green)'}}>{alerts.filter(a=>a.severity==='critical').length}</div></div></div>;
-}
-
-/* ═══ POSTURE GAUGE ═══ */
-function PostureGauge(){
-  const[data,setData]=useState<any>(null);
-  useEffect(()=>{fetch('/api/posture?t='+Date.now()).then(r=>r.ok?r.json():null).then(d=>{if(d)setData(d)}).catch(()=>{})},[]);
-  if(!data)return <div className="posture-card"><div style={{textAlign:'center',padding:30,width:'100%'}}><div style={{width:32,height:32,border:'3px solid var(--bg3)',borderTopColor:'var(--accent)',borderRadius:'50%',animation:'spin .8s linear infinite',margin:'0 auto 10px'}}/><div style={{fontSize:'.68rem',color:'var(--t3)'}}>Calculating posture...</div></div></div>;
-  const{score,grade,color,factors}=data;
-  const r=54,circ=2*Math.PI*r*0.75,filled=circ*(score/100);
-  return <div className="posture-card"><div className="posture-gauge"><svg width="140" height="120" viewBox="0 0 140 120"><defs><linearGradient id="pg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor={color} stopOpacity=".8"/><stop offset="100%" stopColor={color}/></linearGradient><filter id="pggl"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><path d="M 16 100 A 54 54 0 1 1 124 100" fill="none" stroke="var(--bg3)" strokeWidth="12" strokeLinecap="round"/><path d="M 16 100 A 54 54 0 1 1 124 100" fill="none" stroke="url(#pg)" strokeWidth="12" strokeLinecap="round" strokeDasharray={`${filled} ${circ}`} filter="url(#pggl)" style={{transition:'stroke-dasharray 1.2s cubic-bezier(.4,0,.2,1)'}}/></svg><div className="posture-score" style={{color}}>{score}</div><div className="posture-grade" style={{color}}>{grade}</div><div className="posture-label">Security Posture</div></div><div className="posture-factors">{factors.slice(0,5).map((f:any,i:number)=>(<div key={i} className="posture-factor"><span style={{color:(f.impact||0)>=0?'var(--green)':'var(--red)',fontFamily:'var(--fm)',fontSize:'.68rem',fontWeight:700,minWidth:32}}>{(f.impact||0)>0?'+':''}{f.impact}</span><span style={{fontSize:'.68rem',color:'var(--t2)'}}>{f.name}</span><span style={{fontSize:'.58rem',color:'var(--t3)',marginLeft:'auto'}}>{f.detail}</span></div>))}</div></div>;
-}
-
-/* ═══ ALERT STREAM ═══ */
-function AlertStream({alerts,onAlert}:{alerts:any[];onAlert:(a:any)=>void}){
-  return <div className="alert-stream"><div className="stream-hd"><span style={{display:'flex',alignItems:'center',gap:5}}><span className="stream-dot"/>LIVE ALERTS</span><span className="mono" style={{fontSize:'.58rem',color:'var(--t3)'}}>{alerts.length}</span></div><div className="stream-body">{alerts.length===0?<div style={{padding:24,textAlign:'center'}}><div style={{fontSize:'1.8rem',marginBottom:8,opacity:.3}}>🛡</div><div style={{color:'var(--t3)',fontSize:'.72rem',fontWeight:600}}>All clear</div><div style={{color:'var(--t4)',fontSize:'.6rem',marginTop:2}}>No critical alerts</div></div>:alerts.slice(0,15).map((a:any)=>(<div key={a.id} className="stream-item clickable-row" onClick={()=>onAlert(a)}><div className="stream-sev" style={{background:a.severity==='critical'?'var(--red)':a.severity==='high'?'#f97316':'var(--amber)'}}/><div style={{flex:1,minWidth:0}}><div style={{fontSize:'.7rem',fontWeight:600,color:'var(--t1)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.title}</div><div style={{display:'flex',gap:4,alignItems:'center',marginTop:2}}><span className={`src ${sc(a.source)}`} style={{fontSize:'.48rem'}}>{a.source}</span><span className="ts" style={{fontSize:'.52rem'}}>{ago(a.timestamp)}</span></div></div></div>))}</div></div>;
-}
-
-/* ═══ QUICK ACTIONS ═══ */
-function QuickActions({onAction}:{onAction:(action:string)=>void}){
-  const actions=[{id:'ioc',icon:'🔍',label:'IOC Search',color:'var(--accent)'},{id:'investigate',icon:'📋',label:'Investigate',color:'var(--purple)'},{id:'scan',icon:'⚡',label:'Launch Scan',color:'var(--green)'},{id:'handover',icon:'🔄',label:'Shift Handover',color:'var(--amber)'}];
-  return <div className="quick-actions">{actions.map(a=>(<button key={a.id} className="qa-btn" onClick={()=>onAction(a.id)} style={{'--qa-c':a.color} as any}><span className="qa-icon">{a.icon}</span><span className="qa-label">{a.label}</span></button>))}</div>;
-}
-
-/* ═══ SHIFT HANDOVER ═══ */
-function ShiftHandover({open,onClose}:{open:boolean;onClose:()=>void}){
-  const[data,setData]=useState<any>(null);const[loading,setLoading]=useState(true);
-  useEffect(()=>{if(!open)return;setLoading(true);fetch('/api/shift-handover?t='+Date.now()).then(r=>r.ok?r.json():null).then(d=>{if(d)setData(d);setLoading(false)}).catch(()=>setLoading(false))},[open]);
-  if(!open)return null;
-  const statusIcon:Record<string,string>={open:'🔴',resolved:'✅',monitoring:'👁'};
-  return <div className="modal-overlay" onClick={onClose}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:560}}><div className="modal-hd"><div><h3 style={{fontSize:'.95rem'}}>🔄 Shift Handover</h3><p className="muted" style={{fontSize:'.65rem'}}>Last 8 hours summary</p></div><button className="modal-close" onClick={onClose}>✕</button></div><div className="modal-body">{loading?<div style={{textAlign:'center',padding:24}}><span className="spin" style={{display:'inline-block'}}/>Generating handover...</div>:<>{data?.summary&&<div style={{fontSize:'.82rem',fontWeight:600,marginBottom:12,color:'var(--t1)',lineHeight:1.6}}>{data.summary}</div>}{(data?.items||[]).map((item:any,i:number)=>(<div key={i} style={{display:'flex',gap:8,padding:'8px 0',borderBottom:'1px solid var(--brd)'}}><span style={{fontSize:'.9rem'}}>{statusIcon[item.status]||'⚪'}</span><div style={{flex:1}}><div style={{fontSize:'.78rem',fontWeight:600}}>{item.title}</div><div style={{fontSize:'.68rem',color:'var(--t2)',marginTop:2}}>{item.detail}</div></div><span className={`sev sev-${item.priority}`} style={{alignSelf:'flex-start'}}>{item.priority}</span></div>))}</>}</div></div></div>;
-}
-
-/* ═══ SLA BAR ═══ */
-function SLABar({sla}:{sla:any}){
-  if(!sla||!Array.isArray(sla.active)||sla.active.length===0)return null;
-  const breached=sla.active.filter((a:any)=>a.breached);
-  const urgent=sla.active.filter((a:any)=>a.urgent&&!a.breached);
-  return <div className="sla-bar"><div className="sla-hd"><span>⏱ SLA Tracking</span><span className="mono" style={{fontSize:'.6rem',color:breached.length>0?'var(--red)':'var(--green)'}}>{breached.length} breached · {urgent.length} urgent · {sla.active.length} active</span></div><div className="sla-items">{sla.active.slice(0,4).map((item:any)=>(<div key={item.alertId} className={`sla-item ${item.breached?'sla-breached':item.urgent?'sla-urgent':''}`}><div className="sla-item-title">{item.alertTitle||item.alertId}</div><div className="sla-item-time" style={{color:item.breached?'var(--red)':item.urgent?'var(--amber)':'var(--green)'}}>{item.breached?'BREACHED':item.remainingMins<60?item.remainingMins+'m left':Math.floor(item.remainingMins/60)+'h '+item.remainingMins%60+'m left'}</div></div>))}</div></div>;
-}
-
-/* ═══ COMPLIANCE MAP ═══ */
-function IncidentList({incidents,onUpdate,alerts}:{incidents:any[];onUpdate:()=>void;alerts:any[]}){
-  const[actionLog,setActionLog]=useState<any[]>([]);
-  useEffect(()=>{fetch('/api/ai-actions').then(r=>r.ok?r.json():null).then(d=>{if(d?.actionLog)setActionLog(d.actionLog)}).catch(()=>{})},[]);
-  async function revertAction(actionId:string){if(!confirm('Revert this AI action? This will undo the containment/block.'))return;const r=await fetch('/api/ai-actions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'revert',actionId})});const d=await r.json();if(d.ok){setActionLog(prev=>prev.map(a=>a.id===actionId?{...a,reverted:true,status:'reverted'}:a));onUpdate()}}
-  const[creating,setCreating]=useState(false);const[title,setTitle]=useState('');const[severity,setSeverity]=useState('high');const[detail,setDetail]=useState<any>(null);const[note,setNote]=useState('');
-  async function createIncident(){if(!title)return;setCreating(true);await fetch('/api/incidents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'create',title,severity})}).then(r=>r.json()).then(d=>{if(d.ok){setTitle('');onUpdate()}});setCreating(false)}
-  async function addNote(incId:string){if(!note)return;await fetch('/api/incidents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'add_note',incidentId:incId,note})});setNote('');onUpdate();if(detail)setDetail({...detail})}
-  async function addAlert(incId:string,alert:any){await fetch('/api/incidents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'add_alert',incidentId:incId,alertId:alert.id,alertTitle:alert.title})});onUpdate()}
-  async function updateStatus(incId:string,status:string){await fetch('/api/incidents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update_status',incidentId:incId,status})});onUpdate();if(detail)setDetail({...detail,status})}
-  async function deleteIncident(incId:string){if(!confirm('Delete incident '+incId+'? This cannot be undone.'))return;await fetch('/api/incidents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',incidentId:incId})});onUpdate();setDetail(null)}
-  const statusColor:Record<string,string>={open:'var(--red)',investigating:'var(--amber)',contained:'var(--blue)',closed:'var(--green)'};
-  return <>{actionLog.length>0&&<div className="panel" style={{marginBottom:10}}><div className="panel-hd"><h3>🤖 AI Response Actions</h3><span style={{fontSize:'.58rem',color:'var(--t3)'}}>{actionLog.length} actions · {actionLog.filter((a:any)=>a.reverted).length} reverted</span></div><div style={{padding:'8px 12px',maxHeight:200,overflowY:'auto'}}>{actionLog.map((a:any)=>(<div key={a.id} style={{display:'flex',alignItems:'center',gap:6,padding:'5px 0',borderBottom:'1px solid var(--brd)',fontSize:'.7rem'}}><span style={{fontSize:'.9rem'}}>{a.type==='isolate_device'?'🔒':a.type==='block_ip'?'🚫':a.type==='disable_user'?'👤':'📁'}</span><div style={{flex:1}}><div style={{fontWeight:600}}>{a.type==='isolate_device'?'Isolated':a.type==='block_ip'?'Blocked':a.type==='disable_user'?'Disabled':'Quarantined'}: <span style={{fontFamily:'var(--fm)'}}>{a.target}</span></div><div style={{fontSize:'.58rem',color:'var(--t3)'}}>{a.tool} · {a.confidence}% confidence · {new Date(a.time).toLocaleString()}{a.reverted&&<span style={{color:'var(--amber)',marginLeft:4}}>REVERTED by {a.revertedBy}</span>}</div></div>{!a.reverted&&<button className="tc-btn" onClick={()=>revertAction(a.id)} style={{fontSize:'.54rem',padding:'2px 6px',color:'var(--amber)'}}>↩ Revert</button>}{a.reverted&&<span style={{fontSize:'.54rem',color:'var(--green)',fontWeight:600}}>✓ Reverted</span>}</div>))}</div></div>}<AIInsights tab="incidents"/><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10,flexWrap:'wrap',gap:8}}><h2 style={{fontSize:'1rem',fontWeight:800}}>📁 Incidents ({incidents.length})</h2><div style={{display:'flex',gap:6,alignItems:'center'}}><input className="field-input" placeholder="New incident title..." value={title} onChange={e=>setTitle(e.target.value)} onKeyDown={e=>e.key==='Enter'&&createIncident()} style={{width:220,fontSize:'.72rem',padding:'5px 10px'}}/><select className="field-input" value={severity} onChange={e=>setSeverity(e.target.value)} style={{fontSize:'.72rem',padding:'5px 6px'}}><option value="critical">Critical</option><option value="high">High</option><option value="medium">Medium</option></select><button className="tc-btn tc-btn-primary" onClick={createIncident} disabled={!title||creating} style={{fontSize:'.68rem',whiteSpace:'nowrap'}}>+ Create</button></div></div><div className="panel"><div className="tbl-wrap" style={{maxHeight:'calc(100vh - 200px)'}}><table className="tbl"><thead><tr><th>ID</th><th>Title</th><th>Severity</th><th>Status</th><th>Alerts</th><th>Created</th><th>Actions</th></tr></thead><tbody>{incidents.length===0?<tr><td colSpan={7} style={{textAlign:'center',padding:30,color:'var(--t3)'}}>No incidents. Create one above or from an alert.</td></tr>:incidents.map(inc=>(<tr key={inc.id} className="clickable-row" onClick={()=>setDetail(inc)}><td className="mono" style={{fontWeight:700,fontSize:'.68rem',color:'var(--accent)'}}>{inc.id}</td><td style={{fontWeight:600,fontSize:'.76rem'}}>{inc.title}{inc.timeline?.[0]?.by==='Watchtower AI'&&<span style={{fontSize:'.5rem',color:'var(--accent)',background:'var(--accent-s)',padding:'1px 5px',borderRadius:3,marginLeft:6,fontWeight:700}}>AI Created</span>}</td><td><span className={`sev sev-${inc.severity}`}>{inc.severity}</span></td><td><span style={{fontSize:'.6rem',fontWeight:700,color:statusColor[inc.status]||'var(--t3)',background:(statusColor[inc.status]||'var(--t3)')+'15',padding:'2px 6px',borderRadius:4}}>{inc.status}</span></td><td className="mono">{inc.alerts?.length||0}</td><td className="ts">{ago(inc.createdAt)}</td><td><select className="field-input" value={inc.status} onClick={e=>e.stopPropagation()} onChange={e=>{e.stopPropagation();updateStatus(inc.id,e.target.value)}} style={{fontSize:'.6rem',padding:'2px 4px'}}><option value="open">Open</option><option value="investigating">Investigating</option><option value="contained">Contained</option><option value="closed">Closed</option></select><button className="tc-btn" onClick={e=>{e.stopPropagation();deleteIncident(inc.id)}} style={{fontSize:'.54rem',padding:'2px 5px',color:'var(--red)',marginLeft:4}} title="Delete">🗑</button></td></tr>))}</tbody></table></div></div>{detail&&<div className="modal-overlay" onClick={()=>setDetail(null)}><div className="modal" onClick={e=>e.stopPropagation()} style={{maxWidth:640}}><div className="modal-hd"><div><h3 style={{fontSize:'.9rem'}}>{detail.id}: {detail.title}</h3><div style={{display:'flex',gap:4,marginTop:4}}><span className={`sev sev-${detail.severity}`}>{detail.severity}</span><span style={{fontSize:'.6rem',fontWeight:700,color:statusColor[detail.status]||'var(--t3)',background:(statusColor[detail.status]||'var(--t3)')+'15',padding:'2px 6px',borderRadius:4}}>{detail.status}</span></div></div><button className="modal-close" onClick={()=>setDetail(null)}>✕</button></div><div className="modal-body"><div style={{marginBottom:12}}><div style={{fontSize:'.72rem',fontWeight:700,marginBottom:6}}>📎 Linked Alerts ({detail.alerts?.length||0})</div>{(detail.alerts||[]).map((a:any)=>(<div key={a.id} style={{fontSize:'.72rem',padding:'4px 0',borderBottom:'1px solid var(--brd)'}}>{a.title||a.id} <span className="ts">{ago(a.addedAt)}</span></div>))}<div style={{display:'flex',gap:4,marginTop:6,flexWrap:'wrap'}}>{alerts.slice(0,5).map(a=>(<button key={a.id} className="tc-btn" style={{fontSize:'.54rem',padding:'2px 4px'}} onClick={()=>addAlert(detail.id,a)}>+ {a.title?.substring(0,30)}</button>))}</div></div><div style={{marginBottom:12}}><div style={{fontSize:'.72rem',fontWeight:700,marginBottom:6}}>🕐 Timeline</div>{(detail.timeline||[]).map((t:any,i:number)=>(<div key={i} style={{display:'flex',gap:8,padding:'6px 0',borderBottom:'1px solid var(--brd)'}}><div style={{width:6,borderRadius:3,background:t.type==='note'?'var(--accent)':t.type==='status_change'?'var(--amber)':'var(--green)',flexShrink:0}}/><div><div style={{fontSize:'.72rem',fontWeight:600}}>{t.detail}</div><div className="ts">{t.by} · {ago(t.time)}</div></div></div>))}</div><div style={{display:'flex',gap:4}}><input className="field-input" placeholder="Add a note..." value={note} onChange={e=>setNote(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addNote(detail.id)} style={{flex:1,fontSize:'.72rem',padding:'6px 10px'}}/><button className="tc-btn tc-btn-primary" onClick={()=>addNote(detail.id)} style={{fontSize:'.68rem'}}>Add Note</button><button className="tc-btn" onClick={()=>deleteIncident(detail.id)} style={{fontSize:'.68rem',color:'var(--red)',marginLeft:'auto'}}>🗑 Delete Incident</button></div></div></div></div>}</>;
-}
-
-/* ═══ NOISE REDUCTION ═══ */
-function NoiseReduction(){
-  const[data,setData]=useState<any>(null);const[enabled,setEnabled]=useState(false);
-  useEffect(()=>{fetch('/api/noise-reduction').then(r=>r.ok?r.json():null).then(d=>{if(d){setData(d);setEnabled(d.enabled)}}).catch(()=>{})},[]);
-  async function toggle(){const next=!enabled;setEnabled(next);await fetch('/api/noise-reduction',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'configure',enabled:next})})}
-  const s=data?.stats||{totalProcessed:0,autoClosed:0,escalated:0,timeSavedMins:0};
-  const pct=s.totalProcessed>0?Math.round(s.autoClosed/s.totalProcessed*100):0;
-  const hrs=Math.round(s.timeSavedMins/60*10)/10;
-  return <div className="panel" style={{marginBottom:10}}><div className="panel-hd"><h3>🤖 AI Noise Reduction</h3><label className="toggle" style={{marginLeft:'auto'}}><input type="checkbox" checked={enabled} onChange={toggle}/><span className="toggle-slider"/></label></div><div style={{padding:'10px 14px'}}><div className="kpi-grid" style={{gridTemplateColumns:'repeat(4,1fr)',gap:8}}><div style={{textAlign:'center'}}><div style={{fontSize:'1.2rem',fontWeight:900,fontFamily:'var(--fm)',color:'var(--green)'}}>{s.autoClosed}</div><div style={{fontSize:'.55rem',color:'var(--t3)',fontWeight:600,textTransform:'uppercase'}}>Auto-Closed</div></div><div style={{textAlign:'center'}}><div style={{fontSize:'1.2rem',fontWeight:900,fontFamily:'var(--fm)',color:'var(--amber)'}}>{s.escalated}</div><div style={{fontSize:'.55rem',color:'var(--t3)',fontWeight:600,textTransform:'uppercase'}}>Escalated</div></div><div style={{textAlign:'center'}}><div style={{fontSize:'1.2rem',fontWeight:900,fontFamily:'var(--fm)',color:'var(--accent)'}}>{pct}%</div><div style={{fontSize:'.55rem',color:'var(--t3)',fontWeight:600,textTransform:'uppercase'}}>FP Rate</div></div><div style={{textAlign:'center'}}><div style={{fontSize:'1.2rem',fontWeight:900,fontFamily:'var(--fm)',color:'var(--green)'}}>{hrs}h</div><div style={{fontSize:'.55rem',color:'var(--t3)',fontWeight:600,textTransform:'uppercase'}}>Time Saved</div></div></div>{s.totalProcessed>0&&<div style={{marginTop:8,height:6,background:'var(--bg3)',borderRadius:3,overflow:'hidden'}}><div style={{height:'100%',width:pct+'%',background:'linear-gradient(90deg,var(--green),var(--accent))',borderRadius:3,transition:'width .5s'}}/></div>}{!enabled&&<div style={{textAlign:'center',fontSize:'.68rem',color:'var(--t3)',marginTop:8}}>Enable to auto-close false positives above 95% AI confidence</div>}</div></div>;
-}
-
-/* ═══ RISK ASSETS ═══ */
-function RiskAssets(){
-  const[data,setData]=useState<any>(null);
-  useEffect(()=>{fetch('/api/tenable?t='+Date.now()).then(r=>r.ok?r.json():null).then(d=>{if(d)setData(d)}).catch(()=>{})},[]);
-  if(!data||!data.topHosts||data.topHosts.length===0)return null;
-  return <div className="panel"><div className="panel-hd"><h3>🔥 Top Risk Assets</h3><span className="count">{data.topHosts.length}</span></div><div style={{padding:6}}>{data.topHosts.slice(0,8).map((h:any,i:number)=>(<div key={i} className="risk-asset"><div className="risk-rank" style={{color:i<3?'var(--red)':i<6?'var(--amber)':'var(--t3)'}}>{i+1}</div><div style={{flex:1,minWidth:0}}><div style={{fontSize:'.72rem',fontWeight:700,fontFamily:'var(--fm)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{h.hostname}</div><div style={{fontSize:'.58rem',color:'var(--t3)'}}>{h.os?.substring(0,30)}</div></div><div style={{textAlign:'right'}}><div style={{fontSize:'.78rem',fontWeight:800,fontFamily:'var(--fm)',color:(h.exposureScore||0)>700?'var(--red)':(h.exposureScore||0)>400?'#f97316':'var(--green)'}}>{h.exposureScore||0}</div><div style={{fontSize:'.48rem',color:'var(--t3)',textTransform:'uppercase',letterSpacing:'.5px'}}>exposure</div></div></div>))}</div></div>;
-}
-
-/* ═══ OVERVIEW CHARTS ═══ */
-function OvCharts({m,sparks,enabledTools}:any){
-  const a=m?.alertsLast24h||{};
-  return <div className="hero-grid" style={{gridTemplateColumns:'1fr 1fr 1fr'}}><div className="panel hero-panel"><div className="panel-hd"><h3>🎯 Severity</h3></div><div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:14,padding:'14px 10px'}}><SevRing c={a.critical||0} h={a.high||0} m={a.medium||0} l={a.low||0} size={95}/><div style={{fontSize:'.7rem',lineHeight:2}}><div><span className="sev sev-critical">{a.critical||0}</span> Crit</div><div><span className="sev sev-high">{a.high||0}</span> High</div><div><span className="sev sev-medium">{a.medium||0}</span> Med</div><div><span className="sev sev-low">{a.low||0}</span> Low</div></div></div></div><div className="panel hero-panel"><div className="panel-hd"><h3>📈 Hourly Alerts</h3></div><div style={{padding:'14px 10px',display:'flex',flexDirection:'column',alignItems:'center',gap:4}}><HourlyChart data={sparks.hourly} w={200} h={60}/><div style={{display:'flex',justifyContent:'space-between',width:200,fontSize:'.52rem',color:'var(--t3)',fontFamily:'var(--fm)'}}><span>24h ago</span><span>12h</span><span>Now</span></div><div style={{display:'flex',gap:8,fontSize:'.5rem',color:'var(--t3)',marginTop:4}}><span><span style={{display:'inline-block',width:6,height:6,borderRadius:2,background:'var(--accent)',marginRight:3,opacity:.4}}/>Normal</span><span><span style={{display:'inline-block',width:6,height:6,borderRadius:2,background:'var(--accent)',marginRight:3}}/>Current</span></div></div></div><div className="panel hero-panel"><div className="panel-hd"><h3>🔌 Connected</h3></div><div style={{padding:'10px',display:'flex',flexWrap:'wrap',gap:6,justifyContent:'center'}}>{enabledTools.map((t:any)=>(<div key={t.id} className="tool-chip" style={{borderColor:t.color+'33',color:t.color}}><span>{t.icon}</span>{t.shortName}</div>))}{enabledTools.length===0&&<div style={{fontSize:'.72rem',color:'var(--t3)',padding:12}}>No tools — go to Tools tab</div>}</div></div></div>;
-}
-
-/* ═══ OVERVIEW ═══ */
-
-function AIStatsCard(){
-  const[data,setData]=useState<any>(null);
-  useEffect(()=>{fetch('/api/noise-reduction').then(r=>r.ok?r.json():null).then(d=>{if(d)setData(d)}).catch(()=>{})},[]);
-  const s=data?.stats||{totalProcessed:0,autoClosed:0,escalated:0,timeSavedMins:0};
-  const hrs=Math.round(s.timeSavedMins/60*10)/10;
-  const pct=s.totalProcessed>0?Math.round(s.autoClosed/s.totalProcessed*100):0;
-  return <div className="ai-hero"><div className="ai-hero-hd"><span className="ai-hero-dot"/>AI Triage Engine</div><div className="ai-hero-grid"><div className="ai-hero-stat"><div className="ai-hero-val" style={{color:'var(--green)'}}>{s.autoClosed}</div><div className="ai-hero-label">Auto-Closed</div></div><div className="ai-hero-stat"><div className="ai-hero-val" style={{color:'var(--red)'}}>{s.escalated}</div><div className="ai-hero-label">Escalated</div></div><div className="ai-hero-stat"><div className="ai-hero-val" style={{color:'var(--accent)'}}>{pct}%</div><div className="ai-hero-label">FP Rate</div></div><div className="ai-hero-stat"><div className="ai-hero-val" style={{color:'var(--green)'}}>{hrs}h</div><div className="ai-hero-label">Time Saved</div></div></div>{s.totalProcessed>0&&<div className="ai-hero-bar"><div className="ai-hero-fill" style={{width:pct+'%'}}/>}</div>}{!data?.enabled&&<div style={{textAlign:'center',fontSize:'.68rem',color:'var(--t3)',marginTop:4}}>AI triage processes every alert automatically</div>}</div>;
-}
-
-
-function AutomationSlider({onChange}:{onChange?:(level:string)=>void}){
-  const[level,setLevel]=useState('notify');const[actions,setActions]=useState({isolate_device:true,block_ip:true,disable_user:true,quarantine_file:true});const[saving,setSaving]=useState(false);
-  useEffect(()=>{fetch('/api/ai-actions').then(r=>r.ok?r.json():null).then(d=>{if(d?.settings){setLevel(d.settings.level||'notify');setActions(d.settings.actions||actions)}}).catch(()=>{})},[]);
-  async function save(newLevel:string){setLevel(newLevel);setSaving(true);await fetch('/api/ai-actions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update_settings',level:newLevel,actions})}).catch(()=>{});setSaving(false);onChange?.(newLevel)}
-  const levels=[{k:'full_auto',label:'Full Auto',desc:'AI acts immediately on high-confidence TPs',icon:'⚡',col:'var(--green)'},{k:'notify',label:'Auto + Notify',desc:'AI acts then notifies the team',icon:'🔔',col:'var(--accent)'},{k:'recommend',label:'Recommend Only',desc:'AI recommends, human approves',icon:'👤',col:'var(--amber)'}];
-  return <div className="auto-slider"><div className="auto-slider-hd"><span style={{fontSize:'.72rem',fontWeight:700}}>AI Automation Level</span>{saving&&<span style={{fontSize:'.58rem',color:'var(--accent)'}}>Saving...</span>}</div><div className="auto-slider-track">{levels.map((l,i)=>(<button key={l.k} className={`auto-level ${level===l.k?'active':''}`} onClick={()=>save(l.k)} style={level===l.k?{'--lc':l.col} as any:{}}><span className="auto-level-icon">{l.icon}</span><span className="auto-level-label">{l.label}</span><span className="auto-level-desc">{l.desc}</span></button>))}</div><div className="auto-actions"><span style={{fontSize:'.58rem',color:'var(--t3)',fontWeight:600}}>Response actions:</span>{[{k:'isolate_device',l:'Isolate Device'},{k:'block_ip',l:'Block IP'},{k:'disable_user',l:'Disable User'},{k:'quarantine_file',l:'Quarantine File'}].map(a=>(<label key={a.k} className="auto-action-toggle"><input type="checkbox" checked={actions[a.k as keyof typeof actions]} onChange={e=>{const next={...actions,[a.k]:e.target.checked};setActions(next);fetch('/api/ai-actions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update_settings',level,actions:next})})}}/><span>{a.l}</span></label>))}</div></div>;
-}
-
-function Ov({m,cov,alerts,zsc,sparks,enabledTools,onAskAI,onRefresh,setTlDetail,onQuickAction,slaData,aiStats}:any){
-  const showAuto=((typeof window!=='undefined'?(window as any).__wt_plan:'community')!=='community')||(typeof window!=='undefined'&&(window as any).__wt_role==='superadmin');
-  const crits=alerts.filter((a:any)=>a.severity==='critical'&&a.status==='new');
-  const highs=alerts.filter((a:any)=>a.severity==='high'&&a.status==='new');
-  const score=cov?.score||'--';
-  const totalAlerts=m?.alertsLast24h?.total||alerts.length||0;
-  const autoClosed=aiStats?.autoClosed||0;
-  const escalated=aiStats?.escalated||0;
-  const timeSaved=aiStats?.timeSavedMins?Math.round(aiStats.timeSavedMins/60*10)/10:0;
-  const pctHandled=totalAlerts>0?Math.round((autoClosed+escalated)/totalAlerts*100):0;
-  const covData=cov;const covPct=covData?.agentCoverage||covData?.coverage?.agentCoverage||0;
-  const totalDevices=covData?.totalDevices||covData?.coverage?.totalDevices||0;
-  const gaps=Array.isArray(covData?.gaps)?covData.gaps:Array.isArray(covData?.coverage?.gaps)?covData.coverage.gaps:[];
-  const toolHealth=covData?.tools||covData?.coverage?.tools||{};
-  const toolEntries=Object.entries(toolHealth);
-  const sources=[...new Set(alerts.map((a:any)=>a.source))];
-  return <div className="ov-clean"><div className="ov-ai-hero"><div className="ov-ai-hero-top"><div className="ov-ai-status"><span className="ov-ai-pulse"/>Watchtower AI Active</div>{showAuto&&<AutomationSlider/>}</div><div className="ov-ai-grid"><div className="ov-ai-stat"><div className="ov-ai-val">{totalAlerts}</div><div className="ov-ai-label">Alerts Ingested</div></div><div className="ov-ai-stat"><div className="ov-ai-val" style={{color:'var(--green)'}}>{autoClosed}</div><div className="ov-ai-label">Auto-Resolved</div></div><div className="ov-ai-stat"><div className="ov-ai-val" style={{color:'var(--red)'}}>{escalated}</div><div className="ov-ai-label">Escalated</div></div><div className="ov-ai-stat"><div className="ov-ai-val" style={{color:'var(--accent)'}}>{pctHandled}%</div><div className="ov-ai-label">Handled by AI</div></div><div className="ov-ai-stat"><div className="ov-ai-val" style={{color:'var(--green)'}}>{timeSaved}h</div><div className="ov-ai-label">Time Saved</div></div><div className="ov-ai-stat"><div className="ov-ai-val">{score}</div><div className="ov-ai-label">Posture</div></div></div><div className="ov-ai-bar"><div className="ov-ai-bar-fill" style={{width:Math.min(pctHandled,100)+'%'}}/><span className="ov-ai-bar-label">{pctHandled}% of alerts handled without human intervention</span></div></div>{((typeof window!=="undefined"?(window as any).__wt_plan:"community")==="community"&&(typeof window!=="undefined"?(window as any).__wt_role:"")!=="superadmin")&&<div style={{padding:12,background:"linear-gradient(135deg,var(--accent)08,var(--green)08)",border:"1px solid var(--accent)20",borderRadius:10,textAlign:"center",marginBottom:8}}><div style={{fontSize:".78rem",fontWeight:700,marginBottom:4}}>Watchtower AI is triaging your alerts</div><div style={{fontSize:".68rem",color:"var(--t3)",marginBottom:8}}>Upgrade to Team to unlock AI Co-Pilot, response actions, and full alert analysis</div><button className="tc-btn tc-btn-primary" onClick={()=>window.location.href="/pricing"} style={{fontSize:".72rem",padding:"6px 18px"}}>Upgrade to Team — £29/seat/mo →</button></div>}<div className="ov-estate"><div className="ov-estate-hd">Estate Health</div><div className="ov-estate-grid"><div className="ov-estate-card"><div className="ov-estate-card-hd">🖥 Devices</div><div className="ov-estate-metric"><span className="ov-estate-val">{totalDevices||'--'}</span><span className="ov-estate-sub">total</span></div><div className="ov-estate-bar-wrap"><div className="ov-estate-bar-bg"><div className="ov-estate-bar-fill" style={{width:covPct+'%',background:'var(--green)'}}/></div><span className="ov-estate-bar-pct">{covPct}% covered</span></div>{gaps.length>0&&<div className="ov-estate-warn">{gaps.length} gap{gaps.length>1?'s':''} — {gaps.slice(0,2).map((g:any)=>g.hostname||String(g)).join(', ')}{gaps.length>2?'...':''}</div>}</div><div className="ov-estate-card"><div className="ov-estate-card-hd">🛡 Tool Status</div>{toolEntries.length>0?toolEntries.map(([name,info]:any)=>(<div key={name} className="ov-tool-row"><span className="ov-tool-name">{name}</span><span className="ov-tool-count">{info.installed||info.count||0}</span><span className={`ov-tool-health ${(info.degraded||0)>0?'warn':'ok'}`}>{(info.degraded||0)>0?(info.degraded+' degraded'):'Healthy'}</span></div>)):sources.map(s=>(<div key={s} className="ov-tool-row"><span className="ov-tool-name">{s}</span><span className="ov-tool-count">{alerts.filter((a:any)=>a.source===s).length} alerts</span><span className="ov-tool-health ok">Connected</span></div>))}</div><div className="ov-estate-card"><div className="ov-estate-card-hd">⚡ Alert Sources</div>{(m?.topSources||[]).length>0?(m.topSources||[]).map((s:any)=>(<div key={s.source} className="ov-source-row"><span>{s.source}</span><div className="ov-source-bar"><div style={{width:s.pct+'%',height:'100%',background:'var(--accent)',borderRadius:3}}/></div><span className="ov-source-pct">{s.count} ({s.pct}%)</span></div>)):sources.map(s=>{const cnt=alerts.filter((a:any)=>a.source===s).length;const pct=alerts.length>0?Math.round(cnt/alerts.length*100):0;return <div key={s} className="ov-source-row"><span>{s}</span><div className="ov-source-bar"><div style={{width:pct+'%',height:'100%',background:'var(--accent)',borderRadius:3}}/></div><span className="ov-source-pct">{cnt} ({pct}%)</span></div>})}{zsc?.zia&&<div className="ov-zsc-row"><span>🌐 Zscaler ZIA</span><span>{zsc.zia.blockedThreats} blocked</span>{zsc.zia.dlpViolations>0&&<span style={{color:'var(--red)'}}>{zsc.zia.dlpViolations} DLP</span>}</div>}</div><div className="ov-estate-card"><div className="ov-estate-card-hd">🔴 Vulns</div><div className="ov-estate-metric"><span className="ov-estate-val" style={{color:'var(--red)'}}>{m?.alertsLast24h?.critical||crits.length||0}</span><span className="ov-estate-sub">critical alerts</span></div><div className="ov-estate-metric"><span className="ov-estate-val" style={{color:'#f97316'}}>{m?.alertsLast24h?.high||highs.length||0}</span><span className="ov-estate-sub">high alerts</span></div>{slaData?.compliance&&<div className="ov-estate-metric"><span className="ov-estate-val" style={{color:slaData.compliance>=90?'var(--green)':'var(--amber)'}}>{slaData.compliance}%</span><span className="ov-estate-sub">SLA compliance</span></div>}</div></div></div>{(crits.length>0||highs.length>0)&&<div className="ov-attention"><div className="ov-attention-hd">⚠ Needs Your Attention</div><div className="ov-attention-list">{crits.map(a=>(<div key={a.id} className="ov-attn-row crit" onClick={()=>onAskAI?.(a)}><span className="ov-attn-sev">CRIT</span><span className="ov-attn-title">{a.title}</span><span className="ov-attn-meta">{a.device||''} · {a.source}</span><span className="ov-attn-action">Investigate →</span></div>))}{highs.slice(0,5).map(a=>(<div key={a.id} className="ov-attn-row high" onClick={()=>onAskAI?.(a)}><span className="ov-attn-sev">HIGH</span><span className="ov-attn-title">{a.title}</span><span className="ov-attn-meta">{a.device||''} · {a.source}</span><span className="ov-attn-action">Investigate →</span></div>))}</div></div>}<div className="ov-recent"><div className="ov-recent-hd">Recent AI Activity</div><AlertStream alerts={alerts} onAlert={onAskAI}/></div></div>;
-}
-
-
-/* ═══ ALERTS ═══ */
-function Als({alerts,onAskAI,onDeviceDrill,onNotes}:{alerts:Al[];onAskAI?:(a:Al)=>void;onDeviceDrill?:(h:string)=>void;onNotes?:(id:string)=>void}){
-  const[triaged,setTriaged]=useState<any[]>([]);const[triageStats,setTriageStats]=useState<any>(null);
-  const[triageOn,setTriageOn]=useState(true);const[expanded,setExpanded]=useState<string|null>(null);
-  useEffect(()=>{if(triageOn&&alerts.length>0){fetch('/api/auto-triage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alerts})}).then(r=>r.ok?r.json():{alerts:[]}).then(d=>{setTriaged(d.alerts||[]);if(d.stats)setTriageStats(d.stats);if(d.actions){const escalated=d.actions.filter((a:any)=>a.type==='escalate_incident');if(escalated.length>0){escalated.forEach((a:any)=>{fetch('/api/incidents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'create',title:a.title||'Auto-escalated: '+a.alertId,severity:a.severity||'high',alertId:a.alertId})}).catch(()=>{})})}}if(d.responseActions?.length>0){d.responseActions.forEach((ra:any)=>{fetch('/api/ai-actions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'log_action',...ra})}).catch(()=>{})})}}).catch(()=>{})}},[triageOn,alerts]);
-  const triageMap=new Map(triaged.map((t:any)=>[t.id,t]));
-  const[sev,setSev]=useState('all');const[dismissed,setDismissed]=useState<Set<string>>(new Set());
-  function dismiss(id:string){setDismissed(new Set([...dismissed,id]))}
-  const f=alerts.filter(a=>!dismissed.has(a.id)).filter(a=>sev==='all'||a.severity===sev).sort((a,b)=>new Date(b.timestamp).getTime()-new Date(a.timestamp).getTime());
-  const tp=f.filter(a=>{const t=triageMap.get(a.id);return t&&(t.verdict==='tp'||t.verdict==='true_positive')});
-  const sus=f.filter(a=>{const t=triageMap.get(a.id);return t&&t.verdict!=='tp'&&t.verdict!=='true_positive'&&t.verdict!=='fp'&&t.verdict!=='false_positive'});
-  const fp=f.filter(a=>{const t=triageMap.get(a.id);return t&&(t.verdict==='fp'||t.verdict==='false_positive')});
-  function AlertRow({a,type}:{a:Al;type:string}){const t=triageMap.get(a.id)?.triage||triageMap.get(a.id);const isExp=expanded===a.id;return <div className={`alert-card ${type}`}><div className="alert-card-top" onClick={()=>setExpanded(isExp?null:a.id)}><div className="alert-row-left"><span className={`sev sev-${a.severity}`}>{a.severity}</span><span className="alert-row-title">{a.title}</span>{t&&<span className={`verdict-badge ${type}-badge`}>{t.verdict==='tp'||t.verdict==='true_positive'?'TP':t.verdict==='fp'||t.verdict==='false_positive'?'FP':'SUS'} {t.confidence||''}%</span>}</div><div className="alert-row-right"><span className={`src ${sc(a.source)}`}>{a.source}</span>{a.device&&<span className="alert-row-device" onClick={e=>{e.stopPropagation();onDeviceDrill?.(a.device)}}>{a.device}</span>}{a.mitre&&<span className="mitre">{a.mitre}</span>}<span className="ts">{ago(a.timestamp)}</span><span className="expand-icon">{isExp?'▼':'▶'}</span></div></div>{isExp&&t&&<div className="alert-card-detail"><div className="ai-reasoning"><div className="ai-reasoning-hd"><span className="ai-reasoning-dot"/>AI Reasoning</div><div className="ai-reasoning-text">{t.reasoning||'No reasoning available'}</div></div>{t.evidence&&t.evidence.length>0&&<div className="ai-evidence-list"><div className="ai-evidence-hd">Evidence</div>{t.evidence.map((e:string,i:number)=>(<div key={i} className="ai-evidence-item">• {e}</div>))}</div>}{t.actions&&t.actions.length>0&&<div className="ai-actions-taken"><div className="ai-evidence-hd">Actions Taken</div>{t.actions.map((act:string,i:number)=>(<div key={i} className="ai-action-item">{act==='escalate_incident'?'🚨 Escalated to incident':act==='auto_close'?'✅ Auto-closed (FP)':act==='isolate_device'?'🔒 Device isolated':act==='block_ip'?'🚫 IP blocked':act==='disable_user'?'👤 User disabled':act==='notify_slack'?'💬 Team notified':'⚡ '+act}</div>))}</div>}{t.runbook&&t.runbook.length>0&&<div className="ai-runbook"><div className="ai-evidence-hd">Recommended Steps</div>{t.runbook.map((step:string,i:number)=>(<div key={i} className="ai-runbook-step"><span className="ai-runbook-num">{i+1}</span>{step}</div>))}</div>}<div className="alert-card-actions"><button className="tc-btn tc-btn-primary" onClick={()=>onAskAI?.(a)} style={{fontSize:'.62rem'}}>🤖 Deep Analyse</button>{a.device&&<button className="tc-btn" onClick={()=>onDeviceDrill?.(a.device)} style={{fontSize:'.62rem'}}>🖥 Device View</button>}<button className="tc-btn" onClick={()=>dismiss(a.id)} style={{fontSize:'.62rem'}}>✕ Dismiss</button></div></div>}</div>}
-  return <div className="tab-clean"><div className="tab-summary"><div className="tab-summary-stats"><div className="tss"><span className="tss-val" style={{color:'var(--t1)'}}>{f.length}</span><span className="tss-label">Total</span></div>{triageStats&&<><div className="tss"><span className="tss-val" style={{color:'var(--red)'}}>{triageStats.tp}</span><span className="tss-label">True Positive</span></div><div className="tss"><span className="tss-val" style={{color:'var(--amber)'}}>{triageStats.suspicious}</span><span className="tss-label">Suspicious</span></div><div className="tss"><span className="tss-val" style={{color:'var(--green)'}}>{triageStats.fp}</span><span className="tss-label">False Positive</span></div><div className="tss"><span className="tss-val" style={{color:'var(--green)'}}>{triageStats.autoClosed}</span><span className="tss-label">Auto-Closed</span></div></>}</div><div className="pills" style={{marginTop:6}}>{['all','critical','high','medium','low'].map(s=>(<button key={s} className={`pill ${sev===s?'on':''}`} onClick={()=>setSev(s)}>{s==='all'?'All':s} ({s==='all'?f.length:alerts.filter(a=>a.severity===s).length})</button>))}</div></div>{tp.length>0&&<div className="attn-section"><div className="attn-hd" style={{color:'var(--red)'}}>🔴 True Positives — Action Required ({tp.length})</div>{tp.map(a=>(<AlertRow key={a.id} a={a} type="tp"/>))}</div>}{sus.length>0&&<div className="attn-section"><div className="attn-hd" style={{color:'var(--amber)'}}>🟡 Suspicious — Needs Review ({sus.length})</div>{sus.map(a=>(<AlertRow key={a.id} a={a} type="sus"/>))}</div>}{fp.length>0&&<div className="attn-section fp-section"><div className="attn-hd" style={{color:'var(--green)'}}>🟢 False Positives — Auto-Closed ({fp.length})</div>{fp.slice(0,5).map(a=>(<AlertRow key={a.id} a={a} type="fp"/>))}{fp.length>5&&<div style={{fontSize:'.62rem',color:'var(--t3)',padding:'4px 8px'}}>+{fp.length-5} more auto-closed</div>}</div>}</div>;
-}
-
-
-function CovTab({cov,onRefresh}:{cov:any;onRefresh?:()=>void}){
-  const[taegisEps,setTaegisEps]=useState<any>(null);const[loadingEps,setLoadingEps]=useState(false);
-  function loadTaegisEndpoints(){setLoadingEps(true);fetch('/api/taegis/endpoints').then(r=>r.ok?r.json():null).then(d=>{if(d)setTaegisEps(d);setLoadingEps(false)}).catch(()=>setLoadingEps(false))}
-  if(!cov)return null;
-  const osData=cov.osBreakdown||[];const gaps=cov.gaps||[];const toolEntries=Object.entries(cov.tools||{});
-  return <div className="tab-clean"><div className="tab-summary"><div className="tab-summary-stats"><div className="tss"><span className="tss-val">{cov?.total||'--'}</span><span className="tss-label">Total Devices</span></div><div className="tss"><span className="tss-val" style={{color:'var(--green)'}}>{cov?.covered||'--'}</span><span className="tss-label">Covered</span></div><div className="tss"><span className="tss-val" style={{color:'var(--red)'}}>{cov?.gaps?.length||0}</span><span className="tss-label">Gaps</span></div><div className="tss"><span className="tss-val">{cov?.score||'--'}</span><span className="tss-label">Score</span></div></div></div>{(cov?.gapDevices||[]).length>0&&<div className="attn-section"><div className="attn-hd" style={{color:'var(--red)'}}>⚠ Coverage Gaps — Devices Missing Protection</div>{(cov.gapDevices||[]).slice(0,10).map((d:any,i:number)=>(<div key={i} className="alert-row" style={{borderLeft:'2px solid var(--red)'}}><div className="alert-row-left"><span style={{fontSize:'.72rem',fontWeight:600,fontFamily:'var(--fm)'}}>{d.hostname||d.name||String(d)}</span></div><div className="alert-row-right">{d.missing&&<span style={{fontSize:'.58rem',color:'var(--red)'}}>{Array.isArray(d.missing)?d.missing.map((m:any)=>typeof m==='string'?m:m.name||m.id||'').join(', '):typeof d.missing==='string'?d.missing:''}</span>}</div></div>))}</div>}{(cov?.tools||[]).length>0&&<div className="attn-section"><div className="attn-hd">🛡 Tool Coverage</div>{(cov.tools||[]).map((t:any,i:number)=>(<div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 8px',fontSize:'.72rem'}}><span style={{fontWeight:600}}>{t.name||t.id}</span><div style={{display:'flex',alignItems:'center',gap:6}}><span style={{fontFamily:'var(--fm)',fontSize:'.68rem'}}>{t.count||t.endpoints||0} devices</span><div style={{width:80,height:5,background:'var(--bg3)',borderRadius:3,overflow:'hidden'}}><div style={{width:Math.min((t.count||0)/(cov?.total||1)*100,100)+'%',height:'100%',background:'var(--green)',borderRadius:3}}/></div></div></div>))}</div>}{taegisEps&&<div className="attn-section"><div className="attn-hd">📡 Taegis Endpoints ({taegisEps.endpoints?.length||0})</div>{(taegisEps.endpoints||[]).slice(0,8).map((ep:any,i:number)=>(<div key={i} style={{display:'flex',justifyContent:'space-between',padding:'3px 8px',fontSize:'.68rem'}}><span style={{fontFamily:'var(--fm)'}}>{ep.hostname||ep.name}</span><span className="ts">{ep.lastSeen?ago(ep.lastSeen):'—'}</span></div>))}</div>}<div style={{textAlign:'center',padding:8}}><button className="tc-btn" onClick={loadTaegisEndpoints} disabled={loadingEps} style={{fontSize:'.66rem'}}>{loadingEps?'Loading...':'Load Taegis Endpoints'}</button>{onRefresh&&<button className="tc-btn" onClick={onRefresh} style={{fontSize:'.66rem',marginLeft:6}}>↻ Refresh</button>}</div></div>;
-}
-
-
-function Vul({onVulnClick}:{onVulnClick?:(v:any)=>void}){
-  const[d,setD]=useState<any>(null);const[loading,setLoading]=useState(false);const[sevFilter,setSevFilter]=useState('all');const[search,setSearch]=useState('');const[view,setView]=useState<'vulns'|'hosts'|'compliance'|'scans'>('vulns');
-  const[compliance,setCompliance]=useState<any>(null);const[scans,setScans]=useState<any[]>([]);const[scanMsg,setScanMsg]=useState('');
-  function reload(){setLoading(true);fetch('/api/tenable?t='+Date.now()).then(r=>r.ok?r.json():null).then(data=>{if(data)setD(data);setLoading(false)}).catch(()=>setLoading(false))}
-  function loadCompliance(){fetch('/api/tenable/compliance').then(r=>r.ok?r.json():null).then(data=>{if(data)setCompliance(data)}).catch(()=>{})}
-  function loadScans(){fetch('/api/tenable/scan').then(r=>r.ok?r.json():null).then(data=>{if(data?.scans)setScans(data.scans)}).catch(()=>{})}
-  function launchScan(id:number){setScanMsg('Launching...');fetch('/api/tenable/scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({scanId:id})}).then(r=>r.json()).then(d=>{setScanMsg(d.ok?'✓ Scan launched':'✗ '+d.error);setTimeout(()=>setScanMsg(''),3000)}).catch(()=>setScanMsg('Failed'))}
-  useEffect(()=>{fetch('/api/tenable?t='+Date.now()).then(r=>r.ok?r.json():null).then(data=>{if(data)setD(data)}).catch(()=>{})},[]);
-  if(!d)return <div className="loading"><span className="spin"/>Loading...</div>;
-  const s=d.summary||{};const allV=d.allVulns||[];const topH=d.topHosts||[];
-  const filtered=allV.filter((v:any)=>sevFilter==='all'||v.sevLabel===sevFilter).filter((v:any)=>!search||v.name?.toLowerCase().includes(search.toLowerCase())||String(v.id).includes(search)||v.family?.toLowerCase().includes(search.toLowerCase()));
-  const patchPriority=allV.filter((v:any)=>(v.vpr||0)>0).sort((a:any,b:any)=>((b.vpr||0)*(b.hosts||1))-((a.vpr||0)*(a.hosts||1))).slice(0,20);
-  function exportCSV(){const rows=filtered.map((v:any)=>({plugin_id:v.id,name:v.name,family:v.family,severity:v.sevLabel,cvss3:v.cvss,cvss2:v.cvss2,vpr:v.vpr,hosts:v.hosts,state:v.state}));if(!rows.length)return;const keys=Object.keys(rows[0]);const csv=[keys.join(','),...rows.map((r:any)=>keys.map(k=>JSON.stringify(r[k]??'')).join(','))].join('\n');const b=new Blob([csv],{type:'text/csv'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='vulnerabilities.csv';a.click();URL.revokeObjectURL(u)}
-  return <div className="tab-clean"><div className="tab-summary"><div className="tab-summary-stats"><div className="tss"><span className="tss-val" style={{color:'var(--red)'}}>{s.critical||0}</span><span className="tss-label">Critical</span></div><div className="tss"><span className="tss-val" style={{color:'#f97316'}}>{s.high||0}</span><span className="tss-label">High</span></div><div className="tss"><span className="tss-val" style={{color:'var(--amber)'}}>{s.medium||0}</span><span className="tss-label">Medium</span></div><div className="tss"><span className="tss-val">{s.total||0}</span><span className="tss-label">Total</span></div><div className="tss"><span className="tss-val">{(d.topHosts||[]).length}</span><span className="tss-label">Hosts</span></div></div></div>{(allV.filter((v:any)=>v.severity==='critical')||[]).length>0&&<div className="attn-section"><div className="attn-hd" style={{color:'var(--red)'}}>🔴 Critical Vulnerabilities — Patch Immediately</div>{allV.filter((v:any)=>v.severity==='critical').slice(0,10).map((v:any,i:number)=>(<div key={i} className="alert-row tp" onClick={()=>onVulnClick?.(v)}><div className="alert-row-left"><span style={{fontSize:'.72rem',fontWeight:700}}>{v.pluginName||v.title||'CVE-'+v.cve}</span>{v.vprScore&&<span className="verdict-badge tp-badge">VPR {v.vprScore}</span>}</div><div className="alert-row-right"><span style={{fontSize:'.58rem',fontFamily:'var(--fm)',color:'var(--t3)'}}>{v.hostCount||1} host{(v.hostCount||1)>1?'s':''}</span></div></div>))}</div>}{(allV.filter((v:any)=>v.severity==='high')||[]).length>0&&<div className="attn-section"><div className="attn-hd" style={{color:'#f97316'}}>🟠 High Vulnerabilities ({allV.filter((v:any)=>v.severity==='high').length})</div>{allV.filter((v:any)=>v.severity==='high').slice(0,8).map((v:any,i:number)=>(<div key={i} className="alert-row sus" onClick={()=>onVulnClick?.(v)}><div className="alert-row-left"><span style={{fontSize:'.72rem',fontWeight:600}}>{v.pluginName||v.title||'CVE-'+v.cve}</span></div><div className="alert-row-right"><span style={{fontSize:'.58rem',color:'var(--t3)'}}>{v.hostCount||1} hosts</span></div></div>))}</div>}{(d.topHosts||[]).length>0&&<div className="attn-section"><div className="attn-hd">🏥 Most Vulnerable Hosts</div>{(d.topHosts||[]).slice(0,8).map((h:any,i:number)=>(<div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 8px',fontSize:'.72rem'}}><span style={{fontWeight:600,fontFamily:'var(--fm)'}}>{h.hostname}</span><div style={{display:'flex',gap:6}}>{h.critical>0&&<span className="verdict-badge tp-badge">{h.critical}C</span>}{h.high>0&&<span className="verdict-badge sus-badge">{h.high}H</span>}<span style={{fontSize:'.58rem',color:'var(--t3)'}}>{h.exposureScore||'—'} exposure</span></div></div>))}</div>}</div>;
-}
-
-
-function TenantSwitcher({userInfo,onSwitch}:{userInfo:any;onSwitch:(email:string)=>void}){
-  const[tenants,setTenants]=useState<any[]>([]);const[open,setOpen]=useState(false);
-  const isImpersonating=!!userInfo?.user?.isImpersonating;const adminEmail=userInfo?.user?.adminEmail||'';
-  useEffect(()=>{const canSwitch=userInfo?.user?.role==='superadmin'||isImpersonating;if(canSwitch){fetch('/api/admin/tenants').then(r=>r.ok?r.json():{tenants:[]}).then(d=>setTenants(d.tenants||d.portfolio||[])).catch(()=>{})}},[userInfo,isImpersonating]);
-  if(tenants.length===0&&!isImpersonating)return null;
-  return <div style={{position:'relative'}}><button className="tc-btn" onClick={()=>setOpen(!open)} style={{fontSize:'.62rem',padding:'4px 8px',background:'var(--accent-s)',color:'var(--accent)',border:'1px solid var(--accent)',borderRadius:6}} title="Switch tenant">🏢 {userInfo?.user?.org?.substring(0,15)||'Switch'}</button>{open&&<div style={{position:'absolute',top:'100%',right:0,marginTop:4,background:'var(--bg1)',border:'1px solid var(--brd)',borderRadius:10,padding:6,minWidth:240,zIndex:200,boxShadow:'var(--shadow)'}}><div style={{fontSize:'.6rem',fontWeight:700,color:'var(--t3)',padding:'4px 8px',textTransform:'uppercase',letterSpacing:'.5px'}}>Switch Tenant</div>{tenants.map(t=>(<button key={t.id||t.email} onClick={()=>{setOpen(false);onSwitch(t.owner||t.email)}} style={{display:'flex',alignItems:'center',justifyContent:'space-between',width:'100%',padding:'6px 8px',background:'none',border:'none',color:'var(--t1)',cursor:'pointer',fontSize:'.72rem',fontFamily:'var(--fs)',textAlign:'left',borderRadius:6}} onMouseOver={e=>(e.currentTarget.style.background='var(--bg3)')} onMouseOut={e=>(e.currentTarget.style.background='none')}><span style={{fontWeight:600}}>{t.name||t.org}</span><span style={{fontSize:'.55rem',color:t.plan==='mssp'?'var(--purple)':t.plan==='business'?'var(--green)':t.plan==='team'?'var(--accent)':'var(--t3)',background:t.plan==='mssp'?'var(--purple)'+'15':t.plan==='business'?'var(--greens)':t.plan==='team'?'var(--accent-s)':'var(--bg3)',padding:'1px 6px',borderRadius:3,fontWeight:700}}>{t.plan}</span></button>))}{isImpersonating&&<button onClick={()=>{setOpen(false);onSwitch(adminEmail)}} style={{display:'block',width:'100%',padding:'6px 8px',background:'none',border:'none',borderTop:'1px solid var(--brd)',color:'var(--amber)',cursor:'pointer',fontSize:'.68rem',fontFamily:'var(--fs)',textAlign:'left',fontWeight:700,marginTop:4,paddingTop:8}}>← Back to {adminEmail.split('@')[0]}</button>}{!isImpersonating&&userInfo?.user?.role==='superadmin'&&<div style={{fontSize:'.55rem',color:'var(--t3)',padding:'6px 8px',borderTop:'1px solid var(--brd)',marginTop:4}}>Click a tenant to view their dashboard</div>}</div>}</div>;
-}
-
-function AddonUsage(){
-  const[data,setData]=useState<any>(null);
-  useEffect(()=>{fetch('/api/addons').then(r=>r.ok?r.json():null).then(d=>{if(d)setData(d)}).catch(()=>{})},[]);
-  if(!data)return <div style={{fontSize:'.72rem',color:'var(--t3)'}}>Loading add-on data...</div>;
-  const plan=data.plan||'community';
-  const planLabel:Record<string,string>={community:'Community (Free)',team:'Team (£29/seat/mo)',business:'Business (£149/mo)',mssp:'MSSP (£599/mo)',enterprise:'Enterprise'};
-  const allAddons=[
-    {id:'ai',name:'AI Power Pack',icon:'🤖',price:'£15/mo'},
-    {id:'intel',name:'Premium Threat Intel',icon:'🌐',price:'£5/mo'},
-    {id:'reports',name:'Scheduled Reports',icon:'📊',price:'£10/mo'},
-    {id:'api',name:'API & Webhooks',icon:'🔌',price:'£15/mo'},
-    {id:'branding',name:'White Label',icon:'🎨',price:'£29/mo'},
-    {id:'support',name:'Priority Support',icon:'⭐',price:'£19/mo'},
-  ];
-  const active=data.addons||[];
-  const usage=data.usage||{};
-  return <><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10,flexWrap:'wrap',gap:6}}><div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:'.78rem',fontWeight:700}}>Current Plan:</span><span style={{fontSize:'.72rem',fontWeight:700,color:plan==='mssp'?'var(--purple)':plan==='business'?'var(--green)':plan==='team'?'var(--accent)':'var(--t3)',background:plan==='mssp'?'var(--purple)'+'15':plan==='business'?'var(--greens)':plan==='team'?'var(--accent-s)':'var(--bg3)',padding:'3px 10px',borderRadius:6}}>{planLabel[plan]||plan}</span></div><div style={{fontSize:'.66rem',color:'var(--t3)'}}>Pricing: per seat (SOC teams) · per managed client (MSSPs) · not per agent</div></div><div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6}}>{allAddons.map(a=>{const on=active.includes(a.id);const u=usage[a.id]||{};const metric=a.id==='ai'?(u.triagesThisMonth||0)+' triages':a.id==='intel'?(u.feedsActive||0)+' feeds':a.id==='reports'?(u.generatedThisMonth||0)+' reports':a.id==='api'?(u.callsThisMonth||0)+' API calls':a.id==='branding'?(u.enabled?'Active':'Inactive'):a.id==='support'?(u.ticketsOpen||0)+' tickets':'';return <div key={a.id} style={{padding:10,background:on?'var(--accent-s)':'var(--bg2)',border:'1px solid '+(on?'var(--accent)':'var(--brd)'),borderRadius:8,textAlign:'center'}}><div style={{fontSize:'1.1rem',marginBottom:4}}>{a.icon}</div><div style={{fontSize:'.72rem',fontWeight:700,color:on?'var(--t1)':'var(--t3)'}}>{a.name}</div><div style={{fontSize:'.58rem',color:on?'var(--accent)':'var(--t3)',fontFamily:'var(--fm)',marginTop:2}}>{on?metric:'Not active'}</div><div style={{fontSize:'.52rem',color:'var(--t3)',marginTop:3}}>{a.price}</div>{!on&&<button className="tc-btn" onClick={()=>window.location.href='/pricing'} style={{fontSize:'.52rem',padding:'2px 6px',marginTop:4}}>Activate</button>}</div>})}</div></>;
-}
-
-function AIInsights({tab}:{tab:string}){
-  const[insights,setInsights]=useState<any[]>([]);const[loading,setLoading]=useState(true);
-  useEffect(()=>{setLoading(true);fetch('/api/ai-insights?tab='+tab).then(r=>r.ok?r.json():{insights:[]}).then(d=>{setInsights(d.insights||[]);setLoading(false)}).catch(()=>setLoading(false))},[tab]);
-  if(loading||!insights.length)return null;
-  const prioCol:Record<string,string>={critical:'var(--red)',high:'#f97316',medium:'var(--amber)',info:'var(--green)'};
-  return <div className="ai-insights"><div className="ai-insights-hd"><span className="ai-insights-dot"/>AI Insights</div>{insights.slice(0,1).map(i=>(<div key={i.id} className="ai-insight" style={{borderLeftColor:prioCol[i.priority]||'var(--accent)'}}><div className="ai-insight-top"><span className="ai-insight-icon">{i.icon}</span><span className="ai-insight-title">{i.title}</span></div><div className="ai-insight-detail">{i.detail}</div>{i.action&&<button className="tc-btn tc-btn-primary" onClick={()=>{if(i.actionTab){const e=new CustomEvent('wt-tab',{detail:i.actionTab});window.dispatchEvent(e)}else if(i.action){alert(i.action+'\n\n'+i.detail)}}} style={{fontSize:'.62rem',padding:'4px 10px',marginTop:6}}>{i.action}</button>}</div>))}</div>;
-}
-
-/* ═══ TOOL API INFO ═══ */
-const TOOL_APIS: Record<string, { apis: string[]; desc: string }> = {
-  tenable: { desc: 'Vulnerability management and compliance scanning', apis: ['List vulnerabilities (GET /workbenches/vulnerabilities)', 'Asset inventory (GET /assets)', 'Scan management (POST /scans/{id}/launch)', 'Compliance audits (GET /compliance)', 'Plugin details (GET /plugins/{id})'] },
-  taegis: { desc: 'XDR alerts, investigations, and endpoint isolation', apis: ['Alert query (GraphQL allAlerts)', 'Create investigation (GraphQL createInvestigation)', 'Isolate endpoint (GraphQL isolateAsset)', 'Restore endpoint (GraphQL unIsolateAsset)', 'Endpoint inventory (GraphQL allAssets)'] },
-  defender: { desc: 'Microsoft Defender for Endpoint + XDR alerts', apis: ['MDE alerts (GET /api/alerts)', 'XDR incidents (GET /api/incidents)', 'Machine actions (POST /api/machines/{id}/isolate)', 'Advanced hunting (POST /api/advancedhunting/run)'] },
-  zscaler_zia: { desc: 'Web security, DLP, and threat protection', apis: ['Security events (GET /webSecurity/events)', 'URL lookup (GET /urlLookup)', 'DLP incidents (GET /dlpIncidents)', 'Sandbox reports (GET /sandbox/report/{hash})'] },
-  zscaler_zpa: { desc: 'Zero trust private access', apis: ['Application segments (GET /mgmtconfig/v1/admin/customers/{id}/application)', 'Policy rules (GET /mgmtconfig/v1/admin/customers/{id}/policySet/rules)', 'Connector status (GET /mgmtconfig/v1/admin/customers/{id}/connector)'] },
-  crowdstrike: { desc: 'Endpoint detection, response, and threat intelligence', apis: ['Detection query (GET /detects/queries/detects/v1)', 'Host details (GET /devices/entities/devices/v2)', 'Contain host (POST /devices/entities/devices-actions/v2)', 'IOC search (GET /iocs/combined/indicator/v1)'] },
-  sentinelone: { desc: 'Autonomous endpoint protection', apis: ['Threats list (GET /threats)', 'Agent inventory (GET /agents)', 'Disconnect agent (POST /agents/actions/disconnect)', 'Deep Visibility query (POST /dv/query)'] },
-  cortex_xdr: { desc: 'Extended detection and response', apis: ['Incident list (POST /incidents/get_incidents)', 'Alert list (POST /alerts/get_alerts)', 'Endpoint list (POST /endpoints/get_endpoints)', 'Isolate endpoint (POST /endpoints/isolate)'] },
-  splunk: { desc: 'SIEM, log management, and security analytics', apis: ['Search jobs (POST /services/search/jobs)', 'Notable events (GET /services/saved/searches)', 'KV store (GET /servicesNS/admin/search/storage/collections)'] },
-  sentinel: { desc: 'Microsoft Sentinel cloud SIEM', apis: ['Incidents (GET /incidents)', 'Alert rules (GET /alertRules)', 'Hunting queries (GET /savedSearches)', 'Watchlists (GET /watchlists)'] },
-  darktrace: { desc: 'AI-driven network detection and response', apis: ['Model breaches (GET /modelbreaches)', 'Device summary (GET /devicesummary)', 'AI Analyst incidents (GET /aianalyst/incidentevents)'] },
-  carbon_black: { desc: 'Endpoint detection and cloud workload protection', apis: ['Alerts (GET /api/alerts/v7/orgs/{org}/alerts)', 'Device search (POST /appservices/v6/orgs/{org}/devices/_search)', 'Quarantine device (POST /appservices/v6/orgs/{org}/device_actions)'] },
-  wiz: { desc: 'Cloud security posture management', apis: ['Issues (GraphQL issues)', 'Resources (GraphQL cloudResources)', 'Vulnerabilities (GraphQL vulnerabilities)'] },
-  proofpoint: { desc: 'Email security and threat protection', apis: ['TAP SIEM (GET /v2/siem/all)', 'Blocked messages (GET /v2/siem/messages/blocked)', 'Delivered threats (GET /v2/siem/messages/delivered)', 'URL decode (POST /v2/url/decode)'] },
-  anthropic: { desc: 'AI-powered analysis, triage, and report generation', apis: ['AI triage (POST /api/auto-triage)', 'AI Co-Pilot (POST /api/ai-copilot)', 'Exec summary (POST /api/exec-summary)', 'Shift handover (GET /api/shift-handover)'] },
+const DEMO_INTEL_BY_INDUSTRY:Record<string,IntelItem[]> = {
+  'Financial Services':[
+    {id:'i1',title:'TA505 Targeting UK Banks — Cobalt Strike Deployment',summary:'TA505 (Clop ransomware affiliate) observed targeting UK financial institutions with spear-phishing campaigns delivering Cobalt Strike beacons via fake SWIFT notification emails. 3 UK banks confirmed compromised in the last 14 days.',severity:'Critical',source:'NCSC & ThreatFox',time:'2h ago',iocs:['185.220.101.42','hxxps://swift-notification[.]com','cobalt-cs-payload-2024.exe'],mitre:'T1566.001',industrySpecific:true},
+    {id:'i2',title:'QakBot Resurgence — Banking Trojans via PDF Lures',summary:'QakBot (QBot) back in circulation after law enforcement takedown. New infrastructure and updated PDF lure themed around invoice disputes. Financial sector primary target. High evasion capability — bypasses standard email security.',severity:'High',source:'CISA KEV',time:'6h ago',iocs:['invoice-dispute-2024.pdf','hxxp://qakbot-new[.]ru'],mitre:'T1566.001',industrySpecific:true},
+    {id:'i3',title:'SWIFT Customer Security Programme — Audit Deadline',summary:'SWIFT CSP mandatory controls attestation deadline approaching. Ensure your SWIFT connector environments comply with CSP 2024 requirements, particularly around multi-factor authentication and anomaly detection integration.',severity:'Medium',source:'SWIFT ISAC',time:'1d ago',industrySpecific:true},
+  ],
+  'Healthcare':[
+    {id:'i4',title:'Rhysida Ransomware Targeting NHS Trusts',summary:'Rhysida ransomware group actively targeting NHS Trusts and healthcare providers. Gain access via phishing, move laterally to clinical systems, and exfiltrate patient data before encryption. 4 NHS Trusts hit in last 30 days.',severity:'Critical',source:'NCSC Health Alert',time:'4h ago',iocs:['rhysida-ransom.onion','185.181.60.92','health-tender-2024.exe'],mitre:'T1486',industrySpecific:true},
+    {id:'i5',title:'DICOM Vulnerability — Medical Imaging Systems Exposed',summary:'Multiple DICOM-compliant medical imaging systems found to have patient data exposed on the internet without authentication. Check for internet-exposed DICOM servers on port 104. Over 1,000 UK systems found exposed in recent scan.',severity:'High',source:'Cynerio Research',time:'1d ago',industrySpecific:true},
+  ],
+  'default':[
+    {id:'def1',title:'CISA KEV Update — 3 New Actively Exploited CVEs',summary:'CISA added CVE-2024-21413 (Outlook), CVE-2024-3400 (PAN-OS), and CVE-2024-27198 (TeamCity) to Known Exploited Vulnerabilities catalog. All three being actively exploited in the wild. Patch deadline: 72 hours.',severity:'Critical',source:'CISA KEV',time:'3h ago',iocs:[],mitre:'',industrySpecific:false},
+    {id:'def2',title:'LockBit 3.0 Infrastructure Resurfaces Post-Takedown',summary:'LockBit 3.0 operational infrastructure identified on new IP ranges following law enforcement takedown. Group recruiting new affiliates and offering updated locker with improved evasion. Healthcare and financial sectors primary targets.',severity:'High',source:'ThreatFox',time:'8h ago',iocs:['185.220.101.0/24','lockbit-ransom3.com'],mitre:'T1486',industrySpecific:false},
+    {id:'def3',title:'ThreatFox IOC Feed — 847 New C2 Indicators',summary:'ThreatFox published 847 new command-and-control indicators in the last 24 hours. Predominant malware families: AsyncRAT, RedLine Stealer, Cobalt Strike. Recommend enriching alert triage rules with updated IOC set.',severity:'Medium',source:'ThreatFox',time:'1h ago',industrySpecific:false},
+    {id:'def4',title:'URLhaus Phishing Kit — 23 New Malicious Domains',summary:'23 newly registered domains identified distributing credential harvesting kits mimicking Microsoft 365, DocuSign, and SharePoint. All domains registered in last 72h with low reputation.',severity:'Medium',source:'URLhaus',time:'2h ago',industrySpecific:false},
+  ],
 };
 
-function ToolsManager({toolsData,onRefresh}:{toolsData:any;onRefresh:()=>void}){
-  const[setupData,setSetupData]=useState<any>(null);const[redisUrl,setRedisUrl]=useState('');const[redisToken,setRedisToken]=useState('');const[redisTesting,setRedisTesting]=useState(false);const[redisResult,setRedisResult]=useState<any>(null);const[demoEnabled,setDemoEnabled]=useState(false);
-  useEffect(()=>{fetch('/api/tools').then(r=>r.ok?r.json():{}).then(d=>{if(d?.tools?.['_demo']?.enabled)setDemoEnabled(true)}).catch(()=>{});fetch('/api/setup').then(r=>r.ok?r.json():null).then(d=>{if(d)setSetupData(d)}).catch(()=>{})},[]);
-  async function toggleDemo(){const next=!demoEnabled;setDemoEnabled(next);if(next){await fetch('/api/tools',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({toolId:'_demo',credentials:{mode:'demo'},enabled:true})})}else{await fetch('/api/tools',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({toolId:'_demo'})})}setTimeout(onRefresh,500)}
-  async function testRedis(){setRedisTesting(true);setRedisResult(null);const r=await fetch('/api/setup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'test_redis',redisUrl,redisToken})}).then(r=>r.json());setRedisResult(r);setRedisTesting(false)}
-  const[selectedTool,setSelectedTool]=useState<string|null>(null);const[migrating,setMigrating]=useState(false);
-  
-  const[testResult,setTestResult]=useState<any>(null);const[testing,setTesting]=useState('');const[healthChecks,setHealthChecks]=useState<any[]>([]);const[checkingHealth,setCheckingHealth]=useState(false);
-  async function runHealthCheck(){setCheckingHealth(true);const checks:any[]=[];const apis=[{name:'Unified Alerts',url:'/api/unified-alerts?t='+Date.now()},{name:'Coverage',url:'/api/coverage?t='+Date.now()},{name:'Tenable Vulns',url:'/api/tenable?t='+Date.now()},{name:'Threat Intel',url:'/api/threat-intel?t='+Date.now()}];for(const api of apis){try{const start=Date.now();const r=await fetch(api.url);const ms=Date.now()-start;const d=await r.json();checks.push({name:api.name,ok:r.ok,status:r.status,ms,demo:d.demo,error:d.error||null,source:d.source||null})}catch(e){checks.push({name:api.name,ok:false,error:String(e)})}}setHealthChecks(checks);setCheckingHealth(false)}
-  async function testTool(toolId:string){setTesting(toolId);setTestResult(null);try{const r=await fetch('/api/tools/test',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({toolId})});const d=await r.json();setTestResult(d);const allOk=d.steps?.every((s:any)=>s.ok);const summary=d.steps?.map((s:any)=>(s.ok?'✓':'✗')+' '+s.step+(s.text?' — '+s.text:'')+(s.error?' — '+s.error:'')+(s.status?' (HTTP '+s.status+')':'')).join('\n');alert((allOk?'✅ All tests passed':'❌ Some tests failed')+'\n\n'+summary);window.scrollTo({top:0,behavior:'smooth'})}catch(e){setTestResult({error:'Test failed'});alert('❌ Test failed — network error')}setTesting('')}
-  const[creds,setCreds]=useState<Record<string,string>>({});
-  const[saving,setSaving]=useState(false);
-  const[msg,setMsg]=useState('');
-  const[catFilter,setCatFilter]=useState('all');
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function SevBadge({sev}:{sev:SevKey}) {
+  return <span style={{fontSize:'0.5rem',fontWeight:800,padding:'1px 6px',borderRadius:3,color:'#fff',background:SEV_COLOR[sev]}}>{sev.toUpperCase()}</span>;
+}
 
-  const toolStatuses:Record<string,any>={};
-  Object.values(toolsData?.tools||{}).forEach((t:any)=>{toolStatuses[t.id||'']=t});
+function useData<T>(url:string, fallback:T):T {
+  const [data,setData] = useState<T>(fallback);
+  useEffect(()=>{
+    fetch(url).then(r=>r.ok?r.json():null).then(d=>{ if(d) setData(d); }).catch(()=>{});
+  },[url]);
+  return data;
+}
 
-  const categories=[...new Set(TOOLS.map(t=>t.categoryLabel))];
-  const filtered=catFilter==='all'?TOOLS:TOOLS.filter(t=>t.categoryLabel===catFilter);
-
-  const[expandedTool,setExpandedTool]=useState<string|null>(null);
-  function openTool(tool:ToolInfo){
-    setSelectedTool(tool.id);
-    setCreds({});
-    setMsg('');
-  }
-
-  async function saveCreds(toolId:string){
-    setSaving(true);setMsg('');
-    try{
-      const res=await fetch('/api/tools',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'save_credentials',toolId,credentials:creds})});
-      const data=await res.json();
-      if(data.ok){setMsg('✓ Saved');setSelectedTool(null);setTimeout(onRefresh,500)}
-      else setMsg(data.error||'Error saving');
-    }catch(e){setMsg('Network error')}
-    setSaving(false);
-  }
-
-  async function toggleTool(toolId:string,enabled:boolean){
-    await fetch('/api/tools',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'toggle',toolId,enabled})});
-    onRefresh();
-  }
-
-  async function removeTool(toolId:string){
-    if(!confirm(`Remove ${toolId} and all its credentials? This cannot be undone.`))return;
-    await fetch('/api/tools',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({toolId})});
-    onRefresh();
-  }
-
-  const sel=TOOLS.find(t=>t.id===selectedTool);
-
-  return(<div style={{maxWidth:900}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12,flexWrap:'wrap',gap:8}}><div><h2 style={{fontSize:'1.1rem',fontWeight:800}}>🔌 Tool Integrations</h2><p className="muted" style={{fontSize:'.76rem'}}>{Object.values(toolsData?.tools||{}).filter((t:any)=>t.enabled).length} connected · {TOOLS.length} available {toolsData?.kvAvailable?<span style={{color:'var(--green)',fontSize:'.62rem'}}> · ✓ Redis connected</span>:<span style={{color:'var(--amber)',fontSize:'.62rem'}}> · ⚠ Redis not linked</span>}</p></div>{!toolsData?.kvAvailable&&<div className="kv-warn">⚠ Redis not configured — credentials won't persist. <a href="https://upstash.com" target="_blank" rel="noopener" style={{color:'var(--accent)'}}>Set up Upstash Redis (free) →</a></div>}</div><div className="panel" style={{marginBottom:12}}><div className="panel-hd"><h3>🎮 Demo Data</h3><span style={{fontSize:'.6rem',color:demoEnabled?'var(--green)':'var(--t3)'}}>{demoEnabled?'Active':'Off'}</span></div><div style={{padding:'10px 14px'}}><div style={{fontSize:'.72rem',color:'var(--t2)',marginBottom:10}}>Enable demo data per tool. Useful when a tool is not connected or for demonstrations.</div><div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))',gap:6}}>{[{id:'_demo',label:'All Tools (Global)',desc:'Override all tools'},{id:'_demo_tenable',label:'Tenable',desc:'Vulns + assets'},{id:'_demo_taegis',label:'Taegis XDR',desc:'Alerts + endpoints'},{id:'_demo_defender',label:'Defender',desc:'EDR alerts'},{id:'_demo_zscaler',label:'Zscaler',desc:'ZIA/ZPA data'},{id:'_demo_ai',label:'AI Features',desc:'Triage + copilot'}].map(d=>(<div key={d.id} style={{display:'flex',alignItems:'center',gap:8,padding:'8px 10px',background:'var(--bg3)',borderRadius:8,cursor:'pointer',border:'1px solid '+(toolsData?.tools?.[d.id]?.enabled?'var(--accent)':'var(--brd)')}} onClick={async()=>{const cur=toolsData?.tools?.[d.id]?.enabled;if(cur){await fetch('/api/tools',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({toolId:d.id})})}else{await fetch('/api/tools',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({toolId:d.id,credentials:{mode:'demo'},enabled:true})})}setTimeout(onRefresh,500)}}><div style={{width:14,height:14,borderRadius:4,border:'2px solid '+(toolsData?.tools?.[d.id]?.enabled?'var(--accent)':'var(--brd)'),background:toolsData?.tools?.[d.id]?.enabled?'var(--accent)':'transparent',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'.5rem',color:'#fff',flexShrink:0}}>{toolsData?.tools?.[d.id]?.enabled?'✓':''}</div><div><div style={{fontSize:'.72rem',fontWeight:600}}>{d.label}</div><div style={{fontSize:'.58rem',color:'var(--t3)'}}>{d.desc}</div></div></div>))}</div></div></div><div className="panel" style={{marginBottom:12}}><div className="panel-hd"><h3>📡 Status Widget</h3></div><div style={{padding:'10px 14px'}}><div style={{fontSize:'.72rem',color:'var(--t2)',marginBottom:8}}>Embed your SOC status on your intranet or wiki. Generate an API key in Settings → API Keys, then paste this code:</div><pre style={{background:'var(--bg3)',padding:10,borderRadius:8,fontSize:'.62rem',fontFamily:'var(--fm)',color:'var(--t3)',overflow:'auto',maxHeight:120,lineHeight:1.5}}>{'<div id="watchtower-widget"></div>\n<script>\nfetch("' + (typeof window !== 'undefined' ? window.location.origin : '') + '/api/widget?key=YOUR_API_KEY")\n  .then(r=>r.json()).then(d=>{\n    document.getElementById("watchtower-widget").innerHTML=\n      "<div style=\'padding:12px;background:#0b0f18;color:#e6ecf8;border-radius:10px;display:inline-flex;align-items:center;gap:10px;font-family:sans-serif\'>"+\n      "<div style=\'width:8px;height:8px;border-radius:50%;background:"+(d.status==="healthy"?"#22c992":"#f0405e")+"\'/>"+ \n      "<div><b>SOC: "+d.status.toUpperCase()+"</b><br><span style=\'font-size:11px;opacity:.6\'>"+d.openIncidents+" incidents</span></div></div>";\n  });\n</script>'}</pre><button className="tc-btn" onClick={()=>{const code='<div id="watchtower-widget"></div>\n<script>\nfetch("'+window.location.origin+'/api/widget?key=YOUR_API_KEY").then(r=>r.json()).then(d=>{document.getElementById("watchtower-widget").innerHTML="<div style=\'padding:12px;background:#0b0f18;color:#e6ecf8;border-radius:10px;display:inline-flex;align-items:center;gap:10px;font-family:sans-serif\'>"+"<div style=\'width:8px;height:8px;border-radius:50%;background:"+(d.status==="healthy"?"#22c992":"#f0405e")+"\'/>"+"<div><b>SOC: "+d.status.toUpperCase()+"</b><br><span style=\'font-size:11px;opacity:.6\'>"+d.openIncidents+" incidents</span></div></div>"});\n</script>';navigator.clipboard?.writeText(code)}} style={{fontSize:'.66rem',marginTop:6}}>📋 Copy Embed Code</button></div></div><div className="pills" style={{marginBottom:12}}><button className={`pill ${catFilter==='all'?'on':''}`} onClick={()=>setCatFilter('all')}>All ({TOOLS.length})</button>{categories.map(c=>(<button key={c} className={`pill ${catFilter===c?'on':''}`} onClick={()=>setCatFilter(c)}>{c} ({TOOLS.filter(t=>t.categoryLabel===c).length})</button>))}</div>{testResult&&<div style={{marginBottom:8,padding:10,background:'var(--bg2)',border:'1px solid var(--brd)',borderRadius:'var(--r)',fontSize:'.72rem'}}><div style={{display:'flex',justifyContent:'space-between',marginBottom:6}}><strong>Test: {testResult.toolId}</strong><button className="modal-close" onClick={()=>setTestResult(null)} style={{fontSize:'.7rem'}}>✕</button></div>{testResult.steps?.map((s:any,i:number)=>(<div key={i} style={{padding:'3px 0',display:'flex',gap:6,alignItems:'center'}}><span style={{color:s.ok?'var(--green)':'var(--red)'}}>{s.ok?'✓':'✗'}</span><span style={{fontWeight:600}}>{s.step}</span>{s.error&&<span style={{color:'var(--red)'}}>{s.error}</span>}{s.status&&<span className="mono" style={{color:'var(--t3)'}}>HTTP {s.status}</span>}{s.body&&<span className="mono muted" style={{fontSize:'.6rem'}}>{s.body.substring(0,100)}</span>}{s.text&&<span className="mono" style={{color:'var(--green)'}}>{s.text}</span>}{s.keys&&<span className="muted">{s.keys.map((k:any)=>`${k.key}(${k.len}ch)`).join(', ')}</span>}{s.data&&<span className="mono muted">{JSON.stringify(s.data).substring(0,100)}</span>}</div>))}</div>}<div className="tool-grid">{filtered.map(tool=>{const st=toolStatuses[tool.id];
-      const isEnabled=st?.enabled;
-      const isConfigured=st?.configured||!!(st?.credentials&&Object.keys(st.credentials).some((k:string)=>k!=='demo'&&k!=='mode'));
-      return(<div key={tool.id} className={`tool-card ${isEnabled?'enabled':''}`} style={{'--tc':tool.color} as any}><div className="tc-top"><span className="tc-icon">{tool.icon}</span><div className="tc-info"><div className="tc-name">{tool.name}</div><div className="tc-cat">{tool.categoryLabel} · {tool.vendor}</div></div>{isConfigured&&<label className="toggle"><input type="checkbox" checked={isEnabled} onChange={e=>toggleTool(tool.id,e.target.checked)}/><span className="toggle-slider"/></label>}</div><div className="tc-desc">{tool.description}</div><div className="tc-footer">{isConfigured?(<><span className="tc-status" style={{color:isEnabled?'var(--green)':'var(--t3)'}}><span className={`dot ${isEnabled?'dot-on':'dot-off'}`}/>{isEnabled?'Connected':'Disabled'}</span><button className="tc-btn" onClick={()=>testTool(tool.id)} disabled={testing===tool.id}>{testing===tool.id?'Testing...':'Test'}</button><button className="tc-btn" onClick={()=>openTool(tool)}>Edit</button><button className="tc-btn tc-btn-danger" onClick={()=>removeTool(tool.id)}>Remove</button></>):(<><span className="tc-status" style={{color:'var(--t3)'}}><span className="dot dot-off"/>Not configured</span><button className="tc-btn tc-btn-primary" onClick={()=>openTool(tool)}>+ Connect</button></>)}</div></div>);
-    })}</div>
-
-    {/* Credential modal */}
-    {sel&&<div className="modal-overlay" onClick={()=>setSelectedTool(null)}><div className="modal" onClick={e=>e.stopPropagation()}>
-      <div className="modal-hd"><div style={{display:'flex',alignItems:'center',gap:8}}><span style={{fontSize:'1.3rem'}}>{sel.icon}</span><div><h3 style={{fontSize:'.95rem',fontWeight:700}}>{sel.name}</h3><p className="muted" style={{fontSize:'.7rem'}}>{sel.description}</p></div></div><button className="modal-close" onClick={()=>setSelectedTool(null)}>✕</button></div>
-      <div className="modal-body">
-        <div className="modal-docs">📋 {sel.docs}</div>
-        {sel.fields.map(f=>(<div key={f.key} className="field">
-          <label className="field-label">{f.label} <span className="field-key">{f.key}</span></label>
-          {f.type==='select'?<select className="field-input" value={creds[f.key]||''} onChange={e=>setCreds({...creds,[f.key]:e.target.value})}><option value="">{f.placeholder}</option>{f.options?.map(o=>(<option key={o} value={o}>{o}</option>))}</select>
-          :<input className="field-input" type={f.type} placeholder={f.placeholder} value={creds[f.key]||''} onChange={e=>setCreds({...creds,[f.key]:e.target.value})}/>}
-        </div>))}
-        {msg&&<div className={`modal-msg ${msg.startsWith('✓')?'ok':'err'}`}>{msg}</div>}
+// ─── Modal ────────────────────────────────────────────────────────────────────
+function Modal({title,onClose,children}:{title:string;onClose:()=>void;children:React.ReactNode}) {
+  return (
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={onClose}>
+      <div style={{background:'#0a0d14',border:'1px solid #1e2536',borderRadius:16,maxWidth:700,width:'100%',maxHeight:'85vh',overflow:'auto',position:'relative'}} onClick={e=>e.stopPropagation()}>
+        <div style={{display:'flex',alignItems:'center',padding:'16px 20px',borderBottom:'1px solid #141820',position:'sticky',top:0,background:'#0a0d14',zIndex:10}}>
+          <span style={{fontWeight:700,fontSize:'0.92rem'}}>{title}</span>
+          <button onClick={onClose} style={{marginLeft:'auto',background:'none',border:'none',color:'#6b7a94',cursor:'pointer',fontSize:'1.2rem',lineHeight:1}}>×</button>
+        </div>
+        <div style={{padding:20}}>{children}</div>
       </div>
-      <div className="modal-ft"><button className="tc-btn" onClick={()=>setSelectedTool(null)}>Cancel</button><button className="tc-btn tc-btn-primary" onClick={()=>saveCreds(sel.id)} disabled={saving}>{saving?'Saving...':'Save & Connect'}</button></div>
-    </div></div>}
-  </div>);
+    </div>
+  );
 }
 
-/* ═══ CSS ═══ */
-const CSS=`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');*{margin:0;padding:0;box-sizing:border-box}
-:root,[data-theme="dark"]{--bg0:#050508;--bg1:#0a0d14;--bg2:#0f1219;--bg3:#151a24;--bg4:#1f2536;--brd:#141820;--brd2:#252e42;--t1:#e6ecf8;--t2:#8a9ab8;--t3:#50607a;--t4:#303d52;--accent:#3b8bff;--accent2:#7c6aff;--accent-s:#3b8bff10;--red:#f0405e;--amber:#f0a030;--green:#22c992;--blue:#3b8bff;--purple:#9775fa;--reds:#f0405e10;--ambers:#f0a03010;--greens:#22c99210;--blues:#3b8bff10;--fm:'JetBrains Mono',monospace;--fs:'Inter',sans-serif;--r:10px;--r2:14px;--shadow:0 2px 8px rgba(0,0,0,.4),0 8px 32px rgba(0,0,0,.2);--glow:0 0 30px rgba(59,139,255,.06)}
-[data-theme="light"]{--bg0:#f7f8fb;--bg1:#ffffff;--bg2:#f9fafb;--bg3:#eef1f6;--bg4:#e1e6ef;--brd:#d6dce8;--brd2:#bfc8d8;--t1:#0c1424;--t2:#3b4a64;--t3:#7f8da4;--t4:#bac4d4;--accent:#2563eb;--accent2:#5b21b6;--accent-s:#2563eb06;--red:#dc2626;--amber:#d97706;--green:#059669;--blue:#2563eb;--purple:#7c3aed;--reds:#dc262606;--ambers:#d9770606;--greens:#05966906;--blues:#2563eb06;--shadow:0 1px 3px rgba(0,0,0,.05),0 4px 16px rgba(0,0,0,.03);--glow:none}
-html,body{overflow-x:hidden;width:100%}body{background:var(--bg0);color:var(--t1);font-family:var(--fs);font-size:14px;line-height:1.5;min-height:100vh;transition:background .3s,color .3s;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
-.shell{display:flex;flex-direction:row;min-height:100vh;position:relative}
-.shell::before{display:none}
-.topbar{display:flex;align-items:center;gap:10px;padding:0 16px;height:48px;background:var(--bg0)f0;border-bottom:1px solid #ffffff06;position:sticky;top:0;z-index:100;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
-.topbar::after{display:none}
-.logo{font-weight:900;font-size:1rem;letter-spacing:-.5px;display:flex;align-items:center;gap:7px;flex-shrink:0}
-.logo-icon{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:.72rem;color:#fff;font-weight:900;box-shadow:0 2px 12px rgba(91,154,255,.25)}
-.logo span{color:var(--accent)}
-.tabs{display:flex;gap:2px;margin-left:16px;border-radius:var(--r);padding:0}
-.tab{padding:4px 11px;border-radius:6px;cursor:pointer;font-size:.74rem;font-weight:500;color:var(--t3);transition:all .15s;border:none;background:none;font-family:var(--fs);white-space:nowrap}
-.tab:hover{color:var(--t2)}
-.tab.active{color:var(--accent);background:var(--accent-s);border-radius:6px}
-.topbar-right{margin-left:auto;display:flex;align-items:center;gap:6px}
-.clock{font-family:var(--fm);font-size:.72rem;color:var(--t3);letter-spacing:.5px}
-.demo-pill{font-size:.58rem;font-family:var(--fm);color:var(--amber);background:var(--ambers);padding:2px 7px;border-radius:20px;letter-spacing:.5px;border:1px solid rgba(237,160,51,.1);font-weight:600}
-.theme-btn{width:30px;height:30px;border-radius:var(--r);border:1px solid var(--brd);background:var(--bg2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.82rem;transition:all .15s}
-.theme-btn:hover{border-color:var(--accent);background:var(--accent-s)}
-.refresh-select{height:30px;padding:0 4px;border-radius:var(--r);border:1px solid var(--brd);background:var(--bg2);color:var(--t2);font-size:.62rem;font-family:var(--fm);cursor:pointer;outline:none;transition:all .15s}
-.refresh-select:hover{border-color:var(--accent)}
-.refresh-select:focus{border-color:var(--accent)}
-.refresh-btn{height:30px;padding:0 10px;border-radius:var(--r);border:1px solid var(--brd);background:var(--bg2);cursor:pointer;font-size:.72rem;font-family:var(--fs);color:var(--t2);transition:all .15s}
-.refresh-btn:hover{border-color:var(--accent);color:var(--accent)}
-.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s ease-in-out infinite;flex-shrink:0}
-@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 8px var(--green)}50%{opacity:.4;box-shadow:0 0 2px var(--green)}}
-.main{flex:1;padding:14px 16px 16px;max-width:1480px;margin:0 auto;width:100%;overflow-x:hidden}
-.tv-wall{position:fixed;inset:0;background:var(--bg0);z-index:999;display:flex;flex-direction:column;cursor:pointer}
-.tv-slide{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;animation:tvFade .6s ease}
-@keyframes tvFade{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:scale(1)}}
-.tv-title{font-size:1.1rem;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--t3);margin-bottom:30px}
-.tv-kpi-row{display:flex;gap:40px;justify-content:center;margin-top:30px}
-.tv-kpi{text-align:center}
-.tv-kpi-val{font-size:3rem;font-weight:900;font-family:var(--fm);letter-spacing:-3px;line-height:1}
-.tv-kpi-label{font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-top:4px}
-.tv-posture-row{transform:scale(1.5);margin:20px 0 40px}
-.tv-alert-list{width:100%;max-width:800px}
-.tv-alert{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--brd);font-size:.85rem}
-.tv-alert-sev{width:4px;height:20px;border-radius:2px;flex-shrink:0}
-.tv-alert-title{flex:1;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tv-footer{display:flex;align-items:center;justify-content:center;gap:16px;padding:16px;border-top:1px solid var(--brd);font-size:.7rem;color:var(--t3)}
-.tv-clock{font-family:var(--fm);font-size:1rem;font-weight:700;color:var(--t1);letter-spacing:1px}
-.tv-exit{font-size:.6rem;color:var(--t4)}
-.tv-indicators{display:flex;gap:6px;justify-content:center;padding:12px}
-.tv-ind{width:8px;height:8px;border-radius:50%;background:var(--bg3);transition:all .3s}
-.tv-ind.active{background:var(--accent);box-shadow:0 0 8px var(--accent)}
-.sla-bar{background:linear-gradient(135deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:12px;padding:8px 12px;margin-bottom:0}
-.sla-hd{display:flex;justify-content:space-between;align-items:center;font-size:.68rem;font-weight:700;margin-bottom:6px}
-.sla-items{display:flex;gap:6px;flex-wrap:wrap}
-.sla-item{flex:1;min-width:120px;padding:6px 8px;border-radius:8px;background:var(--bg3);border:1px solid var(--brd)}
-.sla-item.sla-breached{border-color:var(--red);background:var(--reds)}
-.sla-item.sla-urgent{border-color:var(--amber);background:var(--ambers)}
-.sla-item-title{font-size:.62rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sla-item-time{font-size:.7rem;font-weight:800;font-family:var(--fm);margin-top:2px}
-.quiet-bar{display:flex;align-items:center;gap:0;background:linear-gradient(135deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:12px;padding:8px 14px}
-.quiet-item{flex:1;text-align:center}
-.quiet-label{font-size:.48rem;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
-.quiet-val{font-size:1rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px;margin-top:2px}
-.quiet-sep{width:1px;height:28px;background:var(--brd);margin:0 4px}
-.risk-asset{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:8px;transition:all .15s}
-.risk-asset:hover{background:var(--accent-s)}
-.risk-rank{font-size:.9rem;font-weight:900;font-family:var(--fm);min-width:20px;text-align:center}
-.cop-tab{flex:1;padding:8px;border:none;background:none;color:var(--t3);font-size:.68rem;font-weight:600;font-family:var(--fs);cursor:pointer;transition:all .15s;border-bottom:2px solid transparent}
-.cop-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
-.cop-tab:hover{color:var(--t1)}
-.runbook{padding:4px 0}
-.rb-step{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--brd)}
-.rb-step:last-child{border-bottom:none}
-.rb-num{width:24px;height:24px;border-radius:50%;background:var(--accent-s);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:800;font-family:var(--fm);flex-shrink:0;border:1px solid color-mix(in srgb,var(--accent) 20%,transparent)}
-.rb-title{font-size:.78rem;font-weight:700;color:var(--t1)}
-.rb-detail{font-size:.7rem;color:var(--t2);margin-top:2px;line-height:1.5}
-.rb-cmd{font-family:var(--fm);font-size:.62rem;color:var(--accent);background:var(--bg3);padding:4px 8px;border-radius:4px;margin-top:4px;border:1px solid var(--brd)}
-.acct-wrap{position:relative}
-.acct-menu{position:absolute;top:38px;right:0;width:220px;background:linear-gradient(145deg,var(--bg1),var(--bg2));border:1px solid var(--brd2);border-radius:12px;padding:12px;box-shadow:0 12px 40px rgba(0,0,0,.4);z-index:200;animation:critSlide .2s ease}
-.acct-hd{font-size:.78rem;font-weight:700;color:var(--t1)}
-.acct-org{font-size:.65rem;color:var(--t3);margin-bottom:4px}
-.acct-plan{font-size:.68rem;color:var(--accent);margin-bottom:2px}
-.acct-plan strong{color:var(--t1)}
-.acct-trial{font-size:.6rem;color:var(--amber);margin-bottom:6px}
-.acct-sep{height:1px;background:var(--brd);margin:8px 0}
-.acct-btn{display:block;width:100%;text-align:left;padding:6px 8px;border:none;background:none;color:var(--t2);font-size:.7rem;font-family:var(--fs);cursor:pointer;border-radius:6px;transition:all .15s}
-.acct-btn:hover{background:var(--accent-s);color:var(--accent)}
-.war-room{display:grid;grid-template-columns:1fr 300px;gap:12px;margin-bottom:12px}
-.wr-left{display:flex;flex-direction:column;gap:10px}
-.wr-right{display:flex;flex-direction:column}
-
-.posture-card{background:linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 50%,var(--bg1) 100%);border:1px solid var(--brd);border-radius:16px;padding:20px;display:flex;gap:20px;align-items:center;position:relative;overflow:hidden}
-.posture-card::before{content:'';position:absolute;top:-50%;right:-50%;width:100%;height:100%;background:radial-gradient(circle,var(--accent)05 0%,transparent 70%);pointer-events:none}
-.posture-gauge{position:relative;flex-shrink:0;width:140px;height:120px}
-.posture-score{position:absolute;top:48px;left:50%;transform:translateX(-50%);font-size:2.4rem;font-weight:900;font-family:var(--fm);letter-spacing:-3px;text-shadow:0 0 30px currentColor}
-.posture-grade{position:absolute;top:85px;left:50%;transform:translateX(-50%);font-size:.7rem;font-weight:800;letter-spacing:1px}
-.posture-label{position:absolute;top:102px;left:50%;transform:translateX(-50%);font-size:.48rem;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
-.posture-factors{flex:1;min-width:0}
-.posture-factor{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--brd)}
-.posture-factor:last-child{border-bottom:none}
-.alert-stream{background:linear-gradient(180deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:16px;display:flex;flex-direction:column;height:100%;min-height:300px;position:relative;overflow:hidden}
-.alert-stream::before{content:'';position:absolute;top:0;left:0;right:0;height:40px;background:linear-gradient(180deg,rgba(255,68,102,.03),transparent);pointer-events:none;z-index:1}
-.stream-hd{padding:10px 12px;border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center;font-size:.68rem;font-weight:700;color:var(--t1);text-transform:uppercase;letter-spacing:.5px}
-.stream-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s ease-in-out infinite}
-.stream-body{flex:1;overflow-y:auto;padding:4px}
-.stream-body::-webkit-scrollbar{width:2px}
-.stream-body::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:2px}
-.stream-item{display:flex;gap:8px;padding:8px 10px;border-radius:8px;align-items:flex-start;margin-bottom:2px;transition:all .2s ease}
-.stream-item:hover{background:var(--reds);transform:translateX(3px)}
-.stream-sev{width:3px;height:24px;border-radius:2px;flex-shrink:0;margin-top:2px}
-.quick-actions{display:flex;gap:6px;flex-wrap:wrap}
-.qa-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:1px solid var(--brd);background:linear-gradient(135deg,var(--bg1),var(--bg2));color:var(--t2);font-size:.68rem;font-family:var(--fs);font-weight:600;cursor:pointer;transition:all .25s ease;position:relative;overflow:hidden}
-.qa-btn::before{content:'';position:absolute;inset:0;background:var(--qa-c,var(--accent));opacity:0;transition:opacity .25s}
-.qa-btn:hover{border-color:var(--qa-c,var(--accent));color:#fff;transform:translateY(-2px);box-shadow:0 6px 20px color-mix(in srgb,var(--qa-c,var(--accent)) 30%,transparent)}
-.qa-btn:hover::before{opacity:.15}
-.qa-btn:active{transform:translateY(0)}
-.qa-icon{font-size:.82rem}
-.qa-label{white-space:nowrap}
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:7px;margin-bottom:10px}
-.kpi{background:linear-gradient(145deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:14px;padding:16px 18px;position:relative;overflow:hidden;transition:all .3s cubic-bezier(.4,0,.2,1)}
-.kpi::after{content:'';position:absolute;top:0;right:0;width:60px;height:60px;background:radial-gradient(circle at top right,var(--accent)06,transparent 70%);pointer-events:none}
-.kpi:hover{border-color:color-mix(in srgb,var(--accent) 40%,transparent);box-shadow:0 8px 30px rgba(0,0,0,.2),0 0 0 1px color-mix(in srgb,var(--accent) 15%,transparent);transform:translateY(-2px)}
-.kpi-top{display:flex;justify-content:space-between;align-items:flex-start}
-.kpi-label{font-size:.58rem;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;font-weight:700}
-.kpi-val{font-size:1.7rem;font-weight:900;font-family:var(--fm);letter-spacing:-2px;margin-top:4px;line-height:1;background:linear-gradient(135deg,var(--t1),var(--t2));-webkit-background-clip:text;background-clip:text}
-.kpi-unit{font-size:.65rem;color:var(--t3);font-weight:500}
-.kpi-sub{font-size:.64rem;color:var(--t3);margin-top:5px}
-.kpi-trend{font-size:.6rem;font-weight:700;padding:1px 5px;border-radius:3px}
-.kpi-trend.good{color:var(--green);background:var(--greens)}
-.kpi-trend.bad{color:var(--red);background:var(--reds)}
-.kpi-trend.warn{color:var(--amber);background:var(--ambers)}
-.kpi-spark{position:absolute;bottom:0;right:0;opacity:.4}
-.hero-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
-.hero-panel{min-height:0}
-.panel{background:linear-gradient(180deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:14px;margin-bottom:10px;overflow:hidden;transition:all .3s ease}
-.panel:hover{border-color:var(--brd2);box-shadow:0 4px 20px rgba(0,0,0,.15)}
-.panel-hd{padding:9px 14px;border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center}
-.panel-hd h3{font-size:.76rem;font-weight:700;display:flex;align-items:center;gap:5px}
-.panel-hd .count{font-size:.62rem;color:var(--t3);font-family:var(--fm);background:var(--bg3);padding:1px 6px;border-radius:10px}
-.tbl{width:100%;border-collapse:collapse}
-.tbl th{text-align:left;padding:5px 10px;font-size:.56rem;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;font-weight:700;border-bottom:1px solid var(--brd);background:var(--bg2)}
-.tbl td{padding:6px 10px;font-size:.76rem;border-bottom:1px solid var(--brd)}
-.tbl tr:hover td{background:var(--bg2)}
-.tbl tr:last-child td{border-bottom:none}
-.tbl-wrap{max-height:400px;overflow-y:auto}
-.tbl-wrap::-webkit-scrollbar{width:3px}
-.tbl-wrap::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:3px}
-.sev{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
-.sev-critical{background:var(--reds);color:var(--red);border:1px solid rgba(255,68,102,.15);text-shadow:0 0 8px rgba(255,68,102,.3)}
-.sev-high{background:rgba(249,115,22,.08);color:#f97316;border:1px solid rgba(249,115,22,.12);text-shadow:0 0 8px rgba(249,115,22,.25)}
-.sev-medium{background:var(--ambers);color:var(--amber);border:1px solid rgba(237,160,51,.08)}
-.sev-low{background:var(--blues);color:var(--blue);border:1px solid rgba(79,143,255,.08)}
-.src{display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:4px;font-size:.56rem;font-family:var(--fm);font-weight:600;letter-spacing:.2px;background:var(--bg3);color:var(--t2);border:1px solid var(--brd)}
-.src.defender{background:#4f8fff08;color:#60a5fa;border-color:#4f8fff15}
-.src.taegis{background:#a07cff08;color:#c4b5fd;border-color:#a07cff15}
-.src.tenable{background:#2dd4a008;color:#5eead4;border-color:#2dd4a015}
-.src.zscaler{background:#eda03308;color:#fcd34d;border-color:#eda03315}
-.src.crowdstrike{background:#ef444408;color:#fca5a5;border-color:#ef444415}
-.src.sentinelone{background:#a855f708;color:#d8b4fe;border-color:#a855f715}
-.src.darktrace{background:#f59e0b08;color:#fde68a;border-color:#f59e0b15}
-.src.recordedfuture{background:#f8717108;color:#fecaca;border-color:#f8717115}
-.status{display:inline-block;padding:1px 6px;border-radius:4px;font-size:.56rem;font-weight:700}
-.status-new{background:var(--reds);color:var(--red)}
-.status-investigating{background:var(--ambers);color:var(--amber)}
-.status-resolved{background:var(--greens);color:var(--green)}
-.mitre{font-family:var(--fm);font-size:.58rem;color:var(--accent);background:var(--accent-s);padding:1px 5px;border-radius:4px;border:1px solid rgba(79,143,255,.06)}
-.ts{font-family:var(--fm);font-size:.62rem;color:var(--t3);white-space:nowrap}
-.mono{font-family:var(--fm)}
-.muted{color:var(--t3)}
-.device{font-family:var(--fm);font-size:.68rem}
-.g2r{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
-.g23{display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-bottom:8px}
-.bar-wrap{display:flex;align-items:center;gap:6px}
-.bar-track{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
-.bar-fill{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.4,0,.2,1);background:linear-gradient(90deg,var(--accent),var(--accent2))!important}
-.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-.pills{display:flex;gap:2px;background:var(--bg2);padding:2px;border-radius:var(--r);flex-wrap:wrap}
-.pill{padding:3px 9px;border-radius:5px;cursor:pointer;font-size:.66rem;font-weight:500;color:var(--t3);border:none;background:none;font-family:var(--fs);transition:all .15s;white-space:nowrap}
-.pill:hover{color:var(--t2)}
-.pill.on{color:var(--t1);background:var(--bg1);box-shadow:var(--shadow)}
-.tl-item{display:flex;gap:8px;padding:6px 0;position:relative}
-.tl-item:not(:last-child)::before{content:'';position:absolute;left:12px;top:28px;bottom:0;width:1px;background:var(--brd)}
-.tl-icon{width:24px;height:24px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:.62rem;flex-shrink:0;border:1px solid var(--brd);z-index:1}
-.tl-body{flex:1;min-width:0}
-.tl-title{font-size:.74rem;font-weight:500;line-height:1.3}
-.tl-meta{font-size:.58rem;color:var(--t3);display:flex;gap:5px;align-items:center;margin-top:1px}
-.dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:4px}
-.dot-on{background:var(--green);box-shadow:0 0 6px var(--green)}
-.dot-off{background:var(--t4)}
-.loading{display:flex;align-items:center;justify-content:center;gap:8px;padding:60px;color:var(--t3);font-size:.82rem}
-.spin{width:18px;height:18px;border:2px solid var(--brd);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-/* Tool chips */
-.tool-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:6px;font-size:.62rem;font-weight:600;border:1px solid;background:var(--bg2);font-family:var(--fm);transition:all .2s}
-.tool-chip:hover{transform:scale(1.05);box-shadow:0 0 12px currentColor}
-/* Tool grid */
-.tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
-
-.ai-brief{padding:12px 14px;background:linear-gradient(135deg,rgba(59,139,255,.04),rgba(34,201,146,.04));border:1px solid var(--accent)15;border-radius:var(--r2);margin-bottom:10px}
-.ai-brief-hd{display:flex;align-items:center;gap:6px;font-size:.72rem;font-weight:700;color:var(--accent);margin-bottom:6px}
-.ai-brief-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2s ease infinite}
-.ai-brief-text{font-size:.78rem;color:var(--t2);line-height:1.65}
-.ai-brief-text strong{color:var(--t1)}
-
-
-
-
-
-.alert-card{border:1px solid var(--brd);border-radius:8px;margin-bottom:4px;overflow:hidden;transition:border-color .15s}
-.alert-card.tp{border-left:3px solid var(--red)}
-.alert-card.sus{border-left:3px solid var(--amber)}
-.alert-card.fp{border-left:3px solid var(--green);opacity:.6}
-.alert-card.fp:hover{opacity:1}
-.alert-card-top{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;cursor:pointer;gap:8px;transition:background .12s}
-.alert-card-top:hover{background:var(--bg3)}
-.expand-icon{font-size:.5rem;color:var(--t3);flex-shrink:0}
-.alert-card-detail{padding:10px 12px;background:var(--bg2);border-top:1px solid var(--brd)}
-.ai-reasoning{padding:8px 10px;background:linear-gradient(135deg,var(--accent)06,var(--green)04);border:1px solid var(--accent)15;border-radius:8px;margin-bottom:8px}
-.ai-reasoning-hd{display:flex;align-items:center;gap:5px;font-size:.62rem;font-weight:700;color:var(--accent);margin-bottom:5px}
-.ai-reasoning-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent)}
-.ai-reasoning-text{font-size:.7rem;color:var(--t2);line-height:1.6}
-.ai-evidence-list,.ai-actions-taken,.ai-runbook{margin-bottom:6px}
-.ai-evidence-hd{font-size:.56rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
-.ai-evidence-item{font-size:.66rem;color:var(--t2);padding:1px 0;padding-left:4px}
-.ai-action-item{font-size:.66rem;color:var(--green);padding:2px 0}
-.ai-runbook-step{display:flex;align-items:flex-start;gap:6px;font-size:.66rem;color:var(--t2);padding:2px 0;line-height:1.5}
-.ai-runbook-num{min-width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:.48rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.alert-card-actions{display:flex;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid var(--brd)}
-
-.tab-clean{display:flex;flex-direction:column;gap:8px}
-.tab-summary{padding:12px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
-.tab-summary-stats{display:flex;gap:12px;flex-wrap:wrap}
-.tss{display:flex;flex-direction:column;align-items:center;min-width:60px}
-.tss-val{font-size:1.3rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px}
-.tss-label{font-size:.48rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
-.attn-section{padding:10px 12px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
-.attn-hd{font-size:.72rem;font-weight:700;margin-bottom:6px}
-.fp-section{opacity:.6}
-.fp-section:hover{opacity:1}
-.alert-row{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:6px;cursor:pointer;transition:background .12s;gap:8px}
-.alert-row:hover{background:var(--bg3)}
-.alert-row.tp{border-left:2px solid var(--red)}
-.alert-row.sus{border-left:2px solid var(--amber)}
-.alert-row.fp{border-left:2px solid var(--green)}
-.alert-row-left{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
-.alert-row-title{font-size:.72rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.alert-row-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.alert-row-device{font-size:.58rem;font-family:var(--fm);color:var(--accent);cursor:pointer;text-decoration:underline dotted}
-.verdict-badge{font-size:.48rem;font-weight:800;padding:1px 5px;border-radius:3px;flex-shrink:0}
-.tp-badge{color:var(--red);background:var(--reds)}
-.sus-badge{color:var(--amber);background:var(--ambers)}
-.fp-badge{color:var(--green);background:var(--greens)}
-
-.ov-clean{display:flex;flex-direction:column;gap:10px}
-.ov-ai-hero{padding:16px;background:linear-gradient(135deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:var(--r2);position:relative;overflow:hidden}
-.ov-ai-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--green))}
-.ov-ai-hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-.ov-ai-status{display:flex;align-items:center;gap:6px;font-size:.82rem;font-weight:800;color:var(--accent)}
-.ov-ai-pulse{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2s ease infinite}
-.ov-ai-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:12px}
-.ov-ai-stat{text-align:center;padding:10px 4px;background:var(--bg3);border-radius:10px;border:1px solid var(--brd)}
-.ov-ai-val{font-size:1.5rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px;line-height:1}
-.ov-ai-label{font-size:.5rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
-.ov-ai-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;position:relative}
-.ov-ai-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:3px;transition:width 1s ease}
-.ov-ai-bar-label{position:absolute;top:-16px;right:0;font-size:.52rem;color:var(--t3);font-weight:500}
-
-.ov-estate{padding:14px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
-.ov-estate-hd{font-size:.78rem;font-weight:800;margin-bottom:10px}
-.ov-estate-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.ov-estate-card{padding:10px;background:var(--bg2);border:1px solid var(--brd);border-radius:10px}
-.ov-estate-card-hd{font-size:.62rem;font-weight:700;color:var(--t3);margin-bottom:6px}
-.ov-estate-metric{display:flex;align-items:baseline;gap:4px;margin-bottom:4px}
-.ov-estate-val{font-size:1.2rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px}
-.ov-estate-sub{font-size:.52rem;color:var(--t3)}
-.ov-estate-bar-wrap{display:flex;align-items:center;gap:6px;margin-bottom:4px}
-.ov-estate-bar-bg{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
-.ov-estate-bar-fill{height:100%;border-radius:3px;transition:width .5s}
-.ov-estate-bar-pct{font-size:.5rem;color:var(--t3);flex-shrink:0;font-family:var(--fm)}
-.ov-estate-warn{font-size:.54rem;color:var(--amber);margin-top:2px}
-.ov-tool-row{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:.62rem}
-.ov-tool-name{font-weight:600;flex:1}
-.ov-tool-count{font-family:var(--fm);color:var(--t3);font-size:.56rem}
-.ov-tool-health{font-size:.5rem;font-weight:700;padding:1px 5px;border-radius:3px}
-.ov-tool-health.ok{color:var(--green);background:var(--greens)}
-.ov-tool-health.warn{color:var(--amber);background:var(--ambers)}
-.ov-source-row{display:flex;align-items:center;gap:6px;padding:2px 0;font-size:.6rem}
-.ov-source-bar{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
-.ov-source-pct{font-size:.5rem;color:var(--t3);font-family:var(--fm);flex-shrink:0}
-.ov-zsc-row{display:flex;gap:8px;align-items:center;font-size:.58rem;padding-top:4px;margin-top:4px;border-top:1px solid var(--brd)}
-@media(max-width:768px){.ov-estate-grid{grid-template-columns:1fr}}
-
-.ov-attention{padding:12px;background:var(--bg1);border:1px solid var(--red)20;border-radius:var(--r2);border-left:3px solid var(--red)}
-.ov-attention-hd{font-size:.78rem;font-weight:800;color:var(--red);margin-bottom:8px}
-.ov-attention-list{display:flex;flex-direction:column;gap:3px}
-.ov-attn-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;transition:background .15s;font-size:.72rem}
-.ov-attn-row:hover{background:var(--bg3)}
-.ov-attn-row.crit{border-left:2px solid var(--red)}
-.ov-attn-row.high{border-left:2px solid #f97316}
-.ov-attn-sev{font-size:.5rem;font-weight:800;padding:1px 5px;border-radius:3px;flex-shrink:0}
-.ov-attn-row.crit .ov-attn-sev{color:var(--red);background:var(--reds)}
-.ov-attn-row.high .ov-attn-sev{color:#f97316;background:#f9731610}
-.ov-attn-title{font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ov-attn-meta{font-size:.58rem;color:var(--t3);flex-shrink:0;font-family:var(--fm)}
-.ov-attn-action{font-size:.58rem;color:var(--accent);font-weight:600;flex-shrink:0}
-.ov-recent{padding:12px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
-.ov-recent-hd{font-size:.72rem;font-weight:700;color:var(--t2);margin-bottom:8px}
-@media(max-width:768px){.ov-ai-grid{grid-template-columns:repeat(3,1fr)}.ov-ai-hero-top{flex-direction:column}}
-
-.auto-slider{padding:10px 12px;background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);margin-bottom:10px}
-.auto-slider-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.auto-slider-track{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:8px}
-.auto-level{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border:1px solid var(--brd);border-radius:8px;background:var(--bg3);cursor:pointer;font-family:var(--fs);transition:all .15s}
-.auto-level:hover{border-color:var(--accent)30}
-.auto-level.active{border-color:var(--lc,var(--accent));background:color-mix(in srgb,var(--lc,var(--accent)) 8%,transparent)}
-.auto-level-icon{font-size:1.2rem}
-.auto-level-label{font-size:.62rem;font-weight:700;color:var(--t1)}
-.auto-level-desc{font-size:.48rem;color:var(--t3);text-align:center;line-height:1.3}
-.auto-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.auto-action-toggle{display:flex;align-items:center;gap:3px;font-size:.58rem;color:var(--t2);cursor:pointer}
-.auto-action-toggle input{width:12px;height:12px;accent-color:var(--accent)}
-
-.ai-hero{padding:12px 14px;background:linear-gradient(135deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:var(--r2);margin-bottom:10px;position:relative;overflow:hidden}
-.ai-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--green))}
-.ai-hero-hd{display:flex;align-items:center;gap:6px;font-size:.72rem;font-weight:700;color:var(--accent);margin-bottom:8px}
-.ai-hero-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2s ease infinite}
-.ai-hero-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.ai-hero-stat{text-align:center;padding:6px 0}
-.ai-hero-val{font-size:1.4rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px;line-height:1}
-.ai-hero-label{font-size:.52rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
-.ai-hero-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:8px}
-.ai-hero-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--accent));border-radius:2px;transition:width .5s}
-
-.ai-insights{margin-bottom:10px}
-.ai-insights-hd{display:flex;align-items:center;gap:6px;font-size:.7rem;font-weight:700;color:var(--accent);margin-bottom:6px}
-.ai-insights-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2s ease infinite}
-.ai-insight{padding:10px 12px;background:var(--bg1);border:1px solid var(--brd);border-left:3px solid var(--accent);border-radius:8px;margin-bottom:4px;transition:border-color .2s}
-.ai-insight:hover{border-color:var(--accent)}
-.ai-insight-top{display:flex;align-items:center;gap:6px;margin-bottom:3px}
-.ai-insight-icon{font-size:.9rem}
-.ai-insight-title{font-size:.76rem;font-weight:700;color:var(--t1)}
-.ai-insight-detail{font-size:.68rem;color:var(--t2);line-height:1.55}
-.tool-expanded{border-color:var(--accent)!important;background:var(--bg2)!important}
-.tool-card{background:linear-gradient(135deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:var(--r2);padding:14px;transition:all .25s ease;position:relative}
-.tool-card:hover{border-color:var(--brd2);box-shadow:var(--glow);transform:translateY(-1px)}
-.tool-card.enabled{border-left:3px solid var(--tc,var(--accent));box-shadow:inset 0 0 20px var(--tc,var(--accent))08}
-.tc-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-.tc-icon{font-size:1.3rem}
-.tc-info{flex:1;min-width:0}
-.tc-name{font-size:.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tc-cat{font-size:.62rem;color:var(--t3)}
-.tc-desc{font-size:.7rem;color:var(--t2);margin-bottom:10px;line-height:1.4}
-.tc-footer{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.tc-status{font-size:.65rem;display:flex;align-items:center;gap:2px;margin-right:auto}
-.tc-btn{padding:4px 10px;border-radius:5px;font-size:.68rem;font-weight:600;cursor:pointer;border:1px solid var(--brd);background:var(--bg2);color:var(--t2);font-family:var(--fs);transition:all .15s}
-.tc-btn:hover{border-color:var(--brd2);color:var(--t1)}
-.tc-btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#fff;box-shadow:0 2px 8px rgba(91,154,255,.25)}
-.tc-btn-danger:hover{background:rgba(255,68,102,.08);border-color:rgba(255,68,102,.3);color:var(--red)}
-.tc-btn-primary:hover{opacity:.9;box-shadow:0 4px 16px rgba(91,154,255,.35);transform:translateY(-1px)}
-.tc-btn-danger{color:var(--red)}
-.tc-btn-danger:hover{background:var(--reds);border-color:var(--red)}
-.kv-warn{font-size:.72rem;color:var(--amber);background:var(--ambers);border:1px solid rgba(237,160,51,.15);padding:6px 12px;border-radius:var(--r);line-height:1.5}
-/* Toggle switch */
-.toggle{position:relative;display:inline-block;width:34px;height:18px;flex-shrink:0}
-.toggle input{display:none}
-.toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(--bg3);border-radius:18px;transition:.3s;border:1px solid var(--brd)}
-.toggle-slider::before{content:'';position:absolute;height:12px;width:12px;left:2px;bottom:2px;background:var(--t3);border-radius:50%;transition:.3s}
-.toggle input:checked+.toggle-slider{background:var(--greens);border-color:var(--green)}
-.toggle input:checked+.toggle-slider::before{transform:translateX(16px);background:var(--green)}
-/* Modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;z-index:200;padding:16px}
-.modal{background:linear-gradient(180deg,var(--bg1),var(--bg2));border:1px solid var(--brd2);border-radius:16px;width:100%;max-width:500px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.5),0 0 0 1px var(--brd)}
-.modal-hd{display:flex;justify-content:space-between;align-items:flex-start;padding:16px;border-bottom:1px solid var(--brd)}
-.modal-close{background:none;border:none;color:var(--t3);font-size:1rem;cursor:pointer;padding:4px}
-.modal-close:hover{color:var(--t1)}
-.modal-body{padding:16px;overflow-y:auto;flex:1}
-.modal-ft{padding:12px 16px;border-top:1px solid var(--brd);display:flex;justify-content:flex-end;gap:6px}
-.modal-docs{font-size:.68rem;color:var(--t2);background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r);padding:8px 10px;margin-bottom:12px;line-height:1.5}
-.field{margin-bottom:10px}
-.field-label{display:block;font-size:.72rem;font-weight:600;margin-bottom:3px}
-.field-key{font-family:var(--fm);font-size:.6rem;color:var(--t3);font-weight:400}
-.field-input{width:100%;padding:7px 10px;background:var(--bg2);border:1px solid var(--brd);border-radius:6px;color:var(--t1);font-size:.8rem;font-family:var(--fm);outline:none;transition:border-color .2s}
-.field-input:focus{border-color:var(--accent)}
-.field-input::placeholder{color:var(--t4)}
-select.field-input{font-family:var(--fs)}
-.modal-msg{font-size:.72rem;margin-top:8px;padding:6px 10px;border-radius:var(--r)}
-.modal-msg.ok{color:var(--green);background:var(--greens)}
-.modal-msg.err{color:var(--red);background:var(--reds)}
-/* Mobile */
-.desk-only{}
-max-width:768px){
-.topbar{padding:0 10px;height:44px;gap:6px}
-.tabs{display:none}
-.main{padding:8px}
-.logo{font-size:.85rem}
-.logo-icon{width:22px;height:22px;font-size:.55rem}
-.war-room{flex-direction:column;gap:8px}
-.wr-left,.wr-right{width:100%}
-.kpi-grid{grid-template-columns:repeat(2,1fr)!important}
-.g2r,.g23{grid-template-columns:1fr!important}
-.tbl th,.tbl td{padding:3px 5px;font-size:.66rem}
-.filter-row{flex-wrap:wrap;gap:3px}
-.pills{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;gap:2px}
-.pill{white-space:nowrap;flex-shrink:0;padding:3px 8px;font-size:.64rem}
-
-.ai-brief{padding:12px 14px;background:linear-gradient(135deg,rgba(59,139,255,.04),rgba(34,201,146,.04));border:1px solid var(--accent)15;border-radius:var(--r2);margin-bottom:10px}
-.ai-brief-hd{display:flex;align-items:center;gap:6px;font-size:.72rem;font-weight:700;color:var(--accent);margin-bottom:6px}
-.ai-brief-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2s ease infinite}
-.ai-brief-text{font-size:.78rem;color:var(--t2);line-height:1.65}
-.ai-brief-text strong{color:var(--t1)}
-
-
-
-
-
-.alert-card{border:1px solid var(--brd);border-radius:8px;margin-bottom:4px;overflow:hidden;transition:border-color .15s}
-.alert-card.tp{border-left:3px solid var(--red)}
-.alert-card.sus{border-left:3px solid var(--amber)}
-.alert-card.fp{border-left:3px solid var(--green);opacity:.6}
-.alert-card.fp:hover{opacity:1}
-.alert-card-top{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;cursor:pointer;gap:8px;transition:background .12s}
-.alert-card-top:hover{background:var(--bg3)}
-.expand-icon{font-size:.5rem;color:var(--t3);flex-shrink:0}
-.alert-card-detail{padding:10px 12px;background:var(--bg2);border-top:1px solid var(--brd)}
-.ai-reasoning{padding:8px 10px;background:linear-gradient(135deg,var(--accent)06,var(--green)04);border:1px solid var(--accent)15;border-radius:8px;margin-bottom:8px}
-.ai-reasoning-hd{display:flex;align-items:center;gap:5px;font-size:.62rem;font-weight:700;color:var(--accent);margin-bottom:5px}
-.ai-reasoning-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent)}
-.ai-reasoning-text{font-size:.7rem;color:var(--t2);line-height:1.6}
-.ai-evidence-list,.ai-actions-taken,.ai-runbook{margin-bottom:6px}
-.ai-evidence-hd{font-size:.56rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
-.ai-evidence-item{font-size:.66rem;color:var(--t2);padding:1px 0;padding-left:4px}
-.ai-action-item{font-size:.66rem;color:var(--green);padding:2px 0}
-.ai-runbook-step{display:flex;align-items:flex-start;gap:6px;font-size:.66rem;color:var(--t2);padding:2px 0;line-height:1.5}
-.ai-runbook-num{min-width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:.48rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.alert-card-actions{display:flex;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid var(--brd)}
-
-.tab-clean{display:flex;flex-direction:column;gap:8px}
-.tab-summary{padding:12px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
-.tab-summary-stats{display:flex;gap:12px;flex-wrap:wrap}
-.tss{display:flex;flex-direction:column;align-items:center;min-width:60px}
-.tss-val{font-size:1.3rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px}
-.tss-label{font-size:.48rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
-.attn-section{padding:10px 12px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
-.attn-hd{font-size:.72rem;font-weight:700;margin-bottom:6px}
-.fp-section{opacity:.6}
-.fp-section:hover{opacity:1}
-.alert-row{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:6px;cursor:pointer;transition:background .12s;gap:8px}
-.alert-row:hover{background:var(--bg3)}
-.alert-row.tp{border-left:2px solid var(--red)}
-.alert-row.sus{border-left:2px solid var(--amber)}
-.alert-row.fp{border-left:2px solid var(--green)}
-.alert-row-left{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
-.alert-row-title{font-size:.72rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.alert-row-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.alert-row-device{font-size:.58rem;font-family:var(--fm);color:var(--accent);cursor:pointer;text-decoration:underline dotted}
-.verdict-badge{font-size:.48rem;font-weight:800;padding:1px 5px;border-radius:3px;flex-shrink:0}
-.tp-badge{color:var(--red);background:var(--reds)}
-.sus-badge{color:var(--amber);background:var(--ambers)}
-.fp-badge{color:var(--green);background:var(--greens)}
-
-.ov-clean{display:flex;flex-direction:column;gap:10px}
-.ov-ai-hero{padding:16px;background:linear-gradient(135deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:var(--r2);position:relative;overflow:hidden}
-.ov-ai-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--green))}
-.ov-ai-hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-.ov-ai-status{display:flex;align-items:center;gap:6px;font-size:.82rem;font-weight:800;color:var(--accent)}
-.ov-ai-pulse{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2s ease infinite}
-.ov-ai-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:12px}
-.ov-ai-stat{text-align:center;padding:10px 4px;background:var(--bg3);border-radius:10px;border:1px solid var(--brd)}
-.ov-ai-val{font-size:1.5rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px;line-height:1}
-.ov-ai-label{font-size:.5rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
-.ov-ai-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;position:relative}
-.ov-ai-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:3px;transition:width 1s ease}
-.ov-ai-bar-label{position:absolute;top:-16px;right:0;font-size:.52rem;color:var(--t3);font-weight:500}
-
-.ov-estate{padding:14px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
-.ov-estate-hd{font-size:.78rem;font-weight:800;margin-bottom:10px}
-.ov-estate-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.ov-estate-card{padding:10px;background:var(--bg2);border:1px solid var(--brd);border-radius:10px}
-.ov-estate-card-hd{font-size:.62rem;font-weight:700;color:var(--t3);margin-bottom:6px}
-.ov-estate-metric{display:flex;align-items:baseline;gap:4px;margin-bottom:4px}
-.ov-estate-val{font-size:1.2rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px}
-.ov-estate-sub{font-size:.52rem;color:var(--t3)}
-.ov-estate-bar-wrap{display:flex;align-items:center;gap:6px;margin-bottom:4px}
-.ov-estate-bar-bg{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
-.ov-estate-bar-fill{height:100%;border-radius:3px;transition:width .5s}
-.ov-estate-bar-pct{font-size:.5rem;color:var(--t3);flex-shrink:0;font-family:var(--fm)}
-.ov-estate-warn{font-size:.54rem;color:var(--amber);margin-top:2px}
-.ov-tool-row{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:.62rem}
-.ov-tool-name{font-weight:600;flex:1}
-.ov-tool-count{font-family:var(--fm);color:var(--t3);font-size:.56rem}
-.ov-tool-health{font-size:.5rem;font-weight:700;padding:1px 5px;border-radius:3px}
-.ov-tool-health.ok{color:var(--green);background:var(--greens)}
-.ov-tool-health.warn{color:var(--amber);background:var(--ambers)}
-.ov-source-row{display:flex;align-items:center;gap:6px;padding:2px 0;font-size:.6rem}
-.ov-source-bar{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
-.ov-source-pct{font-size:.5rem;color:var(--t3);font-family:var(--fm);flex-shrink:0}
-.ov-zsc-row{display:flex;gap:8px;align-items:center;font-size:.58rem;padding-top:4px;margin-top:4px;border-top:1px solid var(--brd)}
-@media(max-width:768px){.ov-estate-grid{grid-template-columns:1fr}}
-
-.ov-attention{padding:12px;background:var(--bg1);border:1px solid var(--red)20;border-radius:var(--r2);border-left:3px solid var(--red)}
-.ov-attention-hd{font-size:.78rem;font-weight:800;color:var(--red);margin-bottom:8px}
-.ov-attention-list{display:flex;flex-direction:column;gap:3px}
-.ov-attn-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;transition:background .15s;font-size:.72rem}
-.ov-attn-row:hover{background:var(--bg3)}
-.ov-attn-row.crit{border-left:2px solid var(--red)}
-.ov-attn-row.high{border-left:2px solid #f97316}
-.ov-attn-sev{font-size:.5rem;font-weight:800;padding:1px 5px;border-radius:3px;flex-shrink:0}
-.ov-attn-row.crit .ov-attn-sev{color:var(--red);background:var(--reds)}
-.ov-attn-row.high .ov-attn-sev{color:#f97316;background:#f9731610}
-.ov-attn-title{font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ov-attn-meta{font-size:.58rem;color:var(--t3);flex-shrink:0;font-family:var(--fm)}
-.ov-attn-action{font-size:.58rem;color:var(--accent);font-weight:600;flex-shrink:0}
-.ov-recent{padding:12px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
-.ov-recent-hd{font-size:.72rem;font-weight:700;color:var(--t2);margin-bottom:8px}
-@media(max-width:768px){.ov-ai-grid{grid-template-columns:repeat(3,1fr)}.ov-ai-hero-top{flex-direction:column}}
-
-.auto-slider{padding:10px 12px;background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);margin-bottom:10px}
-.auto-slider-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.auto-slider-track{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:8px}
-.auto-level{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border:1px solid var(--brd);border-radius:8px;background:var(--bg3);cursor:pointer;font-family:var(--fs);transition:all .15s}
-.auto-level:hover{border-color:var(--accent)30}
-.auto-level.active{border-color:var(--lc,var(--accent));background:color-mix(in srgb,var(--lc,var(--accent)) 8%,transparent)}
-.auto-level-icon{font-size:1.2rem}
-.auto-level-label{font-size:.62rem;font-weight:700;color:var(--t1)}
-.auto-level-desc{font-size:.48rem;color:var(--t3);text-align:center;line-height:1.3}
-.auto-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.auto-action-toggle{display:flex;align-items:center;gap:3px;font-size:.58rem;color:var(--t2);cursor:pointer}
-.auto-action-toggle input{width:12px;height:12px;accent-color:var(--accent)}
-
-.ai-hero{padding:12px 14px;background:linear-gradient(135deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:var(--r2);margin-bottom:10px;position:relative;overflow:hidden}
-.ai-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--green))}
-.ai-hero-hd{display:flex;align-items:center;gap:6px;font-size:.72rem;font-weight:700;color:var(--accent);margin-bottom:8px}
-.ai-hero-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2s ease infinite}
-.ai-hero-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.ai-hero-stat{text-align:center;padding:6px 0}
-.ai-hero-val{font-size:1.4rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px;line-height:1}
-.ai-hero-label{font-size:.52rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
-.ai-hero-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:8px}
-.ai-hero-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--accent));border-radius:2px;transition:width .5s}
-
-.ai-insights{margin-bottom:6px}
-.ai-insight{padding:6px 8px}
-.ai-insight-title{font-size:.68rem}
-.ai-insight-detail{font-size:.6rem}
-.topbar-right{gap:3px}
-.theme-btn{width:26px;height:26px;font-size:.72rem}
-.refresh-btn{display:none}
-.search-trigger{padding:4px 8px;font-size:.66rem}
-.acct-menu{right:-10px;min-width:200px}
-.panel{border-radius:8px;margin-bottom:6px}
-.panel-hd{padding:6px 10px}
-.modal{margin:8px;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px)}
-.drawer{width:100vw!important;max-width:100vw!important}
-
-.desk-only{display:none!important}
-.sla-bar{padding:4px 8px}
-.sla-items{flex-direction:column;gap:3px}
-.stream-item{padding:4px 6px}
-.tc-btn{font-size:.6rem;padding:2px 6px}
+// ─── Stat Card ────────────────────────────────────────────────────────────────
+function StatCard({val,label,sub,color,onClick}:{val:string|number;label:string;sub?:string;color:string;onClick?:()=>void}) {
+  return (
+    <div onClick={onClick} style={{padding:'14px 12px',background:'#09091a',border:'1px solid #141820',borderRadius:10,textAlign:'center',cursor:onClick?'pointer':'default',transition:'border-color .15s'}}
+      onMouseEnter={e=>{ if(onClick)(e.currentTarget as HTMLElement).style.borderColor='#4f8fff40'; }}
+      onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.borderColor='#141820'; }}>
+      <div style={{fontSize:'1.5rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color,letterSpacing:-1}}>{val}</div>
+      <div style={{fontSize:'0.62rem',fontWeight:700,color:'#6b7a94',textTransform:'uppercase',letterSpacing:'0.4px',marginTop:2}}>{label}</div>
+      {sub && <div style={{fontSize:'0.56rem',color:'#3a4050',marginTop:2}}>{sub}</div>}
+      {onClick && <div style={{fontSize:'0.48rem',color:'#4f8fff',marginTop:4}}>click to view →</div>}
+    </div>
+  );
 }
-@media(max-width:768px){
-.topbar{padding:0 10px;height:44px;gap:6px}
-.tabs{display:none}
-.main{padding:8px 10px}
-.logo{font-size:.85rem}
-.logo-icon{width:24px;height:24px;font-size:.6rem}
-.war-room{flex-direction:column}
-.wr-left,.wr-right{width:100%}
-.kpi-grid{grid-template-columns:repeat(2,1fr)!important}
-.g2r,.g23{grid-template-columns:1fr!important}
-.panel{border-radius:10px}
-.tbl th,.tbl td{padding:4px 6px;font-size:.68rem}
-.filter-row{flex-wrap:wrap;gap:4px}
-.pills{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
-.pill{white-space:nowrap;flex-shrink:0}
 
-.ai-brief{padding:12px 14px;background:linear-gradient(135deg,rgba(59,139,255,.04),rgba(34,201,146,.04));border:1px solid var(--accent)15;border-radius:var(--r2);margin-bottom:10px}
-.ai-brief-hd{display:flex;align-items:center;gap:6px;font-size:.72rem;font-weight:700;color:var(--accent);margin-bottom:6px}
-.ai-brief-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2s ease infinite}
-.ai-brief-text{font-size:.78rem;color:var(--t2);line-height:1.65}
-.ai-brief-text strong{color:var(--t1)}
+// ─── Main Dashboard ───────────────────────────────────────────────────────────
+export default function DashboardPage() {
+  const [activeTab, setActiveTab] = useState('overview');
+  const [automation, setAutomation] = useState<AutomationLevel>(1);
+  const [modal, setModal] = useState<{type:string;data?:unknown}|null>(null);
+  const [selectedAlert, setSelectedAlert] = useState<Alert|null>(null);
+  const [selectedVuln, setSelectedVuln] = useState<Vuln|null>(null);
+  const [selectedIncident, setSelectedIncident] = useState<Incident|null>(null);
+  const [vulnAiLoading, setVulnAiLoading] = useState(false);
+  const [vulnAiText, setVulnAiText] = useState('');
+  const [industry, setIndustry] = useState('Financial Services');
+  const [intelLoading, setIntelLoading] = useState(false);
+  const [customIntel, setCustomIntel] = useState<IntelItem[]|null>(null);
+  const [expandedAlerts, setExpandedAlerts] = useState<Set<string>>(new Set());
 
+  const tools = useData<Tool[]>('/api/tools', DEMO_TOOLS);
+  const alerts = useData<Alert[]>('/api/alerts', DEMO_ALERTS);
+  const vulns = useData<Vuln[]>('/api/vulnerabilities', DEMO_VULNS);
+  const incidents = useData<Incident[]>('/api/incidents', DEMO_INCIDENTS);
 
+  const activeTools = tools.filter(t=>t.active);
+  const taegisActive = tools.find(t=>t.id==='taegis')?.active || false;
+  const darktrace = tools.find(t=>t.id==='darktrace');
+  const totalDevices = 247;
+  const gapDevices = DEMO_GAP_DEVICES;
+  const coveredPct = Math.round(((totalDevices - gapDevices.length) / totalDevices) * 100);
+  const critAlerts = alerts.filter(a=>a.severity==='Critical');
+  const tpAlerts = alerts.filter(a=>a.verdict==='TP');
+  const fpAlerts = alerts.filter(a=>a.verdict==='FP');
+  const critVulns = vulns.filter(v=>v.severity==='Critical');
+  const kevVulns = vulns.filter(v=>v.kev);
+  const posture = 74;
+  const postureColor = '#f0a030';
 
+  const autLabel = ['Recommend Only','Auto + Notify','Full Auto'][automation];
 
+  const intelItems = customIntel || (DEMO_INTEL_BY_INDUSTRY[industry] || DEMO_INTEL_BY_INDUSTRY['default']);
+  const allIntel = [...intelItems, ...DEMO_INTEL_BY_INDUSTRY['default'].filter(i=>!intelItems.find(x=>x.id===i.id))];
 
-.alert-card{border:1px solid var(--brd);border-radius:8px;margin-bottom:4px;overflow:hidden;transition:border-color .15s}
-.alert-card.tp{border-left:3px solid var(--red)}
-.alert-card.sus{border-left:3px solid var(--amber)}
-.alert-card.fp{border-left:3px solid var(--green);opacity:.6}
-.alert-card.fp:hover{opacity:1}
-.alert-card-top{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;cursor:pointer;gap:8px;transition:background .12s}
-.alert-card-top:hover{background:var(--bg3)}
-.expand-icon{font-size:.5rem;color:var(--t3);flex-shrink:0}
-.alert-card-detail{padding:10px 12px;background:var(--bg2);border-top:1px solid var(--brd)}
-.ai-reasoning{padding:8px 10px;background:linear-gradient(135deg,var(--accent)06,var(--green)04);border:1px solid var(--accent)15;border-radius:8px;margin-bottom:8px}
-.ai-reasoning-hd{display:flex;align-items:center;gap:5px;font-size:.62rem;font-weight:700;color:var(--accent);margin-bottom:5px}
-.ai-reasoning-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent)}
-.ai-reasoning-text{font-size:.7rem;color:var(--t2);line-height:1.6}
-.ai-evidence-list,.ai-actions-taken,.ai-runbook{margin-bottom:6px}
-.ai-evidence-hd{font-size:.56rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
-.ai-evidence-item{font-size:.66rem;color:var(--t2);padding:1px 0;padding-left:4px}
-.ai-action-item{font-size:.66rem;color:var(--green);padding:2px 0}
-.ai-runbook-step{display:flex;align-items:flex-start;gap:6px;font-size:.66rem;color:var(--t2);padding:2px 0;line-height:1.5}
-.ai-runbook-num{min-width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:.48rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.alert-card-actions{display:flex;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid var(--brd)}
+  async function fetchIntelForIndustry(ind:string) {
+    setIntelLoading(true);
+    setCustomIntel(null);
+    try {
+      const resp = await fetch('/api/intel/industry', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({industry:ind}) });
+      if (resp.ok) { const d = await resp.json(); setCustomIntel(d.items); }
+    } catch(e) {}
+    setIntelLoading(false);
+  }
 
-.tab-clean{display:flex;flex-direction:column;gap:8px}
-.tab-summary{padding:12px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
-.tab-summary-stats{display:flex;gap:12px;flex-wrap:wrap}
-.tss{display:flex;flex-direction:column;align-items:center;min-width:60px}
-.tss-val{font-size:1.3rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px}
-.tss-label{font-size:.48rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
-.attn-section{padding:10px 12px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
-.attn-hd{font-size:.72rem;font-weight:700;margin-bottom:6px}
-.fp-section{opacity:.6}
-.fp-section:hover{opacity:1}
-.alert-row{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:6px;cursor:pointer;transition:background .12s;gap:8px}
-.alert-row:hover{background:var(--bg3)}
-.alert-row.tp{border-left:2px solid var(--red)}
-.alert-row.sus{border-left:2px solid var(--amber)}
-.alert-row.fp{border-left:2px solid var(--green)}
-.alert-row-left{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
-.alert-row-title{font-size:.72rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.alert-row-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.alert-row-device{font-size:.58rem;font-family:var(--fm);color:var(--accent);cursor:pointer;text-decoration:underline dotted}
-.verdict-badge{font-size:.48rem;font-weight:800;padding:1px 5px;border-radius:3px;flex-shrink:0}
-.tp-badge{color:var(--red);background:var(--reds)}
-.sus-badge{color:var(--amber);background:var(--ambers)}
-.fp-badge{color:var(--green);background:var(--greens)}
+  async function getVulnAiHelp(vuln:Vuln) {
+    setVulnAiLoading(true);
+    setVulnAiText('');
+    try {
+      const resp = await fetch('/api/copilot', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:`Provide concise remediation guidance for ${vuln.cve} - ${vuln.title} in a corporate environment. Cover: 1) Immediate mitigation steps, 2) Permanent fix, 3) Detection/hunting queries, 4) Business risk if unpatched. Be specific and actionable.`}) });
+      if (resp.ok) {
+        const d = await resp.json();
+        const text = d.response || `AI remediation for ${vuln.cve}: Apply vendor patch ${vuln.patch || 'immediately'}. Priority: ${vuln.severity}. ${vuln.kev ? 'CISA KEV listed — 72h compliance deadline.' : ''} Contact security team for deployment plan.`;
+        let i = 0;
+        const interval = setInterval(()=>{ setVulnAiText(text.slice(0,i)); i++; if(i>text.length) clearInterval(interval); }, 12);
+      }
+    } catch(e) {
+      setVulnAiText(`Remediation for ${vuln.cve}: ${vuln.remediation.join('. ')}`);
+    }
+    setVulnAiLoading(false);
+  }
 
-.ov-clean{display:flex;flex-direction:column;gap:10px}
-.ov-ai-hero{padding:16px;background:linear-gradient(135deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:var(--r2);position:relative;overflow:hidden}
-.ov-ai-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--green))}
-.ov-ai-hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-.ov-ai-status{display:flex;align-items:center;gap:6px;font-size:.82rem;font-weight:800;color:var(--accent)}
-.ov-ai-pulse{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2s ease infinite}
-.ov-ai-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:12px}
-.ov-ai-stat{text-align:center;padding:10px 4px;background:var(--bg3);border-radius:10px;border:1px solid var(--brd)}
-.ov-ai-val{font-size:1.5rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px;line-height:1}
-.ov-ai-label{font-size:.5rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
-.ov-ai-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;position:relative}
-.ov-ai-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:3px;transition:width 1s ease}
-.ov-ai-bar-label{position:absolute;top:-16px;right:0;font-size:.52rem;color:var(--t3);font-weight:500}
+  function toggleAlertExpand(id:string) {
+    setExpandedAlerts(prev => { const n = new Set(prev); n.has(id)?n.delete(id):n.add(id); return n; });
+  }
 
-.ov-estate{padding:14px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
-.ov-estate-hd{font-size:.78rem;font-weight:800;margin-bottom:10px}
-.ov-estate-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.ov-estate-card{padding:10px;background:var(--bg2);border:1px solid var(--brd);border-radius:10px}
-.ov-estate-card-hd{font-size:.62rem;font-weight:700;color:var(--t3);margin-bottom:6px}
-.ov-estate-metric{display:flex;align-items:baseline;gap:4px;margin-bottom:4px}
-.ov-estate-val{font-size:1.2rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px}
-.ov-estate-sub{font-size:.52rem;color:var(--t3)}
-.ov-estate-bar-wrap{display:flex;align-items:center;gap:6px;margin-bottom:4px}
-.ov-estate-bar-bg{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
-.ov-estate-bar-fill{height:100%;border-radius:3px;transition:width .5s}
-.ov-estate-bar-pct{font-size:.5rem;color:var(--t3);flex-shrink:0;font-family:var(--fm)}
-.ov-estate-warn{font-size:.54rem;color:var(--amber);margin-top:2px}
-.ov-tool-row{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:.62rem}
-.ov-tool-name{font-weight:600;flex:1}
-.ov-tool-count{font-family:var(--fm);color:var(--t3);font-size:.56rem}
-.ov-tool-health{font-size:.5rem;font-weight:700;padding:1px 5px;border-radius:3px}
-.ov-tool-health.ok{color:var(--green);background:var(--greens)}
-.ov-tool-health.warn{color:var(--amber);background:var(--ambers)}
-.ov-source-row{display:flex;align-items:center;gap:6px;padding:2px 0;font-size:.6rem}
-.ov-source-bar{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
-.ov-source-pct{font-size:.5rem;color:var(--t3);font-family:var(--fm);flex-shrink:0}
-.ov-zsc-row{display:flex;gap:8px;align-items:center;font-size:.58rem;padding-top:4px;margin-top:4px;border-top:1px solid var(--brd)}
-@media(max-width:768px){.ov-estate-grid{grid-template-columns:1fr}}
+  const TABS = ['overview','alerts','coverage','vulns','intel','incidents'];
 
-.ov-attention{padding:12px;background:var(--bg1);border:1px solid var(--red)20;border-radius:var(--r2);border-left:3px solid var(--red)}
-.ov-attention-hd{font-size:.78rem;font-weight:800;color:var(--red);margin-bottom:8px}
-.ov-attention-list{display:flex;flex-direction:column;gap:3px}
-.ov-attn-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;transition:background .15s;font-size:.72rem}
-.ov-attn-row:hover{background:var(--bg3)}
-.ov-attn-row.crit{border-left:2px solid var(--red)}
-.ov-attn-row.high{border-left:2px solid #f97316}
-.ov-attn-sev{font-size:.5rem;font-weight:800;padding:1px 5px;border-radius:3px;flex-shrink:0}
-.ov-attn-row.crit .ov-attn-sev{color:var(--red);background:var(--reds)}
-.ov-attn-row.high .ov-attn-sev{color:#f97316;background:#f9731610}
-.ov-attn-title{font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ov-attn-meta{font-size:.58rem;color:var(--t3);flex-shrink:0;font-family:var(--fm)}
-.ov-attn-action{font-size:.58rem;color:var(--accent);font-weight:600;flex-shrink:0}
-.ov-recent{padding:12px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
-.ov-recent-hd{font-size:.72rem;font-weight:700;color:var(--t2);margin-bottom:8px}
-@media(max-width:768px){.ov-ai-grid{grid-template-columns:repeat(3,1fr)}.ov-ai-hero-top{flex-direction:column}}
+  return (
+    <div style={{display:'flex',minHeight:'100vh',background:'#050508',color:'#e8ecf4',fontFamily:'Inter,sans-serif'}}>
+      <style>{`
+        *{margin:0;padding:0;box-sizing:border-box}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap}
+        .tab-btn.active{background:#4f8fff18;color:#4f8fff}
+        .tab-btn:not(.active){color:#6b7a94}
+        .tab-btn:not(.active):hover{color:#a0adc4;background:#0a0d14}
+        .row-hover{transition:background .12s}
+        .row-hover:hover{background:#0d1020!important}
+        .vuln-row:hover{background:#0a0d18!important;cursor:pointer}
+        .alert-card{border-radius:10px;border:1px solid #141820;background:#09091a;transition:border-color .15s}
+        .alert-card:hover{border-color:#4f8fff28}
+      `}</style>
 
-.auto-slider{padding:10px 12px;background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);margin-bottom:10px}
-.auto-slider-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.auto-slider-track{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:8px}
-.auto-level{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border:1px solid var(--brd);border-radius:8px;background:var(--bg3);cursor:pointer;font-family:var(--fs);transition:all .15s}
-.auto-level:hover{border-color:var(--accent)30}
-.auto-level.active{border-color:var(--lc,var(--accent));background:color-mix(in srgb,var(--lc,var(--accent)) 8%,transparent)}
-.auto-level-icon{font-size:1.2rem}
-.auto-level-label{font-size:.62rem;font-weight:700;color:var(--t1)}
-.auto-level-desc{font-size:.48rem;color:var(--t3);text-align:center;line-height:1.3}
-.auto-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.auto-action-toggle{display:flex;align-items:center;gap:3px;font-size:.58rem;color:var(--t2);cursor:pointer}
-.auto-action-toggle input{width:12px;height:12px;accent-color:var(--accent)}
+      {/* SIDEBAR */}
+      <div style={{width:48,background:'#08090f',borderRight:'1px solid #141820',display:'flex',flexDirection:'column',alignItems:'center',padding:'10px 0',gap:4,flexShrink:0}}>
+        <div style={{width:30,height:30,borderRadius:8,background:'linear-gradient(135deg,#4f8fff,#8b6fff)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.62rem',color:'#fff',fontWeight:900,marginBottom:10}}>W</div>
+        {[{t:'overview',i:'📊'},{t:'alerts',i:'🔔'},{t:'coverage',i:'🛡'},{t:'vulns',i:'🔍'},{t:'intel',i:'🌐'},{t:'incidents',i:'📋'}].map(({t,i})=>(
+          <button key={t} onClick={()=>setActiveTab(t)} title={t.charAt(0).toUpperCase()+t.slice(1)} style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem',border:'none',cursor:'pointer',background:activeTab===t?'#4f8fff18':'transparent',transition:'background .15s'}}>
+            {i}{t==='alerts'&&critAlerts.length>0&&<span style={{position:'absolute',marginLeft:16,marginTop:-16,width:7,height:7,borderRadius:'50%',background:'#f0405e',display:'block'}} />}
+          </button>
+        ))}
+        <div style={{marginTop:'auto',display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
+          <a href='/settings' title='Settings' style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem'}}>⚙️</a>
+        </div>
+      </div>
 
-.ai-hero{padding:12px 14px;background:linear-gradient(135deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:var(--r2);margin-bottom:10px;position:relative;overflow:hidden}
-.ai-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--green))}
-.ai-hero-hd{display:flex;align-items:center;gap:6px;font-size:.72rem;font-weight:700;color:var(--accent);margin-bottom:8px}
-.ai-hero-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2s ease infinite}
-.ai-hero-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.ai-hero-stat{text-align:center;padding:6px 0}
-.ai-hero-val{font-size:1.4rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px;line-height:1}
-.ai-hero-label{font-size:.52rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
-.ai-hero-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:8px}
-.ai-hero-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--accent));border-radius:2px;transition:width .5s}
+      {/* MAIN */}
+      <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
 
-.ai-insights{margin-bottom:6px}
-.ai-insight{padding:8px 10px}
-.ai-insight-title{font-size:.7rem}
-.ai-insight-detail{font-size:.62rem}
-.topbar-right{gap:4px}
-.theme-btn{width:28px;height:28px;font-size:.75rem}
-.refresh-btn{display:none}
-.acct-menu{right:0;min-width:200px}
-.desk-only{display:none!important}
-.search-trigger span{display:none}
-.sla-bar{padding:6px 8px}
-.sla-items{flex-direction:column}
-.stream-item{padding:6px 8px}
-.modal{margin:10px;max-height:calc(100vh - 20px)}
-.drawer{width:100%!important;max-width:100%!important}
+        {/* TOP BAR */}
+        <div style={{display:'flex',alignItems:'center',padding:'8px 18px',borderBottom:'1px solid #141820',gap:12,background:'#07080f',flexShrink:0,flexWrap:'wrap'}}>
+          <div style={{display:'flex',gap:2}}>
+            {TABS.map(t=>(
+              <button key={t} className={`tab-btn${activeTab===t?' active':''}`} onClick={()=>setActiveTab(t)}>
+                {t.charAt(0).toUpperCase()+t.slice(1)}
+                {t==='alerts'&&critAlerts.length>0&&<span style={{marginLeft:5,fontSize:'0.48rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f0405e',color:'#fff'}}>{critAlerts.length}</span>}
+                {t==='vulns'&&kevVulns.length>0&&<span style={{marginLeft:5,fontSize:'0.48rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f97316',color:'#fff'}}>{kevVulns.length} KEV</span>}
+              </button>
+            ))}
+          </div>
+          <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:10}}>
+            <div style={{display:'flex',alignItems:'center',gap:6,padding:'4px 10px',borderRadius:7,background:'#0a0d14',border:'1px solid #141820'}}>
+              <span style={{fontSize:'0.62rem',color:'#6b7a94'}}>Automation:</span>
+              {(['Recommend','Auto+Notify','Full Auto'] as const).map((l,i)=>(
+                <button key={l} onClick={()=>setAutomation(i as AutomationLevel)} style={{padding:'2px 8px',borderRadius:4,fontSize:'0.58rem',fontWeight:700,border:'none',cursor:'pointer',background:automation===i?'#4f8fff':'transparent',color:automation===i?'#fff':'#6b7a94',fontFamily:'Inter,sans-serif',transition:'all .15s'}}>{l}</button>
+              ))}
+            </div>
+            <div style={{display:'flex',alignItems:'center',gap:5,fontSize:'0.7rem',color:'#6b7a94'}}>
+              <span style={{width:6,height:6,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',display:'block',animation:'pulse 2s ease infinite'}} />
+              {activeTools.length} tools live
+            </div>
+          </div>
+        </div>
 
+        {/* CONTENT */}
+        <div style={{flex:1,overflow:'auto',padding:'16px 18px'}}>
+
+          {/* ═══════════════════════════════ OVERVIEW ═══════════════════════════════ */}
+          {activeTab==='overview' && (
+            <div style={{display:'flex',flexDirection:'column',gap:16}}>
+
+              {/* AI Brief */}
+              <div style={{padding:'12px 16px',background:'linear-gradient(135deg,rgba(79,143,255,0.05),rgba(34,201,146,0.05))',border:'1px solid #4f8fff18',borderRadius:12,display:'flex',alignItems:'flex-start',gap:10}}>
+                <div style={{width:7,height:7,borderRadius:'50%',background:'#4f8fff',boxShadow:'0 0 8px #4f8fff',flexShrink:0,marginTop:2,animation:'pulse 3s ease infinite'}} />
+                <div style={{flex:1}}>
+                  <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',marginBottom:3}}>AI SHIFT BRIEF — {new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
+                  <div style={{fontSize:'0.78rem',color:'#8a9ab0',lineHeight:1.65}}>Processed {alerts.length} alerts this session. Auto-closed {fpAlerts.length} false positives. Escalated {tpAlerts.length} true positives to incidents. <strong style={{color:'#f0405e'}}>{critAlerts.length} critical alerts</strong> require immediate attention. Estate coverage at {coveredPct}% — {gapDevices.length} devices missing agents.</div>
+                </div>
+                <span style={{fontSize:'0.62rem',color:'#22d49a',fontWeight:700,background:'#22d49a12',padding:'3px 8px',borderRadius:4,flexShrink:0}}>AI Active</span>
+              </div>
+
+              {/* Estate Health 2×2 */}
+              <div>
+                <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Estate Health</div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:10}}>
+
+                  {/* Devices + Gaps */}
+                  <div onClick={()=>setModal({type:'gaps'})} style={{padding:16,background:'#09091a',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
+                    onMouseEnter={e=>(e.currentTarget as HTMLElement).style.borderColor='#4f8fff40'}
+                    onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor='#141820'}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
+                      <div>
+                        <div style={{fontSize:'0.72rem',fontWeight:700,color:'#6b7a94',marginBottom:2}}>Devices</div>
+                        <div style={{fontSize:'2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',letterSpacing:-2,color:'#e8ecf4'}}>{totalDevices}</div>
+                      </div>
+                      <div style={{textAlign:'right'}}>
+                        <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',marginBottom:2}}>{gapDevices.length} with gaps</div>
+                        <div style={{fontSize:'0.52rem',color:'#3a4050'}}>Click to view →</div>
+                      </div>
+                    </div>
+                    <div style={{height:6,background:'#141820',borderRadius:3,overflow:'hidden'}}>
+                      <div style={{height:'100%',background:'linear-gradient(90deg,#22d49a,#4f8fff)',borderRadius:3,width:`${coveredPct}%`,transition:'width 1s'}} />
+                    </div>
+                    <div style={{fontSize:'0.6rem',color:'#6b7a94',marginTop:4}}>{coveredPct}% agent coverage</div>
+                  </div>
+
+                  {/* Tool Status */}
+                  <div onClick={()=>setModal({type:'tools'})} style={{padding:16,background:'#09091a',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
+                    onMouseEnter={e=>(e.currentTarget as HTMLElement).style.borderColor='#4f8fff40'}
+                    onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor='#141820'}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
+                      <div>
+                        <div style={{fontSize:'0.72rem',fontWeight:700,color:'#6b7a94',marginBottom:2}}>Tool Status</div>
+                        <div style={{fontSize:'2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',letterSpacing:-2,color:'#22d49a'}}>{activeTools.length}<span style={{fontSize:'1rem',color:'#3a4050'}}>/{tools.length}</span></div>
+                      </div>
+                      <div style={{textAlign:'right'}}>
+                        <div style={{fontSize:'0.62rem',fontWeight:700,color:tools.filter(t=>!t.active).length>0?'#f0a030':'#22d49a',marginBottom:2}}>{tools.filter(t=>!t.active).length} inactive</div>
+                        <div style={{fontSize:'0.52rem',color:'#3a4050'}}>Click to manage →</div>
+                      </div>
+                    </div>
+                    <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
+                      {tools.map(t=>(
+                        <span key={t.id} style={{fontSize:'0.52rem',fontWeight:600,padding:'2px 7px',borderRadius:4,background:t.active?'#22d49a12':'#f0a03012',color:t.active?'#22d49a':'#f0a030',border:`1px solid ${t.active?'#22d49a20':'#f0a03020'}`}}>{t.name}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Alert Sources */}
+                  <div onClick={()=>setModal({type:'alerts-ingested'})} style={{padding:16,background:'#09091a',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
+                    onMouseEnter={e=>(e.currentTarget as HTMLElement).style.borderColor='#4f8fff40'}
+                    onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor='#141820'}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
+                      <div>
+                        <div style={{fontSize:'0.72rem',fontWeight:700,color:'#6b7a94',marginBottom:2}}>Alerts Ingested</div>
+                        <div style={{fontSize:'2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',letterSpacing:-2,color:'#4f8fff'}}>{alerts.length}</div>
+                      </div>
+                      <div style={{textAlign:'right'}}>
+                        <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',marginBottom:2}}>{critAlerts.length} critical</div>
+                        <div style={{fontSize:'0.52rem',color:'#3a4050'}}>Click for AI detail →</div>
+                      </div>
+                    </div>
+                    <div style={{display:'flex',gap:6}}>
+                      {[{l:'TP',v:tpAlerts.length,c:'#f0405e'},{l:'FP',v:fpAlerts.length,c:'#22d49a'},{l:'SUS',v:alerts.filter(a=>a.verdict==='SUS').length,c:'#f0a030'}].map(s=>(
+                        <div key={s.l} style={{flex:1,textAlign:'center',padding:'4px 0',background:'#050508',borderRadius:6}}>
+                          <div style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.c}}>{s.v}</div>
+                          <div style={{fontSize:'0.5rem',color:'#3a4050',fontWeight:700}}>{s.l}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Vulns / SLA */}
+                  <div onClick={()=>setActiveTab('vulns')} style={{padding:16,background:'#09091a',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
+                    onMouseEnter={e=>(e.currentTarget as HTMLElement).style.borderColor='#4f8fff40'}
+                    onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor='#141820'}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
+                      <div>
+                        <div style={{fontSize:'0.72rem',fontWeight:700,color:'#6b7a94',marginBottom:2}}>Vulnerabilities</div>
+                        <div style={{fontSize:'2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',letterSpacing:-2,color:'#f0405e'}}>{vulns.length}</div>
+                      </div>
+                      <div style={{textAlign:'right'}}>
+                        <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',marginBottom:2}}>{kevVulns.length} KEV — patch now</div>
+                        <div style={{fontSize:'0.52rem',color:'#3a4050'}}>Click for details →</div>
+                      </div>
+                    </div>
+                    <div style={{display:'flex',gap:6}}>
+                      {[{l:'Crit',v:critVulns.length,c:'#f0405e'},{l:'High',v:vulns.filter(v=>v.severity==='High').length,c:'#f97316'},{l:'Med',v:vulns.filter(v=>v.severity==='Medium').length,c:'#f0a030'}].map(s=>(
+                        <div key={s.l} style={{flex:1,textAlign:'center',padding:'4px 0',background:'#050508',borderRadius:6}}>
+                          <div style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.c}}>{s.v}</div>
+                          <div style={{fontSize:'0.5rem',color:'#3a4050',fontWeight:700}}>{s.l}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Posture */}
+              <div style={{display:'flex',alignItems:'center',gap:12,padding:16,background:'#09091a',border:'1px solid #141820',borderRadius:12}}>
+                <div style={{position:'relative',width:64,height:64,flexShrink:0}}>
+                  <svg viewBox='0 0 100 100' style={{width:'100%',height:'100%'}}>
+                    <circle cx={50} cy={50} r={42} fill='none' stroke='#141820' strokeWidth={8} />
+                    <circle cx={50} cy={50} r={42} fill='none' stroke={postureColor} strokeWidth={8} strokeDasharray={`${(posture/100)*264} 264`} strokeLinecap='round' transform='rotate(-90 50 50)' style={{transition:'stroke-dasharray 1s ease'}} />
+                  </svg>
+                  <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-60%)',fontSize:'1.2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:postureColor}}>{posture}</div>
+                  <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,45%)',fontSize:'0.6rem',fontWeight:800,color:postureColor}}>C+</div>
+                </div>
+                <div>
+                  <div style={{fontSize:'0.82rem',fontWeight:700,marginBottom:3}}>Security Posture</div>
+                  <div style={{fontSize:'0.74rem',color:'#6b7a94',lineHeight:1.6}}>{critAlerts.length} critical alerts active · {kevVulns.length} KEV patches outstanding · {gapDevices.length} devices uncovered</div>
+                  <div style={{fontSize:'0.64rem',color:'#f0a030',marginTop:4}}>⚠ Under pressure — address critical alerts and KEV patches to improve grade</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ═══════════════════════════════ ALERTS ══════════════════════════════════ */}
+          {activeTab==='alerts' && (
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
+                <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Live Alerts</h2>
+                <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{autLabel} — AI handling enabled</span>
+                <span style={{marginLeft:'auto',fontSize:'0.7rem',color:'#6b7a94'}}>{alerts.length} total · {fpAlerts.length} auto-closed · {tpAlerts.length} escalated</span>
+              </div>
+              {alerts.map(alert=>{
+                const vStyle = VERDICT_STYLE[alert.verdict];
+                const expanded = expandedAlerts.has(alert.id);
+                const aiActed = alert.verdict==='FP'||alert.verdict==='TP';
+                return (
+                  <div key={alert.id} className='alert-card' style={{padding:0,overflow:'hidden'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',cursor:'pointer'}} onClick={()=>toggleAlertExpand(alert.id)}>
+                      <div style={{width:4,height:36,borderRadius:2,background:SEV_COLOR[alert.severity],flexShrink:0}} />
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:2}}>
+                          <span style={{fontSize:'0.8rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{alert.title}</span>
+                        </div>
+                        <div style={{display:'flex',gap:6,flexWrap:'wrap',alignItems:'center'}}>
+                          <SevBadge sev={alert.severity} />
+                          <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff18'}}>{alert.source}</span>
+                          <span style={{fontSize:'0.52rem',color:'#3a4050',fontFamily:'JetBrains Mono,monospace'}}>{alert.device}</span>
+                          <span style={{fontSize:'0.52rem',color:'#3a4050'}}>{alert.time}</span>
+                          {alert.mitre && <span style={{fontSize:'0.48rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{alert.mitre}</span>}
+                        </div>
+                      </div>
+                      <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
+                        {aiActed && (
+                          <span style={{fontSize:'0.52rem',fontWeight:700,padding:'2px 7px',borderRadius:4,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff18',display:'flex',alignItems:'center',gap:4}}>
+                            <span style={{width:5,height:5,borderRadius:'50%',background:'#4f8fff',display:'block'}} />AI acted
+                          </span>
+                        )}
+                        <span style={{fontSize:'0.56rem',fontWeight:800,padding:'2px 8px',borderRadius:4,color:vStyle.c,background:vStyle.bg}}>{vStyle.label}</span>
+                        <span style={{fontSize:'0.72rem',color:'#3a4050'}}>{expanded?'▲':'▼'}</span>
+                      </div>
+                    </div>
+                    {expanded && (
+                      <div style={{padding:'0 14px 14px 14px',borderTop:'1px solid #141820'}}>
+                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginTop:12}}>
+                          <div>
+                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'#4a5568',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Reasoning</div>
+                            <div style={{fontSize:'0.74rem',color:'#8a9ab0',lineHeight:1.65}}>{alert.aiReasoning}</div>
+                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'#4a5568',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6,marginTop:10}}>Evidence Chain</div>
+                            {alert.evidenceChain.map(e=>(
+                              <div key={e} style={{fontSize:'0.72rem',color:'#a0adc4',padding:'2px 0 2px 12px',position:'relative'}}>
+                                <span style={{position:'absolute',left:0,top:9,width:5,height:5,borderRadius:'50%',background:'#4f8fff',display:'block'}} />{e}
+                              </div>
+                            ))}
+                          </div>
+                          <div>
+                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Actions Taken</div>
+                            {alert.aiActions.map(a=>(
+                              <div key={a} style={{fontSize:'0.72rem',color:'#22d49a',padding:'2px 0',display:'flex',gap:6}}>
+                                <span>✓</span><span>{a}</span>
+                              </div>
+                            ))}
+                            {alert.runbookSteps.length>0 && (
+                              <>
+                                <div style={{fontSize:'0.6rem',fontWeight:700,color:'#4a5568',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6,marginTop:10}}>Runbook Steps</div>
+                                {alert.runbookSteps.map((s,i)=>(
+                                  <div key={s} style={{fontSize:'0.72rem',color:'#8a9ab0',padding:'2px 0',display:'flex',gap:6}}>
+                                    <span style={{color:'#4f8fff',fontWeight:700,flexShrink:0,fontSize:'0.6rem',background:'#4f8fff15',borderRadius:3,padding:'1px 4px'}}>{i+1}</span><span>{s}</span>
+                                  </div>
+                                ))}
+                              </>
+                            )}
+                            {alert.incidentId && (
+                              <button onClick={()=>{ setActiveTab('incidents'); setSelectedIncident(incidents.find(i=>i.id===alert.incidentId)||null); }} style={{marginTop:10,padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                                → View {alert.incidentId}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ═══════════════════════════════ COVERAGE ═══════════════════════════════ */}
+          {activeTab==='coverage' && (
+            <div style={{display:'flex',flexDirection:'column',gap:14}}>
+              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
+                <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Coverage</h2>
+                <span style={{fontSize:'0.62rem',color:coveredPct>=90?'#22d49a':'#f0a030',background:coveredPct>=90?'#22d49a12':'#f0a03012',padding:'2px 8px',borderRadius:4}}>{coveredPct}% estate covered</span>
+              </div>
+
+              {/* Per-tool coverage */}
+              <div>
+                <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Tool Coverage Across Estate</div>
+                <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                  {activeTools.map(tool=>{
+                    const pct = tool.id==='crowdstrike'?96:tool.id==='defender'?91:tool.id==='darktrace'?100:tool.id==='splunk'?98:tool.id==='tenable'?84:tool.id==='proofpoint'?100:tool.id==='sentinel'?100:88;
+                    const gapCount = Math.round(totalDevices*(1-pct/100));
+                    const pctColor = pct>=95?'#22d49a':pct>=85?'#f0a030':'#f0405e';
+                    return (
+                      <div key={tool.id} style={{padding:'10px 14px',background:'#09091a',border:'1px solid #141820',borderRadius:10,display:'flex',alignItems:'center',gap:12}}>
+                        <div style={{width:110,fontSize:'0.76rem',fontWeight:600,flexShrink:0}}>{tool.name}</div>
+                        <div style={{flex:1,height:8,background:'#141820',borderRadius:4,overflow:'hidden'}}>
+                          <div style={{height:'100%',background:`linear-gradient(90deg,${pctColor},${pctColor}aa)`,borderRadius:4,width:`${pct}%`,transition:'width 1s'}} />
+                        </div>
+                        <span style={{fontSize:'0.72rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:pctColor,minWidth:36,textAlign:'right'}}>{pct}%</span>
+                        <span style={{fontSize:'0.6rem',color:'#3a4050',minWidth:80,textAlign:'right'}}>{gapCount>0?<span style={{color:'#f0a030'}}>{gapCount} devices missing</span>:'Full coverage'}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Devices with gaps */}
+              <div>
+                <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Devices with Gaps ({gapDevices.length})</div>
+                <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                  {gapDevices.map(dev=>(
+                    <div key={dev.hostname} style={{padding:'12px 14px',background:'#09091a',border:'1px solid #f0405e18',borderRadius:10}}>
+                      <div style={{display:'flex',alignItems:'flex-start',gap:10}}>
+                        <div style={{flex:1}}>
+                          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                            <span style={{fontSize:'0.8rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace'}}>{dev.hostname}</span>
+                            <span style={{fontSize:'0.6rem',color:'#3a4050',fontFamily:'JetBrains Mono,monospace'}}>{dev.ip}</span>
+                            <span style={{fontSize:'0.58rem',color:'#6b7a94'}}>{dev.os}</span>
+                          </div>
+                          <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:4}}>
+                            {dev.missing.map(m=>(
+                              <span key={m} style={{fontSize:'0.52rem',fontWeight:700,padding:'2px 7px',borderRadius:3,background:'#f0405e12',color:'#f0405e',border:'1px solid #f0405e20'}}>Missing: {m}</span>
+                            ))}
+                          </div>
+                          <div style={{fontSize:'0.66rem',color:'#6b7a94'}}>{dev.reason} · Last seen {dev.lastSeen}</div>
+                        </div>
+                        <button style={{padding:'4px 10px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Deploy Agent</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ═══════════════════════════════ VULNS ══════════════════════════════════ */}
+          {activeTab==='vulns' && (
+            <div style={{display:'flex',flexDirection:'column',gap:0}}>
+              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
+                <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Top 10 Vulnerabilities</h2>
+                <span style={{fontSize:'0.62rem',color:'#f0405e',background:'#f0405e12',padding:'2px 8px',borderRadius:4}}>Ranked by severity × prevalence in your estate</span>
+                <span style={{marginLeft:'auto',fontSize:'0.62rem',color:'#f97316',background:'#f9731612',padding:'2px 8px',borderRadius:4}}>{kevVulns.length} CISA KEV — 72h deadline</span>
+              </div>
+              <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                {DEMO_VULNS.map((vuln,rank)=>(
+                  <div key={vuln.id}>
+                    <div className='vuln-row' onClick={()=>setSelectedVuln(selectedVuln?.id===vuln.id?null:vuln)} style={{padding:'10px 14px',background:selectedVuln?.id===vuln.id?'#0a0d18':'#09091a',border:`1px solid ${selectedVuln?.id===vuln.id?'#4f8fff30':'#141820'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12}}>
+                      <div style={{width:22,height:22,borderRadius:6,background:rank<3?'#f0405e18':'#141820',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.62rem',fontWeight:900,color:rank<3?'#f0405e':'#6b7a94',flexShrink:0,fontFamily:'JetBrains Mono,monospace'}}>{rank+1}</div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:2}}>
+                          <span style={{fontSize:'0.78rem',fontWeight:700}}>{vuln.title}</span>
+                          {vuln.kev && <span style={{fontSize:'0.48rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f97316',color:'#fff',flexShrink:0}}>CISA KEV</span>}
+                        </div>
+                        <div style={{display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}>
+                          <SevBadge sev={vuln.severity} />
+                          <span style={{fontSize:'0.6rem',color:'#4f8fff',fontFamily:'JetBrains Mono,monospace',fontWeight:700}}>CVSS {vuln.cvss}</span>
+                          <span style={{fontSize:'0.6rem',color:'#3a4050',fontFamily:'JetBrains Mono,monospace'}}>{vuln.cve}</span>
+                          <span style={{fontSize:'0.58rem',color:'#6b7a94'}}>{vuln.affected} device{vuln.affected!==1?'s':''} affected</span>
+                          <span style={{fontSize:'0.58rem',color:'#f0a030'}}>{vuln.prevalence}% prevalence in estate</span>
+                        </div>
+                      </div>
+                      <span style={{fontSize:'0.62rem',color:'#4f8fff',flexShrink:0}}>{selectedVuln?.id===vuln.id?'▲':'▼'}</span>
+                    </div>
+                    {selectedVuln?.id===vuln.id && (
+                      <div style={{padding:'14px 16px',background:'#070912',border:'1px solid #4f8fff20',borderTop:'none',borderRadius:'0 0 10px 10px',marginBottom:0}}>
+                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+                          <div>
+                            <div style={{fontSize:'0.7rem',color:'#8a9ab0',lineHeight:1.65,marginBottom:10}}>{vuln.description}</div>
+                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'#4a5568',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Affected Devices</div>
+                            <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
+                              {vuln.affectedDevices.map(d=><span key={d} style={{fontSize:'0.58rem',padding:'2px 7px',borderRadius:3,background:'#141820',color:'#6b7a94',fontFamily:'JetBrains Mono,monospace'}}>{d}</span>)}
+                            </div>
+                            {vuln.patch && <div style={{marginTop:8,fontSize:'0.66rem',color:'#22d49a'}}>📦 Patch available: <strong>{vuln.patch}</strong></div>}
+                          </div>
+                          <div>
+                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'#4a5568',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Remediation Steps</div>
+                            {vuln.remediation.map((r,i)=>(
+                              <div key={r} style={{fontSize:'0.7rem',color:'#8a9ab0',padding:'3px 0 3px 14px',position:'relative',lineHeight:1.5}}>
+                                <span style={{position:'absolute',left:0,top:9,width:5,height:5,borderRadius:'50%',background:'#22d49a',display:'block'}} />
+                                {r}
+                              </div>
+                            ))}
+                            <div style={{marginTop:12,padding:'10px',background:'#0a0d14',border:'1px solid #4f8fff18',borderRadius:8}}>
+                              <div style={{fontSize:'0.6rem',fontWeight:700,color:'#4f8fff',marginBottom:6,display:'flex',alignItems:'center',gap:6}}>
+                                <span style={{width:6,height:6,borderRadius:'50%',background:'#4f8fff',display:'block'}} />AI Remediation Assistant
+                              </div>
+                              {vulnAiText ? (
+                                <div style={{fontSize:'0.7rem',color:'#a0adc4',lineHeight:1.65}}>{vulnAiText}</div>
+                              ) : (
+                                <button onClick={()=>getVulnAiHelp(vuln)} disabled={vulnAiLoading} style={{padding:'6px 14px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:6}}>
+                                  {vulnAiLoading?<span style={{display:'inline-block',width:10,height:10,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />:'✦'}
+                                  {vulnAiLoading?'Generating guidance…':'Ask AI for remediation help'}
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ═══════════════════════════════ INTEL ══════════════════════════════════ */}
+          {activeTab==='intel' && (
+            <div style={{display:'flex',flexDirection:'column',gap:12}}>
+              <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+                <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Threat Intelligence</h2>
+                <div style={{display:'flex',alignItems:'center',gap:6,marginLeft:'auto'}}>
+                  <span style={{fontSize:'0.7rem',color:'#6b7a94'}}>Industry:</span>
+                  <select value={industry} onChange={e=>{setIndustry(e.target.value);fetchIntelForIndustry(e.target.value);}} style={{padding:'4px 10px',borderRadius:6,border:'1px solid #1e2536',background:'#0a0d14',color:'#e8ecf4',fontSize:'0.76rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                    {INDUSTRIES.map(i=><option key={i} value={i}>{i}</option>)}
+                  </select>
+                  {intelLoading && <span style={{width:14,height:14,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}} />}
+                </div>
+              </div>
+
+              {/* Industry-specific intel first */}
+              <div>
+                <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>
+                  {industry} — Active Threats
+                </div>
+                {allIntel.filter(i=>i.industrySpecific).map(item=>(
+                  <div key={item.id} style={{padding:'12px 14px',background:'#0a0206',border:'1px solid #f0405e18',borderRadius:10,marginBottom:6}}>
+                    <div style={{display:'flex',alignItems:'flex-start',gap:10}}>
+                      <div style={{flex:1}}>
+                        <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4}}>
+                          <SevBadge sev={item.severity} />
+                          <span style={{fontSize:'0.78rem',fontWeight:700}}>{item.title}</span>
+                        </div>
+                        <div style={{fontSize:'0.74rem',color:'#8a9ab0',lineHeight:1.65,marginBottom:6}}>{item.summary}</div>
+                        <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+                          <span style={{fontSize:'0.58rem',color:'#4f8fff'}}>{item.source}</span>
+                          <span style={{fontSize:'0.58rem',color:'#3a4050'}}>{item.time}</span>
+                          {item.mitre && <span style={{fontSize:'0.52rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{item.mitre}</span>}
+                          {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.58rem',color:'#f0a030'}}>{item.iocs.length} IOCs available</span>}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* General intel */}
+              <div>
+                <div style={{fontSize:'0.62rem',fontWeight:700,color:'#6b7a94',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>General Intelligence</div>
+                {allIntel.filter(i=>!i.industrySpecific).map(item=>(
+                  <div key={item.id} style={{padding:'12px 14px',background:'#09091a',border:'1px solid #141820',borderRadius:10,marginBottom:6}}>
+                    <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4}}>
+                      <SevBadge sev={item.severity} />
+                      <span style={{fontSize:'0.78rem',fontWeight:700}}>{item.title}</span>
+                    </div>
+                    <div style={{fontSize:'0.74rem',color:'#8a9ab0',lineHeight:1.65,marginBottom:6}}>{item.summary}</div>
+                    <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                      <span style={{fontSize:'0.58rem',color:'#4f8fff'}}>{item.source}</span>
+                      <span style={{fontSize:'0.58rem',color:'#3a4050'}}>{item.time}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Darktrace anomalies if active */}
+              {darktrace?.active && (
+                <div>
+                  <div style={{fontSize:'0.62rem',fontWeight:700,color:'#8b6fff',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Darktrace — Network Anomalies</div>
+                  {[
+                    {device:'SRV-FINANCE01',score:96,desc:'Anomalous outbound HTTPS beaconing — 300s interval, unusual destination',time:'1h ago'},
+                    {device:'laptop-CFO01',score:88,desc:'Unusual internal reconnaissance — scanning 10.0.0.0/24 subnet',time:'2h ago'},
+                    {device:'SRV-APP02',score:72,desc:'Elevated data transfer to external storage provider — 3x baseline',time:'3h ago'},
+                  ].map(a=>(
+                    <div key={a.device} style={{padding:'10px 14px',background:'#09091a',border:'1px solid #8b6fff18',borderRadius:10,marginBottom:5,display:'flex',alignItems:'center',gap:10}}>
+                      <div style={{width:38,height:38,borderRadius:8,background:'#8b6fff15',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                        <span style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:'#8b6fff'}}>{a.score}</span>
+                      </div>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:'0.76rem',fontWeight:700,marginBottom:2}}>{a.device}</div>
+                        <div style={{fontSize:'0.7rem',color:'#6b7a94'}}>{a.desc}</div>
+                      </div>
+                      <span style={{fontSize:'0.6rem',color:'#3a4050',flexShrink:0}}>{a.time}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ═══════════════════════════════ INCIDENTS ══════════════════════════════ */}
+          {activeTab==='incidents' && (
+            <div style={{display:'flex',flexDirection:'column',gap:12}}>
+              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
+                <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Incidents</h2>
+                <span style={{fontSize:'0.62rem',color:'#f0405e',background:'#f0405e12',padding:'2px 8px',borderRadius:4}}>{incidents.filter(i=>i.status==='Active').length} Active</span>
+              </div>
+              {incidents.map(inc=>{
+                const isSel = selectedIncident?.id===inc.id;
+                const statusColor = inc.status==='Active'?'#f0405e':inc.status==='Contained'?'#f0a030':'#22d49a';
+                return (
+                  <div key={inc.id} style={{background:'#09091a',border:`1px solid ${isSel?'#4f8fff40':'#141820'}`,borderRadius:12,overflow:'hidden'}}>
+                    <div style={{padding:'12px 16px',cursor:'pointer',display:'flex',alignItems:'flex-start',gap:12}} onClick={()=>setSelectedIncident(isSel?null:inc)}>
+                      <div style={{flex:1}}>
+                        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                          <span style={{fontSize:'0.62rem',fontWeight:800,color:'#4f8fff',fontFamily:'JetBrains Mono,monospace'}}>{inc.id}</span>
+                          <span style={{fontSize:'0.52rem',fontWeight:700,padding:'2px 7px',borderRadius:3,background:`${statusColor}15`,color:statusColor,border:`1px solid ${statusColor}25`}}>{inc.status.toUpperCase()}</span>
+                          <SevBadge sev={inc.severity} />
+                        </div>
+                        <div style={{fontSize:'0.84rem',fontWeight:700,marginBottom:4}}>{inc.title}</div>
+                        <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
+                          {inc.mitreTactics.map(t=><span key={t} style={{fontSize:'0.52rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{t}</span>)}
+                          <span style={{fontSize:'0.58rem',color:'#3a4050'}}>{inc.alertCount} alerts · {inc.devices.length} devices</span>
+                          <span style={{fontSize:'0.58rem',color:'#3a4050'}}>Updated {inc.updated.split(' ')[1]}</span>
+                        </div>
+                      </div>
+                      <span style={{fontSize:'0.7rem',color:'#3a4050',flexShrink:0}}>{isSel?'▲':'▼'}</span>
+                    </div>
+                    {isSel && (
+                      <div style={{borderTop:'1px solid #141820',padding:'14px 16px'}}>
+                        <div style={{fontSize:'0.74rem',color:'#8a9ab0',lineHeight:1.65,padding:'10px',background:'linear-gradient(135deg,rgba(79,143,255,0.04),rgba(34,201,146,0.04))',border:'1px solid #4f8fff15',borderRadius:8,marginBottom:12}}>
+                          <span style={{fontSize:'0.6rem',fontWeight:700,color:'#4f8fff',display:'block',marginBottom:4}}>AI ATTACK NARRATIVE</span>
+                          {inc.aiSummary}
+                        </div>
+                        <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4a5568',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Attack Timeline</div>
+                        <div style={{display:'flex',flexDirection:'column',gap:0}}>
+                          {inc.timeline.map((event,i)=>(
+                            <div key={i} style={{display:'flex',gap:0,padding:'5px 0'}}>
+                              <div style={{display:'flex',flexDirection:'column',alignItems:'center',minWidth:50}}>
+                                <span style={{fontSize:'0.6rem',fontFamily:'JetBrains Mono,monospace',color:'#3a4050',marginBottom:3}}>{event.t}</span>
+                                <div style={{width:8,height:8,borderRadius:'50%',background:event.actor==='AI'?'#4f8fff':'#22d49a',flexShrink:0}} />
+                                {i<inc.timeline.length-1&&<div style={{width:1,flex:1,background:'#141820',minHeight:16,marginTop:2}} />}
+                              </div>
+                              <div style={{flex:1,paddingLeft:10,paddingBottom:8}}>
+                                <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:1}}>
+                                  <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:event.actor==='AI'?'#4f8fff15':'#22d49a15',color:event.actor==='AI'?'#4f8fff':'#22d49a'}}>{event.actor}</span>
+                                  <span style={{fontSize:'0.74rem',fontWeight:600}}>{event.action}</span>
+                                </div>
+                                <div style={{fontSize:'0.68rem',color:'#6b7a94'}}>{event.detail}</div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{display:'flex',gap:6,marginTop:10}}>
+                          {['Add Note','Escalate','Close Incident'].map(a=>(
+                            <button key={a} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #1e2536',background:'transparent',color:'#8a9ab0',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{a}</button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════ MODALS ════════════════════════════════════ */}
+
+      {/* Coverage Gap Modal */}
+      {modal?.type==='gaps' && (
+        <Modal title={`Coverage Gaps — ${gapDevices.length} Devices`} onClose={()=>setModal(null)}>
+          <div style={{marginBottom:10,padding:'8px 12px',background:'#f0405e0a',border:'1px solid #f0405e18',borderRadius:8,fontSize:'0.74rem',color:'#f0405e'}}>
+            ⚠ These devices have no agent coverage — they are invisible to your security tools and represent active risk.
+          </div>
+          {gapDevices.map(dev=>(
+            <div key={dev.hostname} style={{padding:'12px 0',borderBottom:'1px solid #141820'}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                <span style={{fontSize:'0.82rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace'}}>{dev.hostname}</span>
+                <span style={{fontSize:'0.6rem',color:'#3a4050',fontFamily:'JetBrains Mono,monospace'}}>{dev.ip}</span>
+                <span style={{fontSize:'0.6rem',color:'#6b7a94'}}>{dev.os}</span>
+                <span style={{fontSize:'0.58rem',color:'#3a4050',marginLeft:'auto'}}>Last seen {dev.lastSeen}</span>
+              </div>
+              <div style={{display:'flex',gap:5,marginBottom:4}}>
+                {dev.missing.map(m=><span key={m} style={{fontSize:'0.56rem',fontWeight:700,padding:'2px 7px',borderRadius:3,background:'#f0405e12',color:'#f0405e',border:'1px solid #f0405e20'}}>Missing: {m}</span>)}
+              </div>
+              <div style={{fontSize:'0.68rem',color:'#6b7a94'}}>{dev.reason}</div>
+            </div>
+          ))}
+        </Modal>
+      )}
+
+      {/* Tools Modal */}
+      {modal?.type==='tools' && (
+        <Modal title='Tool Status' onClose={()=>setModal(null)}>
+          {tools.map(tool=>(
+            <div key={tool.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:'1px solid #141820'}}>
+              <div style={{width:8,height:8,borderRadius:'50%',background:tool.active?'#22c992':'#f0405e',boxShadow:tool.active?'0 0 6px #22c992':'none',flexShrink:0}} />
+              <span style={{flex:1,fontSize:'0.82rem',fontWeight:600}}>{tool.name}</span>
+              <span style={{fontSize:'0.7rem',color:tool.active?'#22d49a':'#f0405e',fontWeight:700}}>{tool.active?'Connected':'Not configured'}</span>
+              {tool.alertCount && tool.alertCount > 0 && <span style={{fontSize:'0.62rem',color:'#4f8fff'}}>{tool.alertCount} alerts today</span>}
+              {!tool.active && <a href='/settings/tools' style={{padding:'3px 10px',borderRadius:5,background:'#4f8fff12',color:'#4f8fff',fontSize:'0.66rem',fontWeight:700,textDecoration:'none'}}>Configure →</a>}
+            </div>
+          ))}
+        </Modal>
+      )}
+
+      {/* Alerts Ingested Modal */}
+      {modal?.type==='alerts-ingested' && (
+        <Modal title={`Alert Ingestion — What AI Did`} onClose={()=>setModal(null)}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:16}}>
+            {[{val:alerts.length,label:'Ingested',c:'#4f8fff'},{val:fpAlerts.length,label:'Auto-Closed FPs',c:'#22d49a'},{val:tpAlerts.length,label:'Escalated TPs',c:'#f0405e'}].map(s=>(
+              <div key={s.label} style={{textAlign:'center',padding:'10px',background:'#050508',borderRadius:8,border:'1px solid #141820'}}>
+                <div style={{fontSize:'1.6rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.c,letterSpacing:-1}}>{s.val}</div>
+                <div style={{fontSize:'0.6rem',color:'#4a5568'}}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+          {alerts.map(a=>(
+            <div key={a.id} style={{padding:'10px 0',borderBottom:'1px solid #141820'}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:2}}>
+                <span style={{width:4,height:16,borderRadius:2,background:SEV_COLOR[a.severity],flexShrink:0}} />
+                <span style={{fontSize:'0.78rem',fontWeight:600,flex:1}}>{a.title}</span>
+                <span style={{fontSize:'0.56rem',fontWeight:800,padding:'2px 7px',borderRadius:3,color:VERDICT_STYLE[a.verdict].c,background:VERDICT_STYLE[a.verdict].bg}}>{a.verdict}</span>
+              </div>
+              <div style={{fontSize:'0.7rem',color:'#22d49a',paddingLeft:12}}>⚡ {a.aiActions[0]}</div>
+            </div>
+          ))}
+        </Modal>
+      )}
+    </div>
+  );
 }
-max-width:380px){
-.kpi-grid{grid-template-columns:1fr!important}
-.qa-btn{min-width:100%}
-.quiet-bar{flex-wrap:wrap}
-.quiet-item{min-width:60px}
-
-}
-.g2r,.g23{grid-template-columns:1fr}
-.tool-grid{grid-template-columns:1fr}
-
-/* IOC Search */
-.search-trigger{border:none;background:var(--bg2);border-radius:8px;padding:6px 12px;font-size:.72rem;color:var(--t3);cursor:pointer;display:flex;align-items:center;gap:4px;font-family:var(--fs);transition:all .15s;outline:none}
-.search-trigger-old{height:30px;padding:0 10px;border-radius:var(--r);border:1px solid var(--brd);background:var(--bg2);cursor:pointer;font-size:.72rem;font-family:var(--fs);color:var(--t2);display:flex;align-items:center;gap:4px;transition:all .15s}
-.search-trigger:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-s)}
-.ioc-result{padding:8px 10px;border:1px solid var(--brd);border-radius:var(--r);margin-bottom:6px;background:var(--bg2);transition:border-color .15s}
-.ioc-result:hover{border-color:var(--brd2)}
-/* Response Actions */
-.action-dropdown{position:absolute;right:0;top:100%;margin-top:4px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2);box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:50;min-width:220px;padding:4px}
-.action-item{display:block;width:100%;text-align:left;padding:6px 10px;border:none;background:none;color:var(--t1);font-size:.72rem;font-family:var(--fs);cursor:pointer;border-radius:5px;transition:all .15s}
-.action-item:hover{background:var(--bg2)}
-.action-item:disabled{opacity:.5}
-.action-result{padding:6px 8px;margin:4px;border-radius:5px;font-size:.68rem}
-.action-result.ok{background:var(--greens);color:var(--green)}
-.action-result.err{background:var(--reds);color:var(--red)}
-/* Correlation */
-.corr-group td{background:var(--accent-s)!important}
-.ai-response{font-size:.8rem;color:var(--t1);line-height:1.6;white-space:pre-wrap}
-.ai-response strong{color:var(--accent);font-weight:700}
-.ai-response p{margin-bottom:6px}
-/* User Guide */
-.guide-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:200;display:flex;justify-content:flex-end}
-.guide-panel{width:420px;max-width:90vw;background:var(--bg1);border-left:1px solid var(--brd);display:flex;flex-direction:column;animation:slideIn .2s ease}
-@keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
-.guide-hd{display:flex;justify-content:space-between;align-items:flex-start;padding:16px;border-bottom:1px solid var(--brd)}
-.guide-body{flex:1;overflow-y:auto;padding:16px}
-.guide-section{margin-bottom:16px}
-.guide-section h3{font-size:.82rem;font-weight:700;margin-bottom:6px;color:var(--t1)}
-.guide-section ul{list-style:none;padding:0}
-.guide-section li{font-size:.72rem;color:var(--t2);padding:3px 0;padding-left:12px;position:relative;line-height:1.5}
-.guide-section li::before{content:'›';position:absolute;left:0;color:var(--accent);font-weight:700}
-.guide-section p{font-size:.72rem;color:var(--t2);line-height:1.6}
-.shortcut-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
-.shortcut-row{display:flex;align-items:center;gap:8px;font-size:.72rem;padding:3px 0}
-.shortcut-row kbd{background:var(--bg3);border:1px solid var(--brd);padding:1px 6px;border-radius:4px;font-family:var(--fm);font-size:.65rem;color:var(--t1);min-width:20px;text-align:center}
-.shortcut-row span{color:var(--t2)}
-/* Command Palette */
-.cmd-palette{width:480px;max-width:90vw;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2);box-shadow:0 20px 60px rgba(0,0,0,.5);margin-top:80px;align-self:flex-start}
-.cmd-input-wrap{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--brd)}
-.cmd-input{flex:1;background:none;border:none;color:var(--t1);font-size:.88rem;font-family:var(--fs);outline:none}
-.cmd-input::placeholder{color:var(--t4)}
-.cmd-list{max-height:300px;overflow-y:auto;padding:4px}
-.cmd-item{display:flex;align-items:center;gap:10px;width:100%;padding:8px 12px;border:none;background:none;color:var(--t1);font-size:.82rem;font-family:var(--fs);cursor:pointer;border-radius:6px;text-align:left;transition:all .1s}
-.cmd-item:hover{background:var(--accent-s);color:var(--accent)}
-.cmd-icon{font-size:1rem;width:24px;text-align:center}
-/* Tab badges */
-.tab-badge{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;border-radius:8px;background:var(--red);color:#fff;font-size:.55rem;font-weight:700;font-family:var(--fm);margin-left:4px;padding:0 4px}
-/* Threat Ticker */
-
-/* Device Drawer */
-.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:200;display:flex;justify-content:flex-end}
-.drawer{width:400px;max-width:90vw;background:var(--bg1);border-left:1px solid var(--brd);display:flex;flex-direction:column;animation:slideIn .2s ease}
-.device-alert-card{padding:10px;border:1px solid var(--brd);border-radius:var(--r);margin-bottom:6px;background:var(--bg2)}
-.guide-btn{height:30px;padding:0 8px;border-radius:var(--r);border:1px solid var(--brd);background:var(--bg2);cursor:pointer;font-size:.82rem;display:flex;align-items:center;justify-content:center;transition:all .15s}
-.guide-btn:hover{border-color:var(--accent);background:var(--accent-s)}
-/* NL Query */
-.nl-bar{margin-bottom:10px;position:relative}
-.nl-input-wrap{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2);transition:border-color .2s}
-.nl-input-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-s)}
-.nl-input{flex:1;background:none;border:none;color:var(--t1);font-size:.82rem;font-family:var(--fs);outline:none}
-.nl-input::placeholder{color:var(--t4)}
-.nl-results{position:absolute;top:100%;left:0;right:0;background:var(--bg1);border:1px solid var(--brd);border-radius:0 0 var(--r2) var(--r2);box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:40;margin-top:-1px}
-/* Collab */
-.collab-bar{display:flex;align-items:center;gap:3px}
-.analyst-avatar{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.52rem;font-weight:700;font-family:var(--fm);border:1.5px solid;cursor:default;transition:transform .15s}
-.analyst-avatar:hover{transform:scale(1.2)}
-.analyst-avatar.away{opacity:.4}
-.pred-card{padding:8px 10px;border-left:3px solid;margin-bottom:6px;background:var(--bg2);border-radius:0 var(--r) var(--r) 0}
-
-to{transform:translateY(0);opacity:1}
-.clickable-row{transition:all .15s ease;cursor:pointer}
-.clickable-row:hover{background:var(--accent-s)!important;box-shadow:inset 3px 0 0 var(--accent)}
-.ti-card{padding:10px 12px;border-left:3px solid;margin-bottom:6px;background:var(--bg2);border-radius:0 var(--r) var(--r) 0;cursor:pointer;transition:all .15s}
-.ti-card:hover{background:var(--bg3)}
-/* Triage */
-.triage-badge{display:inline-flex;flex-direction:column;align-items:center;padding:2px 5px;border-radius:4px;background:var(--bg3);border:1px solid var(--brd);min-width:32px}
-.sidebar{position:fixed;left:0;top:0;bottom:0;width:52px;background:var(--bg1);border-right:1px solid var(--brd);z-index:150;display:flex;flex-direction:column;transition:width .2s ease;overflow:hidden}
-.sidebar.open{width:200px;box-shadow:4px 0 24px rgba(0,0,0,.3)}
-.side-overlay{position:fixed;inset:0;z-index:140;background:rgba(0,0,0,.3)}
-.shell-content{margin-left:52px;flex:1;display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden}
-.side-top{padding:10px 12px;border-bottom:1px solid var(--brd);height:52px;display:flex;align-items:center}
-.side-logo{display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden}
-.side-logo .logo-icon{width:28px;height:28px;min-width:28px}
-.side-label{font-size:.78rem;font-weight:700;color:var(--t1);opacity:0;transition:opacity .15s;white-space:nowrap}
-.sidebar.open .side-label{opacity:1}
-.side-nav{flex:1;padding:8px 6px;display:flex;flex-direction:column;gap:2px}
-.side-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer;border:none;background:none;color:var(--t3);font-family:var(--fs);font-size:.76rem;font-weight:500;transition:all .15s;white-space:nowrap;width:100%;text-align:left}
-.side-item:hover{color:var(--t1);background:var(--bg3)}
-.side-item.active{color:var(--accent);background:var(--accent-s)}
-.side-icon{font-size:1rem;min-width:20px;text-align:center}
-.side-bottom{padding:8px 6px;border-top:1px solid var(--brd);display:flex;flex-direction:column;gap:2px}
-.side-toggle{width:32px;height:32px;border:none;background:none;color:var(--t2);cursor:pointer;font-size:1rem;border-radius:6px}
-.side-toggle:hover{background:var(--bg3)}
-.mob-only{display:none}.mob-menu{display:none}.mob-nav{display:none}
-@media(max-width:768px){
-.sidebar{width:0;border:none}
-.sidebar.open{width:220px}
-.shell-content{margin-left:0!important}
-.topbar{padding:0 10px;height:42px;gap:4px}
-.main{padding:8px;overflow-x:hidden}
-.logo{font-size:.82rem;gap:5px}
-.logo-icon{width:22px;height:22px;font-size:.55rem}
-.war-room{flex-direction:column;gap:6px}
-.wr-left,.wr-right{width:100%}
-.kpi-grid{grid-template-columns:repeat(2,1fr)!important;gap:4px!important}
-.g2r,.g23{grid-template-columns:1fr!important}
-.panel{border-radius:8px;margin-bottom:4px}
-.panel-hd{padding:6px 10px}
-.panel-hd h3{font-size:.72rem}
-.tbl th,.tbl td{padding:3px 4px;font-size:.64rem}
-.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.filter-row{flex-wrap:wrap;gap:3px}
-.pills{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;gap:2px;padding-bottom:2px}
-.pill{white-space:nowrap;flex-shrink:0;padding:3px 8px;font-size:.62rem}
-
-.ai-brief{padding:12px 14px;background:linear-gradient(135deg,rgba(59,139,255,.04),rgba(34,201,146,.04));border:1px solid var(--accent)15;border-radius:var(--r2);margin-bottom:10px}
-.ai-brief-hd{display:flex;align-items:center;gap:6px;font-size:.72rem;font-weight:700;color:var(--accent);margin-bottom:6px}
-.ai-brief-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2s ease infinite}
-.ai-brief-text{font-size:.78rem;color:var(--t2);line-height:1.65}
-.ai-brief-text strong{color:var(--t1)}
-
-
-
-
-
-.alert-card{border:1px solid var(--brd);border-radius:8px;margin-bottom:4px;overflow:hidden;transition:border-color .15s}
-.alert-card.tp{border-left:3px solid var(--red)}
-.alert-card.sus{border-left:3px solid var(--amber)}
-.alert-card.fp{border-left:3px solid var(--green);opacity:.6}
-.alert-card.fp:hover{opacity:1}
-.alert-card-top{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;cursor:pointer;gap:8px;transition:background .12s}
-.alert-card-top:hover{background:var(--bg3)}
-.expand-icon{font-size:.5rem;color:var(--t3);flex-shrink:0}
-.alert-card-detail{padding:10px 12px;background:var(--bg2);border-top:1px solid var(--brd)}
-.ai-reasoning{padding:8px 10px;background:linear-gradient(135deg,var(--accent)06,var(--green)04);border:1px solid var(--accent)15;border-radius:8px;margin-bottom:8px}
-.ai-reasoning-hd{display:flex;align-items:center;gap:5px;font-size:.62rem;font-weight:700;color:var(--accent);margin-bottom:5px}
-.ai-reasoning-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent)}
-.ai-reasoning-text{font-size:.7rem;color:var(--t2);line-height:1.6}
-.ai-evidence-list,.ai-actions-taken,.ai-runbook{margin-bottom:6px}
-.ai-evidence-hd{font-size:.56rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
-.ai-evidence-item{font-size:.66rem;color:var(--t2);padding:1px 0;padding-left:4px}
-.ai-action-item{font-size:.66rem;color:var(--green);padding:2px 0}
-.ai-runbook-step{display:flex;align-items:flex-start;gap:6px;font-size:.66rem;color:var(--t2);padding:2px 0;line-height:1.5}
-.ai-runbook-num{min-width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:.48rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.alert-card-actions{display:flex;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid var(--brd)}
-
-.tab-clean{display:flex;flex-direction:column;gap:8px}
-.tab-summary{padding:12px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
-.tab-summary-stats{display:flex;gap:12px;flex-wrap:wrap}
-.tss{display:flex;flex-direction:column;align-items:center;min-width:60px}
-.tss-val{font-size:1.3rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px}
-.tss-label{font-size:.48rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
-.attn-section{padding:10px 12px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
-.attn-hd{font-size:.72rem;font-weight:700;margin-bottom:6px}
-.fp-section{opacity:.6}
-.fp-section:hover{opacity:1}
-.alert-row{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:6px;cursor:pointer;transition:background .12s;gap:8px}
-.alert-row:hover{background:var(--bg3)}
-.alert-row.tp{border-left:2px solid var(--red)}
-.alert-row.sus{border-left:2px solid var(--amber)}
-.alert-row.fp{border-left:2px solid var(--green)}
-.alert-row-left{display:flex;align-items:center;gap:6px;flex:1;min-width:0}
-.alert-row-title{font-size:.72rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.alert-row-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.alert-row-device{font-size:.58rem;font-family:var(--fm);color:var(--accent);cursor:pointer;text-decoration:underline dotted}
-.verdict-badge{font-size:.48rem;font-weight:800;padding:1px 5px;border-radius:3px;flex-shrink:0}
-.tp-badge{color:var(--red);background:var(--reds)}
-.sus-badge{color:var(--amber);background:var(--ambers)}
-.fp-badge{color:var(--green);background:var(--greens)}
-
-.ov-clean{display:flex;flex-direction:column;gap:10px}
-.ov-ai-hero{padding:16px;background:linear-gradient(135deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:var(--r2);position:relative;overflow:hidden}
-.ov-ai-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--green))}
-.ov-ai-hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-.ov-ai-status{display:flex;align-items:center;gap:6px;font-size:.82rem;font-weight:800;color:var(--accent)}
-.ov-ai-pulse{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2s ease infinite}
-.ov-ai-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:12px}
-.ov-ai-stat{text-align:center;padding:10px 4px;background:var(--bg3);border-radius:10px;border:1px solid var(--brd)}
-.ov-ai-val{font-size:1.5rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px;line-height:1}
-.ov-ai-label{font-size:.5rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:3px}
-.ov-ai-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;position:relative}
-.ov-ai-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:3px;transition:width 1s ease}
-.ov-ai-bar-label{position:absolute;top:-16px;right:0;font-size:.52rem;color:var(--t3);font-weight:500}
-
-.ov-estate{padding:14px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
-.ov-estate-hd{font-size:.78rem;font-weight:800;margin-bottom:10px}
-.ov-estate-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.ov-estate-card{padding:10px;background:var(--bg2);border:1px solid var(--brd);border-radius:10px}
-.ov-estate-card-hd{font-size:.62rem;font-weight:700;color:var(--t3);margin-bottom:6px}
-.ov-estate-metric{display:flex;align-items:baseline;gap:4px;margin-bottom:4px}
-.ov-estate-val{font-size:1.2rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px}
-.ov-estate-sub{font-size:.52rem;color:var(--t3)}
-.ov-estate-bar-wrap{display:flex;align-items:center;gap:6px;margin-bottom:4px}
-.ov-estate-bar-bg{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
-.ov-estate-bar-fill{height:100%;border-radius:3px;transition:width .5s}
-.ov-estate-bar-pct{font-size:.5rem;color:var(--t3);flex-shrink:0;font-family:var(--fm)}
-.ov-estate-warn{font-size:.54rem;color:var(--amber);margin-top:2px}
-.ov-tool-row{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:.62rem}
-.ov-tool-name{font-weight:600;flex:1}
-.ov-tool-count{font-family:var(--fm);color:var(--t3);font-size:.56rem}
-.ov-tool-health{font-size:.5rem;font-weight:700;padding:1px 5px;border-radius:3px}
-.ov-tool-health.ok{color:var(--green);background:var(--greens)}
-.ov-tool-health.warn{color:var(--amber);background:var(--ambers)}
-.ov-source-row{display:flex;align-items:center;gap:6px;padding:2px 0;font-size:.6rem}
-.ov-source-bar{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
-.ov-source-pct{font-size:.5rem;color:var(--t3);font-family:var(--fm);flex-shrink:0}
-.ov-zsc-row{display:flex;gap:8px;align-items:center;font-size:.58rem;padding-top:4px;margin-top:4px;border-top:1px solid var(--brd)}
-@media(max-width:768px){.ov-estate-grid{grid-template-columns:1fr}}
-
-.ov-attention{padding:12px;background:var(--bg1);border:1px solid var(--red)20;border-radius:var(--r2);border-left:3px solid var(--red)}
-.ov-attention-hd{font-size:.78rem;font-weight:800;color:var(--red);margin-bottom:8px}
-.ov-attention-list{display:flex;flex-direction:column;gap:3px}
-.ov-attn-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;transition:background .15s;font-size:.72rem}
-.ov-attn-row:hover{background:var(--bg3)}
-.ov-attn-row.crit{border-left:2px solid var(--red)}
-.ov-attn-row.high{border-left:2px solid #f97316}
-.ov-attn-sev{font-size:.5rem;font-weight:800;padding:1px 5px;border-radius:3px;flex-shrink:0}
-.ov-attn-row.crit .ov-attn-sev{color:var(--red);background:var(--reds)}
-.ov-attn-row.high .ov-attn-sev{color:#f97316;background:#f9731610}
-.ov-attn-title{font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ov-attn-meta{font-size:.58rem;color:var(--t3);flex-shrink:0;font-family:var(--fm)}
-.ov-attn-action{font-size:.58rem;color:var(--accent);font-weight:600;flex-shrink:0}
-.ov-recent{padding:12px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
-.ov-recent-hd{font-size:.72rem;font-weight:700;color:var(--t2);margin-bottom:8px}
-@media(max-width:768px){.ov-ai-grid{grid-template-columns:repeat(3,1fr)}.ov-ai-hero-top{flex-direction:column}}
-
-.auto-slider{padding:10px 12px;background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r2);margin-bottom:10px}
-.auto-slider-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.auto-slider-track{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:8px}
-.auto-level{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border:1px solid var(--brd);border-radius:8px;background:var(--bg3);cursor:pointer;font-family:var(--fs);transition:all .15s}
-.auto-level:hover{border-color:var(--accent)30}
-.auto-level.active{border-color:var(--lc,var(--accent));background:color-mix(in srgb,var(--lc,var(--accent)) 8%,transparent)}
-.auto-level-icon{font-size:1.2rem}
-.auto-level-label{font-size:.62rem;font-weight:700;color:var(--t1)}
-.auto-level-desc{font-size:.48rem;color:var(--t3);text-align:center;line-height:1.3}
-.auto-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.auto-action-toggle{display:flex;align-items:center;gap:3px;font-size:.58rem;color:var(--t2);cursor:pointer}
-.auto-action-toggle input{width:12px;height:12px;accent-color:var(--accent)}
-
-.ai-hero{padding:12px 14px;background:linear-gradient(135deg,var(--bg1),var(--bg2));border:1px solid var(--brd);border-radius:var(--r2);margin-bottom:10px;position:relative;overflow:hidden}
-.ai-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--green))}
-.ai-hero-hd{display:flex;align-items:center;gap:6px;font-size:.72rem;font-weight:700;color:var(--accent);margin-bottom:8px}
-.ai-hero-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2s ease infinite}
-.ai-hero-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.ai-hero-stat{text-align:center;padding:6px 0}
-.ai-hero-val{font-size:1.4rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px;line-height:1}
-.ai-hero-label{font-size:.52rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
-.ai-hero-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:8px}
-.ai-hero-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--accent));border-radius:2px;transition:width .5s}
-
-.ai-insights{margin-bottom:4px}
-.ai-insight{padding:6px 8px}
-.ai-insight-title{font-size:.66rem}
-.ai-insight-detail{font-size:.58rem}
-.topbar-right{gap:3px}
-.theme-btn{width:26px;height:26px;font-size:.7rem}
-.refresh-btn{display:none}
-.search-trigger{padding:3px 6px;font-size:.64rem}
-.modal{margin:6px!important;max-width:calc(100vw - 12px)!important;border-radius:10px}
-.modal-body{padding:10px}
-.drawer{width:100vw!important;max-width:100vw!important;border-radius:0}
-
-.acct-menu{right:-10px;min-width:180px}
-.desk-only{display:none!important}
-.mob-only{display:flex!important}
-.mob-menu{display:flex!important;align-items:center;justify-content:center;width:32px;height:32px;border:1px solid var(--brd);border-radius:6px;background:none;color:var(--t2);cursor:pointer;font-size:.9rem}
-.mob-nav{display:flex;flex-wrap:wrap;gap:2px;padding:4px 8px;background:var(--bg1);border-bottom:1px solid var(--brd)}
-.mnav-btn{flex:1;min-width:0;padding:6px 2px;font-size:.6rem;text-align:center;border:none;background:var(--bg2);color:var(--t2);border-radius:6px;cursor:pointer;font-family:var(--fs)}
-.mnav-btn.active{background:var(--accent-s);color:var(--accent)}
-.tc-btn{font-size:.58rem!important;padding:2px 5px!important}
-.sla-bar{padding:4px 6px}
-.sla-items{flex-direction:column;gap:2px}
-.stream-item{padding:4px 6px}
-.tool-card{min-width:0!important}
-}
-@media(max-width:380px){
-.kpi-grid{grid-template-columns:1fr!important}
-.topbar{padding:0 6px}
-.main{padding:4px}
-}
-`;
-
-export default function Dashboard(){return React.createElement(DashErrorBoundary,null,React.createElement(DashboardInner));}

