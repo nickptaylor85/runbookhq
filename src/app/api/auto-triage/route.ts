@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 
   const configs = await loadToolConfigs(tenantId || undefined);
   const apiKey = configs.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return NextResponse.json({ alerts, actions: [], error: 'No Anthropic API key configured' });
+  if (!apiKey) return demoTriage(alerts);
 
   // ═══ STEP 1: ENRICH — build context for each alert ═══
   const enriched = alerts.slice(0, 20).map((a: any, i: number) => {

@@ -1,23 +1,22 @@
 import { NextResponse } from 'next/server';
 import { loadToolConfigs } from '@/lib/config-store';
 import { getTenantFromRequest } from '@/lib/config-store';
-async function getAnthropicKeyFromRedis(): Promise<string|null> {
-  try { const c = await loadToolConfigs(tenantId || undefined); return c.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || null; } catch(e) { return null; }
+async function getAnthropicKeyFromRedis(tid?: string | null): Promise<string|null> {
+  try { const c = await loadToolConfigs(tid || undefined); return c.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || null; } catch(e) { return null; }
 }
 
 export async function POST(req: Request) {
   const { isDemoMode } = await import('@/lib/demo-check');
   const { getTenantFromRequest } = await import('@/lib/config-store');
-  const { tenantId: _tid } = getTenantFromRequest(req);
-  if (await isDemoMode(_tid)) {
+  const { tenantId } = getTenantFromRequest(req);
+  if (await isDemoMode(tenantId)) {
     const { alert } = await req.json();
     const title = (alert?.title || '').toLowerCase();
     const analysis = title.includes('powershell') ? 'This alert indicates encoded PowerShell execution launched from an Office process (outlook.exe). This is a classic phishing-to-execution chain. The base64-encoded payload attempts to download a secondary binary from an external IP. This is NOT a benign scheduled task — the parent process and encoding confirm malicious intent.' : title.includes('credential') || title.includes('lsass') ? 'CRITICAL: LSASS memory access on a domain controller. This is credential harvesting, likely Mimikatz or comsvcs.dll MiniDump. If credentials are extracted from DC01, the attacker has domain admin access. This is the highest priority alert in this batch.' : title.includes('c2') || title.includes('beacon') ? 'Outbound beacon to a known Cobalt Strike C2 server. The 60-second interval is the default Cobalt Strike jitter. This IP appears on 4 threat intelligence feeds. Combined with the PowerShell execution 3 minutes prior, this confirms an active compromise.' : 'This alert requires investigation. The AI has identified patterns consistent with malicious activity based on the MITRE technique, device history, and correlation with other alerts in this time window.';
     return NextResponse.json({ analysis, runbook: ['Isolate the affected device from the network', 'Capture memory dump and process tree for forensics', 'Review authentication logs for the affected user (24h)', 'Check for lateral movement from this host', 'Block associated IOCs across all security tools'], relatedAlerts: [], demo: true });
   }
-  const { tenantId } = getTenantFromRequest(req);
   const { alert, question, context } = await req.json();
-  const apiKey = process.env.ANTHROPIC_API_KEY || await getAnthropicKeyFromRedis();
+  const apiKey = process.env.ANTHROPIC_API_KEY || await getAnthropicKeyFromRedis(tenantId);
 
   if (!apiKey) {
     return NextResponse.json({ demo: true, response: generateDemoResponse(alert, question) });

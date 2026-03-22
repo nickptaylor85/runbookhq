@@ -6,7 +6,11 @@ export async function isDemoMode(tenantId?: string | null): Promise<boolean> {
     const tools = configs?.tools || {};
     if (tools['_demo']?.enabled) return true;
     const realTools = Object.values(tools).filter((t: any) => t.id !== '_demo' && !t.id?.startsWith('_demo_') && t.enabled);
-    return realTools.length === 0;
+    if (realTools.length > 0) return false;
+    // Even with no security tools, if Anthropic key exists use real AI (not demo triage)
+    if (tools['anthropic']?.credentials?.ANTHROPIC_API_KEY) return false;
+    if (process.env.ANTHROPIC_API_KEY) return false;
+    return true;
   } catch(e) { return true; }
 }
 
