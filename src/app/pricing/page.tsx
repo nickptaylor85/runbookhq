@@ -2,139 +2,231 @@
 import { useState } from 'react';
 
 const PLANS = [
-  { id: 'community', name: 'Community', price: 0, period: 'forever', seats: 1, desc: 'See AI triage in action — upgrade to interact', features: ['2 tool integrations', 'Unified alert dashboard', 'AI triage verdicts (read-only)', 'Coverage + posture score', '1 seat', 'Community support'], cta: 'Get Started Free', ctaStyle: 'ghost' },
-  { id: 'team', name: 'Team', price: 29, period: '/seat/month', seats: 3, desc: 'The full AI SOC companion for your team', features: ['Unlimited tool integrations', 'AI Co-Pilot — deep alert analysis', 'Auto-triage with TP/FP/SUS verdicts', 'Automation slider (Full Auto → Recommend)', 'Response actions (isolate, block, disable)', 'Device AI risk assessment', 'Incident management + AI audit log', 'Threat intelligence feeds', 'Vulnerability management', '3 seats included'], cta: 'Start Free Trial', ctaStyle: 'primary', popular: true },
-  { id: 'business', name: 'Business', price: 79, period: '/month', seats: 10, desc: 'For mature SOCs that need compliance + reporting', features: ['Everything in Team', 'PDF reports + scheduling', 'API access + webhooks', 'RBAC — analyst/admin/viewer', 'Compliance mapping (NIST, ISO)', 'Audit logs', '10 seats included', 'Priority email support'], cta: 'Start Free Trial', ctaStyle: 'primary' },
-  { id: 'mssp', name: 'MSSP', price: 599, period: '/month', seats: 0, desc: 'Manage all your clients from one console', features: ['Everything in Business', 'Multi-tenant portfolio dashboard', 'Cross-client threat correlation', 'Automated branded client reports', 'White-label — your brand, zero Watchtower', '5 managed clients included', '+£49/additional client/month'], cta: 'Start Free Trial', ctaStyle: 'primary' },
-  { id: 'enterprise', name: 'Enterprise', price: null, period: '', seats: 0, desc: 'Custom deployment for large organisations', features: ['Everything in MSSP', 'SSO / SAML', 'Dedicated instance', 'SLA guarantee', 'Custom integrations', 'Unlimited seats', 'Dedicated account manager'], cta: 'Contact Sales', ctaStyle: 'ghost' },
+  {
+    id: 'community',
+    name: 'Community',
+    price: '£0',
+    period: 'free forever',
+    color: '#4f8fff',
+    features: [
+      '2 tool integrations',
+      'AI triage verdicts — read only',
+      'Alert feed',
+      '1 seat',
+      'Community support',
+    ],
+    cta: 'Get Started Free',
+    free: true,
+  },
+  {
+    id: 'team',
+    name: 'Team',
+    price: '£29',
+    period: '/seat/mo',
+    color: '#4f8fff',
+    popular: true,
+    features: [
+      'Unlimited tool integrations',
+      'AI Co-Pilot — full access',
+      'Automation slider',
+      'Response actions',
+      'Threat intelligence',
+      'Incidents & runbooks',
+      'Minimum 3 seats',
+    ],
+    cta: 'Start 14-Day Free Trial',
+    free: false,
+  },
+  {
+    id: 'business',
+    name: 'Business',
+    price: '£79',
+    period: '/mo',
+    color: '#22d49a',
+    features: [
+      'Everything in Team',
+      'PDF reports',
+      'API access',
+      'RBAC & permissions',
+      'Compliance mapping',
+      '10 seats included',
+    ],
+    cta: 'Start 14-Day Free Trial',
+    free: false,
+  },
+  {
+    id: 'mssp',
+    name: 'MSSP',
+    price: '£599',
+    period: '/mo',
+    color: '#8b6fff',
+    features: [
+      'Everything in Business',
+      'Multi-tenant portfolio view',
+      'Cross-client correlation',
+      'Automated branded reports',
+      'White-label',
+      '5 clients included (+£49/client)',
+    ],
+    cta: 'Start 14-Day Free Trial',
+    free: false,
+  },
 ];
 
-const ADDONS = [
-  { id: 'seats', name: 'Additional Seats', price: 8, unit: '/seat/month', desc: 'Add more analysts beyond your plan limit', icon: '👥' },
-  { id: 'ai', name: 'AI Power Pack', price: 15, unit: '/month', desc: '10x more AI queries — deep analysis, NL search, bulk triage', icon: '🤖' },
-  { id: 'intel', name: 'Premium Threat Intel', price: 5, unit: '/month', desc: 'AlienVault OTX, GreyNoise, premium IOC enrichment', icon: '🌐' },
-  { id: 'reports', name: 'Scheduled Reports', price: 10, unit: '/month', desc: 'Automated weekly PDF to stakeholders, custom branding', icon: '📊' },
-  { id: 'api', name: 'API & Webhooks', price: 15, unit: '/month', desc: 'REST API, outbound webhooks, SIEM forwarding', icon: '🔌' },
-  { id: 'branding', name: 'White Label', price: 29, unit: '/month', desc: 'Your logo, colours, and custom domain for clients', icon: '🎨' },
-  { id: 'support', name: 'Priority Support', price: 19, unit: '/month', desc: '4-hour response SLA, onboarding call, Slack channel', icon: '🎯' },
+const FAQ = [
+  { q: 'Is the 14-day trial really free?', a: 'Yes — no credit card required to start. You only pay after the trial ends, and you can cancel any time before.' },
+  { q: 'Can I change plans?', a: 'Yes, you can upgrade or downgrade at any time. Upgrades take effect immediately. Downgrades apply at the end of your billing period.' },
+  { q: 'What happens to my data if I cancel?', a: 'Your data is retained for 30 days after cancellation. You can export everything before then.' },
+  { q: 'Do you offer annual pricing?', a: 'Yes — annual billing saves 20%. Contact us at hello@getwatchtower.io for an annual quote.' },
+  { q: 'Can I add more MSSP clients?', a: 'Yes — additional clients are £49/mo each, added instantly from your portfolio dashboard.' },
 ];
 
-export default function Pricing() {
-  const [selectedPlan, setSelectedPlan] = useState('team');
-  const [selectedAddons, setSelectedAddons] = useState<string[]>([]);
-  const [extraSeats, setExtraSeats] = useState(0);
-  const [annual, setAnnual] = useState(false);
+export default function PricingPage() {
+  const [loading, setLoading] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
 
-  function toggleAddon(id: string) { setSelectedAddons(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]); }
-
-  const plan = PLANS.find(p => p.id === selectedPlan);
-  const basePrice = plan?.price || 0;
-  const seatsPrice = extraSeats * 8;
-  const addonsPrice = selectedAddons.reduce((s, id) => s + (ADDONS.find(a => a.id === id)?.price || 0), 0);
-  const monthly = basePrice + seatsPrice + addonsPrice;
-  const total = annual ? Math.round(monthly * 10) : monthly;
-  const savings = annual ? monthly * 2 : 0;
-
-  async function checkout() {
-    if (selectedPlan === 'community') { window.location.href = '/signup?plan=starter'; return; }
-    if (selectedPlan === 'enterprise') { window.location.href = 'mailto:sales@watchtower.io?subject=Enterprise%20Enquiry'; return; }
-    const r = await fetch('/api/stripe/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan: selectedPlan, addons: selectedAddons, seatQty: extraSeats }) });
-    const d = await r.json();
-    if (d.url) window.location.href = d.url;
-    else alert(d.error || 'Checkout failed');
+  async function handleCheckout(planId: string) {
+    if (planId === 'community') {
+      window.location.href = '/signup';
+      return;
+    }
+    setLoading(planId);
+    setError('');
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: planId, email: email || undefined }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setError(data.error || 'Something went wrong. Please try again.');
+      }
+    } catch(e) {
+      setError('Something went wrong. Please try again.');
+    }
+    setLoading(null);
   }
 
-  return (<><style dangerouslySetInnerHTML={{ __html: CSS }} /><div className="pp">
-    <div className="pp-nav"><a href="/" className="pp-logo"><div className="pp-logo-icon">W</div>Watchtower</a><a href="/demo" className="pp-link">Live Demo</a><a href="/login" className="pp-link">Sign In</a></div>
+  return (
+    <div style={{ background: '#050508', color: '#e8ecf4', fontFamily: 'Inter, sans-serif', minHeight: '100vh' }}>
+      <style>{`
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{background:#050508}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+        @media(max-width:900px){.price-grid{grid-template-columns:1fr 1fr!important}}
+        @media(max-width:600px){.price-grid{grid-template-columns:1fr!important}}
+      `}</style>
 
-    <div className="pp-hero"><h1>Simple, transparent pricing</h1><p>Start free. Scale as your SOC grows. No hidden fees.</p><div className="pp-toggle"><button className={!annual ? 'active' : ''} onClick={() => setAnnual(false)}>Monthly</button><button className={annual ? 'active' : ''} onClick={() => setAnnual(true)}>Annual <span className="pp-save">Save 17%</span></button></div></div>
+      {/* NAV */}
+      <nav style={{ display: 'flex', alignItems: 'center', padding: '14px 28px', borderBottom: '1px solid #ffffff06', background: 'rgba(5,5,8,0.9)', backdropFilter: 'blur(18px)', position: 'sticky', top: 0, zIndex: 50 }}>
+        <a href='/' style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, fontSize: '0.95rem', textDecoration: 'none', color: '#e8ecf4' }}>
+          <div style={{ width: 26, height: 26, borderRadius: 7, background: 'linear-gradient(135deg,#4f8fff,#8b6fff)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.58rem', color: '#fff', fontWeight: 900 }}>W</div>
+          Watchtower
+        </a>
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+          <a href='/demo' style={{ color: '#6b7a94', fontSize: '0.8rem', fontWeight: 500, padding: '7px 14px', textDecoration: 'none' }}>Demo</a>
+          <a href='/login' style={{ color: '#6b7a94', fontSize: '0.8rem', fontWeight: 500, padding: '7px 14px', textDecoration: 'none' }}>Sign In</a>
+          <a href='/signup' style={{ padding: '8px 18px', borderRadius: 8, background: '#4f8fff', color: '#fff', fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none' }}>Start Free →</a>
+        </div>
+      </nav>
 
-    <div className="pp-plans">{PLANS.map(p => (<div key={p.id} className={`pp-plan ${selectedPlan === p.id ? 'selected' : ''} ${p.popular ? 'popular' : ''}`} onClick={() => setSelectedPlan(p.id)}>
-      {p.popular && <div className="pp-badge">Most Popular</div>}
-      <div className="pp-plan-name">{p.name}</div>
-      <div className="pp-plan-price">{p.price !== null ? <><span className="pp-currency">£</span>{annual ? Math.round(p.price * 10 / 12) : p.price}<span className="pp-period">{p.period}</span></> : <span className="pp-custom">Custom</span>}</div>
-      <div className="pp-plan-desc">{p.desc}</div>
-      <ul className="pp-features">{p.features.map(f => <li key={f}>{f}</li>)}</ul>
-      <button className={`pp-cta ${p.ctaStyle === 'primary' ? 'pp-cta-primary' : ''}`} onClick={(e) => { e.stopPropagation(); setSelectedPlan(p.id); }}>{selectedPlan === p.id ? '✓ Selected' : p.cta}</button>
-    </div>))}</div>
+      {/* HERO */}
+      <div style={{ textAlign: 'center', padding: '64px 24px 40px' }}>
+        <div style={{ display: 'inline-block', padding: '4px 14px', border: '1px solid #4f8fff25', borderRadius: 20, fontSize: '0.68rem', fontWeight: 700, color: '#4f8fff', marginBottom: 18 }}>
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#4f8fff', display: 'inline-block', marginRight: 6, animation: 'pulse 2s ease infinite', verticalAlign: 'middle' }} />
+          14-day free trial · No credit card required
+        </div>
+        <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: -2, marginBottom: 12 }}>Simple, transparent pricing</h1>
+        <p style={{ fontSize: '1rem', color: '#6b7a94', maxWidth: 480, margin: '0 auto 24px' }}>Start free. Scale when ready. Cancel any time.</p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+          <input value={email} onChange={e => setEmail(e.target.value)} placeholder='your@email.com (optional — pre-fills checkout)' style={{ padding: '9px 14px', borderRadius: 8, border: '1px solid #1e2536', background: '#0a0d14', color: '#e8ecf4', fontSize: '0.8rem', fontFamily: 'Inter, sans-serif', outline: 'none', width: 280 }} />
+        </div>
+        {error && <div style={{ marginTop: 10, fontSize: '0.76rem', color: '#f0405e' }}>{error}</div>}
+      </div>
 
-    {selectedPlan !== 'community' && selectedPlan !== 'enterprise' && <><div className="pp-section"><h2>🧩 Add-ons</h2><p className="pp-section-sub">Enhance your plan with premium capabilities</p><div className="pp-addons">{ADDONS.map(a => (<div key={a.id} className={`pp-addon ${selectedAddons.includes(a.id) ? 'selected' : ''}`} onClick={() => toggleAddon(a.id)}>
-      <div className="pp-addon-icon">{a.icon}</div>
-      <div className="pp-addon-info"><div className="pp-addon-name">{a.name}</div><div className="pp-addon-desc">{a.desc}</div></div>
-      <div className="pp-addon-price">£{a.price}<span>{a.unit}</span></div>
-      <div className={`pp-addon-check ${selectedAddons.includes(a.id) ? 'on' : ''}`}>{selectedAddons.includes(a.id) ? '✓' : '+'}</div>
-    </div>))}</div></div>
+      {/* PLANS */}
+      <div className='price-grid' style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, maxWidth: 1060, margin: '0 auto', padding: '0 24px 60px' }}>
+        {PLANS.map(plan => (
+          <div key={plan.id} style={{ padding: 24, background: '#0a0d14', border: `1px solid ${plan.popular ? '#4f8fff35' : '#141820'}`, borderRadius: 16, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+            {plan.popular && (
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, textAlign: 'center', fontSize: '0.52rem', fontWeight: 700, color: '#fff', background: '#4f8fff', padding: '4px 0' }}>MOST POPULAR</div>
+            )}
+            <div style={{ marginTop: plan.popular ? 18 : 0, marginBottom: 6, fontSize: '0.92rem', fontWeight: 700 }}>{plan.name}</div>
+            <div style={{ fontSize: '2.4rem', fontWeight: 900, fontFamily: 'JetBrains Mono, monospace', letterSpacing: -2, color: plan.color, lineHeight: 1 }}>{plan.price}</div>
+            <div style={{ fontSize: '0.68rem', color: '#4a5568', marginBottom: 20 }}>{plan.period}</div>
+            <div style={{ flex: 1, marginBottom: 20 }}>
+              {plan.features.map(f => (
+                <div key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: 7, fontSize: '0.76rem', color: '#a0adc4', padding: '4px 0', lineHeight: 1.5 }}>
+                  <span style={{ color: plan.color, flexShrink: 0, marginTop: 1 }}>✓</span>
+                  {f}
+                </div>
+              ))}
+            </div>
+            <button onClick={() => handleCheckout(plan.id)} disabled={loading === plan.id}
+              style={{ padding: '11px 0', borderRadius: 10, border: plan.popular ? 'none' : `1px solid ${plan.color}30`, background: plan.popular ? '#4f8fff' : `${plan.color}12`, color: plan.popular ? '#fff' : plan.color, fontSize: '0.82rem', fontWeight: 700, cursor: loading === plan.id ? 'not-allowed' : 'pointer', fontFamily: 'Inter, sans-serif', opacity: loading === plan.id ? 0.7 : 1, transition: 'all .15s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+              {loading === plan.id
+                ? <><span style={{ width: 12, height: 12, borderRadius: '50%', border: '2px solid currentColor', borderTopColor: 'transparent', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} /> Processing…</>
+                : plan.cta}
+            </button>
+            {!plan.free && <div style={{ textAlign: 'center', fontSize: '0.6rem', color: '#3a4050', marginTop: 8 }}>14-day free trial · Cancel anytime</div>}
+          </div>
+        ))}
+      </div>
 
-    {selectedPlan === 'team' && <div className="pp-section"><h2>👥 Additional Seats</h2><p className="pp-section-sub">Team plan includes 3 seats. Add more at £8/seat/month.</p><div className="pp-seats"><button onClick={() => setExtraSeats(Math.max(0, extraSeats - 1))}>−</button><span>{extraSeats}</span><button onClick={() => setExtraSeats(extraSeats + 1)}>+</button><span className="pp-seats-total">{3 + extraSeats} total seats</span></div></div>}</>}
+      {/* COMPARISON */}
+      <div style={{ maxWidth: 800, margin: '0 auto', padding: '0 24px 60px' }}>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: -1, textAlign: 'center', marginBottom: 28 }}>Everything in detail</h2>
+        <div style={{ background: '#0a0d14', border: '1px solid #141820', borderRadius: 14, overflow: 'hidden' }}>
+          {[
+            ['Feature', 'Community', 'Team', 'Business', 'MSSP'],
+            ['Tool integrations', '2', 'Unlimited', 'Unlimited', 'Unlimited'],
+            ['AI triage verdicts', '✓ read-only', '✓ full', '✓ full', '✓ full'],
+            ['AI Co-Pilot', '—', '✓', '✓', '✓'],
+            ['Automation slider', '—', '✓', '✓', '✓'],
+            ['Response actions', '—', '✓', '✓', '✓'],
+            ['Threat intelligence', '—', '✓', '✓', '✓'],
+            ['PDF reports', '—', '—', '✓', '✓'],
+            ['API access', '—', '—', '✓', '✓'],
+            ['RBAC', '—', '—', '✓', '✓'],
+            ['Multi-tenant portfolio', '—', '—', '—', '✓'],
+            ['White-label', '—', '—', '—', '✓'],
+            ['Seats', '1', 'Min 3', '10', 'Unlimited'],
+            ['Support', 'Community', 'Email', 'Priority', 'Dedicated'],
+          ].map((row, i) => (
+            <div key={i} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', borderBottom: i < 14 ? '1px solid #141820' : 'none', background: i === 0 ? '#0d1018' : i % 2 === 0 ? '#09091a' : 'transparent' }}>
+              {row.map((cell, j) => (
+                <div key={j} style={{ padding: '10px 14px', fontSize: i === 0 ? '0.62rem' : '0.74rem', fontWeight: i === 0 || j === 0 ? 700 : 400, color: i === 0 ? '#4f8fff' : j === 0 ? '#e8ecf4' : cell === '—' ? '#2a3040' : cell.startsWith('✓') ? '#22d49a' : '#8a9ab8', textAlign: j > 0 ? 'center' : 'left', letterSpacing: i === 0 ? '0.5px' : 0, textTransform: i === 0 ? 'uppercase' : 'none' }}>{cell}</div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
 
-    <div className="pp-summary"><div className="pp-summary-inner"><div className="pp-summary-left"><div className="pp-summary-plan">{plan?.name} Plan</div>{selectedAddons.length > 0 && <div className="pp-summary-addons">+ {selectedAddons.length} add-on{selectedAddons.length > 1 ? 's' : ''}</div>}{extraSeats > 0 && <div className="pp-summary-addons">+ {extraSeats} extra seat{extraSeats > 1 ? 's' : ''}</div>}{annual && savings > 0 && <div className="pp-summary-savings">Save £{savings}/year with annual billing</div>}</div><div className="pp-summary-right"><div className="pp-summary-total">£{total}<span>/{annual ? 'year' : 'month'}</span></div><button className="pp-checkout" onClick={checkout}>{selectedPlan === 'community' ? 'Get Started Free →' : selectedPlan === 'enterprise' ? 'Contact Sales →' : 'Start 14-Day Free Trial →'}</button></div></div></div>
-  </div></>);
+      {/* FAQ */}
+      <div style={{ maxWidth: 640, margin: '0 auto', padding: '0 24px 80px' }}>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: -1, textAlign: 'center', marginBottom: 24 }}>Common questions</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {FAQ.map(({ q, a }) => (
+            <div key={q} style={{ padding: '16px 20px', background: '#0a0d14', border: '1px solid #141820', borderRadius: 12 }}>
+              <div style={{ fontSize: '0.84rem', fontWeight: 700, marginBottom: 6 }}>{q}</div>
+              <div style={{ fontSize: '0.76rem', color: '#6b7a94', lineHeight: 1.7 }}>{a}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* BOTTOM CTA */}
+      <div style={{ textAlign: 'center', padding: '0 24px 80px' }}>
+        <h2 style={{ fontSize: '1.8rem', fontWeight: 800, letterSpacing: -1, marginBottom: 10 }}>Still unsure? Talk to us.</h2>
+        <p style={{ color: '#6b7a94', fontSize: '0.88rem', marginBottom: 20 }}>We'll walk you through a live demo on your own stack.</p>
+        <a href='mailto:hello@getwatchtower.io' style={{ display: 'inline-block', padding: '12px 30px', borderRadius: 10, border: '1px solid #1e2536', background: 'transparent', color: '#e8ecf4', fontSize: '0.88rem', fontWeight: 600, textDecoration: 'none' }}>hello@getwatchtower.io</a>
+      </div>
+
+      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
 }
-
-const CSS = `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}body{background:#050508;color:#eaf0ff;font-family:'Inter',sans-serif}
-.pp{min-height:100vh}
-.pp-nav{display:flex;align-items:center;padding:14px 24px;gap:16px;border-bottom:1px solid #141820}
-.pp-logo{display:flex;align-items:center;gap:8px;font-weight:900;font-size:1.05rem;color:#eaf0ff;text-decoration:none;margin-right:auto}
-.pp-logo-icon{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#3b8bff,#7c6aff);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:#fff;font-weight:900}
-.pp-link{color:#8a9ab8;text-decoration:none;font-size:.82rem;font-weight:600;transition:color .2s}
-.pp-link:hover{color:#3b8bff}
-.pp-hero{text-align:center;padding:48px 24px 32px}
-.pp-hero h1{font-size:2.4rem;font-weight:900;letter-spacing:-2px;margin-bottom:8px}
-.pp-hero p{font-size:.95rem;color:#8a9ab8;margin-bottom:24px}
-.pp-toggle{display:inline-flex;background:#0a0d14;border:1px solid #252e42;border-radius:10px;padding:3px}
-.pp-toggle button{padding:8px 20px;border:none;border-radius:8px;background:transparent;color:#8a9ab8;font-size:.78rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s}
-.pp-toggle button.active{background:#3b8bff15;color:#3b8bff}
-.pp-save{font-size:.6rem;color:#22c992;font-weight:700;margin-left:4px}
-.pp-plans{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;max-width:1100px;margin:0 auto;padding:0 24px 40px}
-.pp-plan{background:linear-gradient(145deg,#0a0d14,#0f1219);border:2px solid #141820;border-radius:16px;padding:24px 20px;cursor:pointer;transition:all .25s;position:relative}
-.pp-plan:hover{border-color:#252e42}
-.pp-plan.selected{border-color:#3b8bff;box-shadow:0 0 30px rgba(91,154,255,.08)}
-.pp-plan.popular{border-color:#3b8bff40}
-.pp-badge{position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#3b8bff,#7c6aff);color:#fff;font-size:.6rem;font-weight:700;padding:3px 12px;border-radius:10px;white-space:nowrap}
-.pp-plan-name{font-size:1rem;font-weight:800;margin-bottom:8px}
-.pp-plan-price{font-size:2.2rem;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:-2px;margin-bottom:4px}
-.pp-currency{font-size:1rem;color:#8a9ab8;vertical-align:top;margin-right:2px}
-.pp-period{font-size:.65rem;color:#50607a;font-weight:500;margin-left:2px;font-family:'Inter',sans-serif}
-.pp-custom{font-size:1.2rem;color:#8a9ab8;font-family:'Inter',sans-serif;letter-spacing:0}
-.pp-plan-desc{font-size:.72rem;color:#50607a;margin-bottom:16px}
-.pp-features{list-style:none;margin-bottom:20px}
-.pp-features li{font-size:.72rem;color:#8a9ab8;padding:4px 0;padding-left:16px;position:relative}
-.pp-features li::before{content:'✓';position:absolute;left:0;color:#22c992;font-weight:700;font-size:.65rem}
-.pp-cta{width:100%;padding:10px;border:1px solid #252e42;border-radius:10px;background:transparent;color:#8a9ab8;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s}
-.pp-cta:hover{border-color:#3b8bff;color:#3b8bff}
-.pp-cta-primary{background:linear-gradient(135deg,#3b8bff,#7c6aff);border:none;color:#fff;box-shadow:0 2px 12px rgba(91,154,255,.2)}
-.pp-cta-primary:hover{box-shadow:0 4px 20px rgba(91,154,255,.3)}
-.pp-section{max-width:900px;margin:0 auto;padding:0 24px 32px}
-.pp-section h2{font-size:1.2rem;font-weight:900;letter-spacing:-.5px;margin-bottom:4px}
-.pp-section-sub{font-size:.82rem;color:#50607a;margin-bottom:16px}
-.pp-addons{display:flex;flex-direction:column;gap:8px}
-.pp-addon{display:flex;align-items:center;gap:14px;padding:14px 18px;background:linear-gradient(145deg,#0a0d14,#0f1219);border:1.5px solid #141820;border-radius:12px;cursor:pointer;transition:all .2s}
-.pp-addon:hover{border-color:#252e42}
-.pp-addon.selected{border-color:#3b8bff;background:#3b8bff05}
-.pp-addon-icon{font-size:1.4rem;flex-shrink:0}
-.pp-addon-info{flex:1}
-.pp-addon-name{font-size:.85rem;font-weight:700}
-.pp-addon-desc{font-size:.68rem;color:#50607a;margin-top:2px}
-.pp-addon-price{font-size:1rem;font-weight:900;font-family:'JetBrains Mono',monospace;color:#eaf0ff;white-space:nowrap}
-.pp-addon-price span{font-size:.55rem;color:#50607a;font-family:'Inter',sans-serif;margin-left:2px}
-.pp-addon-check{width:28px;height:28px;border-radius:50%;border:2px solid #252e42;display:flex;align-items:center;justify-content:center;font-size:.72rem;color:#50607a;flex-shrink:0;transition:all .2s}
-.pp-addon-check.on{background:#3b8bff;border-color:#3b8bff;color:#fff}
-.pp-seats{display:flex;align-items:center;gap:12px}
-.pp-seats button{width:36px;height:36px;border-radius:8px;border:1px solid #252e42;background:transparent;color:#eaf0ff;font-size:1.2rem;cursor:pointer;font-family:'Inter',sans-serif;transition:all .2s}
-.pp-seats button:hover{border-color:#3b8bff;color:#3b8bff}
-.pp-seats>span:nth-child(2){font-size:1.4rem;font-weight:900;font-family:'JetBrains Mono',monospace;min-width:30px;text-align:center}
-.pp-seats-total{font-size:.78rem;color:#50607a;margin-left:8px}
-.pp-summary{position:sticky;bottom:0;background:linear-gradient(180deg,transparent,#060910 20px);padding:20px 24px}
-.pp-summary-inner{max-width:900px;margin:0 auto;background:linear-gradient(145deg,#0a0d14,#0f1219);border:1px solid #252e42;border-radius:14px;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
-.pp-summary-left{}
-.pp-summary-plan{font-size:.92rem;font-weight:800}
-.pp-summary-addons{font-size:.72rem;color:#3b8bff;margin-top:2px}
-.pp-summary-savings{font-size:.68rem;color:#22c992;font-weight:600;margin-top:2px}
-.pp-summary-right{display:flex;align-items:center;gap:16px}
-.pp-summary-total{font-size:2rem;font-weight:900;font-family:'JetBrains Mono',monospace;letter-spacing:-2px}
-.pp-summary-total span{font-size:.65rem;color:#50607a;font-family:'Inter',sans-serif;margin-left:2px}
-.pp-checkout{padding:12px 28px;border:none;border-radius:10px;background:linear-gradient(135deg,#3b8bff,#7c6aff);color:#fff;font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;box-shadow:0 4px 20px rgba(91,154,255,.3);white-space:nowrap;transition:all .2s}
-.pp-checkout:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(91,154,255,.4)}
-@media(max-width:1100px){.pp-plans{grid-template-columns:repeat(3,1fr)}}@media(max-width:700px){.pp-plans{grid-template-columns:1fr}}
-@media(max-width:600px){.pp-plans{grid-template-columns:1fr}.pp-hero h1{font-size:1.6rem}.pp-summary-inner{flex-direction:column;text-align:center}.pp-summary-right{flex-direction:column;width:100%}.pp-checkout{width:100%}}`;
