@@ -479,14 +479,20 @@ function Ov({m,cov,alerts,zsc,sparks,enabledTools,onAskAI,onRefresh,setTlDetail,
   const escalated=aiStats?.escalated||0;
   const timeSaved=aiStats?.timeSavedMins?Math.round(aiStats.timeSavedMins/60*10)/10:0;
   const pctHandled=totalAlerts>0?Math.round((autoClosed+escalated)/totalAlerts*100):0;
-  return <div className="ov-clean"><div className="ov-ai-hero"><div className="ov-ai-hero-top"><div className="ov-ai-status"><span className="ov-ai-pulse"/>Watchtower AI Active</div>{showAuto&&<AutomationSlider/>}</div><div className="ov-ai-grid"><div className="ov-ai-stat"><div className="ov-ai-val">{totalAlerts}</div><div className="ov-ai-label">Alerts Ingested</div></div><div className="ov-ai-stat"><div className="ov-ai-val" style={{color:'var(--green)'}}>{autoClosed}</div><div className="ov-ai-label">Auto-Resolved</div></div><div className="ov-ai-stat"><div className="ov-ai-val" style={{color:'var(--red)'}}>{escalated}</div><div className="ov-ai-label">Escalated</div></div><div className="ov-ai-stat"><div className="ov-ai-val" style={{color:'var(--accent)'}}>{pctHandled}%</div><div className="ov-ai-label">Handled by AI</div></div><div className="ov-ai-stat"><div className="ov-ai-val" style={{color:'var(--green)'}}>{timeSaved}h</div><div className="ov-ai-label">Time Saved</div></div><div className="ov-ai-stat"><div className="ov-ai-val">{score}</div><div className="ov-ai-label">Posture</div></div></div>{((typeof window!=="undefined"?(window as any).__wt_plan:"community")==="community"&&(typeof window!=="undefined"?(window as any).__wt_role:"")!=="superadmin")&&<div style={{padding:12,background:"linear-gradient(135deg,var(--accent)08,var(--green)08)",border:"1px solid var(--accent)20",borderRadius:10,textAlign:"center",marginBottom:8}}><div style={{fontSize:".78rem",fontWeight:700,marginBottom:4}}>Watchtower AI is triaging your alerts</div><div style={{fontSize:".68rem",color:"var(--t3)",marginBottom:8}}>Upgrade to Team to unlock AI Co-Pilot, response actions, and full alert analysis</div><button className="tc-btn tc-btn-primary" onClick={()=>window.location.href="/pricing"} style={{fontSize:".72rem",padding:"6px 18px"}}>Upgrade to Team — £29/seat/mo →</button></div>}<div className="ov-ai-bar"><div className="ov-ai-bar-fill" style={{width:Math.min(pctHandled,100)+'%'}}/><span className="ov-ai-bar-label">{pctHandled}% of alerts handled without human intervention</span></div></div>{(crits.length>0||highs.length>0)&&<div className="ov-attention"><div className="ov-attention-hd">⚠ Needs Your Attention</div><div className="ov-attention-list">{crits.map(a=>(<div key={a.id} className="ov-attn-row crit" onClick={()=>onAskAI?.(a)}><span className="ov-attn-sev">CRIT</span><span className="ov-attn-title">{a.title}</span><span className="ov-attn-meta">{a.device||''} · {a.source}</span><span className="ov-attn-action">Investigate →</span></div>))}{highs.slice(0,5).map(a=>(<div key={a.id} className="ov-attn-row high" onClick={()=>onAskAI?.(a)}><span className="ov-attn-sev">HIGH</span><span className="ov-attn-title">{a.title}</span><span className="ov-attn-meta">{a.device||''} · {a.source}</span><span className="ov-attn-action">Investigate →</span></div>))}</div></div>}<div className="ov-recent"><div className="ov-recent-hd">Recent AI Activity</div><AlertStream alerts={alerts} onAlert={onAskAI}/></div></div>;
+  const covData=cov;const covPct=covData?.agentCoverage||covData?.coverage?.agentCoverage||0;
+  const totalDevices=covData?.totalDevices||covData?.coverage?.totalDevices||0;
+  const gaps=covData?.gaps||covData?.coverage?.gaps||[];
+  const toolHealth=covData?.tools||covData?.coverage?.tools||{};
+  const toolEntries=Object.entries(toolHealth);
+  const sources=[...new Set(alerts.map((a:any)=>a.source))];
+  return <div className="ov-clean"><div className="ov-ai-hero"><div className="ov-ai-hero-top"><div className="ov-ai-status"><span className="ov-ai-pulse"/>Watchtower AI Active</div>{showAuto&&<AutomationSlider/>}</div><div className="ov-ai-grid"><div className="ov-ai-stat"><div className="ov-ai-val">{totalAlerts}</div><div className="ov-ai-label">Alerts Ingested</div></div><div className="ov-ai-stat"><div className="ov-ai-val" style={{color:'var(--green)'}}>{autoClosed}</div><div className="ov-ai-label">Auto-Resolved</div></div><div className="ov-ai-stat"><div className="ov-ai-val" style={{color:'var(--red)'}}>{escalated}</div><div className="ov-ai-label">Escalated</div></div><div className="ov-ai-stat"><div className="ov-ai-val" style={{color:'var(--accent)'}}>{pctHandled}%</div><div className="ov-ai-label">Handled by AI</div></div><div className="ov-ai-stat"><div className="ov-ai-val" style={{color:'var(--green)'}}>{timeSaved}h</div><div className="ov-ai-label">Time Saved</div></div><div className="ov-ai-stat"><div className="ov-ai-val">{score}</div><div className="ov-ai-label">Posture</div></div></div><div className="ov-ai-bar"><div className="ov-ai-bar-fill" style={{width:Math.min(pctHandled,100)+'%'}}/><span className="ov-ai-bar-label">{pctHandled}% of alerts handled without human intervention</span></div></div>{((typeof window!=="undefined"?(window as any).__wt_plan:"community")==="community"&&(typeof window!=="undefined"?(window as any).__wt_role:"")!=="superadmin")&&<div style={{padding:12,background:"linear-gradient(135deg,var(--accent)08,var(--green)08)",border:"1px solid var(--accent)20",borderRadius:10,textAlign:"center",marginBottom:8}}><div style={{fontSize:".78rem",fontWeight:700,marginBottom:4}}>Watchtower AI is triaging your alerts</div><div style={{fontSize:".68rem",color:"var(--t3)",marginBottom:8}}>Upgrade to Team to unlock AI Co-Pilot, response actions, and full alert analysis</div><button className="tc-btn tc-btn-primary" onClick={()=>window.location.href="/pricing"} style={{fontSize:".72rem",padding:"6px 18px"}}>Upgrade to Team — £29/seat/mo →</button></div>}<div className="ov-estate"><div className="ov-estate-hd">Estate Health</div><div className="ov-estate-grid"><div className="ov-estate-card"><div className="ov-estate-card-hd">🖥 Devices</div><div className="ov-estate-metric"><span className="ov-estate-val">{totalDevices||'--'}</span><span className="ov-estate-sub">total</span></div><div className="ov-estate-bar-wrap"><div className="ov-estate-bar-bg"><div className="ov-estate-bar-fill" style={{width:covPct+'%',background:'var(--green)'}}/></div><span className="ov-estate-bar-pct">{covPct}% covered</span></div>{gaps.length>0&&<div className="ov-estate-warn">{gaps.length} gap{gaps.length>1?'s':''} — {gaps.slice(0,2).map((g:any)=>g.hostname||String(g)).join(', ')}{gaps.length>2?'...':''}</div>}</div><div className="ov-estate-card"><div className="ov-estate-card-hd">🛡 Tool Status</div>{toolEntries.length>0?toolEntries.map(([name,info]:any)=>(<div key={name} className="ov-tool-row"><span className="ov-tool-name">{name}</span><span className="ov-tool-count">{info.installed||info.count||0}</span><span className={`ov-tool-health ${(info.degraded||0)>0?'warn':'ok'}`}>{(info.degraded||0)>0?(info.degraded+' degraded'):'Healthy'}</span></div>)):sources.map(s=>(<div key={s} className="ov-tool-row"><span className="ov-tool-name">{s}</span><span className="ov-tool-count">{alerts.filter((a:any)=>a.source===s).length} alerts</span><span className="ov-tool-health ok">Connected</span></div>))}</div><div className="ov-estate-card"><div className="ov-estate-card-hd">⚡ Alert Sources</div>{(m?.topSources||[]).length>0?(m.topSources||[]).map((s:any)=>(<div key={s.source} className="ov-source-row"><span>{s.source}</span><div className="ov-source-bar"><div style={{width:s.pct+'%',height:'100%',background:'var(--accent)',borderRadius:3}}/></div><span className="ov-source-pct">{s.count} ({s.pct}%)</span></div>)):sources.map(s=>{const cnt=alerts.filter((a:any)=>a.source===s).length;const pct=alerts.length>0?Math.round(cnt/alerts.length*100):0;return <div key={s} className="ov-source-row"><span>{s}</span><div className="ov-source-bar"><div style={{width:pct+'%',height:'100%',background:'var(--accent)',borderRadius:3}}/></div><span className="ov-source-pct">{cnt} ({pct}%)</span></div>})}{zsc?.zia&&<div className="ov-zsc-row"><span>🌐 Zscaler ZIA</span><span>{zsc.zia.blockedThreats} blocked</span>{zsc.zia.dlpViolations>0&&<span style={{color:'var(--red)'}}>{zsc.zia.dlpViolations} DLP</span>}</div>}</div><div className="ov-estate-card"><div className="ov-estate-card-hd">🔴 Vulns</div><div className="ov-estate-metric"><span className="ov-estate-val" style={{color:'var(--red)'}}>{m?.alertsLast24h?.critical||crits.length||0}</span><span className="ov-estate-sub">critical alerts</span></div><div className="ov-estate-metric"><span className="ov-estate-val" style={{color:'#f97316'}}>{m?.alertsLast24h?.high||highs.length||0}</span><span className="ov-estate-sub">high alerts</span></div>{slaData?.compliance&&<div className="ov-estate-metric"><span className="ov-estate-val" style={{color:slaData.compliance>=90?'var(--green)':'var(--amber)'}}>{slaData.compliance}%</span><span className="ov-estate-sub">SLA compliance</span></div>}</div></div></div>{(crits.length>0||highs.length>0)&&<div className="ov-attention"><div className="ov-attention-hd">⚠ Needs Your Attention</div><div className="ov-attention-list">{crits.map(a=>(<div key={a.id} className="ov-attn-row crit" onClick={()=>onAskAI?.(a)}><span className="ov-attn-sev">CRIT</span><span className="ov-attn-title">{a.title}</span><span className="ov-attn-meta">{a.device||''} · {a.source}</span><span className="ov-attn-action">Investigate →</span></div>))}{highs.slice(0,5).map(a=>(<div key={a.id} className="ov-attn-row high" onClick={()=>onAskAI?.(a)}><span className="ov-attn-sev">HIGH</span><span className="ov-attn-title">{a.title}</span><span className="ov-attn-meta">{a.device||''} · {a.source}</span><span className="ov-attn-action">Investigate →</span></div>))}</div></div>}<div className="ov-recent"><div className="ov-recent-hd">Recent AI Activity</div><AlertStream alerts={alerts} onAlert={onAskAI}/></div></div>;
 }
 
 
 /* ═══ ALERTS ═══ */
 function Als({alerts,onAskAI,onDeviceDrill,onNotes}:{alerts:Al[];onAskAI?:(a:Al)=>void;onDeviceDrill?:(h:string)=>void;onNotes?:(id:string)=>void}){
   const[triaged,setTriaged]=useState<any[]>([]);const[triageStats,setTriageStats]=useState<any>(null);
-  const[triageOn,setTriageOn]=useState(true);
+  const[triageOn,setTriageOn]=useState(true);const[expanded,setExpanded]=useState<string|null>(null);
   useEffect(()=>{if(triageOn&&alerts.length>0){fetch('/api/auto-triage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alerts})}).then(r=>r.ok?r.json():{alerts:[]}).then(d=>{setTriaged(d.alerts||[]);if(d.stats)setTriageStats(d.stats);if(d.actions){const escalated=d.actions.filter((a:any)=>a.type==='escalate_incident');if(escalated.length>0){escalated.forEach((a:any)=>{fetch('/api/incidents',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'create',title:a.title||'Auto-escalated: '+a.alertId,severity:a.severity||'high',alertId:a.alertId})}).catch(()=>{})})}}if(d.responseActions?.length>0){d.responseActions.forEach((ra:any)=>{fetch('/api/ai-actions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'log_action',...ra})}).catch(()=>{})})}}).catch(()=>{})}},[triageOn,alerts]);
   const triageMap=new Map(triaged.map((t:any)=>[t.id,t]));
   const[sev,setSev]=useState('all');const[dismissed,setDismissed]=useState<Set<string>>(new Set());
@@ -495,17 +501,17 @@ function Als({alerts,onAskAI,onDeviceDrill,onNotes}:{alerts:Al[];onAskAI?:(a:Al)
   const tp=f.filter(a=>{const t=triageMap.get(a.id);return t&&(t.verdict==='tp'||t.verdict==='true_positive')});
   const sus=f.filter(a=>{const t=triageMap.get(a.id);return t&&t.verdict!=='tp'&&t.verdict!=='true_positive'&&t.verdict!=='fp'&&t.verdict!=='false_positive'});
   const fp=f.filter(a=>{const t=triageMap.get(a.id);return t&&(t.verdict==='fp'||t.verdict==='false_positive')});
-  return <div className="tab-clean"><div className="tab-summary"><div className="tab-summary-stats"><div className="tss"><span className="tss-val" style={{color:'var(--t1)'}}>{f.length}</span><span className="tss-label">Total</span></div>{triageStats&&<><div className="tss"><span className="tss-val" style={{color:'var(--red)'}}>{triageStats.tp}</span><span className="tss-label">True Positive</span></div><div className="tss"><span className="tss-val" style={{color:'var(--amber)'}}>{triageStats.suspicious}</span><span className="tss-label">Suspicious</span></div><div className="tss"><span className="tss-val" style={{color:'var(--green)'}}>{triageStats.fp}</span><span className="tss-label">False Positive</span></div><div className="tss"><span className="tss-val" style={{color:'var(--green)'}}>{triageStats.autoClosed}</span><span className="tss-label">Auto-Closed</span></div></>}</div><div className="pills" style={{marginTop:6}}>{['all','critical','high','medium','low'].map(s=>(<button key={s} className={`pill ${sev===s?'on':''}`} onClick={()=>setSev(s)}>{s==='all'?'All':s} ({s==='all'?f.length:alerts.filter(a=>a.severity===s).length})</button>))}</div></div>{tp.length>0&&<div className="attn-section"><div className="attn-hd" style={{color:'var(--red)'}}>🔴 True Positives — Action Required ({tp.length})</div>{tp.map(a=>(<div key={a.id} className="alert-row tp" onClick={()=>onAskAI?.(a)}><div className="alert-row-left"><span className={`sev sev-${a.severity}`}>{a.severity}</span><span className="alert-row-title">{a.title}</span>{triageMap.has(a.id)&&<span className="verdict-badge tp-badge">TP {triageMap.get(a.id)?.confidence||''}%</span>}</div><div className="alert-row-right"><span className={`src ${sc(a.source)}`}>{a.source}</span>{a.device&&<span className="alert-row-device" onClick={e=>{e.stopPropagation();onDeviceDrill?.(a.device)}}>{a.device}</span>}{a.mitre&&<span className="mitre">{a.mitre}</span>}<span className="ts">{ago(a.timestamp)}</span></div></div>))}</div>}{sus.length>0&&<div className="attn-section"><div className="attn-hd" style={{color:'var(--amber)'}}>🟡 Suspicious — Needs Review ({sus.length})</div>{sus.map(a=>(<div key={a.id} className="alert-row sus" onClick={()=>onAskAI?.(a)}><div className="alert-row-left"><span className={`sev sev-${a.severity}`}>{a.severity}</span><span className="alert-row-title">{a.title}</span>{triageMap.has(a.id)&&<span className="verdict-badge sus-badge">SUS {triageMap.get(a.id)?.confidence||''}%</span>}</div><div className="alert-row-right"><span className={`src ${sc(a.source)}`}>{a.source}</span>{a.device&&<span className="alert-row-device" onClick={e=>{e.stopPropagation();onDeviceDrill?.(a.device)}}>{a.device}</span>}<span className="ts">{ago(a.timestamp)}</span></div></div>))}</div>}{fp.length>0&&<div className="attn-section fp-section"><div className="attn-hd" style={{color:'var(--green)'}}>🟢 False Positives — Auto-Closed ({fp.length})</div>{fp.slice(0,5).map(a=>(<div key={a.id} className="alert-row fp" onClick={()=>onAskAI?.(a)}><div className="alert-row-left"><span className="alert-row-title" style={{color:'var(--t3)'}}>{a.title}</span><span className="verdict-badge fp-badge">FP {triageMap.get(a.id)?.confidence||''}%</span></div><div className="alert-row-right"><span className={`src ${sc(a.source)}`}>{a.source}</span><span className="ts">{ago(a.timestamp)}</span></div></div>))}{fp.length>5&&<div style={{fontSize:'.62rem',color:'var(--t3)',padding:'4px 8px'}}>+{fp.length-5} more auto-closed</div>}</div>}</div>;
+  function AlertRow({a,type}:{a:Al;type:string}){const t=triageMap.get(a.id)?.triage||triageMap.get(a.id);const isExp=expanded===a.id;return <div className={`alert-card ${type}`}><div className="alert-card-top" onClick={()=>setExpanded(isExp?null:a.id)}><div className="alert-row-left"><span className={`sev sev-${a.severity}`}>{a.severity}</span><span className="alert-row-title">{a.title}</span>{t&&<span className={`verdict-badge ${type}-badge`}>{t.verdict==='tp'||t.verdict==='true_positive'?'TP':t.verdict==='fp'||t.verdict==='false_positive'?'FP':'SUS'} {t.confidence||''}%</span>}</div><div className="alert-row-right"><span className={`src ${sc(a.source)}`}>{a.source}</span>{a.device&&<span className="alert-row-device" onClick={e=>{e.stopPropagation();onDeviceDrill?.(a.device)}}>{a.device}</span>}{a.mitre&&<span className="mitre">{a.mitre}</span>}<span className="ts">{ago(a.timestamp)}</span><span className="expand-icon">{isExp?'▼':'▶'}</span></div></div>{isExp&&t&&<div className="alert-card-detail"><div className="ai-reasoning"><div className="ai-reasoning-hd"><span className="ai-reasoning-dot"/>AI Reasoning</div><div className="ai-reasoning-text">{t.reasoning||'No reasoning available'}</div></div>{t.evidence&&t.evidence.length>0&&<div className="ai-evidence-list"><div className="ai-evidence-hd">Evidence</div>{t.evidence.map((e:string,i:number)=>(<div key={i} className="ai-evidence-item">• {e}</div>))}</div>}{t.actions&&t.actions.length>0&&<div className="ai-actions-taken"><div className="ai-evidence-hd">Actions Taken</div>{t.actions.map((act:string,i:number)=>(<div key={i} className="ai-action-item">{act==='escalate_incident'?'🚨 Escalated to incident':act==='auto_close'?'✅ Auto-closed (FP)':act==='isolate_device'?'🔒 Device isolated':act==='block_ip'?'🚫 IP blocked':act==='disable_user'?'👤 User disabled':act==='notify_slack'?'💬 Team notified':'⚡ '+act}</div>))}</div>}{t.runbook&&t.runbook.length>0&&<div className="ai-runbook"><div className="ai-evidence-hd">Recommended Steps</div>{t.runbook.map((step:string,i:number)=>(<div key={i} className="ai-runbook-step"><span className="ai-runbook-num">{i+1}</span>{step}</div>))}</div>}<div className="alert-card-actions"><button className="tc-btn tc-btn-primary" onClick={()=>onAskAI?.(a)} style={{fontSize:'.62rem'}}>🤖 Deep Analyse</button>{a.device&&<button className="tc-btn" onClick={()=>onDeviceDrill?.(a.device)} style={{fontSize:'.62rem'}}>🖥 Device View</button>}<button className="tc-btn" onClick={()=>dismiss(a.id)} style={{fontSize:'.62rem'}}>✕ Dismiss</button></div></div>}</div>}
+  return <div className="tab-clean"><div className="tab-summary"><div className="tab-summary-stats"><div className="tss"><span className="tss-val" style={{color:'var(--t1)'}}>{f.length}</span><span className="tss-label">Total</span></div>{triageStats&&<><div className="tss"><span className="tss-val" style={{color:'var(--red)'}}>{triageStats.tp}</span><span className="tss-label">True Positive</span></div><div className="tss"><span className="tss-val" style={{color:'var(--amber)'}}>{triageStats.suspicious}</span><span className="tss-label">Suspicious</span></div><div className="tss"><span className="tss-val" style={{color:'var(--green)'}}>{triageStats.fp}</span><span className="tss-label">False Positive</span></div><div className="tss"><span className="tss-val" style={{color:'var(--green)'}}>{triageStats.autoClosed}</span><span className="tss-label">Auto-Closed</span></div></>}</div><div className="pills" style={{marginTop:6}}>{['all','critical','high','medium','low'].map(s=>(<button key={s} className={`pill ${sev===s?'on':''}`} onClick={()=>setSev(s)}>{s==='all'?'All':s} ({s==='all'?f.length:alerts.filter(a=>a.severity===s).length})</button>))}</div></div>{tp.length>0&&<div className="attn-section"><div className="attn-hd" style={{color:'var(--red)'}}>🔴 True Positives — Action Required ({tp.length})</div>{tp.map(a=>(<AlertRow key={a.id} a={a} type="tp"/>))}</div>}{sus.length>0&&<div className="attn-section"><div className="attn-hd" style={{color:'var(--amber)'}}>🟡 Suspicious — Needs Review ({sus.length})</div>{sus.map(a=>(<AlertRow key={a.id} a={a} type="sus"/>))}</div>}{fp.length>0&&<div className="attn-section fp-section"><div className="attn-hd" style={{color:'var(--green)'}}>🟢 False Positives — Auto-Closed ({fp.length})</div>{fp.slice(0,5).map(a=>(<AlertRow key={a.id} a={a} type="fp"/>))}{fp.length>5&&<div style={{fontSize:'.62rem',color:'var(--t3)',padding:'4px 8px'}}>+{fp.length-5} more auto-closed</div>}</div>}</div>;
 }
 
 
-/* ═══ COVERAGE ═══ */
 function CovTab({cov,onRefresh}:{cov:any;onRefresh?:()=>void}){
   const[taegisEps,setTaegisEps]=useState<any>(null);const[loadingEps,setLoadingEps]=useState(false);
   function loadTaegisEndpoints(){setLoadingEps(true);fetch('/api/taegis/endpoints').then(r=>r.ok?r.json():null).then(d=>{if(d)setTaegisEps(d);setLoadingEps(false)}).catch(()=>setLoadingEps(false))}
   if(!cov)return null;
   const osData=cov.osBreakdown||[];const gaps=cov.gaps||[];const toolEntries=Object.entries(cov.tools||{});
-  return <div className="tab-clean"><div className="tab-summary"><div className="tab-summary-stats"><div className="tss"><span className="tss-val">{cov?.total||'--'}</span><span className="tss-label">Total Devices</span></div><div className="tss"><span className="tss-val" style={{color:'var(--green)'}}>{cov?.covered||'--'}</span><span className="tss-label">Covered</span></div><div className="tss"><span className="tss-val" style={{color:'var(--red)'}}>{cov?.gaps||'--'}</span><span className="tss-label">Gaps</span></div><div className="tss"><span className="tss-val">{cov?.score||'--'}</span><span className="tss-label">Score</span></div></div></div>{(cov?.gapDevices||[]).length>0&&<div className="attn-section"><div className="attn-hd" style={{color:'var(--red)'}}>⚠ Coverage Gaps — Devices Missing Protection</div>{(cov.gapDevices||[]).slice(0,10).map((d:any,i:number)=>(<div key={i} className="alert-row" style={{borderLeft:'2px solid var(--red)'}}><div className="alert-row-left"><span style={{fontSize:'.72rem',fontWeight:600,fontFamily:'var(--fm)'}}>{d.hostname||d.name||d}</span></div><div className="alert-row-right">{d.missing&&<span style={{fontSize:'.58rem',color:'var(--red)'}}>{Array.isArray(d.missing)?d.missing.join(', '):d.missing}</span>}</div></div>))}</div>}{(cov?.tools||[]).length>0&&<div className="attn-section"><div className="attn-hd">🛡 Tool Coverage</div>{(cov.tools||[]).map((t:any,i:number)=>(<div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 8px',fontSize:'.72rem'}}><span style={{fontWeight:600}}>{t.name||t.id}</span><div style={{display:'flex',alignItems:'center',gap:6}}><span style={{fontFamily:'var(--fm)',fontSize:'.68rem'}}>{t.count||t.endpoints||0} devices</span><div style={{width:80,height:5,background:'var(--bg3)',borderRadius:3,overflow:'hidden'}}><div style={{width:Math.min((t.count||0)/(cov?.total||1)*100,100)+'%',height:'100%',background:'var(--green)',borderRadius:3}}/></div></div></div>))}</div>}{taegisEps&&<div className="attn-section"><div className="attn-hd">📡 Taegis Endpoints ({taegisEps.endpoints?.length||0})</div>{(taegisEps.endpoints||[]).slice(0,8).map((ep:any,i:number)=>(<div key={i} style={{display:'flex',justifyContent:'space-between',padding:'3px 8px',fontSize:'.68rem'}}><span style={{fontFamily:'var(--fm)'}}>{ep.hostname||ep.name}</span><span className="ts">{ep.lastSeen?ago(ep.lastSeen):'—'}</span></div>))}</div>}<div style={{textAlign:'center',padding:8}}><button className="tc-btn" onClick={loadTaegisEndpoints} disabled={loadingEps} style={{fontSize:'.66rem'}}>{loadingEps?'Loading...':'Load Taegis Endpoints'}</button>{onRefresh&&<button className="tc-btn" onClick={onRefresh} style={{fontSize:'.66rem',marginLeft:6}}>↻ Refresh</button>}</div></div>;
+  return <div className="tab-clean"><div className="tab-summary"><div className="tab-summary-stats"><div className="tss"><span className="tss-val">{cov?.total||'--'}</span><span className="tss-label">Total Devices</span></div><div className="tss"><span className="tss-val" style={{color:'var(--green)'}}>{cov?.covered||'--'}</span><span className="tss-label">Covered</span></div><div className="tss"><span className="tss-val" style={{color:'var(--red)'}}>{cov?.gaps||'--'}</span><span className="tss-label">Gaps</span></div><div className="tss"><span className="tss-val">{cov?.score||'--'}</span><span className="tss-label">Score</span></div></div></div>{(cov?.gapDevices||[]).length>0&&<div className="attn-section"><div className="attn-hd" style={{color:'var(--red)'}}>⚠ Coverage Gaps — Devices Missing Protection</div>{(cov.gapDevices||[]).slice(0,10).map((d:any,i:number)=>(<div key={i} className="alert-row" style={{borderLeft:'2px solid var(--red)'}}><div className="alert-row-left"><span style={{fontSize:'.72rem',fontWeight:600,fontFamily:'var(--fm)'}}>{d.hostname||d.name||String(d)}</span></div><div className="alert-row-right">{d.missing&&<span style={{fontSize:'.58rem',color:'var(--red)'}}>{Array.isArray(d.missing)?d.missing.map((m:any)=>typeof m==='string'?m:m.name||m.id||'').join(', '):typeof d.missing==='string'?d.missing:''}</span>}</div></div>))}</div>}{(cov?.tools||[]).length>0&&<div className="attn-section"><div className="attn-hd">🛡 Tool Coverage</div>{(cov.tools||[]).map((t:any,i:number)=>(<div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 8px',fontSize:'.72rem'}}><span style={{fontWeight:600}}>{t.name||t.id}</span><div style={{display:'flex',alignItems:'center',gap:6}}><span style={{fontFamily:'var(--fm)',fontSize:'.68rem'}}>{t.count||t.endpoints||0} devices</span><div style={{width:80,height:5,background:'var(--bg3)',borderRadius:3,overflow:'hidden'}}><div style={{width:Math.min((t.count||0)/(cov?.total||1)*100,100)+'%',height:'100%',background:'var(--green)',borderRadius:3}}/></div></div></div>))}</div>}{taegisEps&&<div className="attn-section"><div className="attn-hd">📡 Taegis Endpoints ({taegisEps.endpoints?.length||0})</div>{(taegisEps.endpoints||[]).slice(0,8).map((ep:any,i:number)=>(<div key={i} style={{display:'flex',justifyContent:'space-between',padding:'3px 8px',fontSize:'.68rem'}}><span style={{fontFamily:'var(--fm)'}}>{ep.hostname||ep.name}</span><span className="ts">{ep.lastSeen?ago(ep.lastSeen):'—'}</span></div>))}</div>}<div style={{textAlign:'center',padding:8}}><button className="tc-btn" onClick={loadTaegisEndpoints} disabled={loadingEps} style={{fontSize:'.66rem'}}>{loadingEps?'Loading...':'Load Taegis Endpoints'}</button>{onRefresh&&<button className="tc-btn" onClick={onRefresh} style={{fontSize:'.66rem',marginLeft:6}}>↻ Refresh</button>}</div></div>;
 }
 
 
@@ -859,6 +865,28 @@ html,body{overflow-x:hidden;width:100%}body{background:var(--bg0);color:var(--t1
 
 
 
+
+.alert-card{border:1px solid var(--brd);border-radius:8px;margin-bottom:4px;overflow:hidden;transition:border-color .15s}
+.alert-card.tp{border-left:3px solid var(--red)}
+.alert-card.sus{border-left:3px solid var(--amber)}
+.alert-card.fp{border-left:3px solid var(--green);opacity:.6}
+.alert-card.fp:hover{opacity:1}
+.alert-card-top{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;cursor:pointer;gap:8px;transition:background .12s}
+.alert-card-top:hover{background:var(--bg3)}
+.expand-icon{font-size:.5rem;color:var(--t3);flex-shrink:0}
+.alert-card-detail{padding:10px 12px;background:var(--bg2);border-top:1px solid var(--brd)}
+.ai-reasoning{padding:8px 10px;background:linear-gradient(135deg,var(--accent)06,var(--green)04);border:1px solid var(--accent)15;border-radius:8px;margin-bottom:8px}
+.ai-reasoning-hd{display:flex;align-items:center;gap:5px;font-size:.62rem;font-weight:700;color:var(--accent);margin-bottom:5px}
+.ai-reasoning-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent)}
+.ai-reasoning-text{font-size:.7rem;color:var(--t2);line-height:1.6}
+.ai-evidence-list,.ai-actions-taken,.ai-runbook{margin-bottom:6px}
+.ai-evidence-hd{font-size:.56rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.ai-evidence-item{font-size:.66rem;color:var(--t2);padding:1px 0;padding-left:4px}
+.ai-action-item{font-size:.66rem;color:var(--green);padding:2px 0}
+.ai-runbook-step{display:flex;align-items:flex-start;gap:6px;font-size:.66rem;color:var(--t2);padding:2px 0;line-height:1.5}
+.ai-runbook-num{min-width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:.48rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.alert-card-actions{display:flex;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid var(--brd)}
+
 .tab-clean{display:flex;flex-direction:column;gap:8px}
 .tab-summary{padding:12px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
 .tab-summary-stats{display:flex;gap:12px;flex-wrap:wrap}
@@ -896,6 +924,32 @@ html,body{overflow-x:hidden;width:100%}body{background:var(--bg0);color:var(--t1
 .ov-ai-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;position:relative}
 .ov-ai-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:3px;transition:width 1s ease}
 .ov-ai-bar-label{position:absolute;top:-16px;right:0;font-size:.52rem;color:var(--t3);font-weight:500}
+
+.ov-estate{padding:14px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
+.ov-estate-hd{font-size:.78rem;font-weight:800;margin-bottom:10px}
+.ov-estate-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.ov-estate-card{padding:10px;background:var(--bg2);border:1px solid var(--brd);border-radius:10px}
+.ov-estate-card-hd{font-size:.62rem;font-weight:700;color:var(--t3);margin-bottom:6px}
+.ov-estate-metric{display:flex;align-items:baseline;gap:4px;margin-bottom:4px}
+.ov-estate-val{font-size:1.2rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px}
+.ov-estate-sub{font-size:.52rem;color:var(--t3)}
+.ov-estate-bar-wrap{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.ov-estate-bar-bg{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.ov-estate-bar-fill{height:100%;border-radius:3px;transition:width .5s}
+.ov-estate-bar-pct{font-size:.5rem;color:var(--t3);flex-shrink:0;font-family:var(--fm)}
+.ov-estate-warn{font-size:.54rem;color:var(--amber);margin-top:2px}
+.ov-tool-row{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:.62rem}
+.ov-tool-name{font-weight:600;flex:1}
+.ov-tool-count{font-family:var(--fm);color:var(--t3);font-size:.56rem}
+.ov-tool-health{font-size:.5rem;font-weight:700;padding:1px 5px;border-radius:3px}
+.ov-tool-health.ok{color:var(--green);background:var(--greens)}
+.ov-tool-health.warn{color:var(--amber);background:var(--ambers)}
+.ov-source-row{display:flex;align-items:center;gap:6px;padding:2px 0;font-size:.6rem}
+.ov-source-bar{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.ov-source-pct{font-size:.5rem;color:var(--t3);font-family:var(--fm);flex-shrink:0}
+.ov-zsc-row{display:flex;gap:8px;align-items:center;font-size:.58rem;padding-top:4px;margin-top:4px;border-top:1px solid var(--brd)}
+@media(max-width:768px){.ov-estate-grid{grid-template-columns:1fr}}
+
 .ov-attention{padding:12px;background:var(--bg1);border:1px solid var(--red)20;border-radius:var(--r2);border-left:3px solid var(--red)}
 .ov-attention-hd{font-size:.78rem;font-weight:800;color:var(--red);margin-bottom:8px}
 .ov-attention-list{display:flex;flex-direction:column;gap:3px}
@@ -1018,6 +1072,28 @@ max-width:768px){
 
 
 
+
+.alert-card{border:1px solid var(--brd);border-radius:8px;margin-bottom:4px;overflow:hidden;transition:border-color .15s}
+.alert-card.tp{border-left:3px solid var(--red)}
+.alert-card.sus{border-left:3px solid var(--amber)}
+.alert-card.fp{border-left:3px solid var(--green);opacity:.6}
+.alert-card.fp:hover{opacity:1}
+.alert-card-top{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;cursor:pointer;gap:8px;transition:background .12s}
+.alert-card-top:hover{background:var(--bg3)}
+.expand-icon{font-size:.5rem;color:var(--t3);flex-shrink:0}
+.alert-card-detail{padding:10px 12px;background:var(--bg2);border-top:1px solid var(--brd)}
+.ai-reasoning{padding:8px 10px;background:linear-gradient(135deg,var(--accent)06,var(--green)04);border:1px solid var(--accent)15;border-radius:8px;margin-bottom:8px}
+.ai-reasoning-hd{display:flex;align-items:center;gap:5px;font-size:.62rem;font-weight:700;color:var(--accent);margin-bottom:5px}
+.ai-reasoning-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent)}
+.ai-reasoning-text{font-size:.7rem;color:var(--t2);line-height:1.6}
+.ai-evidence-list,.ai-actions-taken,.ai-runbook{margin-bottom:6px}
+.ai-evidence-hd{font-size:.56rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.ai-evidence-item{font-size:.66rem;color:var(--t2);padding:1px 0;padding-left:4px}
+.ai-action-item{font-size:.66rem;color:var(--green);padding:2px 0}
+.ai-runbook-step{display:flex;align-items:flex-start;gap:6px;font-size:.66rem;color:var(--t2);padding:2px 0;line-height:1.5}
+.ai-runbook-num{min-width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:.48rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.alert-card-actions{display:flex;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid var(--brd)}
+
 .tab-clean{display:flex;flex-direction:column;gap:8px}
 .tab-summary{padding:12px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
 .tab-summary-stats{display:flex;gap:12px;flex-wrap:wrap}
@@ -1055,6 +1131,32 @@ max-width:768px){
 .ov-ai-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;position:relative}
 .ov-ai-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:3px;transition:width 1s ease}
 .ov-ai-bar-label{position:absolute;top:-16px;right:0;font-size:.52rem;color:var(--t3);font-weight:500}
+
+.ov-estate{padding:14px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
+.ov-estate-hd{font-size:.78rem;font-weight:800;margin-bottom:10px}
+.ov-estate-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.ov-estate-card{padding:10px;background:var(--bg2);border:1px solid var(--brd);border-radius:10px}
+.ov-estate-card-hd{font-size:.62rem;font-weight:700;color:var(--t3);margin-bottom:6px}
+.ov-estate-metric{display:flex;align-items:baseline;gap:4px;margin-bottom:4px}
+.ov-estate-val{font-size:1.2rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px}
+.ov-estate-sub{font-size:.52rem;color:var(--t3)}
+.ov-estate-bar-wrap{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.ov-estate-bar-bg{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.ov-estate-bar-fill{height:100%;border-radius:3px;transition:width .5s}
+.ov-estate-bar-pct{font-size:.5rem;color:var(--t3);flex-shrink:0;font-family:var(--fm)}
+.ov-estate-warn{font-size:.54rem;color:var(--amber);margin-top:2px}
+.ov-tool-row{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:.62rem}
+.ov-tool-name{font-weight:600;flex:1}
+.ov-tool-count{font-family:var(--fm);color:var(--t3);font-size:.56rem}
+.ov-tool-health{font-size:.5rem;font-weight:700;padding:1px 5px;border-radius:3px}
+.ov-tool-health.ok{color:var(--green);background:var(--greens)}
+.ov-tool-health.warn{color:var(--amber);background:var(--ambers)}
+.ov-source-row{display:flex;align-items:center;gap:6px;padding:2px 0;font-size:.6rem}
+.ov-source-bar{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.ov-source-pct{font-size:.5rem;color:var(--t3);font-family:var(--fm);flex-shrink:0}
+.ov-zsc-row{display:flex;gap:8px;align-items:center;font-size:.58rem;padding-top:4px;margin-top:4px;border-top:1px solid var(--brd)}
+@media(max-width:768px){.ov-estate-grid{grid-template-columns:1fr}}
+
 .ov-attention{padding:12px;background:var(--bg1);border:1px solid var(--red)20;border-radius:var(--r2);border-left:3px solid var(--red)}
 .ov-attention-hd{font-size:.78rem;font-weight:800;color:var(--red);margin-bottom:8px}
 .ov-attention-list{display:flex;flex-direction:column;gap:3px}
@@ -1141,6 +1243,28 @@ max-width:768px){
 
 
 
+
+.alert-card{border:1px solid var(--brd);border-radius:8px;margin-bottom:4px;overflow:hidden;transition:border-color .15s}
+.alert-card.tp{border-left:3px solid var(--red)}
+.alert-card.sus{border-left:3px solid var(--amber)}
+.alert-card.fp{border-left:3px solid var(--green);opacity:.6}
+.alert-card.fp:hover{opacity:1}
+.alert-card-top{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;cursor:pointer;gap:8px;transition:background .12s}
+.alert-card-top:hover{background:var(--bg3)}
+.expand-icon{font-size:.5rem;color:var(--t3);flex-shrink:0}
+.alert-card-detail{padding:10px 12px;background:var(--bg2);border-top:1px solid var(--brd)}
+.ai-reasoning{padding:8px 10px;background:linear-gradient(135deg,var(--accent)06,var(--green)04);border:1px solid var(--accent)15;border-radius:8px;margin-bottom:8px}
+.ai-reasoning-hd{display:flex;align-items:center;gap:5px;font-size:.62rem;font-weight:700;color:var(--accent);margin-bottom:5px}
+.ai-reasoning-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent)}
+.ai-reasoning-text{font-size:.7rem;color:var(--t2);line-height:1.6}
+.ai-evidence-list,.ai-actions-taken,.ai-runbook{margin-bottom:6px}
+.ai-evidence-hd{font-size:.56rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.ai-evidence-item{font-size:.66rem;color:var(--t2);padding:1px 0;padding-left:4px}
+.ai-action-item{font-size:.66rem;color:var(--green);padding:2px 0}
+.ai-runbook-step{display:flex;align-items:flex-start;gap:6px;font-size:.66rem;color:var(--t2);padding:2px 0;line-height:1.5}
+.ai-runbook-num{min-width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:.48rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.alert-card-actions{display:flex;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid var(--brd)}
+
 .tab-clean{display:flex;flex-direction:column;gap:8px}
 .tab-summary{padding:12px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
 .tab-summary-stats{display:flex;gap:12px;flex-wrap:wrap}
@@ -1178,6 +1302,32 @@ max-width:768px){
 .ov-ai-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;position:relative}
 .ov-ai-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:3px;transition:width 1s ease}
 .ov-ai-bar-label{position:absolute;top:-16px;right:0;font-size:.52rem;color:var(--t3);font-weight:500}
+
+.ov-estate{padding:14px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
+.ov-estate-hd{font-size:.78rem;font-weight:800;margin-bottom:10px}
+.ov-estate-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.ov-estate-card{padding:10px;background:var(--bg2);border:1px solid var(--brd);border-radius:10px}
+.ov-estate-card-hd{font-size:.62rem;font-weight:700;color:var(--t3);margin-bottom:6px}
+.ov-estate-metric{display:flex;align-items:baseline;gap:4px;margin-bottom:4px}
+.ov-estate-val{font-size:1.2rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px}
+.ov-estate-sub{font-size:.52rem;color:var(--t3)}
+.ov-estate-bar-wrap{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.ov-estate-bar-bg{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.ov-estate-bar-fill{height:100%;border-radius:3px;transition:width .5s}
+.ov-estate-bar-pct{font-size:.5rem;color:var(--t3);flex-shrink:0;font-family:var(--fm)}
+.ov-estate-warn{font-size:.54rem;color:var(--amber);margin-top:2px}
+.ov-tool-row{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:.62rem}
+.ov-tool-name{font-weight:600;flex:1}
+.ov-tool-count{font-family:var(--fm);color:var(--t3);font-size:.56rem}
+.ov-tool-health{font-size:.5rem;font-weight:700;padding:1px 5px;border-radius:3px}
+.ov-tool-health.ok{color:var(--green);background:var(--greens)}
+.ov-tool-health.warn{color:var(--amber);background:var(--ambers)}
+.ov-source-row{display:flex;align-items:center;gap:6px;padding:2px 0;font-size:.6rem}
+.ov-source-bar{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.ov-source-pct{font-size:.5rem;color:var(--t3);font-family:var(--fm);flex-shrink:0}
+.ov-zsc-row{display:flex;gap:8px;align-items:center;font-size:.58rem;padding-top:4px;margin-top:4px;border-top:1px solid var(--brd)}
+@media(max-width:768px){.ov-estate-grid{grid-template-columns:1fr}}
+
 .ov-attention{padding:12px;background:var(--bg1);border:1px solid var(--red)20;border-radius:var(--r2);border-left:3px solid var(--red)}
 .ov-attention-hd{font-size:.78rem;font-weight:800;color:var(--red);margin-bottom:8px}
 .ov-attention-list{display:flex;flex-direction:column;gap:3px}
@@ -1369,6 +1519,28 @@ to{transform:translateY(0);opacity:1}
 
 
 
+
+.alert-card{border:1px solid var(--brd);border-radius:8px;margin-bottom:4px;overflow:hidden;transition:border-color .15s}
+.alert-card.tp{border-left:3px solid var(--red)}
+.alert-card.sus{border-left:3px solid var(--amber)}
+.alert-card.fp{border-left:3px solid var(--green);opacity:.6}
+.alert-card.fp:hover{opacity:1}
+.alert-card-top{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;cursor:pointer;gap:8px;transition:background .12s}
+.alert-card-top:hover{background:var(--bg3)}
+.expand-icon{font-size:.5rem;color:var(--t3);flex-shrink:0}
+.alert-card-detail{padding:10px 12px;background:var(--bg2);border-top:1px solid var(--brd)}
+.ai-reasoning{padding:8px 10px;background:linear-gradient(135deg,var(--accent)06,var(--green)04);border:1px solid var(--accent)15;border-radius:8px;margin-bottom:8px}
+.ai-reasoning-hd{display:flex;align-items:center;gap:5px;font-size:.62rem;font-weight:700;color:var(--accent);margin-bottom:5px}
+.ai-reasoning-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent)}
+.ai-reasoning-text{font-size:.7rem;color:var(--t2);line-height:1.6}
+.ai-evidence-list,.ai-actions-taken,.ai-runbook{margin-bottom:6px}
+.ai-evidence-hd{font-size:.56rem;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px}
+.ai-evidence-item{font-size:.66rem;color:var(--t2);padding:1px 0;padding-left:4px}
+.ai-action-item{font-size:.66rem;color:var(--green);padding:2px 0}
+.ai-runbook-step{display:flex;align-items:flex-start;gap:6px;font-size:.66rem;color:var(--t2);padding:2px 0;line-height:1.5}
+.ai-runbook-num{min-width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:.48rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.alert-card-actions{display:flex;gap:4px;margin-top:8px;padding-top:8px;border-top:1px solid var(--brd)}
+
 .tab-clean{display:flex;flex-direction:column;gap:8px}
 .tab-summary{padding:12px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
 .tab-summary-stats{display:flex;gap:12px;flex-wrap:wrap}
@@ -1406,6 +1578,32 @@ to{transform:translateY(0);opacity:1}
 .ov-ai-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;position:relative}
 .ov-ai-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:3px;transition:width 1s ease}
 .ov-ai-bar-label{position:absolute;top:-16px;right:0;font-size:.52rem;color:var(--t3);font-weight:500}
+
+.ov-estate{padding:14px;background:var(--bg1);border:1px solid var(--brd);border-radius:var(--r2)}
+.ov-estate-hd{font-size:.78rem;font-weight:800;margin-bottom:10px}
+.ov-estate-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.ov-estate-card{padding:10px;background:var(--bg2);border:1px solid var(--brd);border-radius:10px}
+.ov-estate-card-hd{font-size:.62rem;font-weight:700;color:var(--t3);margin-bottom:6px}
+.ov-estate-metric{display:flex;align-items:baseline;gap:4px;margin-bottom:4px}
+.ov-estate-val{font-size:1.2rem;font-weight:900;font-family:var(--fm);letter-spacing:-1px}
+.ov-estate-sub{font-size:.52rem;color:var(--t3)}
+.ov-estate-bar-wrap{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.ov-estate-bar-bg{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.ov-estate-bar-fill{height:100%;border-radius:3px;transition:width .5s}
+.ov-estate-bar-pct{font-size:.5rem;color:var(--t3);flex-shrink:0;font-family:var(--fm)}
+.ov-estate-warn{font-size:.54rem;color:var(--amber);margin-top:2px}
+.ov-tool-row{display:flex;align-items:center;gap:6px;padding:3px 0;font-size:.62rem}
+.ov-tool-name{font-weight:600;flex:1}
+.ov-tool-count{font-family:var(--fm);color:var(--t3);font-size:.56rem}
+.ov-tool-health{font-size:.5rem;font-weight:700;padding:1px 5px;border-radius:3px}
+.ov-tool-health.ok{color:var(--green);background:var(--greens)}
+.ov-tool-health.warn{color:var(--amber);background:var(--ambers)}
+.ov-source-row{display:flex;align-items:center;gap:6px;padding:2px 0;font-size:.6rem}
+.ov-source-bar{flex:1;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden}
+.ov-source-pct{font-size:.5rem;color:var(--t3);font-family:var(--fm);flex-shrink:0}
+.ov-zsc-row{display:flex;gap:8px;align-items:center;font-size:.58rem;padding-top:4px;margin-top:4px;border-top:1px solid var(--brd)}
+@media(max-width:768px){.ov-estate-grid{grid-template-columns:1fr}}
+
 .ov-attention{padding:12px;background:var(--bg1);border:1px solid var(--red)20;border-radius:var(--r2);border-left:3px solid var(--red)}
 .ov-attention-hd{font-size:.78rem;font-weight:800;color:var(--red);margin-bottom:8px}
 .ov-attention-list{display:flex;flex-direction:column;gap:3px}
