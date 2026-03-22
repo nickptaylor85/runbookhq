@@ -3,8 +3,9 @@ import { loadPlatformData, savePlatformData } from '@/lib/config-store';
 
 async function requireSuperAdmin(req: Request) {
   const cookie = req.headers.get('cookie') || '';
+  const origMatch = cookie.match(/secops-admin-original=([^;]+)/);
   const authMatch = cookie.match(/secops-auth=([^;]+)/);
-  const email = authMatch?.[1] ? decodeURIComponent(authMatch[1]) : null;
+  const email = origMatch?.[1] ? decodeURIComponent(origMatch[1]) : authMatch?.[1] ? decodeURIComponent(authMatch[1]) : null;
   if (!email) return null;
   const configs = await loadPlatformData();
   const user = configs.users?.[email];

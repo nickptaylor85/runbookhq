@@ -4,8 +4,9 @@ import { hashPassword } from '@/lib/crypto';
 
 export async function POST(req: Request) {
   const cookie = req.headers.get('cookie') || '';
+  const origMatch = cookie.match(/secops-admin-original=([^;]+)/);
   const authMatch = cookie.match(/secops-auth=([^;]+)/);
-  const adminEmail = authMatch?.[1] ? decodeURIComponent(authMatch[1]) : null;
+  const adminEmail = origMatch?.[1] ? decodeURIComponent(origMatch[1]) : authMatch?.[1] ? decodeURIComponent(authMatch[1]) : null;
   const platform = await loadPlatformData();
   if (!adminEmail || platform.users?.[adminEmail]?.role !== 'superadmin') {
     return NextResponse.json({ error: 'Superadmin access required' }, { status: 403 });
