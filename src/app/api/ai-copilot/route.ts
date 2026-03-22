@@ -10,6 +10,7 @@ export async function POST(req: Request) {
   const { tenantId } = getTenantFromRequest(req);
   const { alert, question, context } = await req.json();
   const apiKey = process.env.ANTHROPIC_API_KEY || await getAnthropicKeyFromRedis(tenantId);
+  console.log('AI copilot: key source =', process.env.ANTHROPIC_API_KEY ? 'env' : apiKey ? 'redis' : 'NONE', 'tenant =', tenantId);
 
   if (!apiKey) {
     return NextResponse.json({ demo: true, response: generateDemoResponse(alert, question) });
@@ -47,9 +48,15 @@ ${question || 'Analyse this alert. What is it, how serious is it, and what shoul
     });
 
     const data = await res.json();
+    if (!res.ok) {
+      const errMsg = data.error?.message || JSON.stringify(data).substring(0, 300);
+      console.error('Anthropic API error:', res.status, errMsg);
+      return NextResponse.json({ response: generateDemoResponse(alert, question), demo: true, error: errMsg, status: res.status });
+    }
     const text = data.content?.[0]?.text || 'No response generated.';
     return NextResponse.json({ response: text, demo: false });
   } catch (e) {
+    console.error('AI copilot error:', (e as Error).message);
     return NextResponse.json({ response: generateDemoResponse(alert, question), demo: true, error: (e as Error).message });
   }
 }

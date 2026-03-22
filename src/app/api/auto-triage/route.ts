@@ -12,6 +12,7 @@ export async function POST(req: Request) {
   // Check for API key — use real AI if available, demo if not
   const configs = await loadToolConfigs(tenantId || undefined);
   const apiKey = configs.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY;
+  console.log('Auto-triage: key found =', !!apiKey, 'source =', configs.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY ? 'redis' : process.env.ANTHROPIC_API_KEY ? 'env' : 'none', 'tenant =', tenantId);
   if (!apiKey) return demoTriage(alerts);
 
   // ═══ STEP 1: ENRICH — build context for each alert ═══
