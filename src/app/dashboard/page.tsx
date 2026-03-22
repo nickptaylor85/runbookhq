@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type SevKey = 'Critical'|'High'|'Medium'|'Low';
@@ -104,14 +104,6 @@ function SevBadge({sev}:{sev:SevKey}) {
   return <span style={{fontSize:'0.5rem',fontWeight:800,padding:'1px 6px',borderRadius:3,color:'#fff',background:SEV_COLOR[sev]}}>{sev.toUpperCase()}</span>;
 }
 
-function useData<T>(url:string, fallback:T):T {
-  const [data,setData] = useState<T>(fallback);
-  useEffect(()=>{
-    fetch(url).then(r=>r.ok?r.json():null).then(d=>{ if(d) setData(d); }).catch(()=>{});
-  },[url]);
-  return data;
-}
-
 // ─── Modal ────────────────────────────────────────────────────────────────────
 function Modal({title,onClose,children}:{title:string;onClose:()=>void;children:React.ReactNode}) {
   return (
@@ -156,10 +148,10 @@ export default function DashboardPage() {
   const [customIntel, setCustomIntel] = useState<IntelItem[]|null>(null);
   const [expandedAlerts, setExpandedAlerts] = useState<Set<string>>(new Set());
 
-  const tools = useData<Tool[]>('/api/tools', DEMO_TOOLS);
-  const alerts = useData<Alert[]>('/api/alerts', DEMO_ALERTS);
-  const vulns = useData<Vuln[]>('/api/vulnerabilities', DEMO_VULNS);
-  const incidents = useData<Incident[]>('/api/incidents', DEMO_INCIDENTS);
+  const tools = DEMO_TOOLS;
+  const alerts = DEMO_ALERTS;
+  const vulns = DEMO_VULNS;
+  const incidents = DEMO_INCIDENTS;
 
   const activeTools = tools.filter(t=>t.active);
   const taegisActive = tools.find(t=>t.id==='taegis')?.active || false;
