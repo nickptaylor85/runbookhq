@@ -133,6 +133,111 @@ function StatCard({val,label,sub,color,onClick}:{val:string|number;label:string;
   );
 }
 
+// ─── Tools Tab ───────────────────────────────────────────────────────────────
+const ALL_TOOLS = [
+  {id:'crowdstrike',name:'CrowdStrike Falcon',category:'EDR',desc:'Endpoint detection & response',connected:true,alerts:8},
+  {id:'defender',name:'Microsoft Defender',category:'EDR',desc:'Endpoint detection & response',connected:true,alerts:5},
+  {id:'sentinelone',name:'SentinelOne',category:'EDR',desc:'AI-powered endpoint protection',connected:false,alerts:0},
+  {id:'carbonblack',name:'Carbon Black',category:'EDR',desc:'Endpoint detection & response',connected:false,alerts:0},
+  {id:'splunk',name:'Splunk SIEM',category:'SIEM',desc:'Security information & event management',connected:true,alerts:12},
+  {id:'sentinel',name:'Microsoft Sentinel',category:'SIEM',desc:'Cloud-native SIEM & SOAR',connected:true,alerts:4},
+  {id:'qradar',name:'IBM QRadar',category:'SIEM',desc:'Security intelligence platform',connected:false,alerts:0},
+  {id:'elastic',name:'Elastic Security',category:'SIEM',desc:'SIEM built on Elastic Stack',connected:false,alerts:0},
+  {id:'darktrace',name:'Darktrace',category:'NDR',desc:'AI-powered network detection',connected:true,alerts:3},
+  {id:'taegis',name:'Secureworks Taegis',category:'XDR',desc:'Extended detection & response',connected:false,alerts:0},
+  {id:'tenable',name:'Tenable.io',category:'Vuln',desc:'Vulnerability management',connected:true,alerts:0},
+  {id:'nessus',name:'Nessus',category:'Vuln',desc:'Vulnerability scanner',connected:false,alerts:0},
+  {id:'qualys',name:'Qualys',category:'Vuln',desc:'Cloud-based vulnerability management',connected:false,alerts:0},
+  {id:'wiz',name:'Wiz',category:'CSPM',desc:'Cloud security posture management',connected:false,alerts:0},
+  {id:'proofpoint',name:'Proofpoint',category:'Email',desc:'Email security & threat protection',connected:true,alerts:2},
+  {id:'mimecast',name:'Mimecast',category:'Email',desc:'Email security platform',connected:false,alerts:0},
+  {id:'zscaler',name:'Zscaler',category:'Network',desc:'Zero trust network access',connected:false,alerts:0},
+  {id:'okta',name:'Okta',category:'Identity',desc:'Identity & access management',connected:false,alerts:0},
+];
+
+const CATEGORIES = ['All','EDR','SIEM','NDR','XDR','Vuln','CSPM','Email','Network','Identity'];
+
+function ToolsTab() {
+  const [toolStates, setToolStates] = useState<Record<string,boolean>>(
+    Object.fromEntries(ALL_TOOLS.map(t=>[t.id, t.connected]))
+  );
+  const [filter, setFilter] = useState('All');
+  const [connecting, setConnecting] = useState<string|null>(null);
+  const [apiKeyModal, setApiKeyModal] = useState<{id:string;name:string}|null>(null);
+  const [apiKeyVal, setApiKeyVal] = useState('');
+
+  const filtered = filter==='All' ? ALL_TOOLS : ALL_TOOLS.filter(t=>t.category===filter);
+  const activeCount = Object.values(toolStates).filter(Boolean).length;
+
+  function handleToggle(id:string, name:string) {
+    if (toolStates[id]) {
+      setToolStates(prev=>({...prev,[id]:false}));
+    } else {
+      setApiKeyModal({id,name});
+      setApiKeyVal('');
+    }
+  }
+
+  function handleConnect() {
+    if (!apiKeyModal) return;
+    setConnecting(apiKeyModal.id);
+    setTimeout(()=>{
+      setToolStates(prev=>({...prev,[apiKeyModal.id]:true}));
+      setConnecting(null);
+      setApiKeyModal(null);
+    }, 1200);
+  }
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',gap:14}}>
+      <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+        <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Integrations</h2>
+        <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{activeCount} connected</span>
+        <div style={{display:'flex',gap:4,marginLeft:'auto',flexWrap:'wrap'}}>
+          {CATEGORIES.map(c=>(
+            <button key={c} onClick={()=>setFilter(c)} style={{padding:'3px 10px',borderRadius:5,border:`1px solid ${filter===c?'#4f8fff40':'#1e2536'}`,background:filter===c?'#4f8fff18':'transparent',color:filter===c?'#4f8fff':'#6b7a94',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'all .15s'}}>{c}</button>
+          ))}
+        </div>
+      </div>
+      <div style={{display:'flex',flexDirection:'column',gap:6}}>
+        {filtered.map(tool=>{
+          const isOn = toolStates[tool.id];
+          const isConnecting = connecting===tool.id;
+          return (
+            <div key={tool.id} style={{padding:'12px 16px',background:'#09091a',border:`1px solid ${isOn?'#22c99218':'#141820'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12,transition:'border-color .2s'}}>
+              <div style={{width:9,height:9,borderRadius:'50%',background:isOn?'#22c992':'#252e42',boxShadow:isOn?'0 0 7px #22c992':'none',flexShrink:0,transition:'all .3s'}} />
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:1}}>
+                  <span style={{fontSize:'0.82rem',fontWeight:700}}>{tool.name}</span>
+                  <span style={{fontSize:'0.5rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff18'}}>{tool.category}</span>
+                </div>
+                <div style={{fontSize:'0.64rem',color:'#6b7a94'}}>{tool.desc}{isOn&&tool.alerts>0?` · ${tool.alerts} alerts today`:''}</div>
+              </div>
+              <button onClick={()=>handleToggle(tool.id,tool.name)} disabled={isConnecting} style={{padding:'5px 14px',borderRadius:7,border:`1px solid ${isOn?'#f0405e20':'#4f8fff40'}`,background:isOn?'#f0405e08':'#4f8fff12',color:isOn?'#f0405e':'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0,transition:'all .15s',minWidth:80,textAlign:'center'}}>
+                {isConnecting?'Connecting…':isOn?'Disconnect':'+ Connect'}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+      {apiKeyModal && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={()=>setApiKeyModal(null)}>
+          <div style={{background:'#0a0d14',border:'1px solid #1e2536',borderRadius:16,maxWidth:420,width:'100%',padding:24}} onClick={e=>e.stopPropagation()}>
+            <div style={{fontSize:'0.92rem',fontWeight:700,marginBottom:4}}>Connect {apiKeyModal.name}</div>
+            <div style={{fontSize:'0.72rem',color:'#6b7a94',marginBottom:16}}>Enter your API key to connect this integration. It will be stored securely in your environment.</div>
+            <div style={{fontSize:'0.7rem',fontWeight:600,color:'#8a9ab8',marginBottom:6}}>API Key</div>
+            <input value={apiKeyVal} onChange={e=>setApiKeyVal(e.target.value)} placeholder='Paste your API key here…' style={{width:'100%',padding:'10px 12px',background:'#050508',border:'1px solid #1e2536',borderRadius:8,color:'#e8ecf4',fontSize:'0.78rem',fontFamily:'JetBrains Mono,monospace',outline:'none',marginBottom:16}} />
+            <div style={{display:'flex',gap:8}}>
+              <button onClick={handleConnect} disabled={!apiKeyVal.trim()} style={{flex:1,padding:'9px 0',borderRadius:8,border:'none',background:apiKeyVal.trim()?'#4f8fff':'#1e2536',color:apiKeyVal.trim()?'#fff':'#3a4050',fontSize:'0.78rem',fontWeight:700,cursor:apiKeyVal.trim()?'pointer':'not-allowed',fontFamily:'Inter,sans-serif',transition:'all .15s'}}>Connect</button>
+              <button onClick={()=>setApiKeyModal(null)} style={{padding:'9px 18px',borderRadius:8,border:'1px solid #1e2536',background:'transparent',color:'#6b7a94',fontSize:'0.78rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -757,34 +862,7 @@ export default function DashboardPage() {
           )}
           {/* ═══════════════════════════════ TOOLS ══════════════════════════════════ */}
           {activeTab==='tools' && (
-            <div style={{display:'flex',flexDirection:'column',gap:12}}>
-              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
-                <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Connected Tools</h2>
-                <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{tools.filter(t=>t.active).length} active</span>
-              </div>
-              {/* Connected tools */}
-              <div style={{display:'flex',flexDirection:'column',gap:6}}>
-                {tools.map(tool=>(
-                  <div key={tool.id} style={{padding:'14px 16px',background:'#09091a',border:`1px solid ${tool.active?'#22c99220':'#f0405e18'}`,borderRadius:12,display:'flex',alignItems:'center',gap:12}}>
-                    <div style={{width:10,height:10,borderRadius:'50%',background:tool.active?'#22c992':'#f0405e',boxShadow:tool.active?'0 0 8px #22c992':'none',flexShrink:0}} />
-                    <div style={{flex:1}}>
-                      <div style={{fontSize:'0.84rem',fontWeight:700,marginBottom:2}}>{tool.name}</div>
-                      <div style={{fontSize:'0.66rem',color:'#6b7a94'}}>{tool.active?`Connected · ${tool.alertCount||0} alerts today`:'Not configured — click to set up'}</div>
-                    </div>
-                    {tool.active
-                      ? <span style={{fontSize:'0.62rem',fontWeight:700,color:'#22d49a',padding:'3px 10px',borderRadius:5,background:'#22d49a10',border:'1px solid #22d49a20'}}>Active</span>
-                      : <a href='/settings' style={{padding:'5px 14px',borderRadius:7,background:'#4f8fff',color:'#fff',fontSize:'0.72rem',fontWeight:700,textDecoration:'none'}}>Configure →</a>}
-                  </div>
-                ))}
-              </div>
-              {/* Add new tool */}
-              <div style={{padding:'20px',background:'#09091a',border:'2px dashed #1e2536',borderRadius:12,textAlign:'center'}}>
-                <div style={{fontSize:'1.4rem',marginBottom:8}}>🔌</div>
-                <div style={{fontSize:'0.82rem',fontWeight:700,marginBottom:4}}>Add a new tool</div>
-                <div style={{fontSize:'0.72rem',color:'#6b7a94',marginBottom:14}}>Connect CrowdStrike, Splunk, Sentinel, Taegis, Tenable, and 15+ more</div>
-                <a href='/settings' style={{display:'inline-block',padding:'8px 24px',borderRadius:8,background:'#4f8fff',color:'#fff',fontSize:'0.8rem',fontWeight:700,textDecoration:'none'}}>+ Add Tool</a>
-              </div>
-            </div>
+            <ToolsTab />
           )}
         </div>
       </div>
