@@ -33,7 +33,7 @@ export async function POST(req: Request) {
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 300,
+      body: JSON.stringify({ model: 'claude-3-5-sonnet-20241022', max_tokens: 300,
         system: 'You are a SOC query assistant. Answer questions about the security data provided. Be concise.',
         messages: [{ role: 'user', content: `Security data context: ${context || 'No tools connected.'}\n\nUser query: ${query}` }] }),
     });

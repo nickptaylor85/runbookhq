@@ -34,7 +34,7 @@ export async function POST(req: Request) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514', max_tokens: 500,
+        model: 'claude-3-5-sonnet-20241022', max_tokens: 500,
         system: 'You are a CISO-level security briefing generator. Write a concise 3-4 paragraph executive summary suitable for leadership. Be factual, highlight risks, recommend priorities. Flowing prose only, no bullet points.',
         messages: [{ role: 'user', content: `Generate an executive security summary:\n\n${context}` }],
       }),

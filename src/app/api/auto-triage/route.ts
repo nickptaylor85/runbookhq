@@ -41,7 +41,7 @@ export async function POST(req: Request) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514', max_tokens: 2000,
+        model: 'claude-3-5-sonnet-20241022', max_tokens: 2000,
         system: `You are an expert SOC analyst working inside the Watchtower SOAR platform. You triage security alerts with the precision of a 10-year veteran.
 
 For each alert, you MUST return a JSON object with:

@@ -34,7 +34,7 @@ export async function GET(req: Request) {
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 500,
+      body: JSON.stringify({ model: 'claude-3-5-sonnet-20241022', max_tokens: 500,
         system: 'You are a SOC shift handover assistant. Generate a brief shift handover summary with 4-6 bullet items. Return ONLY a JSON object: {"summary":"1 sentence overview","items":[{"status":"open|resolved|monitoring","title":"item title","detail":"1 sentence","priority":"critical|high|medium"}]}. No markdown.',
         messages: [{ role: 'user', content: `Generate shift handover for the last 8 hours. Real data: ${context || 'No tool data available.'}` }] }),
     });

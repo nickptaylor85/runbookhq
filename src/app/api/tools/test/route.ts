@@ -42,12 +42,21 @@ export async function POST(req: Request) {
     const key = configs.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY;
     results.steps.push({ step: 'Key found', ok: !!key, prefix: key ? key.substring(0, 12) + '...' : null });
     if (key) {
-      try {
-        const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' }, body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 10, messages: [{ role: 'user', content: 'Say OK' }] }) });
-        const data = await res.json();
-        results.steps.push({ step: 'API response', ok: res.ok, status: res.status, text: data.content?.[0]?.text || data.error?.message || 'unknown' });
-      } catch (e) {
-        results.steps.push({ step: 'API call', ok: false, error: (e as Error).message });
+      const models = ['claude-sonnet-4-20250514', 'claude-3-5-sonnet-20241022'];
+      for (const model of models) {
+        try {
+          const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' }, body: JSON.stringify({ model, max_tokens: 10, messages: [{ role: 'user', content: 'Say OK' }] }) });
+          const data = await res.json();
+          if (res.ok) {
+            results.steps.push({ step: 'API response (' + model + ')', ok: true, status: res.status, text: data.content?.[0]?.text || 'OK' });
+            results.workingModel = model;
+            break;
+          } else {
+            results.steps.push({ step: 'API response (' + model + ')', ok: false, status: res.status, text: data.error?.message || JSON.stringify(data).substring(0, 200) });
+          }
+        } catch (e) {
+          results.steps.push({ step: 'API call (' + model + ')', ok: false, error: (e as Error).message });
+        }
       }
     }
   }

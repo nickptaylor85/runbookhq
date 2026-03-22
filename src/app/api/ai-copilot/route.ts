@@ -46,7 +46,7 @@ ${question || 'Analyse this alert. What is it, how serious is it, and what shoul
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-3-5-sonnet-20241022',
         max_tokens: 600,
         system: systemPrompt,
         messages: [{ role: 'user', content: context ? `Dashboard context:\n${context}\n\n${userMsg}` : userMsg }],
