@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { TOOLS, type ToolInfo, type ToolField } from '@/lib/tool-registry-client';
 
 class DashErrorBoundary extends React.Component<{children:React.ReactNode},{error:any}>{
