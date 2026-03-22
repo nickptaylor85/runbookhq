@@ -203,7 +203,7 @@ export default function DashboardPage() {
     setExpandedAlerts(prev => { const n = new Set(prev); n.has(id)?n.delete(id):n.add(id); return n; });
   }
 
-  const TABS = ['overview','alerts','coverage','vulns','intel','incidents'];
+  const TABS = ['overview','alerts','coverage','vulns','intel','incidents','tools'];
 
   return (
     <div style={{display:'flex',minHeight:'100vh',background:'#050508',color:'#e8ecf4',fontFamily:'Inter,sans-serif'}}>
@@ -225,7 +225,7 @@ export default function DashboardPage() {
       {/* SIDEBAR */}
       <div style={{width:48,background:'#08090f',borderRight:'1px solid #141820',display:'flex',flexDirection:'column',alignItems:'center',padding:'10px 0',gap:4,flexShrink:0}}>
         <div style={{width:30,height:30,borderRadius:8,background:'linear-gradient(135deg,#4f8fff,#8b6fff)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.62rem',color:'#fff',fontWeight:900,marginBottom:10}}>W</div>
-        {[{t:'overview',i:'📊'},{t:'alerts',i:'🔔'},{t:'coverage',i:'🛡'},{t:'vulns',i:'🔍'},{t:'intel',i:'🌐'},{t:'incidents',i:'📋'}].map(({t,i})=>(
+        {[{t:'overview',i:'📊'},{t:'alerts',i:'🔔'},{t:'coverage',i:'🛡'},{t:'vulns',i:'🔍'},{t:'intel',i:'🌐'},{t:'incidents',i:'📋'},{t:'tools',i:'🔌'}].map(({t,i})=>(
           <button key={t} onClick={()=>setActiveTab(t)} title={t.charAt(0).toUpperCase()+t.slice(1)} style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem',border:'none',cursor:'pointer',background:activeTab===t?'#4f8fff18':'transparent',transition:'background .15s'}}>
             {i}{t==='alerts'&&critAlerts.length>0&&<span style={{position:'absolute',marginLeft:16,marginTop:-16,width:7,height:7,borderRadius:'50%',background:'#f0405e',display:'block'}} />}
           </button>
@@ -753,6 +753,37 @@ export default function DashboardPage() {
                   </div>
                 );
               })}
+            </div>
+          )}
+          {/* ═══════════════════════════════ TOOLS ══════════════════════════════════ */}
+          {activeTab==='tools' && (
+            <div style={{display:'flex',flexDirection:'column',gap:12}}>
+              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
+                <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Connected Tools</h2>
+                <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{tools.filter(t=>t.active).length} active</span>
+              </div>
+              {/* Connected tools */}
+              <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                {tools.map(tool=>(
+                  <div key={tool.id} style={{padding:'14px 16px',background:'#09091a',border:`1px solid ${tool.active?'#22c99220':'#f0405e18'}`,borderRadius:12,display:'flex',alignItems:'center',gap:12}}>
+                    <div style={{width:10,height:10,borderRadius:'50%',background:tool.active?'#22c992':'#f0405e',boxShadow:tool.active?'0 0 8px #22c992':'none',flexShrink:0}} />
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:'0.84rem',fontWeight:700,marginBottom:2}}>{tool.name}</div>
+                      <div style={{fontSize:'0.66rem',color:'#6b7a94'}}>{tool.active?`Connected · ${tool.alertCount||0} alerts today`:'Not configured — click to set up'}</div>
+                    </div>
+                    {tool.active
+                      ? <span style={{fontSize:'0.62rem',fontWeight:700,color:'#22d49a',padding:'3px 10px',borderRadius:5,background:'#22d49a10',border:'1px solid #22d49a20'}}>Active</span>
+                      : <a href='/settings' style={{padding:'5px 14px',borderRadius:7,background:'#4f8fff',color:'#fff',fontSize:'0.72rem',fontWeight:700,textDecoration:'none'}}>Configure →</a>}
+                  </div>
+                ))}
+              </div>
+              {/* Add new tool */}
+              <div style={{padding:'20px',background:'#09091a',border:'2px dashed #1e2536',borderRadius:12,textAlign:'center'}}>
+                <div style={{fontSize:'1.4rem',marginBottom:8}}>🔌</div>
+                <div style={{fontSize:'0.82rem',fontWeight:700,marginBottom:4}}>Add a new tool</div>
+                <div style={{fontSize:'0.72rem',color:'#6b7a94',marginBottom:14}}>Connect CrowdStrike, Splunk, Sentinel, Taegis, Tenable, and 15+ more</div>
+                <a href='/settings' style={{display:'inline-block',padding:'8px 24px',borderRadius:8,background:'#4f8fff',color:'#fff',fontSize:'0.8rem',fontWeight:700,textDecoration:'none'}}>+ Add Tool</a>
+              </div>
             </div>
           )}
         </div>
