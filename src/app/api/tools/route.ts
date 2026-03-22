@@ -26,13 +26,13 @@ export async function GET(req: Request) {
   // If demo mode, simulate all tools being connected
   if (result.tools?.['_demo']?.enabled) {
     const demoTools: Record<string, any> = {
-      _demo: { id: '_demo', enabled: true, credentials: { mode: 'demo' }, status: 'ok' },
-      tenable: { id: 'tenable', enabled: true, credentials: { demo: true }, status: 'ok' },
-      taegis: { id: 'taegis', enabled: true, credentials: { demo: true }, status: 'ok' },
-      defender: { id: 'defender', enabled: true, credentials: { demo: true }, status: 'ok' },
-      crowdstrike: { id: 'crowdstrike', enabled: true, credentials: { demo: true }, status: 'ok' },
-      zscaler: { id: 'zscaler', enabled: true, credentials: { demo: true }, status: 'ok' },
-      anthropic: { id: 'anthropic', enabled: true, credentials: { demo: true }, status: 'ok' },
+      _demo: { id: '_demo', enabled: true, configured: true, credentials: { mode: 'demo' }, status: 'ok' },
+      tenable: { id: 'tenable', enabled: true, configured: true, credentials: { demo: true }, status: 'ok' },
+      taegis: { id: 'taegis', enabled: true, configured: true, credentials: { demo: true }, status: 'ok' },
+      defender: { id: 'defender', enabled: true, configured: true, credentials: { demo: true }, status: 'ok' },
+      crowdstrike: { id: 'crowdstrike', enabled: true, configured: true, credentials: { demo: true }, status: 'ok' },
+      zscaler: { id: 'zscaler', enabled: true, configured: true, credentials: { demo: true }, status: 'ok' },
+      anthropic: { id: 'anthropic', enabled: true, configured: true, credentials: { demo: true }, status: 'ok' },
     };
     result.tools = { ...demoTools, ...(result.tools || {}) };
   }
@@ -48,12 +48,23 @@ export async function POST(req: Request) {
   const configs = await loadTenantConfigs(tenantId);
   if (!configs.tools) configs.tools = {};
 
-  if (body.toolId && body.credentials) {
+  if (body.action === 'toggle' && body.toolId) {
+    // Toggle enabled/disabled for existing tool
+    if (configs.tools[body.toolId]) {
+      configs.tools[body.toolId].enabled = !!body.enabled;
+    } else {
+      configs.tools[body.toolId] = { id: body.toolId, enabled: !!body.enabled, credentials: {}, configured: false, status: 'unconfigured' };
+    }
+  } else if (body.toolId && body.credentials) {
+    // Save or update tool credentials
+    const existing = configs.tools[body.toolId] || {};
     configs.tools[body.toolId] = {
       id: body.toolId,
       enabled: body.enabled !== false,
       credentials: body.credentials,
-      status: 'untested',
+      configured: true,
+      status: 'ok',
+      ...( existing.credentials ? {} : {} ),
     };
   } else if (body.tools) {
     configs.tools = body.tools;
