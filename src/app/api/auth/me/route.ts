@@ -12,6 +12,9 @@ export async function GET(req: Request) {
   if (!user) return NextResponse.json({ user: null });
 
   const tenant = platform.tenants?.[user.tenantId];
+  const adminOriginal = cookie.match(/secops-admin-original=([^;]+)/);
+  const isImpersonating = !!adminOriginal;
+  const adminEmail = adminOriginal ? decodeURIComponent(adminOriginal[1]) : null;
   return NextResponse.json({
     user: {
       email: user.email, org: user.org, plan: user.plan, role: user.role,
@@ -19,6 +22,7 @@ export async function GET(req: Request) {
       trialEndsAt: user.trialEndsAt, totpEnabled: !!user.totpEnabled,
       lastLoginAt: user.lastLoginAt, addons: user.addons || [],
       seats: user.seats, seatLimit: user.seatLimit,
+      isImpersonating, adminEmail,
     },
     addons: user.addons || [],
     tenant: tenant ? { id: tenant.id, name: tenant.name, plan: tenant.plan, members: tenant.members, memberCount: tenant.members?.length || 0 } : null,
