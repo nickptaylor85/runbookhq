@@ -7,7 +7,31 @@ export async function GET(req: Request) {
   const { tenantId } = getTenantFromRequest(req);
 
   // Demo insights — rich, actionable, per-tab
-  const insights: Record<string, any[]> = {
+  
+  // Try real AI insights if API key available
+  const { loadToolConfigs } = await import('@/lib/config-store');
+  const configs = await loadToolConfigs(tenantId || undefined);
+  const apiKey = configs.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY;
+  
+  if (apiKey) {
+    try {
+      const prompt = `You are an AI security analyst. Generate 1 brief, actionable insight for the "${tab}" tab of a SOC dashboard. The insight should be specific, data-driven, and include a recommended action. Return ONLY a JSON object with these fields: id (string), type (one of: warning/insight/success/pattern/critical), icon (one emoji), title (under 60 chars), detail (2-3 sentences with specific numbers), action (button text ending with →), actionTab (one of: overview/alerts/vulns/coverage/incidents/intel/tools), priority (critical/high/medium/info). No markdown, no backticks, just the JSON object.`;
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+        body: JSON.stringify({ model: 'claude-3-5-sonnet-20241022', max_tokens: 300, messages: [{ role: 'user', content: prompt }] })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const text = data.content?.[0]?.text || '';
+        const clean = text.replace(/```json|```/g, '').trim();
+        const parsed = JSON.parse(clean);
+        return NextResponse.json({ insights: [parsed], tab, live: true });
+      }
+    } catch(e) { /* fall through to hardcoded */ }
+  }
+
+const insights: Record<string, any[]> = {
     overview: [
       { id: 'ov1', type: 'warning', icon: '🔥', title: 'Posture score dropped 12 points in 48 hours', detail: 'Driven by 3 new critical vulns (CVE-2024-3400, CVE-2024-21762, CVE-2024-1709) and 2 stale agents. Patch PAN-OS and FortiOS within 24h to recover 8 points.', action: 'View affected assets →', actionTab: 'vulns', priority: 'critical' },
       { id: 'ov2', type: 'insight', icon: '📈', title: 'Alert volume is 34% above your 30-day baseline', detail: 'Peak hours are 09:00-11:00 UTC. 78% of the excess is Defender XDR generating duplicate alerts for the same parent incident. Consider tuning Defender alert rules or enabling dedup in Watchtower.', action: 'Review alert patterns →', actionTab: 'alerts', priority: 'medium' },

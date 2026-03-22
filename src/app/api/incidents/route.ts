@@ -44,12 +44,10 @@ export async function POST(req: Request) {
   }
 
   if (action === 'delete') {
-    const incidentId = body.incidentId;
     if (!incidentId) return NextResponse.json({ error: 'incidentId required' }, { status: 400 });
-    const idx = incidents.findIndex((i: any) => i.id === incidentId);
+    const idx = configs.incidents.findIndex((i: any) => i.id === incidentId);
     if (idx >= 0) {
-      incidents.splice(idx, 1);
-      (configs as any).incidents = incidents;
+      configs.incidents.splice(idx, 1);
       await saveTenantConfigs(tenantId, configs as any);
       return NextResponse.json({ ok: true, deleted: incidentId });
     }

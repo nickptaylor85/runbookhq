@@ -9,10 +9,7 @@ export async function POST(req: Request) {
   const alerts = body.alerts || [];
   if (!alerts.length) return NextResponse.json({ alerts: [], actions: [] });
 
-  // Check demo mode
-  const { isDemoMode } = await import('@/lib/demo-check');
-  if (await isDemoMode(tenantId)) return demoTriage(alerts);
-
+  // Check for API key — use real AI if available, demo if not
   const configs = await loadToolConfigs(tenantId || undefined);
   const apiKey = configs.tools?.anthropic?.credentials?.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return demoTriage(alerts);

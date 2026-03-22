@@ -76,7 +76,14 @@ export async function GET(req: Request) {
   }
 
   if (alerts.length === 0) {
-    return NextResponse.json({ demo: false, alerts: [], errors: errors.length ? errors : ['No alerts from connected tools'], noTools: !Object.values(tools).some(Boolean), _debug: { tools, errorCount: errors.length } });
+    // No real alerts — fall back to demo data so AI features have something to work with
+    if (alerts.length === 0) {
+      const { DEMO_DEFENDER_ALERTS, DEMO_TAEGIS_ALERTS, DEMO_TENANT_ALERTS } = await import('@/lib/demo-data');
+      const tenantAlerts = DEMO_TENANT_ALERTS[tenantId||''] || null;
+      const demoAlerts = tenantAlerts || [...DEMO_DEFENDER_ALERTS, ...DEMO_TAEGIS_ALERTS];
+      return NextResponse.json({ alerts: demoAlerts.sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()), demo: true, source: 'fallback-demo', noTools: !Object.values(tools).some(Boolean) });
+    }
+    return NextResponse.json({ demo: false, alerts, errors: errors.length ? errors : undefined });
   }
 
 
