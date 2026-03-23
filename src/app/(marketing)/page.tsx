@@ -113,24 +113,32 @@ function LiveDashPreview() {
 function ROICalculator() {
   const [analysts, setAnalysts] = useState(3);
   const [alertsPerDay, setAlertsPerDay] = useState(200);
-  const hoursPerAlert = 12; // minutes
+  const [minPerAlert, setMinPerAlert] = useState(8);
   const fpRate = 0.72;
   const aiReduction = 0.85;
-  const hourlyRate = 45;
+  const hourlyRate = 50;
 
-  const wasted = Math.round(analysts * alertsPerDay * fpRate * (hoursPerAlert / 60) * hourlyRate * 5 * 52);
+  const fpAlertsPerDay = Math.round(alertsPerDay * fpRate);
+  const rawHoursWastedPerDay = fpAlertsPerDay * (minPerAlert / 60);
+  // Cap at analyst capacity (analysts × 8h working day)
+  const analystCapacityHours = analysts * 8;
+  const hoursWastedPerDay = Math.min(rawHoursWastedPerDay, analystCapacityHours);
+  const wasted = Math.round(hoursWastedPerDay * hourlyRate * 260);
   const saved = Math.round(wasted * aiReduction);
   const cost = analysts <= 3 ? 49 * 3 * 12 : analysts <= 10 ? 199 * 12 : 799 * 12;
-  const roi = Math.round(((saved - cost) / cost) * 100);
+  const roi = Math.min(Math.round(((saved - cost) / cost) * 100), 9999);
+  const overCapacity = rawHoursWastedPerDay > analystCapacityHours;
+  const dailySaving = saved / 260;
+  const paybackDays = dailySaving > 0 ? Math.max(1, Math.round(cost / dailySaving)) : 0;
 
   return (
     <div style={{ background:'#0a0d14', border:'1px solid #1e2536', borderRadius:16, padding:'28px 32px', maxWidth:640, margin:'0 auto' }}>
       <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:6 }}>ROI CALCULATOR</div>
       <h3 style={{ fontSize:'1.3rem', fontWeight:800, letterSpacing:-1, marginBottom:20 }}>What is alert fatigue actually costing you?</h3>
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:20 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:16 }}>
         {[
           { label:'Analysts in your SOC', val:analysts, set:setAnalysts, min:1, max:20 },
-          { label:'Alerts per day', val:alertsPerDay, set:setAlertsPerDay, min:10, max:2000, step:10 },
+          { label:'Alerts per day (team total)', val:alertsPerDay, set:setAlertsPerDay, min:10, max:2000, step:10 },
         ].map(s => (
           <div key={s.label}>
             <div style={{ fontSize:'0.72rem', color:'#6b7a94', marginBottom:6 }}>{s.label}</div>
@@ -141,11 +149,23 @@ function ROICalculator() {
           </div>
         ))}
       </div>
+      <div style={{ marginBottom:20 }}>
+        <div style={{ fontSize:'0.72rem', color:'#6b7a94', marginBottom:6 }}>Minutes to investigate each alert</div>
+        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+          <input type='range' min={3} max={30} step={1} value={minPerAlert} onChange={e => setMinPerAlert(Number(e.target.value))} style={{ flex:1, accentColor:'#4f8fff' }} />
+          <span style={{ fontSize:'1rem', fontWeight:800, fontFamily:'JetBrains Mono,monospace', minWidth:40, textAlign:'right' }}>{minPerAlert}m</span>
+        </div>
+      </div>
+      <div style={{ padding:'10px 14px', background:'#050508', borderRadius:8, marginBottom:16, fontSize:'0.68rem', color:'#4a5568', lineHeight:1.8 }}>
+        {fpAlertsPerDay} FP alerts/day × {minPerAlert} min × £{hourlyRate}/hr × 260 days
+        = <strong style={{ color:'#f0405e' }}>£{wasted.toLocaleString()}/year</strong> wasted on noise
+        {overCapacity && <span style={{ display:'block', color:'#f0a030', marginTop:4 }}>⚠ Alert volume exceeds analyst capacity — team is missing alerts</span>}
+      </div>
       <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8 }}>
         {[
           { label:'Wasted annually on FPs', val:`£${(wasted/1000).toFixed(0)}k`, color:'#f0405e' },
           { label:'Watchtower saves you', val:`£${(saved/1000).toFixed(0)}k`, color:'#22d49a' },
-          { label:'Year-one ROI', val:`${roi}%`, color:'#4f8fff' },
+          { label:'Pays for itself in', val:`${paybackDays}d`, color:'#4f8fff' },
         ].map(s => (
           <div key={s.label} style={{ textAlign:'center', padding:'14px 8px', background:'#050508', border:'1px solid #141820', borderRadius:10 }}>
             <div style={{ fontSize:'1.6rem', fontWeight:900, fontFamily:'JetBrains Mono,monospace', color:s.color, letterSpacing:-2 }}>{s.val}</div>
@@ -153,7 +173,7 @@ function ROICalculator() {
           </div>
         ))}
       </div>
-      <p style={{ fontSize:'0.7rem', color:'#3a4050', marginTop:10, textAlign:'center' }}>Based on £{hourlyRate}/hr analyst cost, {Math.round(fpRate*100)}% avg false positive rate, {Math.round(aiReduction*100)}% Watchtower reduction.</p>
+      <p style={{ fontSize:'0.68rem', color:'#3a4050', marginTop:10, textAlign:'center' }}>Based on £{hourlyRate}/hr blended SOC analyst cost (incl. overhead) · {Math.round(fpRate*100)}% industry avg FP rate · {Math.round(aiReduction*100)}% Watchtower noise reduction</p>
     </div>
   );
 }

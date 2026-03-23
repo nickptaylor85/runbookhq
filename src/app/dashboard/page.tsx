@@ -202,7 +202,6 @@ function ToolsTab() {
       });
       const data = await res.json();
       if (res.ok && data.ok) {
-      if (res.ok && data.ok) {
         setKeyStatus('saved');
         setAnthropicKey('');
         await testAiKey();
