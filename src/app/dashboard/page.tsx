@@ -185,6 +185,21 @@ function ToolsTab() {
   const [formVals, setFormVals] = useState<Record<string,string>>({});
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ok:boolean;message:string}|null>(null);
+  const [anthropicKey, setAnthropicKey] = useState('');
+  const [keyStatus, setKeyStatus] = useState<'idle'|'saving'|'saved'|'error'>('idle');
+
+  async function saveAnthropicKey() {
+    if (!anthropicKey.trim()) return;
+    setKeyStatus('saving');
+    try {
+      const res = await fetch('/api/settings/anthropic-key', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({key: anthropicKey.trim()}),
+      });
+      setKeyStatus(res.ok ? 'saved' : 'error');
+      setTimeout(()=>setKeyStatus('idle'), 3000);
+    } catch(e) { setKeyStatus('error'); setTimeout(()=>setKeyStatus('idle'), 3000); }
+  }
 
   const filtered = filter==='All' ? ALL_TOOLS : ALL_TOOLS.filter(t=>t.category===filter);
 
@@ -233,6 +248,28 @@ function ToolsTab() {
           ))}
         </div>
       </div>
+
+      {/* Anthropic API Key */}
+      <div style={{padding:'14px 16px',background:'linear-gradient(135deg,rgba(79,143,255,0.05),rgba(139,111,255,0.05))',border:'1px solid #4f8fff20',borderRadius:12}}>
+        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+          <div style={{width:8,height:8,borderRadius:'50%',background:'#4f8fff',boxShadow:'0 0 6px #4f8fff',flexShrink:0}} />
+          <span style={{fontSize:'0.82rem',fontWeight:700}}>AI Engine — Anthropic API Key</span>
+          <span style={{fontSize:'0.58rem',color:'#8b6fff',background:'#8b6fff12',padding:'1px 7px',borderRadius:3,border:'1px solid #8b6fff20'}}>Required for AI features</span>
+        </div>
+        <div style={{fontSize:'0.72rem',color:'#6b7a94',marginBottom:10,lineHeight:1.6}}>
+          Watchtower uses Claude for AI triage, Co-Pilot, and remediation assistance. Your key is stored as a Vercel environment variable and never exposed to the browser.
+        </div>
+        <div style={{display:'flex',gap:8,alignItems:'center'}}>
+          <input type='password' value={anthropicKey} onChange={e=>setAnthropicKey(e.target.value)} placeholder='sk-ant-api03-...' style={{flex:1,padding:'8px 12px',borderRadius:7,border:'1px solid #1e2536',background:'#050508',color:'#e8ecf4',fontSize:'0.76rem',fontFamily:'JetBrains Mono,monospace',outline:'none'}} />
+          <button onClick={saveAnthropicKey} disabled={!anthropicKey.trim()||keyStatus==='saving'} style={{padding:'8px 18px',borderRadius:7,border:'none',background:keyStatus==='saved'?'#22d49a':keyStatus==='error'?'#f0405e':'#4f8fff',color:'#fff',fontSize:'0.74rem',fontWeight:700,cursor:anthropicKey.trim()?'pointer':'not-allowed',fontFamily:'Inter,sans-serif',flexShrink:0,opacity:anthropicKey.trim()?1:0.5}}>
+            {keyStatus==='saving'?'Saving…':keyStatus==='saved'?'✓ Saved':keyStatus==='error'?'✗ Failed':'Save Key'}
+          </button>
+        </div>
+        <div style={{fontSize:'0.62rem',color:'#3a4050',marginTop:6}}>
+          Get your key at <a href='https://console.anthropic.com/account/keys' target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{color:'#4f8fff',textDecoration:'none'}}>console.anthropic.com</a> · Key is saved to Vercel env vars and requires a redeploy to take effect
+        </div>
+      </div>
+
       <div style={{display:'flex',flexDirection:'column',gap:6}}>
         {filtered.map(tool=>{
           const isOn = !!connected[tool.id];
@@ -340,7 +377,7 @@ export default function DashboardPage() {
   async function getVulnAiHelp(vuln:Vuln) {
     setVulnAiLoading(vuln.id);
     try {
-      const resp = await fetch('/api/copilot', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:`Provide concise remediation guidance for ${vuln.cve} - ${vuln.title} in a corporate environment. Cover: 1) Immediate mitigation steps, 2) Permanent fix, 3) Detection/hunting queries, 4) Business risk if unpatched. Be specific and actionable. Use plain text, no markdown.`}) });
+      const resp = await fetch('/api/copilot', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:`For ${vuln.cve} (${vuln.title}), provide information NOT covered in standard remediation docs. Focus on: 1) Specific detection queries for Splunk, Microsoft Sentinel (KQL), and Microsoft Defender for Endpoint (KQL/Advanced Hunting) to find exploitation attempts — include actual query syntax. 2) Known exploitation indicators and IOCs seen in the wild. 3) Compensating controls if patching is not immediately possible. 4) Common mistakes teams make when remediating this CVE. 5) How attackers typically chain this with other techniques. Plain text only, be specific and technical. Label each KQL query clearly.`}) });
       if (resp.ok) {
         const d = await resp.json();
         const text = d.response || d.message || `Remediation for ${vuln.cve}: ${vuln.remediation.slice(0,2).join('. ')}. ${vuln.kev ? 'CISA KEV — patch within 72 hours.' : ''}`;
@@ -739,12 +776,12 @@ export default function DashboardPage() {
                             {vuln.patch && (
                               <div style={{marginTop:8,fontSize:'0.66rem',color:'#22d49a',display:'flex',alignItems:'center',gap:6}}>
                                 📦 Patch: <strong>{vuln.patch}</strong>
-                                <a href={`https://nvd.nist.gov/vuln/detail/${vuln.cve}`} target='_blank' rel='noopener' style={{color:'#4f8fff',textDecoration:'none',fontSize:'0.6rem',padding:'1px 6px',border:'1px solid #4f8fff30',borderRadius:3}}>NVD →</a>
-                                <a href={`https://www.cisa.gov/known-exploited-vulnerabilities-catalog`} target='_blank' rel='noopener' style={{color:'#f97316',textDecoration:'none',fontSize:'0.6rem',padding:'1px 6px',border:'1px solid #f9731630',borderRadius:3,display:vuln.kev?'inline':'none'}}>CISA KEV →</a>
+                                <a href={`https://nvd.nist.gov/vuln/detail/${vuln.cve}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{color:'#4f8fff',textDecoration:'none',fontSize:'0.6rem',padding:'1px 6px',border:'1px solid #4f8fff30',borderRadius:3}}>NVD →</a>
+                                <a href={`https://www.cisa.gov/known-exploited-vulnerabilities-catalog`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{color:'#f97316',textDecoration:'none',fontSize:'0.6rem',padding:'1px 6px',border:'1px solid #f9731630',borderRadius:3,display:vuln.kev?'inline':'none'}}>CISA KEV →</a>
                               </div>
                             )}
                             {!vuln.patch && (
-                              <a href={`https://nvd.nist.gov/vuln/detail/${vuln.cve}`} target='_blank' rel='noopener' style={{display:'inline-block',marginTop:8,color:'#4f8fff',textDecoration:'none',fontSize:'0.62rem',padding:'2px 8px',border:'1px solid #4f8fff30',borderRadius:3}}>View on NVD →</a>
+                              <a href={`https://nvd.nist.gov/vuln/detail/${vuln.cve}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-block',marginTop:8,color:'#4f8fff',textDecoration:'none',fontSize:'0.62rem',padding:'2px 8px',border:'1px solid #4f8fff30',borderRadius:3}}>View on NVD →</a>
                             )}
                           </div>
                           <div>
