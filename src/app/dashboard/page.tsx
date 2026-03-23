@@ -35,11 +35,11 @@ const DEMO_TOOLS:Tool[] = [
 ];
 
 const DEMO_GAP_DEVICES:GapDevice[] = [
-  {hostname:'SRV-LEGACY01',ip:'10.0.4.22',os:'Windows Server 2008',missing:['EDR','Vuln Scanner'],reason:'Legacy OS — agent incompatible',lastSeen:'2h ago'},
-  {hostname:'laptop-MKTG07',ip:'10.0.2.87',os:'Windows 11',missing:['EDR'],reason:'User-initiated uninstall',lastSeen:'15m ago'},
-  {hostname:'SRV-NAS01',ip:'10.0.3.15',os:'FreeNAS',missing:['EDR','Vuln Scanner','SIEM'],reason:'NAS device — no agent support',lastSeen:'5m ago'},
-  {hostname:'KIOSK-LOBBY',ip:'10.0.1.200',os:'Windows 10 IoT',missing:['Vuln Scanner'],reason:'IoT device — restricted access',lastSeen:'1m ago'},
-  {hostname:'laptop-HR03',ip:'10.0.2.44',os:'macOS 13',missing:['EDR'],reason:'Pending deployment — ticket open',lastSeen:'30m ago'},
+  {hostname:'SRV-LEGACY01',ip:'10.0.4.22',os:'Windows Server 2008',missing:['CrowdStrike Falcon','Tenable.io'],reason:'Legacy OS — agent incompatible',lastSeen:'2h ago'},
+  {hostname:'laptop-MKTG07',ip:'10.0.2.87',os:'Windows 11',missing:['CrowdStrike Falcon'],reason:'User-initiated uninstall',lastSeen:'15m ago'},
+  {hostname:'SRV-NAS01',ip:'10.0.3.15',os:'FreeNAS',missing:['CrowdStrike Falcon','Tenable.io','Splunk SIEM'],reason:'NAS device — no agent support',lastSeen:'5m ago'},
+  {hostname:'KIOSK-LOBBY',ip:'10.0.1.200',os:'Windows 10 IoT',missing:['Tenable.io','Microsoft Defender'],reason:'IoT device — restricted access',lastSeen:'1m ago'},
+  {hostname:'laptop-HR03',ip:'10.0.2.44',os:'macOS 13',missing:['CrowdStrike Falcon'],reason:'Pending deployment — ticket open',lastSeen:'30m ago'},
 ];
 
 const DEMO_ALERTS:Alert[] = [
@@ -129,6 +129,25 @@ function StatCard({val,label,sub,color,onClick}:{val:string|number;label:string;
       <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.4px',marginTop:2}}>{label}</div>
       {sub && <div style={{fontSize:'0.56rem',color:'var(--wt-dim)',marginTop:2}}>{sub}</div>}
       {onClick && <div style={{fontSize:'0.48rem',color:'#4f8fff',marginTop:4}}>click to view →</div>}
+    </div>
+  );
+}
+
+// ─── Paywall Gate ────────────────────────────────────────────────────────────
+function GateWall({ feature, requiredTier, children, userTier }: { feature:string; requiredTier:'team'|'business'|'mssp'; children:React.ReactNode; userTier:string; }) {
+  const levels: Record<string,number> = {community:0,team:1,business:2,mssp:3};
+  if ((levels[userTier]||0) >= levels[requiredTier]) return <>{children}</>;
+  const tierColors: Record<string,string> = {team:'#4f8fff',business:'#22d49a',mssp:'#8b6fff'};
+  const tierPrices: Record<string,string> = {team:'£49/seat',business:'£199/mo',mssp:'£799/mo'};
+  return (
+    <div style={{position:'relative',overflow:'hidden',borderRadius:12}}>
+      <div style={{filter:'blur(3px)',opacity:0.3,pointerEvents:'none',userSelect:'none'}}>{children}</div>
+      <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'rgba(5,5,8,0.85)',backdropFilter:'blur(2px)',borderRadius:12,border:`1px solid ${tierColors[requiredTier]}20`}}>
+        <div style={{fontSize:'1.4rem',marginBottom:8}}>🔒</div>
+        <div style={{fontSize:'0.82rem',fontWeight:700,marginBottom:4}}>{feature}</div>
+        <div style={{fontSize:'0.72rem',color:'var(--wt-muted)',marginBottom:14,textAlign:'center',maxWidth:260}}>Available on {requiredTier.charAt(0).toUpperCase()+requiredTier.slice(1)} plan and above</div>
+        <a href='/pricing' style={{padding:'8px 20px',borderRadius:8,background:tierColors[requiredTier],color:'#fff',fontSize:'0.76rem',fontWeight:700,textDecoration:'none',display:'inline-block'}}>Upgrade to {requiredTier.charAt(0).toUpperCase()+requiredTier.slice(1)} — {tierPrices[requiredTier]}</a>
+      </div>
     </div>
   );
 }
@@ -647,10 +666,39 @@ export default function DashboardPage() {
     if (typeof window !== 'undefined') localStorage.setItem('wt_theme', next);
   }
 
+  // ── Tier ─────────────────────────────────────────────────────────────────────
+  // In production this comes from the session/JWT. Change to test paywalls.
+  const [userTier, setUserTier] = useState<'community'|'team'|'business'|'mssp'>('community');
+  const tierLevel = {community:0,team:1,business:2,mssp:3}[userTier];
+  const canUse = (min:'community'|'team'|'business'|'mssp') => tierLevel >= {community:0,team:1,business:2,mssp:3}[min];
+
+  // ── Per-tenant demo data ──────────────────────────────────────────────────────
+  const TENANT_ALERTS: Record<string, typeof DEMO_ALERTS> = {
+    'global': DEMO_ALERTS,
+    'client-acme': DEMO_ALERTS.slice(0,3).map(a=>({...a, id:a.id+'-acme', device:'acme-'+a.device, source:a.source})),
+    'client-nhs': DEMO_ALERTS.slice(1,4).map(a=>({...a, id:a.id+'-nhs', device:'nhs-'+a.device, severity:a.severity==='Low'?'Medium':a.severity as any})),
+    'client-retail': DEMO_ALERTS.slice(0,2).map(a=>({...a, id:a.id+'-retail', device:'retail-'+a.device})),
+    'client-gov': DEMO_ALERTS.slice(2,5).map(a=>({...a, id:a.id+'-gov', device:'gov-'+a.device})),
+  };
+  const TENANT_VULNS: Record<string, typeof DEMO_VULNS> = {
+    'global': DEMO_VULNS,
+    'client-acme': DEMO_VULNS.slice(0,4).map(v=>({...v, id:v.id+'-acme', affected: Math.max(1, Math.round(v.affected*0.6)), affectedDevices: v.affectedDevices.map(d=>'acme-'+d)})),
+    'client-nhs': DEMO_VULNS.slice(0,7).map(v=>({...v, id:v.id+'-nhs', affected: Math.max(1, Math.round(v.affected*1.4)), affectedDevices: v.affectedDevices.map(d=>'nhs-'+d)})),
+    'client-retail': DEMO_VULNS.slice(0,5).map(v=>({...v, id:v.id+'-retail', affectedDevices: v.affectedDevices.map(d=>'retail-'+d)})),
+    'client-gov': DEMO_VULNS.slice(1,6).map(v=>({...v, id:v.id+'-gov', affectedDevices: v.affectedDevices.map(d=>'gov-'+d)})),
+  };
+  const TENANT_INCIDENTS: Record<string, typeof DEMO_INCIDENTS> = {
+    'global': DEMO_INCIDENTS,
+    'client-acme': DEMO_INCIDENTS.slice(0,1).map(i=>({...i, id:'INC-ACME-01', title:'[Acme] '+i.title})),
+    'client-nhs': DEMO_INCIDENTS.map(i=>({...i, id:'INC-NHS-'+i.id.slice(-2), title:'[NHS] '+i.title})),
+    'client-retail': [],
+    'client-gov': DEMO_INCIDENTS.slice(0,1).map(i=>({...i, id:'INC-GOV-01', title:'[Gov] '+i.title})),
+  };
+
   const tools = DEMO_TOOLS;
-  const alerts = DEMO_ALERTS;
-  const vulns = DEMO_VULNS;
-  const incidents = DEMO_INCIDENTS;
+  const alerts = TENANT_ALERTS[currentTenant] || DEMO_ALERTS;
+  const vulns = TENANT_VULNS[currentTenant] || DEMO_VULNS;
+  const incidents = TENANT_INCIDENTS[currentTenant] || DEMO_INCIDENTS;
 
   const activeTools = tools.filter(t=>t.active);
   const taegisActive = tools.find(t=>t.id==='taegis')?.active || false;
@@ -667,6 +715,18 @@ export default function DashboardPage() {
   const postureColor = '#f0a030';
 
   const autLabel = ['Recommend Only','Auto + Notify','Full Auto'][automation];
+  const autColor = ['#6b7a94','#f0a030','#22d49a'][automation];
+  // Automation effects: filter what's "acted on" based on level
+  const actedAlerts = alerts.filter(a => {
+    if (automation === 0) return false; // Recommend Only — no auto actions
+    if (automation === 1) return a.verdict === 'FP' && a.confidence >= 90; // Auto+Notify — auto-close high-confidence FPs only
+    return a.confidence >= 80; // Full Auto — act on all high-confidence verdicts
+  });
+  const automationBannerText = automation === 0
+    ? 'AI is recommending only — all actions require analyst approval.'
+    : automation === 1
+    ? `AI auto-closed ${actedAlerts.length} high-confidence false positive${actedAlerts.length!==1?'s':''} and notified your team.`
+    : `AI acted autonomously on ${actedAlerts.length} alert${actedAlerts.length!==1?'s':''} — ${alerts.filter(a=>a.verdict==='TP'&&a.confidence>=80).length} threats contained, ${alerts.filter(a=>a.verdict==='FP'&&a.confidence>=80).length} FPs suppressed.`;
 
   const intelItems = customIntel || (DEMO_INTEL_BY_INDUSTRY[industry] || DEMO_INTEL_BY_INDUSTRY['default']);
   const allIntel = [...intelItems, ...DEMO_INTEL_BY_INDUSTRY['default'].filter(i=>!intelItems.find(x=>x.id===i.id))];
@@ -785,6 +845,9 @@ export default function DashboardPage() {
           <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:10}}>
             <button onClick={toggleTheme} title={theme==='dark'?'Light mode':'Dark mode'} style={{width:32,height:32,borderRadius:8,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.9rem',flexShrink:0}}>{theme==='dark'?'☀️':'🌙'}</button>
               <button onClick={()=>setDemoMode(d=>!d)} title={demoMode?'Switch to live data':'Switch to demo data'} style={{padding:'4px 10px',borderRadius:7,border:`1px solid ${demoMode?'#f0a03030':'#22d49a30'}`,background:demoMode?'#f0a03010':'#22d49a10',color:demoMode?'#f0a030':'#22d49a',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>{demoMode?'● DEMO':'● LIVE'}</button>
+              <select value={userTier} onChange={e=>setUserTier(e.target.value as any)} title='Simulate plan tier' style={{padding:'3px 7px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.6rem',fontWeight:700,fontFamily:'Inter,sans-serif',cursor:'pointer',outline:'none'}} >
+                {(['community','team','business','mssp'] as const).map(t=><option key={t} value={t}>{t.charAt(0).toUpperCase()+t.slice(1)}</option>)}
+              </select>
               {isAdmin && (
                 <select value={currentTenant} onChange={e=>setCurrentTenant(e.target.value)} style={{padding:'4px 8px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.68rem',fontFamily:'Inter,sans-serif',cursor:'pointer',outline:'none',maxWidth:140}}>
                   {DEMO_TENANTS.map(t=>(
@@ -792,12 +855,19 @@ export default function DashboardPage() {
                   ))}
                 </select>
               )}
+            {canUse('team') ? (
             <div style={{display:'flex',alignItems:'center',gap:6,padding:'4px 10px',borderRadius:7,background:'var(--wt-card2)',border:'1px solid #141820'}}>
               <span style={{fontSize:'0.62rem',color:'var(--wt-muted)'}}>Automation:</span>
               {(['Recommend','Auto+Notify','Full Auto'] as const).map((l,i)=>(
-                <button key={l} onClick={()=>setAutomation(i as AutomationLevel)} style={{padding:'2px 8px',borderRadius:4,fontSize:'0.58rem',fontWeight:700,border:'none',cursor:'pointer',background:automation===i?'#4f8fff':'transparent',color:automation===i?'#fff':'#6b7a94',fontFamily:'Inter,sans-serif',transition:'all .15s'}}>{l}</button>
+                <button key={l} onClick={()=>setAutomation(i as AutomationLevel)} style={{padding:'2px 8px',borderRadius:4,fontSize:'0.58rem',fontWeight:700,border:'none',cursor:'pointer',background:automation===i?`${autColor}`:'transparent',color:automation===i?'#fff':'#6b7a94',fontFamily:'Inter,sans-serif',transition:'all .15s'}}>{l}</button>
               ))}
             </div>
+            ) : (
+            <div style={{display:'flex',alignItems:'center',gap:6,padding:'4px 10px',borderRadius:7,background:'var(--wt-card2)',border:'1px solid #4f8fff20',opacity:0.7,cursor:'not-allowed'}} title='Upgrade to Team to enable automation'>
+              <span style={{fontSize:'0.62rem',color:'var(--wt-muted)'}}>Automation:</span>
+              <a href='/pricing' style={{fontSize:'0.58rem',color:'#4f8fff',fontWeight:700,textDecoration:'none'}}>🔒 Upgrade to Team</a>
+            </div>
+            )}
             <div style={{display:'flex',alignItems:'center',gap:5,fontSize:'0.7rem',color:'var(--wt-muted)'}}>
               <span style={{width:6,height:6,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',display:'block',animation:'pulse 2s ease infinite'}} />
               {activeTools.length} tools live
@@ -942,7 +1012,9 @@ export default function DashboardPage() {
             <div style={{display:'flex',flexDirection:'column',gap:8}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Live Alerts</h2>
-                <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{autLabel} — AI handling enabled</span>
+                <span style={{fontSize:'0.62rem',fontWeight:600,padding:'3px 10px',borderRadius:5,background:`${autColor}12`,color:autColor,border:`1px solid ${autColor}20`}}>
+                  {'⚡✦🤖'[automation]} {autLabel} — {automationBannerText}
+                </span>
                 <span style={{marginLeft:'auto',fontSize:'0.7rem',color:'var(--wt-muted)'}}>{alerts.length} total · {fpAlerts.length} auto-closed · {tpAlerts.length} escalated</span>
               </div>
               {alerts.map(alert=>{
@@ -1064,9 +1136,10 @@ export default function DashboardPage() {
                             <span style={{fontSize:'0.58rem',color:'var(--wt-muted)'}}>{dev.os}</span>
                           </div>
                           <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:4}}>
-                            {dev.missing.map(m=>(
-                              <span key={m} style={{fontSize:'0.52rem',fontWeight:700,padding:'2px 7px',borderRadius:3,background:'#f0405e12',color:'#f0405e',border:'1px solid #f0405e20'}}>Missing: {m}</span>
-                            ))}
+                            {dev.missing.map(m=>{
+                              const catColor = m.includes('Falcon')||m.includes('Defender')||m.includes('SentinelOne')||m.includes('Carbon Black')?'#f0405e':m.includes('Splunk')||m.includes('Sentinel')||m.includes('QRadar')||m.includes('Elastic')?'#f0a030':m.includes('Tenable')||m.includes('Nessus')||m.includes('Qualys')?'#8b6fff':'#4f8fff';
+                              return <span key={m} style={{fontSize:'0.62rem',fontWeight:700,padding:'3px 8px',borderRadius:4,background:`${catColor}14`,color:catColor,border:`1px solid ${catColor}28`,display:'flex',alignItems:'center',gap:4}}><span style={{fontSize:'0.5rem'}}>✗</span>{m}</span>;
+                            })}
                           </div>
                           <div style={{fontSize:'0.66rem',color:'var(--wt-muted)'}}>{dev.reason} · Last seen {dev.lastSeen}</div>
                         </div>
@@ -1156,6 +1229,7 @@ export default function DashboardPage() {
 
           {/* ═══════════════════════════════ INTEL ══════════════════════════════════ */}
           {activeTab==='intel' && (
+            <GateWall feature='Threat Intelligence' requiredTier='team' userTier={userTier}>
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Threat Intelligence</h2>
@@ -1289,10 +1363,12 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
+          </GateWall>
           )}
 
           {/* ═══════════════════════════════ INCIDENTS ══════════════════════════════ */}
           {activeTab==='incidents' && (
+            <GateWall feature='Incident Management' requiredTier='team' userTier={userTier}>
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Incidents</h2>
@@ -1321,10 +1397,12 @@ export default function DashboardPage() {
                     </div>
                     {isSel && (
                       <div style={{borderTop:'1px solid #141820',padding:'14px 16px'}}>
-                        <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,padding:'10px',background:'linear-gradient(135deg,rgba(79,143,255,0.04),rgba(34,201,146,0.04))',border:'1px solid #4f8fff15',borderRadius:8,marginBottom:12}}>
+                        <GateWall feature='AI Attack Narrative' requiredTier='team' userTier={userTier}>
+              <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,padding:'10px',background:'linear-gradient(135deg,rgba(79,143,255,0.04),rgba(34,201,146,0.04))',border:'1px solid #4f8fff15',borderRadius:8,marginBottom:12}}>
                           <span style={{fontSize:'0.6rem',fontWeight:700,color:'#4f8fff',display:'block',marginBottom:4}}>AI ATTACK NARRATIVE</span>
                           {inc.aiSummary}
                         </div>
+                        </GateWall>
                         <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Attack Timeline</div>
                         <div style={{display:'flex',flexDirection:'column',gap:0}}>
                           {inc.timeline.map((event,i)=>(
@@ -1355,6 +1433,7 @@ export default function DashboardPage() {
                 );
               })}
             </div>
+          </GateWall>
           )}
           {/* ═══════════════════════════════ TOOLS ══════════════════════════════════ */}
           {activeTab==='tools' && (
@@ -1408,8 +1487,11 @@ export default function DashboardPage() {
                 <span style={{fontSize:'0.6rem',color:'var(--wt-muted)'}}>{dev.os}</span>
                 <span style={{fontSize:'0.58rem',color:'var(--wt-dim)',marginLeft:'auto'}}>Last seen {dev.lastSeen}</span>
               </div>
-              <div style={{display:'flex',gap:5,marginBottom:4}}>
-                {dev.missing.map(m=><span key={m} style={{fontSize:'0.56rem',fontWeight:700,padding:'2px 7px',borderRadius:3,background:'#f0405e12',color:'#f0405e',border:'1px solid #f0405e20'}}>Missing: {m}</span>)}
+              <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:4}}>
+                {dev.missing.map(m=>{
+                  const catColor = m.includes('Falcon')||m.includes('Defender')||m.includes('SentinelOne')||m.includes('Carbon Black')?'#f0405e':m.includes('Splunk')||m.includes('Sentinel')||m.includes('QRadar')||m.includes('Elastic')?'#f0a030':m.includes('Tenable')||m.includes('Nessus')||m.includes('Qualys')?'#8b6fff':'#4f8fff';
+                  return <span key={m} style={{fontSize:'0.62rem',fontWeight:700,padding:'3px 8px',borderRadius:4,background:`${catColor}14`,color:catColor,border:`1px solid ${catColor}28`,display:'inline-flex',alignItems:'center',gap:4}}><span style={{fontSize:'0.5rem'}}>✗</span>{m}</span>;
+                })}
               </div>
               <div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>{dev.reason}</div>
             </div>
