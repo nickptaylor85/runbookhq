@@ -120,7 +120,7 @@ function ROICalculator() {
 
   const wasted = Math.round(analysts * alertsPerDay * fpRate * (hoursPerAlert / 60) * hourlyRate * 5 * 52);
   const saved = Math.round(wasted * aiReduction);
-  const cost = analysts <= 3 ? 29 * 3 * 12 : analysts <= 10 ? 79 * 12 : 599 * 12;
+  const cost = analysts <= 3 ? 49 * 3 * 12 : analysts <= 10 ? 199 * 12 : 799 * 12;
   const roi = Math.round(((saved - cost) / cost) * 100);
 
   return (
@@ -367,7 +367,7 @@ export default function LandingPage() {
           <div style={{ position:'absolute', top:0, left:0, right:0, height:2, background:'linear-gradient(90deg,#8b6fff,#4f8fff)' }} />
           <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#8b6fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>FOR MSSPs</div>
           <h2 style={{ fontSize:'1.7rem', fontWeight:800, letterSpacing:-1, marginBottom:10 }}>Manage 50 clients from one console</h2>
-          <p style={{ fontSize:'0.9rem', color:'#6b7a94', lineHeight:1.75, marginBottom:20 }}>Client health at a glance. Cross-client threat correlation. Automated branded reports. White-label — your brand, zero Watchtower branding.</p>
+          <p style={{ fontSize:'0.9rem', color:'#6b7a94', lineHeight:1.75, marginBottom:20 }}>Client health at a glance. Cross-client threat correlation. Per-client BYOK keys — each client's AI calls stay isolated under their own Anthropic account. White-label — your brand, zero Watchtower branding.</p>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:24 }}>
             {[['🔴🟡🟢','Client health RAG — instant portfolio view'],['🔗','Cross-client IOC correlation'],['📊','Automated weekly branded reports'],['🎨','Full white-label, your brand only']].map(([icon,text]) => (
               <div key={String(text)} style={{ display:'flex', alignItems:'center', gap:10, fontSize:'0.8rem', color:'#a0adc4', padding:'10px 12px', background:'#050508', borderRadius:8, border:'1px solid #141820' }}>
@@ -411,9 +411,9 @@ export default function LandingPage() {
         <div className='price-grid' style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10 }}>
           {[
             { name:'Community', price:'£0', per:'Free forever', feats:'2 tools · AI triage (view) · Alerts · 1 seat', cta:'Get Started', href:'/signup', style:{} },
-            { name:'Team', price:'£29', per:'/seat/mo — 3 seats', feats:'Unlimited tools · AI Co-Pilot · Auto-triage · Response actions · Threat intel · Incidents', cta:'Start Free Trial →', href:'/signup?plan=team', pop:true, style:{} },
-            { name:'Business', price:'£79', per:'/mo — 10 seats', feats:'Everything in Team · PDF reports · API access · RBAC · Compliance mapping', cta:'Start Free Trial', href:'/signup?plan=business', style:{} },
-            { name:'MSSP', price:'£599', per:'/mo — 5 clients', feats:'Everything in Business · Portfolio view · Cross-client correlation · Auto reports · White-label', cta:'Contact Sales', href:'/signup?plan=mssp', style:{} },
+            { name:'Team', price:'£49', per:'/seat/mo — min 3 seats', feats:'Unlimited tools · AI Co-Pilot · Auto-triage · Response actions · Threat intel · BYOK key', cta:'Start Free Trial →', href:'/signup?plan=team', pop:true, style:{} },
+            { name:'Business', price:'£199', per:'/mo — 10 seats', feats:'Everything in Team · PDF reports · API access · RBAC · Compliance · BYOK key', cta:'Start Free Trial', href:'/signup?plan=business', style:{} },
+            { name:'MSSP', price:'£799', per:'/mo — 5 clients +£79/client', feats:'Everything in Business · Portfolio view · Cross-client correlation · Auto reports · White-label · Per-client BYOK', cta:'Start Free Trial', href:'/signup?plan=mssp', style:{} },
           ].map(p => (
             <div key={p.name} style={{ padding:22, background:'#0a0d14', border:`1px solid ${p.pop ? '#4f8fff35' : '#141820'}`, borderRadius:14, display:'flex', flexDirection:'column', position:'relative', ...p.style }}>
               {p.pop && <div style={{ position:'absolute', top:0, left:0, right:0, textAlign:'center', fontSize:'0.52rem', fontWeight:700, color:'#fff', background:'#4f8fff', padding:'3px 0', borderRadius:'14px 14px 0 0' }}>MOST POPULAR</div>}
@@ -434,7 +434,7 @@ export default function LandingPage() {
       <section className='section' style={{ textAlign:'center', padding:'80px 24px', maxWidth:620, margin:'0 auto' }}>
         <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:14 }}>READY?</div>
         <h2 style={{ fontSize:'2.4rem', fontWeight:800, letterSpacing:-1.5, marginBottom:12 }}>Your threat won't wait.<br />Neither should you.</h2>
-        <p style={{ color:'#6b7a94', fontSize:'0.95rem', marginBottom:28, lineHeight:1.75 }}>14-day free trial. No credit card. Your first month of AI triage, completely free.</p>
+        <p style={{ color:'#6b7a94', fontSize:'0.95rem', marginBottom:28, lineHeight:1.75 }}>14-day free trial. No Watchtower credit card. Bring your own Anthropic key — AI costs go direct to your account.</p>
         <a href='/signup' className='ld-btn' style={{ fontSize:'1.05rem', padding:'14px 40px' }}>Start Free Trial →</a>
         <p style={{ fontSize:'0.7rem', color:'#3a4050', marginTop:14 }}>Setup takes 12 minutes · No agents required to start · Cancel anytime</p>
       </section>
