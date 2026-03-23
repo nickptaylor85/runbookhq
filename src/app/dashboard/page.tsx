@@ -380,14 +380,14 @@ export default function DashboardPage() {
       const resp = await fetch('/api/copilot', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:`For ${vuln.cve} (${vuln.title}), provide information NOT covered in standard remediation docs. Focus on: 1) Specific detection queries for Splunk, Microsoft Sentinel (KQL), and Microsoft Defender for Endpoint (KQL/Advanced Hunting) to find exploitation attempts — include actual query syntax. 2) Known exploitation indicators and IOCs seen in the wild. 3) Compensating controls if patching is not immediately possible. 4) Common mistakes teams make when remediating this CVE. 5) How attackers typically chain this with other techniques. Plain text only, be specific and technical. Label each KQL query clearly.`}) });
       if (resp.ok) {
         const d = await resp.json();
-        const text = d.response || d.message || `Remediation for ${vuln.cve}: ${vuln.remediation.slice(0,2).join('. ')}. ${vuln.kev ? 'CISA KEV — patch within 72 hours.' : ''}`;
+        const text = d.response || d.message || 'AI response unavailable — check your Anthropic API key in the Tools tab.';
         let i = 0;
         const interval = setInterval(()=>{ setVulnAiTexts(prev=>({...prev,[vuln.id]:text.slice(0,i)})); i++; if(i>text.length) clearInterval(interval); }, 12);
       } else {
-        setVulnAiTexts(prev=>({...prev,[vuln.id]:`Remediation for ${vuln.cve}: ${vuln.remediation.join('. ')}`}));
+        setVulnAiTexts(prev=>({...prev,[vuln.id]:'Request failed — check your Anthropic API key in the Tools tab and ensure it is saved.'}));
       }
     } catch(e) {
-      setVulnAiTexts(prev=>({...prev,[vuln.id]:`Remediation for ${vuln.cve}: ${vuln.remediation.join('. ')}`}));
+      setVulnAiTexts(prev=>({...prev,[vuln.id]:'Request failed — check your Anthropic API key in the Tools tab and ensure it is saved.'}));
     }
     setVulnAiLoading(null);
   }
@@ -773,16 +773,12 @@ export default function DashboardPage() {
                             <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
                               {vuln.affectedDevices.map(d=><span key={d} style={{fontSize:'0.58rem',padding:'2px 7px',borderRadius:3,background:'#141820',color:'#6b7a94',fontFamily:'JetBrains Mono,monospace'}}>{d}</span>)}
                             </div>
-                            {vuln.patch && (
-                              <div style={{marginTop:8,fontSize:'0.66rem',color:'#22d49a',display:'flex',alignItems:'center',gap:6}}>
-                                📦 Patch: <strong>{vuln.patch}</strong>
-                                <a href={`https://nvd.nist.gov/vuln/detail/${vuln.cve}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{color:'#4f8fff',textDecoration:'none',fontSize:'0.6rem',padding:'1px 6px',border:'1px solid #4f8fff30',borderRadius:3}}>NVD →</a>
-                                <a href={`https://www.cisa.gov/known-exploited-vulnerabilities-catalog`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{color:'#f97316',textDecoration:'none',fontSize:'0.6rem',padding:'1px 6px',border:'1px solid #f9731630',borderRadius:3,display:vuln.kev?'inline':'none'}}>CISA KEV →</a>
-                              </div>
-                            )}
-                            {!vuln.patch && (
-                              <a href={`https://nvd.nist.gov/vuln/detail/${vuln.cve}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-block',marginTop:8,color:'#4f8fff',textDecoration:'none',fontSize:'0.62rem',padding:'2px 8px',border:'1px solid #4f8fff30',borderRadius:3}}>View on NVD →</a>
-                            )}
+                            <div style={{marginTop:10,display:'flex',gap:6,flexWrap:'wrap'}}>
+                              {vuln.patch && <div style={{fontSize:'0.64rem',color:'#22d49a',width:'100%'}}>📦 Patch: <strong>{vuln.patch}</strong></div>}
+                              <a href={`https://nvd.nist.gov/vuln/detail/${vuln.cve}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'5px 10px',borderRadius:6,background:'#4f8fff15',border:'1px solid #4f8fff30',color:'#4f8fff',textDecoration:'none',fontSize:'0.66rem',fontWeight:700}}>🔗 NVD Database</a>
+                              {vuln.kev && <a href='https://www.cisa.gov/known-exploited-vulnerabilities-catalog' target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'5px 10px',borderRadius:6,background:'#f9731615',border:'1px solid #f9731630',color:'#f97316',textDecoration:'none',fontSize:'0.66rem',fontWeight:700}}>⚠ CISA KEV</a>}
+                              {vuln.patch && <a href={`https://www.google.com/search?q=${encodeURIComponent(vuln.cve+' '+vuln.patch+' download')}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'5px 10px',borderRadius:6,background:'#22d49a15',border:'1px solid #22d49a30',color:'#22d49a',textDecoration:'none',fontSize:'0.66rem',fontWeight:700}}>📦 Find Patch</a>}
+                            </div>
                           </div>
                           <div>
                             <div style={{fontSize:'0.6rem',fontWeight:700,color:'#4a5568',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Remediation Steps</div>
