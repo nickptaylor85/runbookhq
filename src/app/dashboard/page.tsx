@@ -737,7 +737,7 @@ export default function DashboardPage() {
                               {vuln.affectedDevices.map(d=><span key={d} style={{fontSize:'0.58rem',padding:'2px 7px',borderRadius:3,background:'#141820',color:'#6b7a94',fontFamily:'JetBrains Mono,monospace'}}>{d}</span>)}
                             </div>
                             {vuln.patch && (
-                              <div style={{marginTop:8,fontSize:'0.66rem',color:'#22d49a',display:'flex',alignItems:'center',gap:6'}}>
+                              <div style={{marginTop:8,fontSize:'0.66rem',color:'#22d49a',display:'flex',alignItems:'center',gap:6}}>
                                 📦 Patch: <strong>{vuln.patch}</strong>
                                 <a href={`https://nvd.nist.gov/vuln/detail/${vuln.cve}`} target='_blank' rel='noopener' style={{color:'#4f8fff',textDecoration:'none',fontSize:'0.6rem',padding:'1px 6px',border:'1px solid #4f8fff30',borderRadius:3}}>NVD →</a>
                                 <a href={`https://www.cisa.gov/known-exploited-vulnerabilities-catalog`} target='_blank' rel='noopener' style={{color:'#f97316',textDecoration:'none',fontSize:'0.6rem',padding:'1px 6px',border:'1px solid #f9731630',borderRadius:3,display:vuln.kev?'inline':'none'}}>CISA KEV →</a>
