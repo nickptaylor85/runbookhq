@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 1500,
         system: 'You are an expert SOC analyst and security engineer. Be concise, technical, and actionable. No markdown formatting — plain text only.',
         messages: msgArray,

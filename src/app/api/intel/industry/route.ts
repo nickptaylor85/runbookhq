@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 1000,
         messages: [{ role: 'user', content: `Generate 3 current threat intelligence items specifically relevant to the ${industry} industry in 2026. Return ONLY a valid JSON array, no markdown, no preamble: [{"id":"i1","title":"...","summary":"...","severity":"Critical","source":"...","time":"Xh ago","iocs":[],"mitre":"T1566.001","industrySpecific":true}]. Severity must be one of: Critical, High, Medium, Low.` }],
       }),

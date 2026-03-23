@@ -13,7 +13,7 @@ export async function GET() {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: 'claude-3-5-sonnet-20241022', max_tokens: 10, messages: [{ role: 'user', content: 'ok' }] }),
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 10, messages: [{ role: 'user', content: 'ok' }] }),
     });
     const data = await res.json();
     if (!res.ok) return NextResponse.json({ ok: false, configured: true, message: `Key invalid: ${data.error?.message || 'Auth failed'}`, tenantId });
