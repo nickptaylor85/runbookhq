@@ -293,12 +293,15 @@ export default function DashboardPage() {
   const [selectedAlert, setSelectedAlert] = useState<Alert|null>(null);
   const [selectedVuln, setSelectedVuln] = useState<Vuln|null>(null);
   const [selectedIncident, setSelectedIncident] = useState<Incident|null>(null);
-  const [vulnAiLoading, setVulnAiLoading] = useState(false);
-  const [vulnAiText, setVulnAiText] = useState('');
+  const [vulnAiLoading, setVulnAiLoading] = useState<string|null>(null);
+  const [vulnAiTexts, setVulnAiTexts] = useState<Record<string,string>>({});
   const [industry, setIndustry] = useState('Financial Services');
   const [intelLoading, setIntelLoading] = useState(false);
   const [customIntel, setCustomIntel] = useState<IntelItem[]|null>(null);
   const [expandedAlerts, setExpandedAlerts] = useState<Set<string>>(new Set());
+  const [deployAgentDevice, setDeployAgentDevice] = useState<GapDevice|null>(null);
+  const [incidentStatuses, setIncidentStatuses] = useState<Record<string,string>>({});
+  const [gapToolFilter, setGapToolFilter] = useState<string|null>(null);
 
   const tools = DEMO_TOOLS;
   const alerts = DEMO_ALERTS;
@@ -335,20 +338,26 @@ export default function DashboardPage() {
   }
 
   async function getVulnAiHelp(vuln:Vuln) {
-    setVulnAiLoading(true);
-    setVulnAiText('');
+    setVulnAiLoading(vuln.id);
     try {
-      const resp = await fetch('/api/copilot', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:`Provide concise remediation guidance for ${vuln.cve} - ${vuln.title} in a corporate environment. Cover: 1) Immediate mitigation steps, 2) Permanent fix, 3) Detection/hunting queries, 4) Business risk if unpatched. Be specific and actionable.`}) });
+      const resp = await fetch('/api/copilot', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:`Provide concise remediation guidance for ${vuln.cve} - ${vuln.title} in a corporate environment. Cover: 1) Immediate mitigation steps, 2) Permanent fix, 3) Detection/hunting queries, 4) Business risk if unpatched. Be specific and actionable. Use plain text, no markdown.`}) });
       if (resp.ok) {
         const d = await resp.json();
-        const text = d.response || `AI remediation for ${vuln.cve}: Apply vendor patch ${vuln.patch || 'immediately'}. Priority: ${vuln.severity}. ${vuln.kev ? 'CISA KEV listed — 72h compliance deadline.' : ''} Contact security team for deployment plan.`;
+        const text = d.response || d.message || `Remediation for ${vuln.cve}: ${vuln.remediation.slice(0,2).join('. ')}. ${vuln.kev ? 'CISA KEV — patch within 72 hours.' : ''}`;
         let i = 0;
-        const interval = setInterval(()=>{ setVulnAiText(text.slice(0,i)); i++; if(i>text.length) clearInterval(interval); }, 12);
+        const interval = setInterval(()=>{ setVulnAiTexts(prev=>({...prev,[vuln.id]:text.slice(0,i)})); i++; if(i>text.length) clearInterval(interval); }, 12);
+      } else {
+        setVulnAiTexts(prev=>({...prev,[vuln.id]:`Remediation for ${vuln.cve}: ${vuln.remediation.join('. ')}`}));
       }
     } catch(e) {
-      setVulnAiText(`Remediation for ${vuln.cve}: ${vuln.remediation.join('. ')}`);
+      setVulnAiTexts(prev=>({...prev,[vuln.id]:`Remediation for ${vuln.cve}: ${vuln.remediation.join('. ')}`}));
     }
-    setVulnAiLoading(false);
+    setVulnAiLoading(null);
+  }
+
+  function closeIncident(id:string) {
+    setIncidentStatuses(prev=>({...prev,[id]:'Closed'}));
+    setSelectedIncident(null);
   }
 
   function toggleAlertExpand(id:string) {
@@ -383,6 +392,7 @@ export default function DashboardPage() {
           </button>
         ))}
         <div style={{marginTop:'auto',display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
+          <a href='/guide' title='User Guide' style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem'}}>📖</a>
           <a href='/settings' title='Settings' style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem'}}>⚙️</a>
         </div>
       </div>
@@ -680,7 +690,7 @@ export default function DashboardPage() {
                           </div>
                           <div style={{fontSize:'0.66rem',color:'#6b7a94'}}>{dev.reason} · Last seen {dev.lastSeen}</div>
                         </div>
-                        <button style={{padding:'4px 10px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Deploy Agent</button>
+                        <button onClick={()=>setDeployAgentDevice(dev)} style={{padding:'4px 10px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Deploy Agent</button>
                       </div>
                     </div>
                   ))}
@@ -726,7 +736,16 @@ export default function DashboardPage() {
                             <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
                               {vuln.affectedDevices.map(d=><span key={d} style={{fontSize:'0.58rem',padding:'2px 7px',borderRadius:3,background:'#141820',color:'#6b7a94',fontFamily:'JetBrains Mono,monospace'}}>{d}</span>)}
                             </div>
-                            {vuln.patch && <div style={{marginTop:8,fontSize:'0.66rem',color:'#22d49a'}}>📦 Patch available: <strong>{vuln.patch}</strong></div>}
+                            {vuln.patch && (
+                              <div style={{marginTop:8,fontSize:'0.66rem',color:'#22d49a',display:'flex',alignItems:'center',gap:6'}}>
+                                📦 Patch: <strong>{vuln.patch}</strong>
+                                <a href={`https://nvd.nist.gov/vuln/detail/${vuln.cve}`} target='_blank' rel='noopener' style={{color:'#4f8fff',textDecoration:'none',fontSize:'0.6rem',padding:'1px 6px',border:'1px solid #4f8fff30',borderRadius:3}}>NVD →</a>
+                                <a href={`https://www.cisa.gov/known-exploited-vulnerabilities-catalog`} target='_blank' rel='noopener' style={{color:'#f97316',textDecoration:'none',fontSize:'0.6rem',padding:'1px 6px',border:'1px solid #f9731630',borderRadius:3,display:vuln.kev?'inline':'none'}}>CISA KEV →</a>
+                              </div>
+                            )}
+                            {!vuln.patch && (
+                              <a href={`https://nvd.nist.gov/vuln/detail/${vuln.cve}`} target='_blank' rel='noopener' style={{display:'inline-block',marginTop:8,color:'#4f8fff',textDecoration:'none',fontSize:'0.62rem',padding:'2px 8px',border:'1px solid #4f8fff30',borderRadius:3}}>View on NVD →</a>
+                            )}
                           </div>
                           <div>
                             <div style={{fontSize:'0.6rem',fontWeight:700,color:'#4a5568',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Remediation Steps</div>
@@ -740,12 +759,12 @@ export default function DashboardPage() {
                               <div style={{fontSize:'0.6rem',fontWeight:700,color:'#4f8fff',marginBottom:6,display:'flex',alignItems:'center',gap:6}}>
                                 <span style={{width:6,height:6,borderRadius:'50%',background:'#4f8fff',display:'block'}} />AI Remediation Assistant
                               </div>
-                              {vulnAiText ? (
-                                <div style={{fontSize:'0.7rem',color:'#a0adc4',lineHeight:1.65}}>{vulnAiText}</div>
+                              {vulnAiTexts[vuln.id] ? (
+                                <div style={{fontSize:'0.7rem',color:'#a0adc4',lineHeight:1.65}}>{vulnAiTexts[vuln.id]}</div>
                               ) : (
-                                <button onClick={()=>getVulnAiHelp(vuln)} disabled={vulnAiLoading} style={{padding:'6px 14px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:6}}>
-                                  {vulnAiLoading?<span style={{display:'inline-block',width:10,height:10,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />:'✦'}
-                                  {vulnAiLoading?'Generating guidance…':'Ask AI for remediation help'}
+                                <button onClick={()=>getVulnAiHelp(vuln)} disabled={vulnAiLoading===vuln.id} style={{padding:'6px 14px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.72rem',fontWeight:700,cursor:vulnAiLoading===vuln.id?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:6}}>
+                                  {vulnAiLoading===vuln.id?<span style={{display:'inline-block',width:10,height:10,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />:'✦'}
+                                  {vulnAiLoading===vuln.id?'Generating guidance…':'Ask AI for remediation help'}
                                 </button>
                               )}
                             </div>
@@ -851,14 +870,14 @@ export default function DashboardPage() {
               </div>
               {incidents.map(inc=>{
                 const isSel = selectedIncident?.id===inc.id;
-                const statusColor = inc.status==='Active'?'#f0405e':inc.status==='Contained'?'#f0a030':'#22d49a';
+                const incStatus = incidentStatuses[inc.id] || inc.status; const statusColor = incStatus==='Active'?'#f0405e':incStatus==='Contained'?'#f0a030':'#22d49a';
                 return (
                   <div key={inc.id} style={{background:'#09091a',border:`1px solid ${isSel?'#4f8fff40':'#141820'}`,borderRadius:12,overflow:'hidden'}}>
                     <div style={{padding:'12px 16px',cursor:'pointer',display:'flex',alignItems:'flex-start',gap:12}} onClick={()=>setSelectedIncident(isSel?null:inc)}>
                       <div style={{flex:1}}>
                         <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                           <span style={{fontSize:'0.62rem',fontWeight:800,color:'#4f8fff',fontFamily:'JetBrains Mono,monospace'}}>{inc.id}</span>
-                          <span style={{fontSize:'0.52rem',fontWeight:700,padding:'2px 7px',borderRadius:3,background:`${statusColor}15`,color:statusColor,border:`1px solid ${statusColor}25`}}>{inc.status.toUpperCase()}</span>
+                          <span style={{fontSize:'0.52rem',fontWeight:700,padding:'2px 7px',borderRadius:3,background:`${statusColor}15`,color:statusColor,border:`1px solid ${statusColor}25`}}>{incStatus.toUpperCase()}</span>
                           <SevBadge sev={inc.severity} />
                         </div>
                         <div style={{fontSize:'0.84rem',fontWeight:700,marginBottom:4}}>{inc.title}</div>
@@ -897,7 +916,7 @@ export default function DashboardPage() {
                         </div>
                         <div style={{display:'flex',gap:6,marginTop:10}}>
                           {['Add Note','Escalate','Close Incident'].map(a=>(
-                            <button key={a} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #1e2536',background:'transparent',color:'#8a9ab0',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{a}</button>
+                            <button key={a} onClick={()=>{ if(a==='Close Incident') closeIncident(inc.id); }} style={{padding:'5px 12px',borderRadius:6,border:`1px solid ${a==='Close Incident'?'#22d49a30':'#1e2536'}`,background:a==='Close Incident'?'#22d49a0a':'transparent',color:a==='Close Incident'?'#22d49a':'#8a9ab0',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{a}</button>
                           ))}
                         </div>
                       </div>
@@ -915,6 +934,32 @@ export default function DashboardPage() {
       </div>
 
       {/* ═══════════════════════════════ MODALS ════════════════════════════════════ */}
+
+      {/* Deploy Agent Modal */}
+      {deployAgentDevice && (
+        <Modal title={`Deploy Agent — ${deployAgentDevice.hostname}`} onClose={()=>setDeployAgentDevice(null)}>
+          <div style={{fontSize:'0.78rem',color:'#8a9ab0',lineHeight:1.7,marginBottom:16}}>
+            This device is missing: <strong style={{color:'#f0405e'}}>{deployAgentDevice.missing.join(', ')}</strong><br />
+            Reason: {deployAgentDevice.reason}
+          </div>
+          <div style={{fontSize:'0.7rem',fontWeight:700,color:'#4f8fff',marginBottom:10,textTransform:'uppercase',letterSpacing:'0.5px'}}>Deployment Options</div>
+          {[
+            {title:'1. Automated Push (recommended)',desc:'Watchtower will push the agent via your existing RMM or SCCM/Intune. Requires admin credentials configured in Settings.',btn:'Push via RMM',color:'#4f8fff'},
+            {title:'2. Manual install — Windows',desc:'Download the installer and run on the target device. Requires local admin rights.',btn:'Download .exe',color:'#22d49a'},
+            {title:'3. Manual install — macOS/Linux',desc:'Run the curl command on the target device via SSH or terminal.',btn:'Copy curl command',color:'#22d49a'},
+            {title:'4. Group Policy / MDM',desc:'Deploy at scale via GPO (Windows) or MDM profile (macOS). Recommended for 10+ devices.',btn:'Download GPO template',color:'#8b6fff'},
+          ].map(opt=>(
+            <div key={opt.title} style={{padding:'12px 14px',background:'#09091a',border:'1px solid #141820',borderRadius:10,marginBottom:8}}>
+              <div style={{fontSize:'0.76rem',fontWeight:700,marginBottom:4}}>{opt.title}</div>
+              <div style={{fontSize:'0.68rem',color:'#6b7a94',marginBottom:8,lineHeight:1.5}}>{opt.desc}</div>
+              <button style={{padding:'5px 14px',borderRadius:6,border:`1px solid ${opt.color}30`,background:`${opt.color}12`,color:opt.color,fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{opt.btn}</button>
+            </div>
+          ))}
+          <div style={{marginTop:12,padding:'10px 14px',background:'#0a0d14',border:'1px solid #4f8fff15',borderRadius:8,fontSize:'0.68rem',color:'#6b7a94',lineHeight:1.6}}>
+            💡 After deployment, the agent will check in within 5 minutes. This device will be removed from the gaps list automatically.
+          </div>
+        </Modal>
+      )}
 
       {/* Coverage Gap Modal */}
       {modal?.type==='gaps' && (
