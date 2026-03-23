@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type SevKey = 'Critical'|'High'|'Medium'|'Low';
@@ -136,7 +136,7 @@ function StatCard({val,label,sub,color,onClick}:{val:string|number;label:string;
 // ─── Paywall Gate ────────────────────────────────────────────────────────────
 function GateWall({ feature, requiredTier, children, userTier }: { feature:string; requiredTier:'team'|'business'|'mssp'; children:React.ReactNode; userTier:string; }) {
   const levels: Record<string,number> = {community:0,team:1,business:2,mssp:3};
-  if ((levels[userTier]||0) >= levels[requiredTier]) return <>{children}</>;
+  if ((levels[userTier]||0) >= levels[requiredTier]) return (<>{children}</>);
   const tierColors: Record<string,string> = {team:'#4f8fff',business:'#22d49a',mssp:'#8b6fff'};
   const tierPrices: Record<string,string> = {team:'£49/seat',business:'£199/mo',mssp:'£799/mo'};
   return (
@@ -229,7 +229,7 @@ function RemediationOutput({ text }: { text: string }) {
 
 // ─── MSSP Portfolio Component ────────────────────────────────────────────────
 function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS }: { currentTenant:string; setCurrentTenant:(t:string)=>void; DEMO_TENANTS:{id:string;name:string;type:string}[]; }) {
-const [portfolioView, setPortfolioView] = useState<'security'|'revenue'>('security');
+const portfolioViewOptions = ['security','revenue'] as const; type PortfolioView = typeof portfolioViewOptions[number]; const [portfolioView, setPortfolioView] = useState<PortfolioView>('security');
             const CLIENTS = [
               {id:'client-acme',  name:'Acme Financial',  plan:'Business', seats:8,  mrr:199,   extraClients:0, contractStart:'2024-01-15', renewalDate:'2025-01-15', billingStatus:'Paid',    posture:82, alerts:8,  critAlerts:3, incidents:2, coverage:94, kevVulns:3, lastSeen:'2m ago'},
               {id:'client-nhs',   name:'NHS Trust Alpha', plan:'Business', seats:14, mrr:199,   extraClients:0, contractStart:'2024-03-01', renewalDate:'2025-03-01', billingStatus:'Paid',    posture:71, alerts:15, critAlerts:5, incidents:3, coverage:88, kevVulns:7, lastSeen:'1m ago'},
@@ -439,7 +439,7 @@ function ToolsTab({ connected, setConnected }: { connected: Record<string,Record
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ok:boolean;message:string}|null>(null);
   const [anthropicKey, setAnthropicKey] = useState('');
-  const [keyStatus, setKeyStatus] = useState<'idle'|'saving'|'saved'|'error'>('idle');
+  type KeyStatus = 'idle'|'saving'|'saved'|'error'; const [keyStatus, setKeyStatus] = useState<KeyStatus>('idle');
   const [aiTestStatus, setAiTestStatus] = useState<{ok:boolean;configured:boolean;message:string;tenantId?:string}|null>(null);
   const [aiTestLoading, setAiTestLoading] = useState(false);
 
@@ -667,7 +667,7 @@ export default function DashboardPage() {
   function toggleIntel(id: string) {
     setExpandedIntel(prev => { const n = new Set(prev); n.has(id)?n.delete(id):n.add(id); return n; });
   }
-  const [theme, setTheme] = useState<'dark'|'light'>('dark');
+  type Theme = 'dark'|'light'; const [theme, setTheme] = useState<Theme>('dark');
 
   // Theme preference intentionally uses localStorage — it must apply synchronously
   // before React hydrates to avoid a dark→light flash. Not user data, pure display state.
@@ -684,7 +684,7 @@ export default function DashboardPage() {
 
   // ── Tier ─────────────────────────────────────────────────────────────────────
   // In production this comes from the session/JWT. Change to test paywalls.
-  const [userTier, setUserTier] = useState<'community'|'team'|'business'|'mssp'>('community');
+  type Tier = 'community'|'team'|'business'|'mssp'; const [userTier, setUserTier] = useState<Tier>('community');
   const tierLevel = {community:0,team:1,business:2,mssp:3}[userTier];
   const canUse = (min:'community'|'team'|'business'|'mssp') => tierLevel >= {community:0,team:1,business:2,mssp:3}[min];
 
