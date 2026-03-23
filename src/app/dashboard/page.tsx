@@ -440,7 +440,7 @@ function ToolsTab({ connected, setConnected }: { connected: Record<string,Record
   const [testResult, setTestResult] = useState<{ok:boolean;message:string}|null>(null);
   const [anthropicKey, setAnthropicKey] = useState('');
   const [keyStatus, setKeyStatus] = useState<'idle'|'saving'|'saved'|'error'>('idle');
-  const [aiTestStatus, setAiTestStatus] = useState<{ok:boolean;configured:boolean;message:string}|null>(null);
+  const [aiTestStatus, setAiTestStatus] = useState<{ok:boolean;configured:boolean;message:string;tenantId?:string}|null>(null);
   const [aiTestLoading, setAiTestLoading] = useState(false);
 
   useEffect(()=>{ testAiKey(); },[]);
