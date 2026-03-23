@@ -562,8 +562,9 @@ function ToolsTab({ connected, setConnected }: { connected: Record<string,Record
         )}
         {aiTestStatus?.ok && (
           <div style={{fontSize:'0.7rem',color:'var(--wt-muted)',lineHeight:1.6}}>
-            AI triage, Co-Pilot, and remediation assistant are all active. To update your key, add a new value in Vercel environment variables and redeploy.
+            AI triage, Co-Pilot, and remediation assistant are all active.
           </div>
+          <button onClick={async()=>{ await fetch('/api/settings/anthropic-key',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({tenantId:aiTestStatus?.tenantId||'global'})}); await testAiKey(); }} style={{marginTop:8,padding:'5px 12px',borderRadius:7,border:'1px solid #f0405e25',background:'#f0405e0a',color:'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Remove Key</button>
         )}
       </div>
 
@@ -630,11 +631,24 @@ export default function DashboardPage() {
   const [vulnAiLoading, setVulnAiLoading] = useState<string|null>(null);
   const [vulnAiTexts, setVulnAiTexts] = useState<Record<string,string>>({});
   const [industry, setIndustry] = useState('Financial Services');
+  // Load persisted settings from Redis on mount
+  useEffect(()=>{
+    fetch('/api/settings/user')
+      .then(r=>r.json())
+      .then(d=>{ if (d.settings?.industry) setIndustry(d.settings.industry); })
+      .catch(()=>{});
+  },[]);
+  function setIndustryPersisted(ind: string) {
+    setIndustry(ind);
+    fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:ind})}).catch(()=>{});
+  }
   const [intelLoading, setIntelLoading] = useState(false);
   const [customIntel, setCustomIntel] = useState<IntelItem[]|null>(null);
   const [expandedAlerts, setExpandedAlerts] = useState<Set<string>>(new Set());
   const [deployAgentDevice, setDeployAgentDevice] = useState<GapDevice|null>(null);
   const [incidentStatuses, setIncidentStatuses] = useState<Record<string,string>>({});
+  const [deletedIncidents, setDeletedIncidents] = useState<Set<string>>(new Set());
+  function deleteIncident(id:string) { setDeletedIncidents(prev=>new Set([...prev,id])); setSelectedIncident(null); }
   const [gapToolFilter, setGapToolFilter] = useState<string|null>(null);
   const [expandedIntel, setExpandedIntel] = useState<Set<string>>(new Set());
   const [demoMode, setDemoMode] = useState(true);
@@ -655,6 +669,8 @@ export default function DashboardPage() {
   }
   const [theme, setTheme] = useState<'dark'|'light'>('dark');
 
+  // Theme preference intentionally uses localStorage — it must apply synchronously
+  // before React hydrates to avoid a dark→light flash. Not user data, pure display state.
   useEffect(()=>{
     const saved = typeof window !== 'undefined' ? localStorage.getItem('wt_theme') : null;
     if (saved === 'light') setTheme('light');
@@ -696,7 +712,15 @@ export default function DashboardPage() {
   };
 
   const tools = DEMO_TOOLS;
-  const alerts = TENANT_ALERTS[currentTenant] || DEMO_ALERTS;
+  const rawAlerts = TENANT_ALERTS[currentTenant] || DEMO_ALERTS;
+  // When a tool is connected, suppress demo alerts from that source
+  // (real alerts from the API would replace them)
+  const connectedToolNames = new Set(Object.keys(connectedTools).map(id=>
+    ALL_TOOLS.find(t=>t.id===id)?.name.split(' ')[0].toLowerCase() || id
+  ));
+  const alerts = demoMode && Object.keys(connectedTools).length > 0
+    ? rawAlerts.filter(a => !connectedToolNames.has(a.source.toLowerCase().split(' ')[0]))
+    : rawAlerts;
   const vulns = TENANT_VULNS[currentTenant] || DEMO_VULNS;
   const incidents = TENANT_INCIDENTS[currentTenant] || DEMO_INCIDENTS;
 
@@ -744,7 +768,7 @@ export default function DashboardPage() {
   async function getVulnAiHelp(vuln:Vuln) {
     setVulnAiLoading(vuln.id);
     try {
-      const resp = await fetch('/api/copilot', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:`For ${vuln.cve} (${vuln.title}), provide information NOT covered in standard remediation docs. Structure your response with these exact section headers on their own lines in ALL CAPS: DETECTION QUERIES, KNOWN IOCS AND INDICATORS, COMPENSATING CONTROLS, COMMON MISTAKES, ATTACK CHAINING. Under DETECTION QUERIES, provide sub-sections labelled exactly like 'SPLUNK QUERY FOR <purpose>', 'KQL QUERY 1: <purpose>', etc. Each query should be on its own line(s) immediately after its label with no blank lines between label and query. No markdown, no asterisks, no backticks. Plain text only.`}) });
+      const resp = await fetch('/api/copilot', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:`For ${vuln.cve} (${vuln.title}), provide information NOT covered in standard remediation docs. Structure your response with these ALL-CAPS section headers on their own lines: DETECTION QUERIES, KNOWN IOCS AND INDICATORS, COMPENSATING CONTROLS, COMMON MISTAKES, ATTACK CHAINING. Under DETECTION QUERIES use these exact sub-labels: 'SPLUNK QUERY FOR <purpose>', 'MICROSOFT SENTINEL KQL: <purpose>' (Sentinel workspace tables: SecurityEvent, SigninLogs, AuditLogs, CommonSecurityLog), 'MICROSOFT DEFENDER ADVANCED HUNTING: <purpose>' (Defender XDR tables: DeviceProcessEvents, DeviceNetworkEvents, DeviceFileEvents, IdentityLogonEvents — distinct from Sentinel). Each query immediately after its label. No markdown, no backticks, plain text.`}) });
       if (resp.ok) {
         const d = await resp.json();
         const text = d.response || d.message || 'AI response unavailable — check your Anthropic API key in the Tools tab.';
@@ -834,7 +858,7 @@ export default function DashboardPage() {
         {/* TOP BAR */}
         <div style={{display:'flex',alignItems:'center',padding:'8px 18px',borderBottom:'1px solid #141820',gap:12,background:'var(--wt-sidebar)',flexShrink:0,flexWrap:'wrap'}}>
           <div style={{display:'flex',gap:2}}>
-            {TABS.filter(t=>t!=='mssp'||isAdmin).map(t=>(
+            {TABS.filter(t=>t!=='mssp'||(userTier==='mssp')).map(t=>(
               <button key={t} className={`tab-btn${activeTab===t?' active':''}`} onClick={()=>setActiveTab(t)}>
                 {t==='mssp'?'Portfolio':t.charAt(0).toUpperCase()+t.slice(1)}
                 {t==='alerts'&&critAlerts.length>0&&<span style={{marginLeft:5,fontSize:'0.48rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f0405e',color:'#fff'}}>{critAlerts.length}</span>}
@@ -988,6 +1012,69 @@ export default function DashboardPage() {
                 </div>
               </div>
 
+              {/* Recent Activity Row */}
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+                {/* Recent Alerts */}
+                <div style={{padding:'14px 16px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
+                    <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1px',flex:1}}>Recent Alerts</div>
+                    <button onClick={()=>setActiveTab('alerts')} style={{fontSize:'0.58rem',color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:600}}>View all →</button>
+                  </div>
+                  {alerts.slice(0,4).map(a=>(
+                    <div key={a.id} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 0',borderBottom:'1px solid var(--wt-border)'}}>
+                      <div style={{width:4,height:24,borderRadius:2,background:SEV_COLOR[a.severity],flexShrink:0}} />
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:'0.72rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.title}</div>
+                        <div style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{a.source} · {a.device} · {a.time}</div>
+                      </div>
+                      <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:VERDICT_STYLE[a.verdict].bg,color:VERDICT_STYLE[a.verdict].c,flexShrink:0}}>{a.verdict}</span>
+                    </div>
+                  ))}
+                </div>
+                {/* Active Incidents */}
+                <div style={{padding:'14px 16px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
+                    <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',flex:1}}>Active Incidents</div>
+                    <button onClick={()=>setActiveTab('incidents')} style={{fontSize:'0.58rem',color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:600}}>View all →</button>
+                  </div>
+                  {incidents.filter(i=>(incidentStatuses[i.id]||i.status)!=='Closed').slice(0,3).map(inc=>(
+                    <div key={inc.id} onClick={()=>{setActiveTab('incidents');setSelectedIncident(inc);}} style={{padding:'6px 0',borderBottom:'1px solid var(--wt-border)',cursor:'pointer'}}>
+                      <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:2}}>
+                        <span style={{fontSize:'0.6rem',fontWeight:700,color:'#4f8fff',fontFamily:'JetBrains Mono,monospace'}}>{inc.id}</span>
+                        <SevBadge sev={inc.severity} />
+                        <span style={{fontSize:'0.52rem',padding:'1px 5px',borderRadius:3,background:'#f0405e12',color:'#f0405e',fontWeight:700,border:'1px solid #f0405e20'}}>{(incidentStatuses[inc.id]||inc.status).toUpperCase()}</span>
+                      </div>
+                      <div style={{fontSize:'0.7rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{inc.title}</div>
+                      <div style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{inc.alertCount} alerts · {inc.devices.length} devices</div>
+                    </div>
+                  ))}
+                  {incidents.filter(i=>(incidentStatuses[i.id]||i.status)!=='Closed').length===0 && (
+                    <div style={{fontSize:'0.72rem',color:'var(--wt-muted)',padding:'12px 0',textAlign:'center'}}>✓ No active incidents</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Top Active Threats */}
+              <div style={{padding:'14px 16px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12}}>
+                <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
+                  <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'1px',flex:1}}>🔥 Top Threats Right Now</div>
+                  <button onClick={()=>setActiveTab('intel')} style={{fontSize:'0.58rem',color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:600}}>View intel →</button>
+                </div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+                  {[
+                    {title:'CVE-2024-21413',desc:'Outlook NTLM — CISA KEV',color:'#f0405e',badge:'CRITICAL'},
+                    {title:'TA505 Active',desc:'Cobalt Strike campaign — fin. sector',color:'#f0a030',badge:'HIGH'},
+                    {title:'LockBit 3.0',desc:'New infra post-takedown',color:'#f0a030',badge:'HIGH'},
+                  ].map(t=>(
+                    <div key={t.title} style={{padding:'8px 10px',background:'var(--wt-card2)',border:`1px solid ${t.color}18`,borderRadius:8}}>
+                      <div style={{fontSize:'0.52rem',fontWeight:800,color:t.color,marginBottom:3}}>{t.badge}</div>
+                      <div style={{fontSize:'0.72rem',fontWeight:700,marginBottom:2}}>{t.title}</div>
+                      <div style={{fontSize:'0.6rem',color:'var(--wt-muted)'}}>{t.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Posture */}
               <div style={{display:'flex',alignItems:'center',gap:12,padding:16,background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12}}>
                 <div style={{position:'relative',width:64,height:64,flexShrink:0}}>
@@ -1109,7 +1196,7 @@ export default function DashboardPage() {
                     const gapCount = Math.round(totalDevices*(1-pct/100));
                     const pctColor = pct>=95?'#22d49a':pct>=85?'#f0a030':'#f0405e';
                     return (
-                      <div key={tool.id} style={{padding:'10px 14px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:10,display:'flex',alignItems:'center',gap:12}}>
+                      <div key={tool.id} onClick={()=>setGapToolFilter(gapToolFilter===tool.id?null:tool.id)} style={{padding:'10px 14px',background:gapToolFilter===tool.id?'var(--wt-card2)':'var(--wt-card)',border:`1px solid ${gapToolFilter===tool.id?'#4f8fff40':'#141820'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12,cursor:'pointer'}}>
                         <div style={{width:110,fontSize:'0.76rem',fontWeight:600,flexShrink:0}}>{tool.name}</div>
                         <div style={{flex:1,height:8,background:'var(--wt-border)',borderRadius:4,overflow:'hidden'}}>
                           <div style={{height:'100%',background:`linear-gradient(90deg,${pctColor},${pctColor}aa)`,borderRadius:4,width:`${pct}%`,transition:'width 1s'}} />
@@ -1126,7 +1213,23 @@ export default function DashboardPage() {
               <div>
                 <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Devices with Gaps ({gapDevices.length})</div>
                 <div style={{display:'flex',flexDirection:'column',gap:6}}>
-                  {gapDevices.map(dev=>(
+                  {/* CSV export button */}
+                  {gapToolFilter && (
+                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+                      <span style={{fontSize:'0.68rem',color:'#4f8fff',fontWeight:600}}>Showing devices missing {ALL_TOOLS.find(t=>t.id===gapToolFilter)?.name||gapToolFilter}</span>
+                      <button onClick={()=>{
+                        const filtered = gapDevices.filter(d=>d.missing.some(m=>ALL_TOOLS.find(t=>t.id===gapToolFilter)?.name && m.includes(ALL_TOOLS.find(t=>t.id===gapToolFilter)!.name.split(' ')[0])));
+                        const csv = ['Hostname,IP,OS,Missing Tools,Reason,Last Seen', ...filtered.map(d=>`${d.hostname},${d.ip},${d.os},"${d.missing.join('; ')}","${d.reason}",${d.lastSeen}`)].join('
+');
+                        const blob = new Blob([csv],{type:'text/csv'});
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a'); a.href=url; a.download=`coverage-gaps-${gapToolFilter}.csv`; a.click();
+                        URL.revokeObjectURL(url);
+                      }} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Export CSV ↓</button>
+                      <button onClick={()=>setGapToolFilter(null)} style={{padding:'3px 8px',borderRadius:5,border:'1px solid var(--wt-border)',background:'none',color:'var(--wt-muted)',fontSize:'0.6rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear ×</button>
+                    </div>
+                  )}
+                  {(gapToolFilter ? gapDevices.filter(d=>d.missing.some(m=>ALL_TOOLS.find(t=>t.id===gapToolFilter)?.name && m.includes(ALL_TOOLS.find(t=>t.id===gapToolFilter)!.name.split(' ')[0]))) : gapDevices).map(dev=>(
                     <div key={dev.hostname} style={{padding:'12px 14px',background:'var(--wt-card)',border:'1px solid #f0405e18',borderRadius:10}}>
                       <div style={{display:'flex',alignItems:'flex-start',gap:10}}>
                         <div style={{flex:1}}>
@@ -1209,7 +1312,10 @@ export default function DashboardPage() {
                                 <span style={{width:6,height:6,borderRadius:'50%',background:'#4f8fff',display:'block'}} />AI Remediation Assistant
                               </div>
                               {vulnAiTexts[vuln.id] ? (
-                                <RemediationOutput text={vulnAiTexts[vuln.id]} />
+                                <div>
+                                  <RemediationOutput text={vulnAiTexts[vuln.id]} />
+                                  <button onClick={()=>setVulnAiTexts(prev=>{const n={...prev};delete n[vuln.id];return n;})} style={{marginTop:8,fontSize:'0.6rem',padding:'2px 8px',borderRadius:4,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-dim)',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>↺ Regenerate</button>
+                                </div>
                               ) : (
                                 <button onClick={()=>getVulnAiHelp(vuln)} disabled={vulnAiLoading===vuln.id} style={{padding:'6px 14px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.72rem',fontWeight:700,cursor:vulnAiLoading===vuln.id?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:6}}>
                                   {vulnAiLoading===vuln.id?<span style={{display:'inline-block',width:10,height:10,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />:'✦'}
@@ -1235,7 +1341,7 @@ export default function DashboardPage() {
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Threat Intelligence</h2>
                 <div style={{display:'flex',alignItems:'center',gap:6,marginLeft:'auto'}}>
                   <span style={{fontSize:'0.7rem',color:'var(--wt-muted)'}}>Industry:</span>
-                  <select value={industry} onChange={e=>{setIndustry(e.target.value);fetchIntelForIndustry(e.target.value);}} style={{padding:'4px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.76rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                  <select value={industry} onChange={e=>{setIndustryPersisted(e.target.value);fetchIntelForIndustry(e.target.value);}} style={{padding:'4px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.76rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                     {INDUSTRIES.map(i=><option key={i} value={i}>{i}</option>)}
                   </select>
                   {intelLoading && <span style={{width:14,height:14,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}} />}
@@ -1264,6 +1370,7 @@ export default function DashboardPage() {
                             <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{item.time}</span>
                             {item.mitre && <span style={{fontSize:'0.52rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{item.mitre}</span>}
                             {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.58rem',fontWeight:700,color:'#f0a030',background:'#f0a03012',padding:'1px 6px',borderRadius:3,border:'1px solid #f0a03025'}}>{item.iocs.length} IOCs — click to view</span>}
+                            <a href={`https://www.google.com/search?q=${encodeURIComponent(item.title+' threat intelligence')}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.52rem',color:'#4f8fff',textDecoration:'none',padding:'1px 6px',border:'1px solid #4f8fff20',borderRadius:3,background:'#4f8fff0a'}}>Read more →</a>
                           </div>
                         </div>
                         <span style={{fontSize:'0.7rem',color:'var(--wt-dim)',flexShrink:0}}>{isExpanded?'▲':'▼'}</span>
@@ -1374,7 +1481,7 @@ export default function DashboardPage() {
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Incidents</h2>
                 <span style={{fontSize:'0.62rem',color:'#f0405e',background:'#f0405e12',padding:'2px 8px',borderRadius:4}}>{incidents.filter(i=>i.status==='Active').length} Active</span>
               </div>
-              {incidents.map(inc=>{
+              {incidents.filter(inc=>!deletedIncidents.has(inc.id)).map(inc=>{
                 const isSel = selectedIncident?.id===inc.id;
                 const incStatus = incidentStatuses[inc.id] || inc.status; const statusColor = incStatus==='Active'?'#f0405e':incStatus==='Contained'?'#f0a030':'#22d49a';
                 return (
@@ -1423,8 +1530,8 @@ export default function DashboardPage() {
                           ))}
                         </div>
                         <div style={{display:'flex',gap:6,marginTop:10}}>
-                          {['Add Note','Escalate','Close Incident'].map(a=>(
-                            <button key={a} onClick={()=>{ if(a==='Close Incident') closeIncident(inc.id); }} style={{padding:'5px 12px',borderRadius:6,border:`1px solid ${a==='Close Incident'?'#22d49a30':'var(--wt-border2)'}`,background:a==='Close Incident'?'#22d49a0a':'transparent',color:a==='Close Incident'?'#22d49a':'#8a9ab0',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{a}</button>
+                          {['Add Note','Escalate','Close Incident','Delete'].map(a=>(
+                            <button key={a} onClick={()=>{ if(a==='Close Incident') closeIncident(inc.id); if(a==='Delete') deleteIncident(inc.id); }} style={{padding:'5px 12px',borderRadius:6,border:`1px solid ${a==='Close Incident'?'#22d49a30':a==='Delete'?'#f0405e25':'var(--wt-border2)'}`,background:a==='Close Incident'?'#22d49a0a':a==='Delete'?'#f0405e0a':'transparent',color:a==='Close Incident'?'#22d49a':a==='Delete'?'#f0405e':'#8a9ab0',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{a}</button>
                           ))}
                         </div>
                       </div>
