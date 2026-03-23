@@ -365,6 +365,7 @@ const [portfolioView, setPortfolioView] = useState<'security'|'revenue'>('securi
                 </div>
               )}
             </div>
+  );
 }
 
 // ─── Tools Tab ───────────────────────────────────────────────────────────────
