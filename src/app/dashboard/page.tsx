@@ -133,6 +133,81 @@ function StatCard({val,label,sub,color,onClick}:{val:string|number;label:string;
   );
 }
 
+// ─── AI Remediation Output Renderer ─────────────────────────────────────────
+function RemediationOutput({ text }: { text: string }) {
+  const [copied, setCopied] = useState<string|null>(null);
+
+  function copyCode(code: string, id: string) {
+    navigator.clipboard.writeText(code).then(()=>{
+      setCopied(id);
+      setTimeout(()=>setCopied(null), 2000);
+    });
+  }
+
+  // Parse text into sections. Detect: ALL-CAPS headings, KQL QUERY N:, code blocks
+  const lines = text.split('\n');
+  type Block = { type:'heading'|'subheading'|'code'|'text'; content:string; id?:string };
+  const blocks: Block[] = [];
+  let codeBuffer: string[] = [];
+  let inCode = false;
+  let codeId = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    if (!trimmed) { if (!inCode) continue; }
+
+    // Detect code block start: line ending in { or contains | where or | search or | stats
+    const isCodeLine = /[|{};]$/.test(trimmed) || /^(DeviceProcess|DeviceNetwork|Security|Identity|Cloud|Mailbox|source=|index=)/.test(trimmed) || (inCode && trimmed.length > 0);
+    const isQueryLabel = /^(KQL QUERY|SPLUNK QUERY|SENTINEL|DEFENDER|MICROSOFT|SOURCE=)/i.test(trimmed);
+    const isMajorHeading = /^[A-Z][A-Z\s\-:\/]+$/.test(trimmed) && trimmed.length > 8 && trimmed.length < 80 && !isCodeLine;
+    const isSubHeading = /^(KQL QUERY \d+:|SPLUNK QUERY FOR |MICROSOFT |DETECTION |REMEDIATION |COMPENSATING |COMMON |HOW ATTACKERS)/i.test(trimmed);
+
+    if (isSubHeading || isQueryLabel) {
+      if (inCode && codeBuffer.length) { blocks.push({ type:'code', content:codeBuffer.join('\n'), id:`code-${++codeId}` }); codeBuffer = []; inCode = false; }
+      blocks.push({ type:'subheading', content:trimmed });
+      inCode = true; // next lines are likely code
+    } else if (isMajorHeading) {
+      if (inCode && codeBuffer.length) { blocks.push({ type:'code', content:codeBuffer.join('\n'), id:`code-${++codeId}` }); codeBuffer = []; inCode = false; }
+      blocks.push({ type:'heading', content:trimmed });
+      inCode = false;
+    } else if (inCode && trimmed) {
+      codeBuffer.push(line);
+    } else {
+      if (codeBuffer.length) { blocks.push({ type:'code', content:codeBuffer.join('\n'), id:`code-${++codeId}` }); codeBuffer = []; inCode = false; }
+      blocks.push({ type:'text', content:trimmed });
+    }
+  }
+  if (codeBuffer.length) blocks.push({ type:'code', content:codeBuffer.join('\n'), id:`code-${++codeId}` });
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',gap:10}}>
+      {blocks.map((block, i) => {
+        if (block.type === 'heading') return (
+          <div key={i} style={{fontSize:'0.58rem',fontWeight:800,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1.5px',paddingTop: i>0?8:0,borderTop: i>0?'1px solid var(--wt-border)':'none',marginTop: i>0?2:0}}>{block.content}</div>
+        );
+        if (block.type === 'subheading') return (
+          <div key={i} style={{fontSize:'0.68rem',fontWeight:700,color:'var(--wt-text)',marginTop:4,marginBottom:-4}}>{block.content}</div>
+        );
+        if (block.type === 'code') return (
+          <div key={i} style={{position:'relative',background:'#020306',border:'1px solid #1a2235',borderRadius:8,overflow:'hidden'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'5px 10px',borderBottom:'1px solid #1a2235',background:'#060912'}}>
+              <span style={{fontSize:'0.54rem',fontWeight:700,color:'#4f8fff',letterSpacing:'0.5px',textTransform:'uppercase'}}>Query</span>
+              <button onClick={()=>copyCode(block.content, block.id||'')} style={{fontSize:'0.56rem',fontWeight:600,padding:'2px 8px',borderRadius:4,border:'1px solid #1e2536',background:'transparent',color:copied===block.id?'#22d49a':'var(--wt-muted)',cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'color .15s'}}>
+                {copied===block.id?'✓ Copied':'Copy'}
+              </button>
+            </div>
+            <pre style={{margin:0,padding:'10px 12px',fontSize:'0.63rem',fontFamily:'JetBrains Mono,monospace',color:'#a8c0e8',lineHeight:1.7,overflowX:'auto',whiteSpace:'pre-wrap',wordBreak:'break-all'}}>{block.content.trim()}</pre>
+          </div>
+        );
+        return (
+          <div key={i} style={{fontSize:'0.72rem',color:'var(--wt-secondary)',lineHeight:1.7}}>{block.content}</div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ─── Tools Tab ───────────────────────────────────────────────────────────────
 const ALL_TOOLS = [
   {id:'crowdstrike',name:'CrowdStrike Falcon',category:'EDR',desc:'Endpoint detection & response'},
@@ -178,8 +253,7 @@ const CRED_FIELDS: Record<string,{key:string;label:string;secret?:boolean;placeh
 
 const CATEGORIES = ['All','EDR','SIEM','NDR','XDR','Vuln','CSPM','Email','Network','Identity'];
 
-function ToolsTab() {
-  const [connected, setConnected] = useState<Record<string,Record<string,string>>>({});
+function ToolsTab({ connected, setConnected }: { connected: Record<string,Record<string,string>>; setConnected: React.Dispatch<React.SetStateAction<Record<string,Record<string,string>>>>; }) {
   const [filter, setFilter] = useState('All');
   const [modal, setModal] = useState<{id:string;name:string}|null>(null);
   const [formVals, setFormVals] = useState<Record<string,string>>({});
@@ -383,6 +457,23 @@ export default function DashboardPage() {
   const [deployAgentDevice, setDeployAgentDevice] = useState<GapDevice|null>(null);
   const [incidentStatuses, setIncidentStatuses] = useState<Record<string,string>>({});
   const [gapToolFilter, setGapToolFilter] = useState<string|null>(null);
+  const [expandedIntel, setExpandedIntel] = useState<Set<string>>(new Set());
+  const [demoMode, setDemoMode] = useState(true);
+  const [connectedTools, setConnectedTools] = useState<Record<string,Record<string,string>>>({});
+  const [currentTenant, setCurrentTenant] = useState('global');
+  const [isAdmin] = useState(true); // Replace with real auth check
+
+  const DEMO_TENANTS = [
+    {id:'global', name:'My Organisation', type:'direct'},
+    {id:'client-acme', name:'Acme Financial', type:'client'},
+    {id:'client-nhs', name:'NHS Trust Alpha', type:'client'},
+    {id:'client-retail', name:'RetailCo UK', type:'client'},
+    {id:'client-gov', name:'Gov Dept Beta', type:'client'},
+  ];
+
+  function toggleIntel(id: string) {
+    setExpandedIntel(prev => { const n = new Set(prev); n.has(id)?n.delete(id):n.add(id); return n; });
+  }
   const [theme, setTheme] = useState<'dark'|'light'>('dark');
 
   useEffect(()=>{
@@ -433,7 +524,7 @@ export default function DashboardPage() {
   async function getVulnAiHelp(vuln:Vuln) {
     setVulnAiLoading(vuln.id);
     try {
-      const resp = await fetch('/api/copilot', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:`For ${vuln.cve} (${vuln.title}), provide information NOT covered in standard remediation docs. Focus on: 1) Specific detection queries for Splunk, Microsoft Sentinel (KQL), and Microsoft Defender for Endpoint (KQL/Advanced Hunting) to find exploitation attempts — include actual query syntax. 2) Known exploitation indicators and IOCs seen in the wild. 3) Compensating controls if patching is not immediately possible. 4) Common mistakes teams make when remediating this CVE. 5) How attackers typically chain this with other techniques. Plain text only, be specific and technical. Label each KQL query clearly.`}) });
+      const resp = await fetch('/api/copilot', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:`For ${vuln.cve} (${vuln.title}), provide information NOT covered in standard remediation docs. Structure your response with these exact section headers on their own lines in ALL CAPS: DETECTION QUERIES, KNOWN IOCS AND INDICATORS, COMPENSATING CONTROLS, COMMON MISTAKES, ATTACK CHAINING. Under DETECTION QUERIES, provide sub-sections labelled exactly like 'SPLUNK QUERY FOR <purpose>', 'KQL QUERY 1: <purpose>', etc. Each query should be on its own line(s) immediately after its label with no blank lines between label and query. No markdown, no asterisks, no backticks. Plain text only.`}) });
       if (resp.ok) {
         const d = await resp.json();
         const text = d.response || d.message || 'AI response unavailable — check your Anthropic API key in the Tools tab.';
@@ -457,7 +548,7 @@ export default function DashboardPage() {
     setExpandedAlerts(prev => { const n = new Set(prev); n.has(id)?n.delete(id):n.add(id); return n; });
   }
 
-  const TABS = ['overview','alerts','coverage','vulns','intel','incidents','tools'];
+  const TABS = ['overview','alerts','coverage','vulns','intel','incidents','tools','mssp'];
 
   return (
     <div className={`wt-root${theme === 'light' ? ' light' : ''}`} style={{display:'flex',minHeight:'100vh',background:'var(--wt-bg)',color:'var(--wt-text)',fontFamily:'Inter,sans-serif'}}>
@@ -523,9 +614,9 @@ export default function DashboardPage() {
         {/* TOP BAR */}
         <div style={{display:'flex',alignItems:'center',padding:'8px 18px',borderBottom:'1px solid #141820',gap:12,background:'var(--wt-sidebar)',flexShrink:0,flexWrap:'wrap'}}>
           <div style={{display:'flex',gap:2}}>
-            {TABS.map(t=>(
+            {TABS.filter(t=>t!=='mssp'||isAdmin).map(t=>(
               <button key={t} className={`tab-btn${activeTab===t?' active':''}`} onClick={()=>setActiveTab(t)}>
-                {t.charAt(0).toUpperCase()+t.slice(1)}
+                {t==='mssp'?'Portfolio':t.charAt(0).toUpperCase()+t.slice(1)}
                 {t==='alerts'&&critAlerts.length>0&&<span style={{marginLeft:5,fontSize:'0.48rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f0405e',color:'#fff'}}>{critAlerts.length}</span>}
                 {t==='vulns'&&kevVulns.length>0&&<span style={{marginLeft:5,fontSize:'0.48rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f97316',color:'#fff'}}>{kevVulns.length} KEV</span>}
               </button>
@@ -533,6 +624,14 @@ export default function DashboardPage() {
           </div>
           <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:10}}>
             <button onClick={toggleTheme} title={theme==='dark'?'Light mode':'Dark mode'} style={{width:32,height:32,borderRadius:8,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.9rem',flexShrink:0}}>{theme==='dark'?'☀️':'🌙'}</button>
+              <button onClick={()=>setDemoMode(d=>!d)} title={demoMode?'Switch to live data':'Switch to demo data'} style={{padding:'4px 10px',borderRadius:7,border:`1px solid ${demoMode?'#f0a03030':'#22d49a30'}`,background:demoMode?'#f0a03010':'#22d49a10',color:demoMode?'#f0a030':'#22d49a',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>{demoMode?'● DEMO':'● LIVE'}</button>
+              {isAdmin && (
+                <select value={currentTenant} onChange={e=>setCurrentTenant(e.target.value)} style={{padding:'4px 8px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.68rem',fontFamily:'Inter,sans-serif',cursor:'pointer',outline:'none',maxWidth:140}}>
+                  {DEMO_TENANTS.map(t=>(
+                    <option key={t.id} value={t.id}>{t.type==='client'?'◦ ':''}{t.name}</option>
+                  ))}
+                </select>
+              )}
             <div style={{display:'flex',alignItems:'center',gap:6,padding:'4px 10px',borderRadius:7,background:'var(--wt-card2)',border:'1px solid #141820'}}>
               <span style={{fontSize:'0.62rem',color:'var(--wt-muted)'}}>Automation:</span>
               {(['Recommend','Auto+Notify','Full Auto'] as const).map((l,i)=>(
@@ -811,7 +910,7 @@ export default function DashboardPage() {
                           </div>
                           <div style={{fontSize:'0.66rem',color:'var(--wt-muted)'}}>{dev.reason} · Last seen {dev.lastSeen}</div>
                         </div>
-                        <button onClick={()=>setDeployAgentDevice(dev)} style={{padding:'4px 10px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Deploy Agent</button>
+
                       </div>
                     </div>
                   ))}
@@ -877,7 +976,7 @@ export default function DashboardPage() {
                                 <span style={{width:6,height:6,borderRadius:'50%',background:'#4f8fff',display:'block'}} />AI Remediation Assistant
                               </div>
                               {vulnAiTexts[vuln.id] ? (
-                                <div style={{fontSize:'0.7rem',color:'var(--wt-secondary)',lineHeight:1.65}}>{vulnAiTexts[vuln.id]}</div>
+                                <RemediationOutput text={vulnAiTexts[vuln.id]} />
                               ) : (
                                 <button onClick={()=>getVulnAiHelp(vuln)} disabled={vulnAiLoading===vuln.id} style={{padding:'6px 14px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.72rem',fontWeight:700,cursor:vulnAiLoading===vuln.id?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:6}}>
                                   {vulnAiLoading===vuln.id?<span style={{display:'inline-block',width:10,height:10,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />:'✦'}
@@ -914,43 +1013,97 @@ export default function DashboardPage() {
                 <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>
                   {industry} — Active Threats
                 </div>
-                {allIntel.filter(i=>i.industrySpecific).map(item=>(
-                  <div key={item.id} style={{padding:'12px 14px',background:'#0a0206',border:'1px solid #f0405e18',borderRadius:10,marginBottom:6}}>
-                    <div style={{display:'flex',alignItems:'flex-start',gap:10}}>
-                      <div style={{flex:1}}>
-                        <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4}}>
-                          <SevBadge sev={item.severity} />
-                          <span style={{fontSize:'0.78rem',fontWeight:700}}>{item.title}</span>
+                {allIntel.filter(i=>i.industrySpecific).map(item=>{
+                  const isExpanded = expandedIntel.has(item.id);
+                  return (
+                  <div key={item.id} style={{background:'#0a0206',border:`1px solid ${isExpanded?'#f0405e30':'#f0405e18'}`,borderRadius:10,marginBottom:6,overflow:'hidden'}}>
+                    <div style={{padding:'12px 14px',cursor:'pointer'}} onClick={()=>toggleIntel(item.id)}>
+                      <div style={{display:'flex',alignItems:'flex-start',gap:10}}>
+                        <div style={{flex:1}}>
+                          <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4}}>
+                            <SevBadge sev={item.severity} />
+                            <span style={{fontSize:'0.78rem',fontWeight:700}}>{item.title}</span>
+                          </div>
+                          <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:6}}>{item.summary}</div>
+                          <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+                            <span style={{fontSize:'0.58rem',color:'#4f8fff'}}>{item.source}</span>
+                            <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{item.time}</span>
+                            {item.mitre && <span style={{fontSize:'0.52rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{item.mitre}</span>}
+                            {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.58rem',fontWeight:700,color:'#f0a030',background:'#f0a03012',padding:'1px 6px',borderRadius:3,border:'1px solid #f0a03025'}}>{item.iocs.length} IOCs — click to view</span>}
+                          </div>
                         </div>
-                        <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:6}}>{item.summary}</div>
-                        <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
-                          <span style={{fontSize:'0.58rem',color:'#4f8fff'}}>{item.source}</span>
-                          <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{item.time}</span>
-                          {item.mitre && <span style={{fontSize:'0.52rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{item.mitre}</span>}
-                          {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.58rem',color:'#f0a030'}}>{item.iocs.length} IOCs available</span>}
-                        </div>
+                        <span style={{fontSize:'0.7rem',color:'var(--wt-dim)',flexShrink:0}}>{isExpanded?'▲':'▼'}</span>
                       </div>
                     </div>
+                    {isExpanded && item.iocs && item.iocs.length>0 && (
+                      <div style={{padding:'10px 14px 14px',borderTop:'1px solid #f0405e15',background:'#07010a'}}>
+                        <div style={{fontSize:'0.6rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Indicators of Compromise</div>
+                        <div style={{display:'flex',flexDirection:'column',gap:4}}>
+                          {item.iocs.map(ioc=>(
+                            <div key={ioc} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 8px',background:'#0d0208',border:'1px solid #1e1010',borderRadius:6}}>
+                              <span style={{width:6,height:6,borderRadius:'50%',background:'#f0a030',flexShrink:0}} />
+                              <code style={{fontSize:'0.68rem',fontFamily:'JetBrains Mono,monospace',color:'#f0c070',flex:1,wordBreak:'break-all'}}>{ioc}</code>
+                              <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(ioc);}} style={{fontSize:'0.54rem',padding:'2px 7px',borderRadius:3,border:'1px solid #f0a03025',background:'transparent',color:'#f0a030',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Copy</button>
+                            </div>
+                          ))}
+                        </div>
+                        {item.mitre && (
+                          <div style={{marginTop:10,display:'flex',alignItems:'center',gap:8}}>
+                            <span style={{fontSize:'0.6rem',color:'var(--wt-dim)'}}>MITRE ATT&CK:</span>
+                            <a href={`https://attack.mitre.org/techniques/${item.mitre.replace('.','/')}/`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.66rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:'#7c6aff',textDecoration:'none',padding:'2px 8px',border:'1px solid #7c6aff25',borderRadius:3,background:'#7c6aff10'}}>{item.mitre} →</a>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* General intel */}
               <div>
                 <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>General Intelligence</div>
-                {allIntel.filter(i=>!i.industrySpecific).map(item=>(
-                  <div key={item.id} style={{padding:'12px 14px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:10,marginBottom:6}}>
-                    <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4}}>
-                      <SevBadge sev={item.severity} />
-                      <span style={{fontSize:'0.78rem',fontWeight:700}}>{item.title}</span>
+                {allIntel.filter(i=>!i.industrySpecific).map(item=>{
+                  const isExpanded = expandedIntel.has(item.id);
+                  return (
+                  <div key={item.id} style={{background:'var(--wt-card)',border:`1px solid ${isExpanded?'#4f8fff30':'var(--wt-border)'}`,borderRadius:10,marginBottom:6,overflow:'hidden'}}>
+                    <div style={{padding:'12px 14px',cursor:'pointer'}} onClick={()=>toggleIntel(item.id)}>
+                      <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4}}>
+                        <SevBadge sev={item.severity} />
+                        <span style={{fontSize:'0.78rem',fontWeight:700,flex:1}}>{item.title}</span>
+                        <span style={{fontSize:'0.7rem',color:'var(--wt-dim)',flexShrink:0}}>{isExpanded?'▲':'▼'}</span>
+                      </div>
+                      <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:6}}>{item.summary}</div>
+                      <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+                        <span style={{fontSize:'0.58rem',color:'#4f8fff'}}>{item.source}</span>
+                        <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{item.time}</span>
+                        {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.58rem',fontWeight:700,color:'#f0a030',background:'#f0a03012',padding:'1px 6px',borderRadius:3,border:'1px solid #f0a03025'}}>{item.iocs.length} IOCs</span>}
+                        {item.mitre && <span style={{fontSize:'0.52rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{item.mitre}</span>}
+                      </div>
                     </div>
-                    <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:6}}>{item.summary}</div>
-                    <div style={{display:'flex',gap:8,alignItems:'center'}}>
-                      <span style={{fontSize:'0.58rem',color:'#4f8fff'}}>{item.source}</span>
-                      <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{item.time}</span>
-                    </div>
+                    {isExpanded && item.iocs && item.iocs.length>0 && (
+                      <div style={{padding:'10px 14px 14px',borderTop:'1px solid var(--wt-border)',background:'var(--wt-card2)'}}>
+                        <div style={{fontSize:'0.6rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Indicators of Compromise</div>
+                        <div style={{display:'flex',flexDirection:'column',gap:4}}>
+                          {item.iocs.map(ioc=>(
+                            <div key={ioc} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 8px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:6}}>
+                              <span style={{width:6,height:6,borderRadius:'50%',background:'#f0a030',flexShrink:0}} />
+                              <code style={{fontSize:'0.68rem',fontFamily:'JetBrains Mono,monospace',color:'#f0c070',flex:1,wordBreak:'break-all'}}>{ioc}</code>
+                              <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(ioc);}} style={{fontSize:'0.54rem',padding:'2px 7px',borderRadius:3,border:'1px solid #f0a03025',background:'transparent',color:'#f0a030',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Copy</button>
+                            </div>
+                          ))}
+                        </div>
+                        {item.mitre && (
+                          <div style={{marginTop:10,display:'flex',alignItems:'center',gap:8}}>
+                            <span style={{fontSize:'0.6rem',color:'var(--wt-dim)'}}>MITRE ATT&CK:</span>
+                            <a href={`https://attack.mitre.org/techniques/${item.mitre.replace('.','/')}/`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.66rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:'#7c6aff',textDecoration:'none',padding:'2px 8px',border:'1px solid #7c6aff25',borderRadius:3,background:'#7c6aff10'}}>{item.mitre} →</a>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Darktrace anomalies if active */}
@@ -1045,7 +1198,87 @@ export default function DashboardPage() {
           )}
           {/* ═══════════════════════════════ TOOLS ══════════════════════════════════ */}
           {activeTab==='tools' && (
-            <ToolsTab />
+            <ToolsTab connected={connectedTools} setConnected={setConnectedTools} />
+          )}
+
+          {/* ═══════════════════════════════ MSSP PORTFOLIO ══════════════════════════ */}
+          {activeTab==='mssp' && (
+            <div style={{display:'flex',flexDirection:'column',gap:14}}>
+              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
+                <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Client Portfolio</h2>
+                <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{DEMO_TENANTS.filter(t=>t.type==='client').length} clients</span>
+                <span style={{marginLeft:'auto',fontSize:'0.62rem',color:'var(--wt-dim)'}}>Viewing as: <strong style={{color:'var(--wt-text)'}}>{DEMO_TENANTS.find(t=>t.id===currentTenant)?.name||'Global Admin'}</strong></span>
+              </div>
+
+              {/* Summary row */}
+              {[
+                {label:'Active Incidents', val:'7', color:'#f0405e'},
+                {label:'Critical Alerts', val:'12', color:'#f0405e'},
+                {label:'KEV Vulns Outstanding', val:'19', color:'#f97316'},
+                {label:'Avg Coverage', val:'91%', color:'#22d49a'},
+              ].map(s=>(
+                <div key={s.label} style={{display:'inline-flex'}} />
+              ))}
+              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,marginBottom:4}}>
+                {[
+                  {label:'Active Incidents', val:'7', color:'#f0405e'},
+                  {label:'Critical Alerts', val:'12', color:'#f0405e'},
+                  {label:'KEV Vulns Outstanding', val:'19', color:'#f97316'},
+                  {label:'Avg Coverage', val:'91%', color:'#22d49a'},
+                ].map(s=>(
+                  <div key={s.label} style={{padding:'12px 14px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:10,textAlign:'center'}}>
+                    <div style={{fontSize:'1.6rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-1}}>{s.val}</div>
+                    <div style={{fontSize:'0.6rem',color:'var(--wt-muted)',marginTop:2}}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Per-client rows */}
+              {[
+                {id:'client-acme',name:'Acme Financial',posture:82,alerts:8,critAlerts:3,incidents:2,coverage:94,kevVulns:3,lastSeen:'2m ago',status:'Active'},
+                {id:'client-nhs',name:'NHS Trust Alpha',posture:71,alerts:15,critAlerts:5,incidents:3,coverage:88,kevVulns:7,lastSeen:'1m ago',status:'Active'},
+                {id:'client-retail',name:'RetailCo UK',posture:91,alerts:4,critAlerts:1,incidents:1,coverage:97,kevVulns:4,lastSeen:'5m ago',status:'Active'},
+                {id:'client-gov',name:'Gov Dept Beta',posture:78,alerts:9,critAlerts:3,incidents:1,coverage:92,kevVulns:5,lastSeen:'8m ago',status:'Active'},
+              ].map(client=>{
+                const postureColor = client.posture>=85?'#22d49a':client.posture>=70?'#f0a030':'#f0405e';
+                const isSelected = currentTenant===client.id;
+                return (
+                  <div key={client.id} style={{padding:'14px 16px',background:isSelected?'#0a0f1a':'var(--wt-card)',border:`1px solid ${isSelected?'#4f8fff40':'var(--wt-border)'}`,borderRadius:12}}>
+                    <div style={{display:'flex',alignItems:'center',gap:14,flexWrap:'wrap'}}>
+                      <div style={{flex:1,minWidth:140}}>
+                        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3}}>
+                          <div style={{width:8,height:8,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 5px #22c992',flexShrink:0}} />
+                          <span style={{fontSize:'0.84rem',fontWeight:700}}>{client.name}</span>
+                          {isSelected && <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff15',color:'#4f8fff',border:'1px solid #4f8fff25'}}>VIEWING</span>}
+                        </div>
+                        <div style={{fontSize:'0.62rem',color:'var(--wt-dim)'}}>Last seen {client.lastSeen}</div>
+                      </div>
+                      <div style={{display:'flex',alignItems:'center',gap:6}}>
+                        <div style={{width:36,height:36,borderRadius:'50%',background:`conic-gradient(${postureColor} ${client.posture}%,var(--wt-border) 0)`,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                          <div style={{width:26,height:26,borderRadius:'50%',background:'var(--wt-card)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.52rem',fontWeight:900,color:postureColor}}>{client.posture}</div>
+                        </div>
+                        <span style={{fontSize:'0.6rem',color:'var(--wt-dim)'}}>Posture</span>
+                      </div>
+                      {[
+                        {label:'Alerts',val:client.alerts,color:client.critAlerts>0?'#f0a030':'var(--wt-secondary)'},
+                        {label:'Critical',val:client.critAlerts,color:client.critAlerts>0?'#f0405e':'var(--wt-secondary)'},
+                        {label:'Incidents',val:client.incidents,color:client.incidents>0?'#f0405e':'var(--wt-secondary)'},
+                        {label:'KEV',val:client.kevVulns,color:'#f97316'},
+                        {label:'Coverage',val:`${client.coverage}%`,color:client.coverage>=95?'#22d49a':client.coverage>=85?'#f0a030':'#f0405e'},
+                      ].map(s=>(
+                        <div key={s.label} style={{textAlign:'center',minWidth:48}}>
+                          <div style={{fontSize:'1.1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-1}}>{s.val}</div>
+                          <div style={{fontSize:'0.52rem',color:'var(--wt-dim)'}}>{s.label}</div>
+                        </div>
+                      ))}
+                      <button onClick={()=>setCurrentTenant(client.id)} style={{padding:'6px 14px',borderRadius:8,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.7rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>
+                        {isSelected?'Viewing →':'Switch to →'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
       </div>
