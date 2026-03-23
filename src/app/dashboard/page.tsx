@@ -105,7 +105,8 @@ function SevBadge({sev}:{sev:SevKey}) {
 }
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
-function Modal({title,onClose,children}:{title:string;onClose:()=>void;children:React.ReactNode}) {
+type ModalProps = {title:string;onClose:()=>void;children:React.ReactNode};
+function Modal({title,onClose,children}: ModalProps) {
   return (
     <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={onClose}>
       <div style={{background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:16,maxWidth:700,width:'100%',maxHeight:'85vh',overflow:'auto',position:'relative'}} onClick={e=>e.stopPropagation()}>
@@ -120,7 +121,8 @@ function Modal({title,onClose,children}:{title:string;onClose:()=>void;children:
 }
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
-function StatCard({val,label,sub,color,onClick}:{val:string|number;label:string;sub?:string;color:string;onClick?:()=>void}) {
+type StatCardProps = {val:string|number;label:string;sub?:string;color:string;onClick?:()=>void};
+function StatCard({val,label,sub,color,onClick}: StatCardProps) {
   return (
     <div onClick={onClick} style={{padding:'14px 12px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:10,textAlign:'center',cursor:onClick?'pointer':'default',transition:'border-color .15s'}}
       onMouseEnter={e=>{ if(onClick)(e.currentTarget as HTMLElement).style.borderColor='#4f8fff40'; }}
@@ -134,7 +136,8 @@ function StatCard({val,label,sub,color,onClick}:{val:string|number;label:string;
 }
 
 // ─── Paywall Gate ────────────────────────────────────────────────────────────
-function GateWall({ feature, requiredTier, children, userTier }: { feature:string; requiredTier:'team'|'business'|'mssp'; children:React.ReactNode; userTier:string; }) {
+type GateWallProps = { feature:string; requiredTier:'team'|'business'|'mssp'; children:React.ReactNode; userTier:string; };
+function GateWall({ feature, requiredTier, children, userTier }: GateWallProps) {
   const levels: Record<string,number> = {community:0,team:1,business:2,mssp:3};
   if ((levels[userTier]||0) >= levels[requiredTier]) return (<>{children}</>);
   const tierColors: Record<string,string> = {team:'#4f8fff',business:'#22d49a',mssp:'#8b6fff'};
@@ -228,7 +231,9 @@ function RemediationOutput({ text }: { text: string }) {
 }
 
 // ─── MSSP Portfolio Component ────────────────────────────────────────────────
-function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS }: { currentTenant:string; setCurrentTenant:(t:string)=>void; DEMO_TENANTS:{id:string;name:string;type:string}[]; }) {
+type MSSPTenant = {id:string;name:string;type:string};
+type MSSPPortfolioProps = { currentTenant:string; setCurrentTenant:(t:string)=>void; DEMO_TENANTS:MSSPTenant[]; };
+function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS }: MSSPPortfolioProps) {
 const portfolioViewOptions = ['security','revenue'] as const; type PortfolioView = typeof portfolioViewOptions[number]; const [portfolioView, setPortfolioView] = useState<PortfolioView>('security');
             const CLIENTS = [
               {id:'client-acme',  name:'Acme Financial',  plan:'Business', seats:8,  mrr:199,   extraClients:0, contractStart:'2024-01-15', renewalDate:'2025-01-15', billingStatus:'Paid',    posture:82, alerts:8,  critAlerts:3, incidents:2, coverage:94, kevVulns:3, lastSeen:'2m ago'},
@@ -432,7 +437,9 @@ const CRED_FIELDS: Record<string,{key:string;label:string;secret?:boolean;placeh
 
 const CATEGORIES = ['All','EDR','SIEM','NDR','XDR','Vuln','CSPM','Email','Network','Identity'];
 
-function ToolsTab({ connected, setConnected }: { connected: Record<string,Record<string,string>>; setConnected: React.Dispatch<React.SetStateAction<Record<string,Record<string,string>>>>; }) {
+type ConnectedMap = Record<string,Record<string,string>>;
+type SetConnected = (fn: ConnectedMap | ((prev: ConnectedMap) => ConnectedMap)) => void;
+function ToolsTab({ connected, setConnected }: { connected: ConnectedMap; setConnected: SetConnected; }) {
   const [filter, setFilter] = useState('All');
   const [modal, setModal] = useState<{id:string;name:string}|null>(null);
   const [formVals, setFormVals] = useState<Record<string,string>>({});
@@ -507,12 +514,12 @@ function ToolsTab({ connected, setConnected }: { connected: Record<string,Record
 
   function handleSave() {
     if (!modal || !testResult?.ok) return;
-    setConnected(prev=>({...prev,[modal.id]:formVals}));
+    setConnected((prev: ConnectedMap)=>({...prev,[modal.id]:formVals}));
     setModal(null);
   }
 
   function handleDisconnect(id:string) {
-    setConnected(prev=>{ const n={...prev}; delete n[id]; return n; });
+    setConnected((prev: ConnectedMap)=>{ const n={...prev}; delete n[id]; return n; });
   }
 
   return (
@@ -652,7 +659,7 @@ export default function DashboardPage() {
   const [gapToolFilter, setGapToolFilter] = useState<string|null>(null);
   const [expandedIntel, setExpandedIntel] = useState<Set<string>>(new Set());
   const [demoMode, setDemoMode] = useState(true);
-  const [connectedTools, setConnectedTools] = useState<Record<string,Record<string,string>>>({});
+  const [connectedTools, setConnectedTools] = useState<ConnectedMap>({});
   const [currentTenant, setCurrentTenant] = useState('global');
   const [isAdmin] = useState(true); // Replace with real auth check
 
