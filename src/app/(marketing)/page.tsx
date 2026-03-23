@@ -467,7 +467,7 @@ export default function LandingPage() {
             Watchtower
           </a>
           <div style={{ display:'flex', gap:18 }}>
-            {['Demo','Pricing','Sign In','Contact'].map(l => <a key={l} href={l === 'Contact' ? 'mailto:hello@getwatchtower.io' : `/${l.toLowerCase().replace(' ','')}`} style={{ color:'#4a5568', fontSize:'0.76rem', transition:'color .2s' }}>{l}</a>)}
+            {['Demo','Pricing','Sign In','Contact'].map(l => <a key={l} href={l === 'Contact' ? 'mailto:hello@getwatchtower.io' : l === 'Sign In' ? '/login' : `/${l.toLowerCase()}`} style={{ color:'#4a5568', fontSize:'0.76rem', transition:'color .2s' }}>{l}</a>)}
           </div>
         </div>
         <div style={{ textAlign:'center', fontSize:'0.64rem', color:'#1e2536', padding:'12px 0' }}>© 2026 Watchtower. All rights reserved.</div>
