@@ -164,6 +164,9 @@ import { ToolsTab } from './ToolsTab';
 import type { ConnectedMap, SetConnected } from './ToolsTab';
 
 
+type Theme = 'dark' | 'light';
+type Tier = 'community' | 'team' | 'business' | 'mssp';
+
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -172,7 +175,7 @@ export default function DashboardPage() {
   const [selectedAlert, setSelectedAlert] = useState<Alert|null>(null);
   const [selectedVuln, setSelectedVuln] = useState<Vuln|null>(null);
   const [selectedIncident, setSelectedIncident] = useState<Incident|null>(null);
-  const [vulnAiLoading, setVulnAiLoading] = useState<string|null>(null);
+  const [vulnAiLoading, setVulnAiLoading] = useState<string | null>(null);
   const [vulnAiTexts, setVulnAiTexts] = useState<Record<string,string>>({});
   const [industry, setIndustry] = useState('Financial Services');
   // Load persisted settings from Redis on mount
@@ -188,13 +191,13 @@ export default function DashboardPage() {
   }
   const [intelLoading, setIntelLoading] = useState(false);
   const [customIntel, setCustomIntel] = useState<IntelItem[]|null>(null);
-  const [expandedAlerts, setExpandedAlerts] = useState<Set<string>>(new Set());
+  const [expandedAlerts, setExpandedAlerts] = useState(new Set<string>());
   const [deployAgentDevice, setDeployAgentDevice] = useState<GapDevice|null>(null);
   const [incidentStatuses, setIncidentStatuses] = useState<Record<string,string>>({});
-  const [deletedIncidents, setDeletedIncidents] = useState<Set<string>>(new Set());
+  const [deletedIncidents, setDeletedIncidents] = useState(new Set<string>());
   function deleteIncident(id:string) { setDeletedIncidents(prev=>new Set([...prev,id])); setSelectedIncident(null); }
-  const [gapToolFilter, setGapToolFilter] = useState<string|null>(null);
-  const [expandedIntel, setExpandedIntel] = useState<Set<string>>(new Set());
+  const [gapToolFilter, setGapToolFilter] = useState<string | null>(null);
+  const [expandedIntel, setExpandedIntel] = useState(new Set<string>());
   const [demoMode, setDemoMode] = useState(true);
   const [connectedTools, setConnectedTools] = useState<ConnectedMap>({});
   const [currentTenant, setCurrentTenant] = useState('global');
@@ -211,7 +214,7 @@ export default function DashboardPage() {
   function toggleIntel(id: string) {
     setExpandedIntel(prev => { const n = new Set(prev); n.has(id)?n.delete(id):n.add(id); return n; });
   }
-  type Theme = 'dark'|'light'; const [theme, setTheme] = useState<Theme>('dark');
+  const [theme, setTheme] = useState<Theme>('dark');
 
   // Theme preference intentionally uses localStorage — it must apply synchronously
   // before React hydrates to avoid a dark→light flash. Not user data, pure display state.
@@ -228,7 +231,7 @@ export default function DashboardPage() {
 
   // ── Tier ─────────────────────────────────────────────────────────────────────
   // In production this comes from the session/JWT. Change to test paywalls.
-  type Tier = 'community'|'team'|'business'|'mssp'; const [userTier, setUserTier] = useState<Tier>('community');
+  const [userTier, setUserTier] = useState<Tier>('community');
   const tierLevel = {community:0,team:1,business:2,mssp:3}[userTier];
   const canUse = (min:'community'|'team'|'business'|'mssp') => tierLevel >= {community:0,team:1,business:2,mssp:3}[min];
 
