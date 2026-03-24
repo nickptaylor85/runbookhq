@@ -444,14 +444,17 @@ const CATEGORIES = ['All','EDR','SIEM','NDR','XDR','Vuln','CSPM','Email','Networ
 
 type ConnectedMap = Record<string,Record<string,string>>;
 type SetConnected = (fn: ConnectedMap | ((prev: ConnectedMap) => ConnectedMap)) => void;
+type ModalTool = { id: string; name: string };
+type TestResult = { ok: boolean; message: string };
+type AiTestStatus = { ok: boolean; configured: boolean; message: string; tenantId?: string };
 function ToolsTab({ connected, setConnected }: { connected: ConnectedMap; setConnected: SetConnected; }) {
   const [filter, setFilter] = useState('All');
-  const [modal, setModal] = useState<{id:string;name:string}|null>(null);
+  const [modal, setModal] = useState<ModalTool | null>(null);
   const [formVals, setFormVals] = useState<Record<string,string>>({});
   const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState<{ok:boolean;message:string}|null>(null);
+  const [testResult, setTestResult] = useState<TestResult | null>(null);
   const [anthropicKey, setAnthropicKey] = useState('');
-  const [aiTestStatus, setAiTestStatus] = useState<{ok:boolean;configured:boolean;message:string;tenantId?:string}|null>(null);
+  const [aiTestStatus, setAiTestStatus] = useState<AiTestStatus | null>(null);
   const [aiTestLoading, setAiTestLoading] = useState(false);
 
   useEffect(()=>{ testAiKey(); },[]);
@@ -492,7 +495,7 @@ function ToolsTab({ connected, setConnected }: { connected: ConnectedMap; setCon
 
   const filtered = filter==='All' ? ALL_TOOLS : ALL_TOOLS.filter(t=>t.category===filter);
 
-  function openModal(tool:{id:string;name:string}) {
+  function openModal(tool: ModalTool) {
     setModal(tool);
     setFormVals({});
     setTestResult(null);
@@ -511,7 +514,7 @@ function ToolsTab({ connected, setConnected }: { connected: ConnectedMap; setCon
       const data = await res.json();
       setTestResult(data);
     } catch(e) {
-      setTestResult({ok:false, message:'Test request failed'});
+      setTestResult({ok:false, message:'Test request failed'} as TestResult);
     }
     setTesting(false);
   }
@@ -631,11 +634,12 @@ function ToolsTab({ connected, setConnected }: { connected: ConnectedMap; setCon
   );
 }
 
+type ModalState = { type: string; data?: unknown };
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [automation, setAutomation] = useState<AutomationLevel>(1);
-  const [modal, setModal] = useState<{type:string;data?:unknown}|null>(null);
+  const [modal, setModal] = useState<ModalState | null>(null);
   const [selectedAlert, setSelectedAlert] = useState<Alert|null>(null);
   const [selectedVuln, setSelectedVuln] = useState<Vuln|null>(null);
   const [selectedIncident, setSelectedIncident] = useState<Incident|null>(null);
