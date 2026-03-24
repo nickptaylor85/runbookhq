@@ -167,14 +167,38 @@ import type { ConnectedMap, SetConnected } from './ToolsTab';
 type Theme = 'dark' | 'light';
 type Tier = 'community' | 'team' | 'business' | 'mssp';
 
+
+// ─── Per-tenant Demo Data (module level to avoid SWC typeof-in-function bug) ──
+const TENANT_ALERTS: {[k:string]: Alert[]} = {
+  global: DEMO_ALERTS,
+  'client-acme': DEMO_ALERTS.slice(0,3).map(a=>({...a, id:a.id+'-acme', device:'acme-'+a.device})),
+  'client-nhs': DEMO_ALERTS.slice(1,4).map(a=>({...a, id:a.id+'-nhs', device:'nhs-'+a.device})),
+  'client-retail': DEMO_ALERTS.slice(0,2).map(a=>({...a, id:a.id+'-retail', device:'retail-'+a.device})),
+  'client-gov': DEMO_ALERTS.slice(2,5).map(a=>({...a, id:a.id+'-gov', device:'gov-'+a.device})),
+};
+const TENANT_VULNS: {[k:string]: Vuln[]} = {
+  global: DEMO_VULNS,
+  'client-acme': DEMO_VULNS.slice(0,4).map(v=>({...v, id:v.id+'-acme', affected: Math.max(1, Math.round(v.affected*0.6)), affectedDevices: v.affectedDevices.map(d=>'acme-'+d)})),
+  'client-nhs': DEMO_VULNS.slice(0,7).map(v=>({...v, id:v.id+'-nhs', affected: Math.max(1, Math.round(v.affected*1.4)), affectedDevices: v.affectedDevices.map(d=>'nhs-'+d)})),
+  'client-retail': DEMO_VULNS.slice(0,5).map(v=>({...v, id:v.id+'-retail', affectedDevices: v.affectedDevices.map(d=>'retail-'+d)})),
+  'client-gov': DEMO_VULNS.slice(1,6).map(v=>({...v, id:v.id+'-gov', affectedDevices: v.affectedDevices.map(d=>'gov-'+d)})),
+};
+const TENANT_INCIDENTS: {[k:string]: Incident[]} = {
+  global: DEMO_INCIDENTS,
+  'client-acme': DEMO_INCIDENTS.slice(0,1).map(i=>({...i, id:'INC-ACME-01', title:'[Acme] '+i.title})),
+  'client-nhs': DEMO_INCIDENTS.map(i=>({...i, id:'INC-NHS-'+i.id.slice(-2), title:'[NHS] '+i.title})),
+  'client-retail': [],
+  'client-gov': DEMO_INCIDENTS.slice(0,1).map(i=>({...i, id:'INC-GOV-01', title:'[Gov] '+i.title})),
+};
+
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [automation, setAutomation] = useState<AutomationLevel>(1);
-  const [modal, setModal] = useState<{type:string;data?:unknown}|null>(null);
-  const [selectedAlert, setSelectedAlert] = useState<Alert|null>(null);
-  const [selectedVuln, setSelectedVuln] = useState<Vuln|null>(null);
-  const [selectedIncident, setSelectedIncident] = useState<Incident|null>(null);
+  const [modal, setModal] = useState<{type:string;data?:unknown} | null>(null);
+  const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
+  const [selectedVuln, setSelectedVuln] = useState<Vuln | null>(null);
+  const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [vulnAiLoading, setVulnAiLoading] = useState<string | null>(null);
   const [vulnAiTexts, setVulnAiTexts] = useState<Record<string,string>>({});
   const [industry, setIndustry] = useState('Financial Services');
@@ -190,9 +214,9 @@ export default function DashboardPage() {
     fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:ind})}).catch(()=>{});
   }
   const [intelLoading, setIntelLoading] = useState(false);
-  const [customIntel, setCustomIntel] = useState<IntelItem[]|null>(null);
+  const [customIntel, setCustomIntel] = useState<IntelItem[] | null>(null);
   const [expandedAlerts, setExpandedAlerts] = useState(new Set<string>());
-  const [deployAgentDevice, setDeployAgentDevice] = useState<GapDevice|null>(null);
+  const [deployAgentDevice, setDeployAgentDevice] = useState<GapDevice | null>(null);
   const [incidentStatuses, setIncidentStatuses] = useState<Record<string,string>>({});
   const [deletedIncidents, setDeletedIncidents] = useState(new Set<string>());
   function deleteIncident(id:string) { setDeletedIncidents(prev=>new Set([...prev,id])); setSelectedIncident(null); }
@@ -236,28 +260,7 @@ export default function DashboardPage() {
   const tierMap: Record<string,number> = {community:0,team:1,business:2,mssp:3};
   const canUse = (min: Tier) => tierLevel >= tierMap[min];
 
-  // ── Per-tenant demo data ──────────────────────────────────────────────────────
-  const TENANT_ALERTS: Record<string, typeof DEMO_ALERTS> = {
-    'global': DEMO_ALERTS,
-    'client-acme': DEMO_ALERTS.slice(0,3).map(a=>({...a, id:a.id+'-acme', device:'acme-'+a.device, source:a.source})),
-    'client-nhs': DEMO_ALERTS.slice(1,4).map(a=>({...a, id:a.id+'-nhs', device:'nhs-'+a.device, severity:a.severity==='Low'?'Medium':a.severity as any})),
-    'client-retail': DEMO_ALERTS.slice(0,2).map(a=>({...a, id:a.id+'-retail', device:'retail-'+a.device})),
-    'client-gov': DEMO_ALERTS.slice(2,5).map(a=>({...a, id:a.id+'-gov', device:'gov-'+a.device})),
-  };
-  const TENANT_VULNS: Record<string, typeof DEMO_VULNS> = {
-    'global': DEMO_VULNS,
-    'client-acme': DEMO_VULNS.slice(0,4).map(v=>({...v, id:v.id+'-acme', affected: Math.max(1, Math.round(v.affected*0.6)), affectedDevices: v.affectedDevices.map(d=>'acme-'+d)})),
-    'client-nhs': DEMO_VULNS.slice(0,7).map(v=>({...v, id:v.id+'-nhs', affected: Math.max(1, Math.round(v.affected*1.4)), affectedDevices: v.affectedDevices.map(d=>'nhs-'+d)})),
-    'client-retail': DEMO_VULNS.slice(0,5).map(v=>({...v, id:v.id+'-retail', affectedDevices: v.affectedDevices.map(d=>'retail-'+d)})),
-    'client-gov': DEMO_VULNS.slice(1,6).map(v=>({...v, id:v.id+'-gov', affectedDevices: v.affectedDevices.map(d=>'gov-'+d)})),
-  };
-  const TENANT_INCIDENTS: Record<string, typeof DEMO_INCIDENTS> = {
-    'global': DEMO_INCIDENTS,
-    'client-acme': DEMO_INCIDENTS.slice(0,1).map(i=>({...i, id:'INC-ACME-01', title:'[Acme] '+i.title})),
-    'client-nhs': DEMO_INCIDENTS.map(i=>({...i, id:'INC-NHS-'+i.id.slice(-2), title:'[NHS] '+i.title})),
-    'client-retail': [],
-    'client-gov': DEMO_INCIDENTS.slice(0,1).map(i=>({...i, id:'INC-GOV-01', title:'[Gov] '+i.title})),
-  };
+  // Per-tenant data resolved below after module-level definitions
 
   const tools = DEMO_TOOLS;
   const rawAlerts = TENANT_ALERTS[currentTenant] || DEMO_ALERTS;
@@ -294,11 +297,14 @@ export default function DashboardPage() {
     if (automation === 1) return a.verdict === 'FP' && a.confidence >= 90; // Auto+Notify — auto-close high-confidence FPs only
     return a.confidence >= 80; // Full Auto — act on all high-confidence verdicts
   });
+  const alertPlural = actedAlerts.length !== 1 ? 's' : '';
+  const tpContained = alerts.filter(a=>a.verdict==='TP' && a.confidence>=80).length;
+  const fpSuppressed = alerts.filter(a=>a.verdict==='FP' && a.confidence>=80).length;
   const automationBannerText = automation === 0
     ? 'AI is recommending only — all actions require analyst approval.'
     : automation === 1
-    ? `AI auto-closed ${actedAlerts.length} high-confidence false positive${actedAlerts.length!==1?'s':''} and notified your team.`
-    : `AI acted autonomously on ${actedAlerts.length} alert${actedAlerts.length!==1?'s':''} — ${alerts.filter(a=>a.verdict==='TP'&&a.confidence>=80).length} threats contained, ${alerts.filter(a=>a.verdict==='FP'&&a.confidence>=80).length} FPs suppressed.`;
+    ? 'AI auto-closed ' + actedAlerts.length + ' high-confidence false positive' + alertPlural + ' and notified your team.'
+    : 'AI acted autonomously on ' + actedAlerts.length + ' alert' + alertPlural + ' — ' + tpContained + ' threats contained, ' + fpSuppressed + ' FPs suppressed.';
 
   const intelItems = customIntel || (DEMO_INTEL_BY_INDUSTRY[industry] || DEMO_INTEL_BY_INDUSTRY['default']);
   const allIntel = [...intelItems, ...DEMO_INTEL_BY_INDUSTRY['default'].filter(i=>!intelItems.find(x=>x.id===i.id))];
