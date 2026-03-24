@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { redisSet, redisDel, setTenantAnthropicKey, KEYS } from '@/lib/redis';
 import { cookies } from 'next/headers';
 
-async function await getTenantId(req: NextRequest): Promise<string> {
+async function getTenantId(req: NextRequest): Promise<string> {
   // Read tenant from cookie (set at login) — falls back to 'global'
   const cookieStore = await cookies();
   return cookieStore.get('wt_tenant')?.value || 'global';
