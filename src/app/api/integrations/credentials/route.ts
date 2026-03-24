@@ -17,13 +17,15 @@ export async function GET(req: NextRequest) {
     const decrypted = decrypt(raw);
     const connected = JSON.parse(decrypted) as Record<string, Record<string, string>>;
     
-    // Strip secrets from the GET response — return only non-secret fields
+    // Strip credentials from GET response — only return URL/config fields
+    // Everything except host/region/platform URLs is masked
     const safe: Record<string, Record<string, string>> = {};
     for (const [id, creds] of Object.entries(connected)) {
       safe[id] = {};
       for (const [k, v] of Object.entries(creds)) {
-        const isSecret = /secret|password|token|key|private/i.test(k);
-        safe[id][k] = isSecret ? '••••••••' : v;
+        // Only return non-sensitive config fields (URLs, regions, non-secret identifiers)
+        const isSafe = /^(host|base_url|platform|cloud|domain|api_endpoint|region|space|org_key)$/.test(k);
+        safe[id][k] = isSafe ? v : '••••••••';
       }
     }
     return NextResponse.json({ ok: true, connected: safe });
