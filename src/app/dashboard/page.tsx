@@ -2,28 +2,11 @@
 import React, { useState, useEffect } from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type SevKey = 'Critical'|'High'|'Medium'|'Low';
-type VerdictKey = 'TP'|'FP'|'SUS'|'Pending';
-type AutomationLevel = 0|1|2;
-interface Tool { id:string; name:string; configured:boolean; active:boolean; alertCount?:number; }
-interface Alert { id:string; title:string; severity:SevKey; source:string; device:string; time:string; verdict:VerdictKey; confidence:number; aiReasoning:string; aiActions:string[]; evidenceChain:string[]; runbookSteps:string[]; mitre?:string; incidentId?:string; }
-interface GapDevice { hostname:string; ip:string; os:string; missing:string[]; reason:string; lastSeen:string; }
-interface Vuln { id:string; cve:string; title:string; severity:SevKey; cvss:number; prevalence:number; affected:number; affectedDevices:string[]; description:string; remediation:string[]; kev:boolean; patch?:string; }
-interface IntelItem { id:string; title:string; summary:string; severity:SevKey; source:string; time:string; iocs?:string[]; mitre?:string; industrySpecific:boolean; }
-type TimelineActor = 'AI' | 'Analyst';
-interface TimelineEntry { t:string; actor:TimelineActor; action:string; detail:string }
-type IncidentStatus = 'Active' | 'Contained' | 'Closed';
-interface Incident { id:string; title:string; severity:SevKey; status:IncidentStatus; created:string; updated:string; alertCount:number; devices:string[]; mitreTactics:string[]; timeline:TimelineEntry[]; aiSummary:string; }
-
-type Theme = 'dark' | 'light';
-type Tier = 'community' | 'team' | 'business' | 'mssp';
-type KeyStatus = 'idle' | 'saving' | 'saved' | 'error';
-
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const SEV_COLOR:Record<SevKey,string> = { Critical:'#f0405e', High:'#f97316', Medium:'#f0a030', Low:'#4f8fff' };
-interface VStyle { c:string; bg:string; label:string }
-const VERDICT_STYLE:Record<VerdictKey,VStyle> = {
+const SEV_COLOR = { Critical:'#f0405e', High:'#f97316', Medium:'#f0a030', Low:'#4f8fff' };
+
+const VERDICT_STYLE = {
   TP:{c:'#f0405e',bg:'#f0405e12',label:'True Positive'},
   FP:{c:'#22d49a',bg:'#22d49a12',label:'False Positive'},
   SUS:{c:'#f0a030',bg:'#f0a03012',label:'Suspicious'},
@@ -32,7 +15,7 @@ const VERDICT_STYLE:Record<VerdictKey,VStyle> = {
 const INDUSTRIES = ['Financial Services','Healthcare','Retail & eCommerce','Manufacturing','Energy & Utilities','Government & Public Sector','Legal & Professional','Technology','Education','Telecommunications'];
 
 // ─── Demo Data ─────────────────────────────────────────────────────────────────
-const DEMO_TOOLS:Tool[] = [
+const DEMO_TOOLS = [
   {id:'crowdstrike',name:'CrowdStrike',configured:true,active:true,alertCount:8},
   {id:'defender',name:'Defender',configured:true,active:true,alertCount:5},
   {id:'taegis',name:'Taegis XDR',configured:false,active:false},
@@ -43,7 +26,7 @@ const DEMO_TOOLS:Tool[] = [
   {id:'proofpoint',name:'Proofpoint',configured:true,active:true,alertCount:2},
 ];
 
-const DEMO_GAP_DEVICES:GapDevice[] = [
+const DEMO_GAP_DEVICES = [
   {hostname:'SRV-LEGACY01',ip:'10.0.4.22',os:'Windows Server 2008',missing:['CrowdStrike Falcon','Tenable.io'],reason:'Legacy OS — agent incompatible',lastSeen:'2h ago'},
   {hostname:'laptop-MKTG07',ip:'10.0.2.87',os:'Windows 11',missing:['CrowdStrike Falcon'],reason:'User-initiated uninstall',lastSeen:'15m ago'},
   {hostname:'SRV-NAS01',ip:'10.0.3.15',os:'FreeNAS',missing:['CrowdStrike Falcon','Tenable.io','Splunk SIEM'],reason:'NAS device — no agent support',lastSeen:'5m ago'},
@@ -51,29 +34,29 @@ const DEMO_GAP_DEVICES:GapDevice[] = [
   {hostname:'laptop-HR03',ip:'10.0.2.44',os:'macOS 13',missing:['CrowdStrike Falcon'],reason:'Pending deployment — ticket open',lastSeen:'30m ago'},
 ];
 
-const DEMO_ALERTS:Alert[] = [
+const DEMO_ALERTS = [
   {id:'a1',title:'LSASS memory access — DC01',severity:'Critical',source:'CrowdStrike',device:'DC01',time:'09:14',verdict:'TP',confidence:98,aiReasoning:'Domain controller targeted by LSASS memory access. Service account credentials at high risk. T1003.001 — high-fidelity detection. No maintenance window active. Previous login from this account was legitimate, now accessing LSASS — strong indicator of credential dumping.',evidenceChain:['Domain controller targeted — highest value asset','Service account admin_svc used laterally across 3 hosts','T1003.001 — credential dumping technique, high-fidelity','No scheduled maintenance or admin activity logged','Sequence mirrors known Mimikatz behaviour'],aiActions:['Incident INC-0847 created and assigned to Tier 2','admin_svc account disabled (revert available)','SOC Slack #incidents channel notified','5-step runbook generated and attached'],runbookSteps:['Isolate DC01 from network immediately','Reset admin_svc credentials across all domains','Run forensic memory capture on DC01','Search SIEM for admin_svc lateral movement in last 48h','Notify CISO — potential domain compromise'],mitre:'T1003.001',incidentId:'INC-0847'},
   {id:'a2',title:'C2 beacon to 185.220.101.42:443',severity:'High',source:'Darktrace',device:'SRV-FINANCE01',time:'09:16',verdict:'TP',confidence:94,aiReasoning:'Darktrace detected anomalous HTTPS beacon with JA3 fingerprint matching known C2. IP 185.220.101.42 appears on ThreatFox with LockBit association. Darktrace device confidence deviation 96/100. Beaconing interval is 300s — consistent with C2 heartbeat.',evidenceChain:['IP 185.220.101.42 on ThreatFox — LockBit C2','Darktrace: device behaviour deviation 96/100','JA3 TLS fingerprint matches known C2 tooling','300s beacon interval — classic C2 heartbeat','Same IP seen in sector threat intel feed 48h ago'],aiActions:['IP blocked at Zscaler perimeter','Darktrace packet capture initiated','Threat intel IOC added to watchlist','SRV-FINANCE01 network access restricted'],runbookSteps:['Block IP at all perimeter controls','Analyse all traffic from SRV-FINANCE01 last 72h','Check for additional beaconing hosts','Preserve memory image before isolation','Report IOC to information sharing group'],mitre:'T1071.001'},
-  {id:'a3',title:'Scheduled task created — SRV-APP02',severity:'Medium',source:'Defender',device:'SRV-APP02',time:'09:22',verdict:'SUS',confidence:67,aiReasoning:'Scheduled task created by non-standard account outside business hours. Technique is consistent with persistence but could be legitimate deployment tooling. User account has no prior history of scheduled task creation. Confidence is moderate — analyst review recommended.',evidenceChain:['Task created at 02:17 AM — outside business hours','Non-standard service account as task creator','No change ticket matching this action','Similar technique seen in APT29 playbook','No other anomalous activity from this account'],aiActions:['Alert flagged for analyst review','Task hash added to monitoring watchlist','No automated action taken — SUS confidence below threshold'],runbookSteps:['Review task definition and target binary','Cross-reference with change management system','Check source account login history','If unconfirmed legitimate — isolate and investigate'],mitre:'T1053.005'},
+  {id:'a3',title:'Scheduled task created — SRV-APP02',severity:'Medium',source:'Defender',device:'SRV-APP02',time:'09:22',verdict:'SUS',confidence:67,aiReasoning:'Scheduled task created by non-standard account outside business hours. Technique is consistent with persistence but could be legitimate deployment tooling. User account has no prior history of scheduled task creation. Confidence is moderate — analyst review recommended.',evidenceChain:['Task created at 02:17 AM — outside business hours','Non-standard service account creator','No change ticket matching this action','Similar technique seen in APT29 playbook','No other anomalous activity from this account'],aiActions:['Alert flagged for analyst review','Task hash added to monitoring watchlist','No automated action taken — SUS confidence below threshold'],runbookSteps:['Review task definition and target binary','Cross-reference with change management system','Check source account login history','If unconfirmed legitimate — isolate and investigate'],mitre:'T1053.005'},
   {id:'a4',title:'Windows Update triggered PowerShell',severity:'Low',source:'Splunk',device:'WS-SALES12',time:'09:31',verdict:'FP',confidence:99,aiReasoning:'PowerShell execution traced to Windows Update process (wuauclt.exe → powershell.exe). This is a known Microsoft update pattern. Parent process chain matches legitimate Microsoft signing certificate. Update KB5034441 scheduled for this host. No malicious indicators present.',evidenceChain:['Parent: wuauclt.exe — legitimate Windows Update process','Microsoft-signed certificate chain verified','KB5034441 scheduled for this host at 09:30','No network egress from PowerShell process','No payload or download cradle observed'],aiActions:['Auto-closed — False Positive 99% confidence','Suppression rule created for this update pattern'],runbookSteps:[],mitre:'T1059.001'},
   {id:'a5',title:'Anomalous VPN login — new geography',severity:'Medium',source:'Sentinel',device:'cloud-vpn',time:'09:38',verdict:'SUS',confidence:72,aiReasoning:'User jsmith@corp logged in from Singapore — their established baseline is UK. Travel is possible but no flight booking detected in calendar. Account has MFA enabled. Timing is 03:00 local time in Singapore — unusual for legitimate travel. Monitoring and MFA re-challenge applied.',evidenceChain:['User baseline: London, UK — current location: Singapore','03:00 AM local login time — unusual pattern','No calendar events indicating travel','MFA enrolled but not challenged recently','No prior Singapore login in 12 months'],aiActions:['MFA re-challenge sent to user','Session maintained pending MFA response','Account flagged for 24h enhanced monitoring','HR calendar integration checked — no travel noted'],runbookSteps:['Await MFA response — escalate if no response in 10m','If MFA passed — continue monitoring for anomalies','If MFA failed — suspend account immediately','Check with user direct via phone'],mitre:'T1078'},
   {id:'a6',title:'Large file upload to personal cloud',severity:'High',source:'Zscaler',device:'laptop-HR03',time:'10:02',verdict:'TP',confidence:88,aiReasoning:'HR03 user uploaded 18GB to a personal Google Drive account over 2 hours. Upload volume is 36x their daily baseline. User has a resignation notice on file (from HR record cross-reference). Files accessed include payroll data directories. DLP policy triggered.',evidenceChain:['18GB upload — 36x user daily baseline','Destination: personal Google Drive account','User has active resignation notice (HR integrated)','Files included: /finance/payroll/2025 directory','DLP tag: PII and financial data detected'],aiActions:['Upload throttled via Zscaler policy','HR and Legal teams alerted automatically','Files accessed logged to audit trail','Account flagged for enhanced DLP monitoring'],runbookSteps:['Legal team review of acceptable use policy breach','Preserve DLP logs for HR proceedings','Remotely wipe device on departure','Brief IT security on offboarding procedure'],mitre:'T1567.002'},
 ];
 
-const DEMO_VULNS:Vuln[] = [
+const DEMO_VULNS = [
   {id:'v1',cve:'CVE-2024-21413',title:'Microsoft Outlook NTLM Credential Leak',severity:'Critical',cvss:9.8,prevalence:94,affected:23,affectedDevices:['laptop-CFO01','laptop-SALES03','WS-HR01','+ 20 more'],description:'Critical RCE/NTLM relay vulnerability in Microsoft Outlook. Exploitable via malicious email links without user interaction. Actively exploited in the wild by APT actors.',remediation:['Apply Microsoft patch KB5002112 immediately','Enable Windows Credential Guard on all endpoints','Block outbound SMB (TCP 445) at perimeter','Add to email gateway URL filtering rules','Consider blocking external hyperlinks in email until patched'],kev:true,patch:'KB5002112'},
-  {id:'v2',cve:'CVE-2024-3400',title:'PAN-OS Command Injection — GlobalProtect',severity:'Critical',cvss:10.0,prevalence:88,affected:2,affectedDevices:['FW-EDGE01','FW-BRANCH01'],description:'Critical command injection in Palo Alto GlobalProtect gateway. CVSSv3 10.0. Exploited by nation-state actors (UNC5221) in the wild. Full command execution as root possible.',remediation:['Apply PAN-OS patch 11.1.2-h3 or later immediately','Enable Threat Prevention signatures for CVE-2024-3400','Review GlobalProtect logs for IOCs: sessions from unexpected IPs','Isolate affected firewalls if patch cannot be applied immediately','Contact Palo Alto PSIRT if compromise suspected'],kev:true,patch:'PAN-OS 11.1.2-h3'},
+  {id:'v2',cve:'CVE-2024-3400',title:'PAN-OS Command Injection — GlobalProtect',severity:'Critical',cvss:10.0,prevalence:88,affected:2,affectedDevices:['FW-EDGE01','FW-BRANCH01'],description:'Critical command injection in Palo Alto GlobalProtect gateway. CVSSv3 10.0. Exploited by nation-state actors (UNC5221) in the wild. Full command execution possible.',remediation:['Apply PAN-OS patch 11.1.2-h3 or later immediately','Enable Threat Prevention signatures for CVE-2024-3400','Review GlobalProtect logs for IOCs: sessions from unexpected IPs','Isolate affected firewalls if patch cannot be applied immediately','Contact Palo Alto PSIRT if compromise suspected'],kev:true,patch:'PAN-OS 11.1.2-h3'},
   {id:'v3',cve:'CVE-2024-27198',title:'JetBrains TeamCity Auth Bypass',severity:'Critical',cvss:9.8,prevalence:76,affected:3,affectedDevices:['SRV-CICD01','SRV-BUILD02','SRV-BUILD03'],description:'Authentication bypass in JetBrains TeamCity build server. Allows unauthenticated remote code execution. APT29 (Cozy Bear) actively exploiting to compromise CI/CD pipelines and inject malicious build artifacts.',remediation:['Upgrade TeamCity to version 2023.11.4 immediately','If upgrade not possible, restrict TeamCity to VPN access only','Review all build logs for unexpected plugin installations','Audit service account permissions used by TeamCity','Check build artifacts for unexpected modifications'],kev:true,patch:'TeamCity 2023.11.4'},
   {id:'v4',cve:'CVE-2023-46805',title:'Ivanti ICS/IPS Authentication Bypass',severity:'Critical',cvss:8.2,prevalence:71,affected:1,affectedDevices:['IVANTI-GW01'],description:'Authentication bypass affecting Ivanti Connect Secure and Policy Secure. Chained with CVE-2024-21887 for RCE. Mass exploitation observed. CISA emergency directive issued.',remediation:['Apply Ivanti patch immediately or take gateway offline','Run Ivanti Integrity Checker Tool','Reset all passwords for users authenticated via affected gateway','Review SIEM for suspicious authentication patterns','Consider replacing with alternative VPN solution if persistent issues'],kev:true},
   {id:'v5',cve:'CVE-2024-1708',title:'ConnectWise ScreenConnect Path Traversal',severity:'Critical',cvss:8.4,prevalence:65,affected:1,affectedDevices:['SCREENCONNECT01'],description:'Path traversal vulnerability in ConnectWise ScreenConnect. Allows unauthenticated RCE. Ransomware groups actively using this to gain initial access to MSP-managed networks.',remediation:['Upgrade ScreenConnect to version 23.9.8 or later','If upgrade delayed, disable external access until patched','Review ScreenConnect audit logs for unauthorized sessions','Check all managed endpoints for unauthorized ScreenConnect sessions','Alert clients if you are an MSP using ScreenConnect'],kev:true,patch:'ScreenConnect 23.9.8'},
   {id:'v6',cve:'CVE-2024-21762',title:'Fortinet FortiOS OOB Write — SSL VPN',severity:'Critical',cvss:9.6,prevalence:82,affected:2,affectedDevices:['FORTI-EDGE01','FORTI-DR01'],description:'Out-of-bounds write in Fortinet FortiOS SSL VPN. No authentication required. Likely exploited in the wild. Fortinet issued emergency patch.',remediation:['Upgrade FortiOS to 7.4.3 or 7.2.7 immediately','Disable SSL VPN if upgrade cannot be applied immediately','Monitor for IOCs: unexpected admin account creation, config changes','Check FortiGuard subscription is active and updated','Verify all admin accounts — delete any unrecognised'],kev:true,patch:'FortiOS 7.4.3'},
   {id:'v7',cve:'CVE-2024-20767',title:'Adobe ColdFusion RCE — Public Files',severity:'High',cvss:8.7,prevalence:58,affected:4,affectedDevices:['SRV-WEB01','SRV-WEB02','SRV-WEB03','SRV-WEB04'],description:'Remote code execution in Adobe ColdFusion via the administrator panel. Allows arbitrary file read and potential RCE. Web-facing ColdFusion servers at significant risk.',remediation:['Apply Adobe patch APSB24-14 immediately','If ColdFusion admin interface is internet-facing, take offline','Restrict admin interface to management VLAN only','Enable WAF rules for ColdFusion exploit attempts','Review web server logs for scanning activity'],kev:false,patch:'APSB24-14'},
-  {id:'v8',cve:'CVE-2024-22024',title:'Ivanti Connect Secure XXE Injection',severity:'High',cvss:8.3,prevalence:52,affected:1,affectedDevices:['IVANTI-GW01'],description:'XXE injection in Ivanti Connect Secure and Neurons for ZTA. Can be used to access sensitive files. Affects same device as CVE-2023-46805 — prioritise remediation.',remediation:['Covered by same Ivanti patch as CVE-2023-46805','Verify patch applied to both vulnerabilities simultaneously','Run Ivanti ICT scan post-patching','Monitor for XML-related errors in gateway logs'],kev:false},
+  {id:'v8',cve:'CVE-2024-22024',title:'Ivanti Connect Secure XXE Injection',severity:'High',cvss:8.3,prevalence:52,affected:1,affectedDevices:['IVANTI-GW01'],description:'XXE injection in Ivanti Connect Secure and Neurons for ZTA. Can be used to access sensitive files. Affects same device-2023-46805 — prioritise remediation.',remediation:['Covered by same Ivanti patch-2023-46805','Verify patch applied to both vulnerabilities simultaneously','Run Ivanti ICT scan post-patching','Monitor for XML-related errors in gateway logs'],kev:false},
   {id:'v9',cve:'CVE-2024-27956',title:'WordPress Automatic Plugin SQL Injection',severity:'High',cvss:9.8,prevalence:45,affected:2,affectedDevices:['SRV-WEB02','SRV-WEB03'],description:'Critical SQL injection in WordPress Automatic plugin. Allows unauthenticated attackers to create admin users and upload webshells. Rapidly weaponised.',remediation:['Update Automatic plugin to version 3.92.1 or later','Scan WordPress installations for unauthorized admin accounts','Check for uploaded files in wp-content/uploads — remove suspicious','Enable WAF plugin (Wordfence) or cloud WAF rule','Consider disabling XML-RPC if not needed'],kev:false,patch:'Automatic plugin 3.92.1'},
   {id:'v10',cve:'CVE-2023-48788',title:'Fortinet EMS SQL Injection — RCE',severity:'High',cvss:9.3,prevalence:38,affected:1,affectedDevices:['EMS-SERVER01'],description:'SQL injection in Fortinet FortiClientEMS. Enables RCE without authentication. Widely exploited against internet-exposed EMS servers. DoJ charged attackers exploiting this.',remediation:['Upgrade FortiClientEMS to 7.2.3 or 7.0.10','Restrict EMS to internal network — no direct internet exposure','Check EMS logs for unauthorized SQL activity','Audit all managed endpoint agents for unexpected configuration changes'],kev:true,patch:'FortiClientEMS 7.2.3'},
 ];
 
-const DEMO_INCIDENTS:Incident[] = [
+const DEMO_INCIDENTS = [
   {id:'INC-0847',title:'Domain Controller Compromise — admin_svc Credential Dump',severity:'Critical',status:'Active',created:'2026-03-22 09:14',updated:'2026-03-22 09:47',alertCount:4,devices:['DC01','SRV-FINANCE01','laptop-CFO01'],mitreTactics:['Initial Access','Credential Access','Lateral Movement'],aiSummary:'Multi-stage credential theft attack targeting domain infrastructure. Attacker gained initial access via spear-phish, executed LSASS dump on DC01, and used compromised admin_svc credentials to move laterally to SRV-FINANCE01. C2 beacon detected and blocked. Domain credentials at high risk — immediate reset recommended.',timeline:[
     {t:'09:14',actor:'AI',action:'Initial alert correlated',detail:'LSASS access on DC01 — Incident created and Tier 2 assigned'},
     {t:'09:15',actor:'AI',action:'admin_svc account disabled',detail:'Auto-response: account suspended across all domain controllers'},
@@ -90,7 +73,7 @@ const DEMO_INCIDENTS:Incident[] = [
   ]},
 ];
 
-const DEMO_INTEL_BY_INDUSTRY:Record<string,IntelItem[]> = {
+const DEMO_INTEL_BY_INDUSTRY = {
   'Financial Services':[
     {id:'i1',title:'TA505 Targeting UK Banks — Cobalt Strike Deployment',summary:'TA505 (Clop ransomware affiliate) observed targeting UK financial institutions with spear-phishing campaigns delivering Cobalt Strike beacons via fake SWIFT notification emails. 3 UK banks confirmed compromised in the last 14 days.',severity:'Critical',source:'NCSC & ThreatFox',time:'2h ago',iocs:['185.220.101.42','hxxps://swift-notification[.]com','cobalt-cs-payload-2024.exe'],mitre:'T1566.001',industrySpecific:true},
     {id:'i2',title:'QakBot Resurgence — Banking Trojans via PDF Lures',summary:'QakBot (QBot) back in circulation after law enforcement takedown. New infrastructure and updated PDF lure themed around invoice disputes. Financial sector primary target. High evasion capability — bypasses standard email security.',severity:'High',source:'CISA KEV',time:'6h ago',iocs:['invoice-dispute-2024.pdf','hxxp://qakbot-new[.]ru'],mitre:'T1566.001',industrySpecific:true},
@@ -108,16 +91,14 @@ const DEMO_INTEL_BY_INDUSTRY:Record<string,IntelItem[]> = {
   ],
 };
 
-interface SevBadgeProps { sev: SevKey }
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-function SevBadge({sev}: SevBadgeProps) {
+function SevBadge({sev}) {
   return <span style={{fontSize:'0.5rem',fontWeight:800,padding:'1px 6px',borderRadius:3,color:'#fff',background:SEV_COLOR[sev]}}>{sev.toUpperCase()}</span>;
 }
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
-type OnClose = () => void;
-interface ModalProps { title:string; onClose:OnClose; children:React.ReactNode }
-function Modal({title,onClose,children}: ModalProps) {
+
+function Modal({title,onClose,children}) {
   return (
     <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={onClose}>
       <div style={{background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:16,maxWidth:700,width:'100%',maxHeight:'85vh',overflow:'auto',position:'relative'}} onClick={e=>e.stopPropagation()}>
@@ -132,12 +113,12 @@ function Modal({title,onClose,children}: ModalProps) {
 }
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
-interface StatCardProps { val:string | number; label:string; sub?:string; color:string; onClick?:OnClose }
-function StatCard({val,label,sub,color,onClick}: StatCardProps) {
+
+function StatCard({val,label,sub,color,onClick}) {
   return (
     <div onClick={onClick} style={{padding:'14px 12px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:10,textAlign:'center',cursor:onClick?'pointer':'default',transition:'border-color .15s'}}
-      onMouseEnter={e=>{ if(onClick)(e.currentTarget as HTMLElement).style.borderColor='#4f8fff40'; }}
-      onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.borderColor='var(--wt-border)'; }}>
+      onMouseEnter={e=>{ if(onClick)(e.currentTarget).style.borderColor='#4f8fff40'; }}
+      onMouseLeave={e=>{ (e.currentTarget).style.borderColor='var(--wt-border)'; }}>
       <div style={{fontSize:'1.5rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color,letterSpacing:-1}}>{val}</div>
       <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.4px',marginTop:2}}>{label}</div>
       {sub && <div style={{fontSize:'0.56rem',color:'var(--wt-dim)',marginTop:2}}>{sub}</div>}
@@ -147,13 +128,12 @@ function StatCard({val,label,sub,color,onClick}: StatCardProps) {
 }
 
 // ─── Paywall Gate ────────────────────────────────────────────────────────────
-type RequiredTier = 'team' | 'business' | 'mssp';
-interface GateWallProps { feature:string; requiredTier:RequiredTier; children:React.ReactNode; userTier:string }
-function GateWall({ feature, requiredTier, children, userTier }: GateWallProps) {
-  const levels: Record<string,number> = {community:0,team:1,business:2,mssp:3};
+
+function GateWall({ feature, requiredTier, children, userTier }) {
+  const levels = {community:0,team:1,business:2,mssp:3};
   if ((levels[userTier]||0) >= levels[requiredTier]) return (<>{children}</>);
-  const tierColors: Record<string,string> = {team:'#4f8fff',business:'#22d49a',mssp:'#8b6fff'};
-  const tierPrices: Record<string,string> = {team:'£49/seat',business:'£199/mo',mssp:'£799/mo'};
+  const tierColors = {team:'#4f8fff',business:'#22d49a',mssp:'#8b6fff'};
+  const tierPrices = {team:'£49/seat',business:'£199/mo',mssp:'£799/mo'};
   return (
     <div style={{position:'relative',overflow:'hidden',borderRadius:12}}>
       <div style={{filter:'blur(3px)',opacity:0.3,pointerEvents:'none',userSelect:'none'}}>{children}</div>
@@ -167,14 +147,12 @@ function GateWall({ feature, requiredTier, children, userTier }: GateWallProps) 
   );
 }
 
-interface RemediationOutputProps { text: string }
 // ─── AI Remediation Output Renderer ─────────────────────────────────────────
-type BlockType = 'heading' | 'subheading' | 'code' | 'text';
-interface Block { type: BlockType; content: string; id?: string }
-function RemediationOutput({ text }: RemediationOutputProps) {
-  const [copied, setCopied] = useState<string | null>(null);
 
-  function copyCode(code: string, id: string) {
+function RemediationOutput({ text }) {
+  const [copied, setCopied] = useState(null);
+
+  function copyCode(code, id) {
     navigator.clipboard.writeText(code).then(()=>{
       setCopied(id);
       setTimeout(()=>setCopied(null), 2000);
@@ -183,8 +161,8 @@ function RemediationOutput({ text }: RemediationOutputProps) {
 
   // Parse text into sections. Detect: ALL-CAPS headings, KQL QUERY N:, code blocks
   const lines = text.split('\n');
-  const blocks: Block[] = [];
-  let codeBuffer: string[] = [];
+  const blocks = [];
+  let codeBuffer = [];
   let inCode = false;
   let codeId = 0;
 
@@ -244,13 +222,10 @@ function RemediationOutput({ text }: RemediationOutputProps) {
   );
 }
 
-type PortfolioView = 'security' | 'revenue';
 // ─── MSSP Portfolio Component ────────────────────────────────────────────────
-interface MSSPTenant { id:string; name:string; type:string }
-type SetTenant = (t:string) => void;
-interface MSSPPortfolioProps { currentTenant:string; setCurrentTenant:SetTenant; DEMO_TENANTS:MSSPTenant[] }
-function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS }: MSSPPortfolioProps) {
-  const [portfolioView, setPortfolioView] = useState<PortfolioView>('security');
+
+function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS }) {
+  const [portfolioView, setPortfolioView] = useState('security');
             const CLIENTS = [
               {id:'client-acme',  name:'Acme Financial',  plan:'Business', seats:8,  mrr:199,   extraClients:0, contractStart:'2024-01-15', renewalDate:'2025-01-15', billingStatus:'Paid',    posture:82, alerts:8,  critAlerts:3, incidents:2, coverage:94, kevVulns:3, lastSeen:'2m ago'},
               {id:'client-nhs',   name:'NHS Trust Alpha', plan:'Business', seats:14, mrr:199,   extraClients:0, contractStart:'2024-03-01', renewalDate:'2025-03-01', billingStatus:'Paid',    posture:71, alerts:15, critAlerts:5, incidents:3, coverage:88, kevVulns:7, lastSeen:'1m ago'},
@@ -430,8 +405,7 @@ const ALL_TOOLS = [
   {id:'okta',name:'Okta',category:'Identity',desc:'Identity & access management'},
 ];
 
-interface CredField { key:string; label:string; secret?:boolean; placeholder?:string }
-const CRED_FIELDS: Record<string,CredField[]> = {
+const CRED_FIELDS = {
   crowdstrike:[{key:'client_id',label:'Client ID'},{key:'client_secret',label:'Client Secret',secret:true},{key:'base_url',label:'Base URL (optional)',placeholder:'https://api.crowdstrike.com'}],
   defender:[{key:'tenant_id',label:'Tenant ID',placeholder:'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'},{key:'client_id',label:'Application (Client) ID'},{key:'client_secret',label:'Client Secret',secret:true}],
   sentinelone:[{key:'host',label:'Management URL',placeholder:'https://your-tenant.sentinelone.net'},{key:'api_token',label:'API Token',secret:true}],
@@ -454,22 +428,15 @@ const CRED_FIELDS: Record<string,CredField[]> = {
 
 const CATEGORIES = ['All','EDR','SIEM','NDR','XDR','Vuln','CSPM','Email','Network','Identity'];
 
-type InnerMap = Record<string,string>;
-type ConnectedMap = Record<string,InnerMap>;
-type SetConnected = (fn: ConnectedMap | ((prev: ConnectedMap) => ConnectedMap)) => void;
-interface ToolsTabProps { connected: ConnectedMap; setConnected: SetConnected }
-interface ModalTool { id: string; name: string }
-interface TestResult { ok: boolean; message: string }
-interface AiTestStatus { ok: boolean; configured: boolean; message: string; tenantId?: string }
-function ToolsTab({ connected, setConnected }: ToolsTabProps) {
+function ToolsTab({ connected, setConnected }) {
   const [filter, setFilter] = useState('All');
-  const [modal, setModal] = useState<ModalTool | null>(null);
-  const [formVals, setFormVals] = useState<StrMap>({});
+  const [modal, setModal] = useState(null);
+  const [formVals, setFormVals] = useState({});
   const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState<TestResult | null>(null);
+  const [testResult, setTestResult] = useState(null);
   const [anthropicKey, setAnthropicKey] = useState('');
-  const [keyStatus, setKeyStatus] = useState<KeyStatus>('idle');
-  const [aiTestStatus, setAiTestStatus] = useState<AiTestStatus | null>(null);
+  const [keyStatus, setKeyStatus] = useState('idle');
+  const [aiTestStatus, setAiTestStatus] = useState(null);
   const [aiTestLoading, setAiTestLoading] = useState(false);
 
   useEffect(()=>{ testAiKey(); },[]);
@@ -510,7 +477,7 @@ function ToolsTab({ connected, setConnected }: ToolsTabProps) {
 
   const filtered = filter==='All' ? ALL_TOOLS : ALL_TOOLS.filter(t=>t.category===filter);
 
-  function openModal(tool: ModalTool) {
+  function openModal(tool) {
     setModal(tool);
     setFormVals({});
     setTestResult(null);
@@ -529,7 +496,7 @@ function ToolsTab({ connected, setConnected }: ToolsTabProps) {
       const data = await res.json();
       setTestResult(data);
     } catch(e) {
-      setTestResult({ok:false, message:'Test request failed'} as TestResult);
+      setTestResult({ok:false, message:'Test request failed'});
     }
     setTesting(false);
   }
@@ -540,7 +507,7 @@ function ToolsTab({ connected, setConnected }: ToolsTabProps) {
     setModal(null);
   }
 
-  function handleDisconnect(id:string) {
+  function handleDisconnect(id) {
     setConnected(prev=>{ const n={...prev}; delete n[id]; return n; });
   }
 
@@ -649,20 +616,17 @@ function ToolsTab({ connected, setConnected }: ToolsTabProps) {
   );
 }
 
-type ModalState = { type: string; data?: unknown };
-type SetOfStrings = Set<string>;
-type StrMap = Record<string,string>;
-const DASHBOARD_CSS = '\n        *{margin:0;padding:0;box-sizing:border-box}\n        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}\n        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}\n\n        /* ── Dark theme (default) ── */\n        .wt-root {\n          --wt-bg: #050508;\n          --wt-sidebar: #07080f;\n          --wt-card: #09091a;\n          --wt-card2: #0a0d14;\n          --wt-border: #141820;\n          --wt-border2: #1e2536;\n          --wt-text: #e8ecf4;\n          --wt-muted: #6b7a94;\n          --wt-secondary: #8a9ab0;\n          --wt-dim: #3a4050;\n        }\n        /* ── Light theme ── */\n        .wt-root.light {\n          --wt-bg: #f5f6fa;\n          --wt-sidebar: #ffffff;\n          --wt-card: #ffffff;\n          --wt-card2: #f0f2f8;\n          --wt-border: #e2e5ef;\n          --wt-border2: #c8cedd;\n          --wt-text: #0f1117;\n          --wt-muted: #5a6580;\n          --wt-secondary: #4a5568;\n          --wt-dim: #8090a8;\n        }\n\n        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap;color:var(--wt-muted)}\n        .tab-btn.active{background:#4f8fff18;color:#4f8fff}\n        .tab-btn:not(.active):hover{color:var(--wt-secondary);background:var(--wt-card2)}\n        .row-hover{transition:background .12s}\n        .row-hover:hover{background:var(--wt-card2)!important}\n        .vuln-row:hover{background:var(--wt-card2)!important;cursor:pointer}\n        .alert-card{border-radius:10px;border:1px solid var(--wt-border);background:var(--wt-card);transition:border-color .15s}\n        .alert-card:hover{border-color:#4f8fff28}\n      ';
+const DASHBOARD_CSS = '\n        *{margin:0;padding:0;box-sizing:border-box}\n        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}\n        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}\n\n        /* ── Dark theme (default) ── */\n        .wt-root {\n          --wt-bg: #050508;\n          --wt-sidebar: #07080f;\n          --wt-card: #09091a;\n          --wt-card2: #0a0d14;\n          --wt-border: #141820;\n          --wt-border2: #1e2536;\n          --wt-text: #e8ecf4;\n          --wt-muted: #6b7a94;\n          --wt-secondary: #8a9ab0;\n          --wt-dim: #3a4050;\n        }\n        /* ── Light theme ── */\n        .wt-root.light {\n          --wt-bg: #f5f6fa;\n          --wt-sidebar: #ffffff;\n          --wt-card: #ffffff;\n          --wt-card2: #f0f2f8;\n          --wt-border: #e2e5ef;\n          --wt-border2: #c8cedd;\n          --wt-text: #0f1117;\n          --wt-muted: #5a6580;\n          --wt-secondary: #4a5568;\n          --wt-dim: #8090a8;\n        }\n\n        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap;color:var(--wt-muted)}\n        .tab-btn.active{background:#4f8fff18;color:#4f8fff}\n        .tab-btn:not(.active) {color:var(--wt-secondary);background:var(--wt-card2)}\n        .row-hover{transition:background .12s}\n        .row-hover:hover{background:var(--wt-card2)!important}\n        .vuln-row:hover{background:var(--wt-card2)!important;cursor:pointer}\n        .alert-card{border-radius:10px;border:1px solid var(--wt-border);background:var(--wt-card);transition:border-color .15s}\n        .alert-card:hover{border-color:#4f8fff28}\n      ';
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
-  const [automation, setAutomation] = useState<AutomationLevel>(1);
-  const [modal, setModal] = useState<ModalState | null>(null);
-  const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
-  const [selectedVuln, setSelectedVuln] = useState<Vuln | null>(null);
-  const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
-  const [vulnAiLoading, setVulnAiLoading] = useState<string | null>(null);
-  const [vulnAiTexts, setVulnAiTexts] = useState<StrMap>({});
+  const [automation, setAutomation] = useState(1);
+  const [modal, setModal] = useState(null);
+  const [selectedAlert, setSelectedAlert] = useState(null);
+  const [selectedVuln, setSelectedVuln] = useState(null);
+  const [selectedIncident, setSelectedIncident] = useState(null);
+  const [vulnAiLoading, setVulnAiLoading] = useState(null);
+  const [vulnAiTexts, setVulnAiTexts] = useState({});
   const [industry, setIndustry] = useState('Financial Services');
   // Load persisted settings from Redis on mount
   useEffect(()=>{
@@ -671,21 +635,21 @@ export default function DashboardPage() {
       .then(d=>{ if (d.settings?.industry) setIndustry(d.settings.industry); })
       .catch(()=>{});
   },[]);
-  function setIndustryPersisted(ind: string) {
+  function setIndustryPersisted(ind) {
     setIndustry(ind);
     fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:ind})}).catch(()=>{});
   }
   const [intelLoading, setIntelLoading] = useState(false);
-  const [customIntel, setCustomIntel] = useState<IntelItem[] | null>(null);
-  const [expandedAlerts, setExpandedAlerts] = useState<SetOfStrings>(new Set());
-  const [deployAgentDevice, setDeployAgentDevice] = useState<GapDevice | null>(null);
-  const [incidentStatuses, setIncidentStatuses] = useState<StrMap>({});
-  const [deletedIncidents, setDeletedIncidents] = useState<SetOfStrings>(new Set());
-  function deleteIncident(id:string) { setDeletedIncidents(prev=>new Set([...prev,id])); setSelectedIncident(null); }
-  const [gapToolFilter, setGapToolFilter] = useState<string | null>(null);
-  const [expandedIntel, setExpandedIntel] = useState<SetOfStrings>(new Set());
+  const [customIntel, setCustomIntel] = useState(null);
+  const [expandedAlerts, setExpandedAlerts] = useState(new Set());
+  const [deployAgentDevice, setDeployAgentDevice] = useState(null);
+  const [incidentStatuses, setIncidentStatuses] = useState({});
+  const [deletedIncidents, setDeletedIncidents] = useState(new Set());
+  function deleteIncident(id) { setDeletedIncidents(prev=>new Set([...prev,id])); setSelectedIncident(null); }
+  const [gapToolFilter, setGapToolFilter] = useState(null);
+  const [expandedIntel, setExpandedIntel] = useState(new Set());
   const [demoMode, setDemoMode] = useState(true);
-  const [connectedTools, setConnectedTools] = useState<ConnectedMap>({});
+  const [connectedTools, setConnectedTools] = useState({});
   const [currentTenant, setCurrentTenant] = useState('global');
   const [isAdmin] = useState(true); // Replace with real auth check
 
@@ -697,7 +661,7 @@ export default function DashboardPage() {
     {id:'client-gov', name:'Gov Dept Beta', type:'client'},
   ];
 
-  function toggleIntel(id: string) {
+  function toggleIntel(id) {
     setExpandedIntel(prev => { const n = new Set(prev); n.has(id)?n.delete(id):n.add(id); return n; });
   }
 
@@ -717,13 +681,13 @@ export default function DashboardPage() {
   // ── Tier ─────────────────────────────────────────────────────────────────────
   // In production this comes from the session/JWT. Change to test paywalls.
   const tierLevel = {community:0,team:1,business:2,mssp:3}[userTier];
-  const canUse = (min: Tier) => tierLevel >= {community:0,team:1,business:2,mssp:3}[min];
+  const canUse = (min) => tierLevel >= {community:0,team:1,business:2,mssp:3}[min];
 
   // ── Per-tenant demo data ──────────────────────────────────────────────────────
   const TENANT_ALERTS: {[k:string]: Alert[]} = {
     'global': DEMO_ALERTS,
     'client-acme': DEMO_ALERTS.slice(0,3).map(a=>({...a, id:a.id+'-acme', device:'acme-'+a.device, source:a.source})),
-    'client-nhs': DEMO_ALERTS.slice(1,4).map(a=>({...a, id:a.id+'-nhs', device:'nhs-'+a.device, severity:a.severity==='Low'?'Medium':a.severity as any})),
+    'client-nhs': DEMO_ALERTS.slice(1,4).map(a=>({...a, id:a.id+'-nhs', device:'nhs-'+a.device, severity:a.severity==='Low'?'Medium':a.severity})),
     'client-retail': DEMO_ALERTS.slice(0,2).map(a=>({...a, id:a.id+'-retail', device:'retail-'+a.device})),
     'client-gov': DEMO_ALERTS.slice(2,5).map(a=>({...a, id:a.id+'-gov', device:'gov-'+a.device})),
   };
@@ -786,7 +750,7 @@ export default function DashboardPage() {
   const intelItems = customIntel || (DEMO_INTEL_BY_INDUSTRY[industry] || DEMO_INTEL_BY_INDUSTRY['default']);
   const allIntel = [...intelItems, ...DEMO_INTEL_BY_INDUSTRY['default'].filter(i=>!intelItems.find(x=>x.id===i.id))];
 
-  async function fetchIntelForIndustry(ind:string) {
+  async function fetchIntelForIndustry(ind) {
     setIntelLoading(true);
     setCustomIntel(null);
     try {
@@ -796,7 +760,7 @@ export default function DashboardPage() {
     setIntelLoading(false);
   }
 
-  async function getVulnAiHelp(vuln:Vuln) {
+  async function getVulnAiHelp(vuln) {
     setVulnAiLoading(vuln.id);
     try {
       const resp = await fetch('/api/copilot', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:`For ${vuln.cve} (${vuln.title}), provide information NOT covered in standard remediation docs. Structure your response with these ALL-CAPS section headers on their own lines: DETECTION QUERIES, KNOWN IOCS AND INDICATORS, COMPENSATING CONTROLS, COMMON MISTAKES, ATTACK CHAINING. Under DETECTION QUERIES use these exact sub-labels: 'SPLUNK QUERY FOR [purpose]', 'MICROSOFT SENTINEL KQL: [purpose]' (Sentinel workspace tables: SecurityEvent, SigninLogs, AuditLogs, CommonSecurityLog), 'MICROSOFT DEFENDER ADVANCED HUNTING: [purpose]' (Defender XDR tables: DeviceProcessEvents, DeviceNetworkEvents, DeviceFileEvents, IdentityLogonEvents — distinct from Sentinel). Each query immediately after its label. No markdown, no backticks, plain text.`}) });
@@ -814,12 +778,12 @@ export default function DashboardPage() {
     setVulnAiLoading(null);
   }
 
-  function closeIncident(id:string) {
+  function closeIncident(id) {
     setIncidentStatuses(prev=>({...prev,[id]:'Closed'}));
     setSelectedIncident(null);
   }
 
-  function toggleAlertExpand(id:string) {
+  function toggleAlertExpand(id) {
     setExpandedAlerts(prev => { const n = new Set(prev); n.has(id)?n.delete(id):n.add(id); return n; });
   }
 
@@ -860,7 +824,7 @@ export default function DashboardPage() {
           <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:10}}>
             <button onClick={toggleTheme} title={theme==='dark'?'Light mode':'Dark mode'} style={{width:32,height:32,borderRadius:8,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.9rem',flexShrink:0}}>{theme==='dark'?'☀️':'🌙'}</button>
               <button onClick={()=>setDemoMode(d=>!d)} title={demoMode?'Switch to live data':'Switch to demo data'} style={{padding:'4px 10px',borderRadius:7,border:`1px solid ${demoMode?'#f0a03030':'#22d49a30'}`,background:demoMode?'#f0a03010':'#22d49a10',color:demoMode?'#f0a030':'#22d49a',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>{demoMode?'● DEMO':'● LIVE'}</button>
-              <select value={userTier} onChange={e=>setUserTier(e.target.value as any)} title='Simulate plan tier' style={{padding:'3px 7px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.6rem',fontWeight:700,fontFamily:'Inter,sans-serif',cursor:'pointer',outline:'none'}} >
+              <select value={userTier} onChange={e=>setUserTier(e.target.value)} title='Simulate plan tier' style={{padding:'3px 7px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.6rem',fontWeight:700,fontFamily:'Inter,sans-serif',cursor:'pointer',outline:'none'}} >
                 {(['community','team','business','mssp']).map(t=><option key={t} value={t}>{t.charAt(0).toUpperCase()+t.slice(1)}</option>)}
               </select>
               {isAdmin && (
@@ -874,7 +838,7 @@ export default function DashboardPage() {
             <div style={{display:'flex',alignItems:'center',gap:6,padding:'4px 10px',borderRadius:7,background:'var(--wt-card2)',border:'1px solid #141820'}}>
               <span style={{fontSize:'0.62rem',color:'var(--wt-muted)'}}>Automation:</span>
               {(['Recommend','Auto+Notify','Full Auto']).map((l,i)=>(
-                <button key={l} onClick={()=>setAutomation(i as AutomationLevel)} style={{padding:'2px 8px',borderRadius:4,fontSize:'0.58rem',fontWeight:700,border:'none',cursor:'pointer',background:automation===i?`${autColor}`:'transparent',color:automation===i?'#fff':'#6b7a94',fontFamily:'Inter,sans-serif',transition:'all .15s'}}>{l}</button>
+                <button key={l} onClick={()=>setAutomation(i)} style={{padding:'2px 8px',borderRadius:4,fontSize:'0.58rem',fontWeight:700,border:'none',cursor:'pointer',background:automation===i?`${autColor}`:'transparent',color:automation===i?'#fff':'#6b7a94',fontFamily:'Inter,sans-serif',transition:'all .15s'}}>{l}</button>
               ))}
             </div>
             ) : (
@@ -914,8 +878,8 @@ export default function DashboardPage() {
 
                   {/* Devices + Gaps */}
                   <div onClick={()=>setModal({type:'gaps'})} style={{padding:16,background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
-                    onMouseEnter={e=>(e.currentTarget as HTMLElement).style.borderColor='#4f8fff40'}
-                    onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor='var(--wt-border)'}>
+                    onMouseEnter={e=>(e.currentTarget).style.borderColor='#4f8fff40'}
+                    onMouseLeave={e=>(e.currentTarget).style.borderColor='var(--wt-border)'}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
                       <div>
                         <div style={{fontSize:'0.72rem',fontWeight:700,color:'var(--wt-muted)',marginBottom:2}}>Devices</div>
@@ -934,8 +898,8 @@ export default function DashboardPage() {
 
                   {/* Tool Status */}
                   <div onClick={()=>setModal({type:'tools'})} style={{padding:16,background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
-                    onMouseEnter={e=>(e.currentTarget as HTMLElement).style.borderColor='#4f8fff40'}
-                    onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor='var(--wt-border)'}>
+                    onMouseEnter={e=>(e.currentTarget).style.borderColor='#4f8fff40'}
+                    onMouseLeave={e=>(e.currentTarget).style.borderColor='var(--wt-border)'}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
                       <div>
                         <div style={{fontSize:'0.72rem',fontWeight:700,color:'var(--wt-muted)',marginBottom:2}}>Tool Status</div>
@@ -955,8 +919,8 @@ export default function DashboardPage() {
 
                   {/* Alert Sources */}
                   <div onClick={()=>setModal({type:'alerts-ingested'})} style={{padding:16,background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
-                    onMouseEnter={e=>(e.currentTarget as HTMLElement).style.borderColor='#4f8fff40'}
-                    onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor='var(--wt-border)'}>
+                    onMouseEnter={e=>(e.currentTarget).style.borderColor='#4f8fff40'}
+                    onMouseLeave={e=>(e.currentTarget).style.borderColor='var(--wt-border)'}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
                       <div>
                         <div style={{fontSize:'0.72rem',fontWeight:700,color:'var(--wt-muted)',marginBottom:2}}>Alerts Ingested</div>
@@ -979,8 +943,8 @@ export default function DashboardPage() {
 
                   {/* Vulns / SLA */}
                   <div onClick={()=>setActiveTab('vulns')} style={{padding:16,background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
-                    onMouseEnter={e=>(e.currentTarget as HTMLElement).style.borderColor='#4f8fff40'}
-                    onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor='var(--wt-border)'}>
+                    onMouseEnter={e=>(e.currentTarget).style.borderColor='#4f8fff40'}
+                    onMouseLeave={e=>(e.currentTarget).style.borderColor='var(--wt-border)'}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
                       <div>
                         <div style={{fontSize:'0.72rem',fontWeight:700,color:'var(--wt-muted)',marginBottom:2}}>Vulnerabilities</div>
