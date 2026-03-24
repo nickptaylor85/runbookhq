@@ -679,6 +679,161 @@ function ToolsTab({ connected, setConnected }) {
 
 const DASHBOARD_CSS = '*{margin:0;padding:0;box-sizing:border-box}\n        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}\n        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}\n\n        /* ── Dark theme (default) ── */\n        .wt-root {\n          --wt-bg: #050508;\n          --wt-sidebar: #07080f;\n          --wt-card: #09091a;\n          --wt-card2: #0a0d14;\n          --wt-border: #141820;\n          --wt-border2: #1e2536;\n          --wt-text: #e8ecf4;\n          --wt-muted: #6b7a94;\n          --wt-secondary: #8a9ab0;\n          --wt-dim: #3a4050;\n        }\n        /* ── Light theme ── */\n        .wt-root.light {\n          --wt-bg: #f5f6fa;\n          --wt-sidebar: #ffffff;\n          --wt-card: #ffffff;\n          --wt-card2: #f0f2f8;\n          --wt-border: #e2e5ef;\n          --wt-border2: #c8cedd;\n          --wt-text: #0f1117;\n          --wt-muted: #5a6580;\n          --wt-secondary: #4a5568;\n          --wt-dim: #8090a8;\n        }\n\n        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap;color:var(--wt-muted)}\n        .tab-btn.active{background:#4f8fff18;color:#4f8fff}\n        .tab-btn:not(.active) {color:var(--wt-secondary);background:var(--wt-card2)}\n        .row-hover{transition:background .12s}\n        .row-hover:hover{background:var(--wt-card2)!important}\n        .vuln-row:hover{background:var(--wt-card2)!important;cursor:pointer}\n        .alert-card{border-radius:10px;border:1px solid var(--wt-border);background:var(--wt-card);transition:border-color .15s}\n        .alert-card:hover{border-color:#4f8fff28}';
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
+// ─── Admin Portal ────────────────────────────────────────────────────────────
+function AdminPortal({ setCurrentTenant, setActiveTab, clientBanner, setClientBanner, adminBannerInput, setAdminBannerInput }) {
+  const WTC_SUBSCRIBERS = [
+    {id:'mssp-cyberguard', name:'CyberGuard Solutions',  type:'MSSP',     plan:'MSSP',     seats:0,  mrr:1115, clients:4,  status:'Active',  posture:84, alerts:36, incidents:7,  coverage:93, joined:'2024-01-10', billing:'Paid'},
+    {id:'mssp-secureops',  name:'SecureOps Ltd',         type:'MSSP',     plan:'MSSP',     seats:0,  mrr:957,  clients:2,  status:'Active',  posture:79, alerts:22, incidents:4,  coverage:90, joined:'2024-03-15', billing:'Paid'},
+    {id:'org-fintech',     name:'FinTech Global',        type:'Business', plan:'Business', seats:10, mrr:199,  clients:0,  status:'Active',  posture:88, alerts:12, incidents:2,  coverage:96, joined:'2024-02-01', billing:'Paid'},
+    {id:'org-healthco',    name:'HealthCo Systems',      type:'Business', plan:'Business', seats:10, mrr:199,  clients:0,  status:'Active',  posture:72, alerts:19, incidents:3,  coverage:87, joined:'2024-04-20', billing:'Overdue'},
+    {id:'org-logistics',   name:'Logistics UK Ltd',      type:'Business', plan:'Business', seats:10, mrr:199,  clients:0,  status:'Churned', posture:0,  alerts:0,  incidents:0,  coverage:0,  joined:'2023-11-01', billing:'Churned'},
+    {id:'org-startup1',    name:'DevStack Inc',          type:'Team',     plan:'Team',     seats:4,  mrr:196,  clients:0,  status:'Active',  posture:91, alerts:5,  incidents:1,  coverage:98, joined:'2024-05-01', billing:'Paid'},
+    {id:'org-startup2',    name:'CloudBase Ltd',         type:'Team',     plan:'Team',     seats:3,  mrr:147,  clients:0,  status:'Trial',   posture:65, alerts:8,  incidents:0,  coverage:78, joined:'2024-03-28', billing:'Trial'},
+    {id:'org-free1',       name:'TestOrg Alpha',         type:'Community',plan:'Community',seats:1,  mrr:0,    clients:0,  status:'Active',  posture:55, alerts:2,  incidents:0,  coverage:60, joined:'2024-06-01', billing:'Free'},
+  ];
+  const [adminView, setAdminView] = useState('subscribers');
+  const [filterPlan, setFilterPlan] = useState('All');
+  const [filterStatus, setFilterStatus] = useState('All');
+
+  const activeSubs = WTC_SUBSCRIBERS.filter(s=>s.status!=='Churned');
+  const totalMRR = WTC_SUBSCRIBERS.reduce((s,c)=>s+c.mrr,0);
+  const overdueRevenue = WTC_SUBSCRIBERS.filter(s=>s.billing==='Overdue').reduce((s,c)=>s+c.mrr,0);
+  const totalMSSPs = WTC_SUBSCRIBERS.filter(s=>s.type==='MSSP').length;
+  const totalManagedClients = WTC_SUBSCRIBERS.filter(s=>s.type==='MSSP').reduce((s,c)=>s+c.clients,0);
+  const filtered = WTC_SUBSCRIBERS.filter(s=>(filterPlan==='All'||s.plan===filterPlan)&&(filterStatus==='All'||s.status===filterStatus));
+  const planColor = {MSSP:'#8b6fff',Business:'#22d49a',Team:'#4f8fff',Community:'#6b7a94'};
+  const statusColor = {Active:'#22d49a',Trial:'#f0a030',Overdue:'#f0405e',Churned:'#3a4050',Free:'#6b7a94'};
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',gap:16}}>
+      <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+        <div>
+          <h2 style={{fontSize:'0.88rem',fontWeight:700,display:'flex',alignItems:'center',gap:8}}>
+            🔧 Watchtower Admin
+            <span style={{fontSize:'0.62rem',color:'#f0a030',background:'#f0a03012',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025',fontWeight:700}}>PLATFORM ADMIN</span>
+          </h2>
+          <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginTop:3}}>All organisations subscribed to Watchtower · Impersonate any tenant to view their dashboard</div>
+        </div>
+        <div style={{marginLeft:'auto',display:'flex',gap:4,background:'var(--wt-card2)',borderRadius:7,padding:3}}>
+          {['subscribers','platform','broadcast'].map(v=>(
+            <button key={v} onClick={()=>setAdminView(v)} style={{padding:'5px 14px',borderRadius:5,border:'none',background:adminView===v?'#f0a030':'transparent',color:adminView===v?'#fff':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',textTransform:'capitalize'}}>{v}</button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+        {[
+          {label:'Total MRR',      val:`£${totalMRR.toLocaleString()}`, sub:'monthly recurring', color:'#22d49a'},
+          {label:'Active Orgs',    val:activeSubs.length,  sub:`${WTC_SUBSCRIBERS.length} total`, color:'#4f8fff'},
+          {label:'MSSP Partners',  val:totalMSSPs,  sub:`${totalManagedClients} end-clients`, color:'#8b6fff'},
+          {label:'Overdue',        val:overdueRevenue>0?`£${overdueRevenue}`:'£0', sub:overdueRevenue>0?'action needed':'all clear', color:overdueRevenue>0?'#f0405e':'#22d49a'},
+        ].map(s=>(
+          <div key={s.label} style={{padding:'14px 16px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:12}}>
+            <div style={{fontSize:'1.8rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-2,lineHeight:1}}>{s.val}</div>
+            <div style={{fontSize:'0.58rem',fontWeight:700,color:s.color,textTransform:'uppercase',letterSpacing:'0.5px',marginTop:3}}>{s.sub}</div>
+            <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:2}}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {adminView==='subscribers' && (
+        <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14,flexWrap:'wrap'}}>
+            <span style={{fontSize:'0.72rem',fontWeight:700}}>All Subscribers</span>
+            <div style={{display:'flex',gap:4,marginLeft:'auto',flexWrap:'wrap'}}>
+              {['All','MSSP','Business','Team','Community'].map(p=>(
+                <button key={p} onClick={()=>setFilterPlan(p)} style={{padding:'3px 9px',borderRadius:5,border:`1px solid ${filterPlan===p?planColor[p]||'#4f8fff':'var(--wt-border2)'}`,background:filterPlan===p?(planColor[p]||'#4f8fff')+'15':'transparent',color:filterPlan===p?planColor[p]||'#4f8fff':'var(--wt-muted)',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{p}</button>
+              ))}
+              <span style={{width:1,background:'var(--wt-border)',margin:'0 2px'}}/>
+              {['All','Active','Trial','Overdue','Churned'].map(s=>(
+                <button key={s} onClick={()=>setFilterStatus(s)} style={{padding:'3px 9px',borderRadius:5,border:`1px solid ${filterStatus===s?statusColor[s]||'#4f8fff':'var(--wt-border2)'}`,background:filterStatus===s?(statusColor[s]||'#4f8fff')+'15':'transparent',color:filterStatus===s?statusColor[s]||'#4f8fff':'var(--wt-muted)',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{s}</button>
+              ))}
+            </div>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 90px 70px 60px 60px 140px',gap:8,padding:'6px 10px',fontSize:'0.56rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',borderBottom:'1px solid var(--wt-border)',marginBottom:4}}>
+            <span>Organisation</span><span style={{textAlign:'center'}}>Plan</span><span style={{textAlign:'center'}}>MRR</span><span style={{textAlign:'center'}}>Status</span><span style={{textAlign:'center'}}>Posture</span><span style={{textAlign:'right'}}>Actions</span>
+          </div>
+          {filtered.map(sub=>(
+            <div key={sub.id} style={{display:'grid',gridTemplateColumns:'1fr 90px 70px 60px 60px 140px',gap:8,padding:'9px 10px',alignItems:'center',borderBottom:'1px solid var(--wt-border)',opacity:sub.status==='Churned'?0.4:1}}>
+              <div>
+                <div style={{display:'flex',alignItems:'center',gap:6}}>
+                  <span style={{fontSize:'0.78rem',fontWeight:700}}>{sub.name}</span>
+                  {sub.type==='MSSP' && <span style={{fontSize:'0.48rem',padding:'1px 5px',borderRadius:3,background:'#8b6fff15',color:'#8b6fff',fontWeight:700,border:'1px solid #8b6fff20'}}>MSSP · {sub.clients} clients</span>}
+                </div>
+                <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:1}}>Joined {sub.joined} · {sub.seats>0?sub.seats+' seats':'flat rate'}</div>
+              </div>
+              <div style={{textAlign:'center'}}><span style={{fontSize:'0.6rem',fontWeight:700,padding:'2px 7px',borderRadius:4,background:(planColor[sub.plan]||'#6b7a94')+'15',color:planColor[sub.plan]||'#6b7a94',border:`1px solid ${(planColor[sub.plan]||'#6b7a94')}20`}}>{sub.plan}</span></div>
+              <div style={{textAlign:'center',fontSize:'0.74rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:sub.mrr>0?'var(--wt-text)':'var(--wt-dim)'}}>{sub.mrr>0?`£${sub.mrr}`:'—'}</div>
+              <div style={{textAlign:'center'}}><span style={{fontSize:'0.56rem',fontWeight:700,padding:'2px 6px',borderRadius:3,background:(statusColor[sub.status]||'#6b7a94')+'15',color:statusColor[sub.status]||'#6b7a94'}}>{sub.status}</span></div>
+              <div style={{textAlign:'center',fontSize:'0.74rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:sub.posture>=85?'#22d49a':sub.posture>=70?'#f0a030':sub.posture>0?'#f0405e':'var(--wt-dim)'}}>{sub.posture>0?sub.posture+'%':'—'}</div>
+              <div style={{display:'flex',gap:4,justifyContent:'flex-end'}}>
+                {sub.status!=='Churned' && <button onClick={()=>{setCurrentTenant(sub.id);setActiveTab('overview');}} style={{padding:'4px 8px',borderRadius:5,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Impersonate →</button>}
+                <button onClick={()=>setAdminBannerInput(`[${sub.name}] `)} style={{padding:'4px 7px',borderRadius:5,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.58rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📢</button>
+                {sub.billing==='Overdue' && <button style={{padding:'4px 7px',borderRadius:5,border:'1px solid #f97316',background:'#f9731610',color:'#f97316',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>£ Chase</button>}
+              </div>
+            </div>
+          ))}
+          <div style={{marginTop:12,padding:'10px 12px',background:'var(--wt-card2)',borderRadius:8,display:'flex',gap:16,flexWrap:'wrap'}}>
+            {['MSSP','Business','Team'].map(p=>{
+              const subs=WTC_SUBSCRIBERS.filter(s=>s.plan===p&&s.status!=='Churned');
+              const mrr=subs.reduce((s,c)=>s+c.mrr,0);
+              return mrr>0?(<div key={p} style={{display:'flex',alignItems:'center',gap:5}}><div style={{width:7,height:7,borderRadius:2,background:planColor[p],flexShrink:0}}/><span style={{fontSize:'0.66rem',color:'var(--wt-muted)'}}>{p}: <strong style={{color:planColor[p]}}>£{mrr}/mo</strong> · {subs.length} org{subs.length!==1?'s':''}</span></div>):null;
+            })}
+            <div style={{marginLeft:'auto',fontSize:'0.66rem',color:'var(--wt-muted)'}}>Total ARR: <strong style={{color:'#22d49a'}}>£{(totalMRR*12).toLocaleString()}</strong></div>
+          </div>
+        </div>
+      )}
+
+      {adminView==='platform' && (
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}}>
+          {[
+            {label:'API Calls Today',val:'12,847',color:'#4f8fff',sub:'↑ 8% vs yesterday'},
+            {label:'AI Tokens Used',val:'4.2M',color:'#8b6fff',sub:'across all tenants'},
+            {label:'Redis Ops/min',val:'847',color:'#22d49a',sub:'avg latency 1.2ms'},
+            {label:'Avg Uptime (30d)',val:'99.97%',color:'#22d49a',sub:'1 incident this month'},
+            {label:'Active Sessions',val:'23',color:'#4f8fff',sub:'right now'},
+            {label:'Sync Errors (24h)',val:'2',color:'#f0405e',sub:'Taegis · Splunk'},
+            {label:'Alerts Triaged',val:'1,847',color:'#f0a030',sub:'across all orgs today'},
+            {label:'New Signups (7d)',val:'3',color:'#22d49a',sub:'2 trial, 1 paid'},
+            {label:'Churn (30d)',val:'1',color:'#f0405e',sub:'Logistics UK Ltd'},
+          ].map(s=>(
+            <div key={s.label} style={{padding:'14px 16px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:12}}>
+              <div style={{fontSize:'1.6rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-2,lineHeight:1}}>{s.val}</div>
+              <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:4}}>{s.label}</div>
+              <div style={{fontSize:'0.58rem',color:s.color,marginTop:2,opacity:0.8}}>{s.sub}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {adminView==='broadcast' && (
+        <div style={{display:'flex',flexDirection:'column',gap:12}}>
+          <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
+            <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:4}}>📢 Broadcast to All Subscribers</div>
+            <div style={{fontSize:'0.7rem',color:'var(--wt-muted)',marginBottom:12,lineHeight:1.6}}>Send a dismissable banner to every logged-in user across all tenants.</div>
+            <textarea value={adminBannerInput} onChange={e=>setAdminBannerInput(e.target.value)} placeholder='e.g. Scheduled maintenance Sunday 02:00–04:00 UTC…' rows={3} style={{width:'100%',padding:'10px 12px',borderRadius:8,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.78rem',fontFamily:'Inter,sans-serif',resize:'none',outline:'none',boxSizing:'border-box'}} />
+            <div style={{display:'flex',gap:8,marginTop:10}}>
+              <button onClick={()=>{if(!adminBannerInput.trim())return;setClientBanner(adminBannerInput.trim());setAdminBannerInput('');fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientBanner:adminBannerInput.trim()})}).catch(()=>{});}} style={{padding:'8px 20px',borderRadius:8,border:'none',background:'#f0a030',color:'#fff',fontSize:'0.78rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📢 Publish Platform-Wide</button>
+              {clientBanner && <button onClick={()=>{setClientBanner(null);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientBanner:''})}).catch(()=>{});}} style={{padding:'8px 16px',borderRadius:8,border:'1px solid #f0405e30',background:'#f0405e0a',color:'#f0405e',fontSize:'0.78rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✕ Clear</button>}
+            </div>
+            {clientBanner && <div style={{marginTop:10,padding:'10px 14px',background:'#f0a03012',border:'1px solid #f0a03030',borderRadius:8,fontSize:'0.74rem',color:'#f0a030'}}>📢 Active: {clientBanner}</div>}
+          </div>
+          <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
+            <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:12}}>Target Specific Subscriber</div>
+            {WTC_SUBSCRIBERS.filter(s=>s.status!=='Churned').map(sub=>(
+              <div key={sub.id} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 0',borderBottom:'1px solid var(--wt-border)'}}>
+                <span style={{flex:1,fontSize:'0.76rem'}}>{sub.name}</span>
+                <span style={{fontSize:'0.58rem',color:planColor[sub.plan]||'#6b7a94',fontWeight:700}}>{sub.plan}</span>
+                <button onClick={()=>setAdminBannerInput(`[${sub.name}] `)} style={{padding:'4px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.62rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Compose →</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [automation, setAutomation] = useState(1);
@@ -1823,199 +1978,7 @@ export default function DashboardPage() {
           )}
 
           {/* ═══════════════════════════════ ADMIN PORTAL ═══════════════════════════════ */}
-          {activeTab==='admin' && isAdmin && (() => {
-            // All organisations subscribed to Watchtower platform
-            // Grouped by plan tier — this is Watchtower's customer list
-            const WTC_SUBSCRIBERS = [
-              // MSSP subscribers — have their own client portfolios
-              {id:'mssp-cyberguard', name:'CyberGuard Solutions',  type:'MSSP',     plan:'MSSP',     seats:0,  mrr:1115, clients:4,  status:'Active',  posture:84, alerts:36, incidents:7,  coverage:93, joined:'2024-01-10', billing:'Paid'},
-              {id:'mssp-secureops',  name:'SecureOps Ltd',         type:'MSSP',     plan:'MSSP',     seats:0,  mrr:957,  clients:2,  status:'Active',  posture:79, alerts:22, incidents:4,  coverage:90, joined:'2024-03-15', billing:'Paid'},
-              // Business subscribers — single org, enterprise features
-              {id:'org-fintech',     name:'FinTech Global',        type:'Business', plan:'Business', seats:10, mrr:199,  clients:0,  status:'Active',  posture:88, alerts:12, incidents:2,  coverage:96, joined:'2024-02-01', billing:'Paid'},
-              {id:'org-healthco',    name:'HealthCo Systems',      type:'Business', plan:'Business', seats:10, mrr:199,  clients:0,  status:'Active',  posture:72, alerts:19, incidents:3,  coverage:87, joined:'2024-04-20', billing:'Overdue'},
-              {id:'org-logistics',   name:'Logistics UK Ltd',      type:'Business', plan:'Business', seats:10, mrr:199,  clients:0,  status:'Churned', posture:0,  alerts:0,  incidents:0,  coverage:0,  joined:'2023-11-01', billing:'Churned'},
-              // Team subscribers
-              {id:'org-startup1',    name:'DevStack Inc',          type:'Team',     plan:'Team',     seats:4,  mrr:196,  clients:0,  status:'Active',  posture:91, alerts:5,  incidents:1,  coverage:98, joined:'2024-05-01', billing:'Paid'},
-              {id:'org-startup2',    name:'CloudBase Ltd',         type:'Team',     plan:'Team',     seats:3,  mrr:147,  clients:0,  status:'Trial',   posture:65, alerts:8,  incidents:0,  coverage:78, joined:'2024-03-28', billing:'Trial'},
-              // Community (free) — limited visibility
-              {id:'org-free1',       name:'TestOrg Alpha',         type:'Community',plan:'Community',seats:1,  mrr:0,    clients:0,  status:'Active',  posture:55, alerts:2,  incidents:0,  coverage:60, joined:'2024-06-01', billing:'Free'},
-            ];
-            const [adminView, setAdminView] = React.useState('subscribers');
-            const [filterPlan, setFilterPlan] = React.useState('All');
-            const [filterStatus, setFilterStatus] = React.useState('All');
-
-            const activeSubs = WTC_SUBSCRIBERS.filter(s=>s.status!=='Churned');
-            const totalMRR = WTC_SUBSCRIBERS.reduce((s,c)=>s+c.mrr,0);
-            const overdueRevenue = WTC_SUBSCRIBERS.filter(s=>s.billing==='Overdue').reduce((s,c)=>s+c.mrr,0);
-            const totalMSSPs = WTC_SUBSCRIBERS.filter(s=>s.type==='MSSP').length;
-            const totalManagedClients = WTC_SUBSCRIBERS.filter(s=>s.type==='MSSP').reduce((s,c)=>s+c.clients,0);
-
-            const filtered = WTC_SUBSCRIBERS.filter(s=>
-              (filterPlan==='All' || s.plan===filterPlan) &&
-              (filterStatus==='All' || s.status===filterStatus)
-            );
-
-            const planColor = {MSSP:'#8b6fff',Business:'#22d49a',Team:'#4f8fff',Community:'#6b7a94'};
-            const statusColor = {Active:'#22d49a',Trial:'#f0a030',Overdue:'#f0405e',Churned:'#3a4050',Free:'#6b7a94'};
-
-            return (
-            <div style={{display:'flex',flexDirection:'column',gap:16}}>
-
-              {/* Header */}
-              <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
-                <div>
-                  <h2 style={{fontSize:'0.88rem',fontWeight:700,display:'flex',alignItems:'center',gap:8}}>
-                    🔧 Watchtower Admin
-                    <span style={{fontSize:'0.62rem',color:'#f0a030',background:'#f0a03012',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025',fontWeight:700}}>PLATFORM ADMIN</span>
-                  </h2>
-                  <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginTop:3}}>All organisations subscribed to Watchtower · Impersonate any tenant to view their dashboard</div>
-                </div>
-                <div style={{marginLeft:'auto',display:'flex',gap:4,background:'var(--wt-card2)',borderRadius:7,padding:3}}>
-                  {['subscribers','platform','broadcast'].map(v=>(
-                    <button key={v} onClick={()=>setAdminView(v)} style={{padding:'5px 14px',borderRadius:5,border:'none',background:adminView===v?'#f0a030':'transparent',color:adminView===v?'#fff':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',textTransform:'capitalize'}}>{v}</button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Platform stats */}
-              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
-                {[
-                  {label:'Total MRR',      val:`£${totalMRR.toLocaleString()}`, sub:'monthly recurring', color:'#22d49a'},
-                  {label:'Active Orgs',    val:activeSubs.length,  sub:`${WTC_SUBSCRIBERS.length} total`, color:'#4f8fff'},
-                  {label:'MSSP Partners',  val:totalMSSPs,  sub:`${totalManagedClients} end-clients`, color:'#8b6fff'},
-                  {label:'Overdue',        val:overdueRevenue>0?`£${overdueRevenue}`:'£0', sub:overdueRevenue>0?'action needed':'all clear', color:overdueRevenue>0?'#f0405e':'#22d49a'},
-                ].map(s=>(
-                  <div key={s.label} style={{padding:'14px 16px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:12}}>
-                    <div style={{fontSize:'1.8rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-2,lineHeight:1}}>{s.val}</div>
-                    <div style={{fontSize:'0.58rem',fontWeight:700,color:s.color,textTransform:'uppercase',letterSpacing:'0.5px',marginTop:3}}>{s.sub}</div>
-                    <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:2}}>{s.label}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* SUBSCRIBERS VIEW */}
-              {adminView==='subscribers' && (
-                <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14,flexWrap:'wrap'}}>
-                    <span style={{fontSize:'0.72rem',fontWeight:700}}>All Subscribers</span>
-                    <div style={{display:'flex',gap:4,marginLeft:'auto',flexWrap:'wrap'}}>
-                      {['All','MSSP','Business','Team','Community'].map(p=>(
-                        <button key={p} onClick={()=>setFilterPlan(p)} style={{padding:'3px 9px',borderRadius:5,border:`1px solid ${filterPlan===p?planColor[p]||'#4f8fff':'var(--wt-border2)'}`,background:filterPlan===p?(planColor[p]||'#4f8fff')+'15':'transparent',color:filterPlan===p?planColor[p]||'#4f8fff':'var(--wt-muted)',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{p}</button>
-                      ))}
-                      <span style={{width:1,background:'var(--wt-border)',margin:'0 2px'}}/>
-                      {['All','Active','Trial','Overdue','Churned'].map(s=>(
-                        <button key={s} onClick={()=>setFilterStatus(s)} style={{padding:'3px 9px',borderRadius:5,border:`1px solid ${filterStatus===s?statusColor[s]||'#4f8fff':'var(--wt-border2)'}`,background:filterStatus===s?(statusColor[s]||'#4f8fff')+'15':'transparent',color:filterStatus===s?statusColor[s]||'#4f8fff':'var(--wt-muted)',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{s}</button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Column headers */}
-                  <div style={{display:'grid',gridTemplateColumns:'1fr 90px 70px 60px 60px 140px',gap:8,padding:'6px 10px',fontSize:'0.56rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',borderBottom:'1px solid var(--wt-border)',marginBottom:4}}>
-                    <span>Organisation</span><span style={{textAlign:'center'}}>Plan</span><span style={{textAlign:'center'}}>MRR</span><span style={{textAlign:'center'}}>Status</span><span style={{textAlign:'center'}}>Posture</span><span style={{textAlign:'right'}}>Actions</span>
-                  </div>
-
-                  {filtered.map(sub=>(
-                    <div key={sub.id} style={{display:'grid',gridTemplateColumns:'1fr 90px 70px 60px 60px 140px',gap:8,padding:'9px 10px',alignItems:'center',borderBottom:'1px solid var(--wt-border)',opacity:sub.status==='Churned'?0.4:1}}>
-                      {/* Name + metadata */}
-                      <div>
-                        <div style={{display:'flex',alignItems:'center',gap:6}}>
-                          <span style={{fontSize:'0.78rem',fontWeight:700}}>{sub.name}</span>
-                          {sub.type==='MSSP' && <span style={{fontSize:'0.48rem',padding:'1px 5px',borderRadius:3,background:'#8b6fff15',color:'#8b6fff',fontWeight:700,border:'1px solid #8b6fff20'}}>MSSP · {sub.clients} clients</span>}
-                        </div>
-                        <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:1}}>Joined {sub.joined} · {sub.seats>0?sub.seats+' seats':'flat rate'}</div>
-                      </div>
-                      {/* Plan */}
-                      <div style={{textAlign:'center'}}>
-                        <span style={{fontSize:'0.6rem',fontWeight:700,padding:'2px 7px',borderRadius:4,background:(planColor[sub.plan]||'#6b7a94')+'15',color:planColor[sub.plan]||'#6b7a94',border:`1px solid ${(planColor[sub.plan]||'#6b7a94')}20`}}>{sub.plan}</span>
-                      </div>
-                      {/* MRR */}
-                      <div style={{textAlign:'center',fontSize:'0.74rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:sub.mrr>0?'var(--wt-text)':'var(--wt-dim)'}}>{sub.mrr>0?`£${sub.mrr}`:'—'}</div>
-                      {/* Status */}
-                      <div style={{textAlign:'center'}}>
-                        <span style={{fontSize:'0.56rem',fontWeight:700,padding:'2px 6px',borderRadius:3,background:(statusColor[sub.status]||'#6b7a94')+'15',color:statusColor[sub.status]||'#6b7a94'}}>{sub.status}</span>
-                      </div>
-                      {/* Posture */}
-                      <div style={{textAlign:'center',fontSize:'0.74rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:sub.posture>=85?'#22d49a':sub.posture>=70?'#f0a030':sub.posture>0?'#f0405e':'var(--wt-dim)'}}>{sub.posture>0?sub.posture+'%':'—'}</div>
-                      {/* Actions */}
-                      <div style={{display:'flex',gap:4,justifyContent:'flex-end'}}>
-                        {sub.status!=='Churned' && (
-                          <button onClick={()=>{setCurrentTenant(sub.id);setActiveTab('overview');}} style={{padding:'4px 8px',borderRadius:5,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Impersonate →</button>
-                        )}
-                        <button onClick={()=>setAdminBannerInput(`[${sub.name}] `)} style={{padding:'4px 7px',borderRadius:5,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.58rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📢</button>
-                        {sub.billing==='Overdue' && <button style={{padding:'4px 7px',borderRadius:5,border:'1px solid #f97316',background:'#f9731610',color:'#f97316',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>£ Chase</button>}
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* MRR breakdown footer */}
-                  <div style={{marginTop:12,padding:'10px 12px',background:'var(--wt-card2)',borderRadius:8,display:'flex',gap:16,flexWrap:'wrap'}}>
-                    {['MSSP','Business','Team'].map(p=>{
-                      const subs = WTC_SUBSCRIBERS.filter(s=>s.plan===p&&s.status!=='Churned');
-                      const mrr = subs.reduce((s,c)=>s+c.mrr,0);
-                      return mrr>0 ? (
-                        <div key={p} style={{display:'flex',alignItems:'center',gap:5}}>
-                          <div style={{width:7,height:7,borderRadius:2,background:planColor[p],flexShrink:0}}/>
-                          <span style={{fontSize:'0.66rem',color:'var(--wt-muted)'}}>{p}: <strong style={{color:planColor[p]}}>£{mrr}/mo</strong> · {subs.length} org{subs.length!==1?'s':''}</span>
-                        </div>
-                      ) : null;
-                    })}
-                    <div style={{marginLeft:'auto',fontSize:'0.66rem',color:'var(--wt-muted)'}}>Total ARR: <strong style={{color:'#22d49a'}}>£{(totalMRR*12).toLocaleString()}</strong></div>
-                  </div>
-                </div>
-              )}
-
-              {/* PLATFORM HEALTH VIEW */}
-              {adminView==='platform' && (
-                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}}>
-                  {[
-                    {label:'API Calls Today',val:'12,847',color:'#4f8fff',sub:'↑ 8% vs yesterday'},
-                    {label:'AI Tokens Used',val:'4.2M',color:'#8b6fff',sub:'across all tenants'},
-                    {label:'Redis Ops/min',val:'847',color:'#22d49a',sub:'avg latency 1.2ms'},
-                    {label:'Avg Uptime (30d)',val:'99.97%',color:'#22d49a',sub:'1 incident this month'},
-                    {label:'Active Sessions',val:'23',color:'#4f8fff',sub:'right now'},
-                    {label:'Sync Errors (24h)',val:'2',color:'#f0405e',sub:'Taegis · Splunk'},
-                    {label:'Alerts Triaged',val:'1,847',color:'#f0a030',sub:'across all orgs today'},
-                    {label:'New Signups (7d)',val:'3',color:'#22d49a',sub:'2 trial, 1 paid'},
-                    {label:'Churn (30d)',val:'1',color:'#f0405e',sub:'Logistics UK Ltd'},
-                  ].map(s=>(
-                    <div key={s.label} style={{padding:'14px 16px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:12}}>
-                      <div style={{fontSize:'1.6rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-2,lineHeight:1}}>{s.val}</div>
-                      <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:4}}>{s.label}</div>
-                      <div style={{fontSize:'0.58rem',color:s.color,marginTop:2,opacity:0.8}}>{s.sub}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* BROADCAST VIEW */}
-              {adminView==='broadcast' && (
-                <div style={{display:'flex',flexDirection:'column',gap:12}}>
-                  <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
-                    <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:4}}>📢 Broadcast to All Subscribers</div>
-                    <div style={{fontSize:'0.7rem',color:'var(--wt-muted)',marginBottom:12,lineHeight:1.6}}>Send a dismissable banner to every logged-in user across all tenants. Use for maintenance notices, security advisories, or product announcements.</div>
-                    <textarea value={adminBannerInput} onChange={e=>setAdminBannerInput(e.target.value)} placeholder='e.g. Scheduled maintenance Sunday 02:00–04:00 UTC…' rows={3} style={{width:'100%',padding:'10px 12px',borderRadius:8,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.78rem',fontFamily:'Inter,sans-serif',resize:'none',outline:'none',boxSizing:'border-box'}} />
-                    <div style={{display:'flex',gap:8,marginTop:10}}>
-                      <button onClick={()=>{if(!adminBannerInput.trim())return;setClientBanner(adminBannerInput.trim());setAdminBannerInput('');fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientBanner:adminBannerInput.trim()})}).catch(()=>{});}} style={{padding:'8px 20px',borderRadius:8,border:'none',background:'#f0a030',color:'#fff',fontSize:'0.78rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📢 Publish Platform-Wide</button>
-                      {clientBanner && <button onClick={()=>{setClientBanner(null);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientBanner:''})}).catch(()=>{});}} style={{padding:'8px 16px',borderRadius:8,border:'1px solid #f0405e30',background:'#f0405e0a',color:'#f0405e',fontSize:'0.78rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✕ Clear</button>}
-                    </div>
-                    {clientBanner && <div style={{marginTop:10,padding:'10px 14px',background:'#f0a03012',border:'1px solid #f0a03030',borderRadius:8,fontSize:'0.74rem',color:'#f0a030'}}>📢 Active banner: {clientBanner}</div>}
-                  </div>
-                  <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
-                    <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:12}}>Target Specific Subscriber</div>
-                    {WTC_SUBSCRIBERS.filter(s=>s.status!=='Churned').map(sub=>(
-                      <div key={sub.id} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 0',borderBottom:'1px solid var(--wt-border)'}}>
-                        <span style={{flex:1,fontSize:'0.76rem'}}>{sub.name}</span>
-                        <span style={{fontSize:'0.58rem',color:planColor[sub.plan]||'#6b7a94',fontWeight:700}}>{sub.plan}</span>
-                        <button onClick={()=>setAdminBannerInput(`[${sub.name}] `)} style={{padding:'4px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.62rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Compose →</button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-            </div>
-            );
-          })()}
+          {activeTab==='admin' && isAdmin && <AdminPortal setCurrentTenant={setCurrentTenant} setActiveTab={setActiveTab} clientBanner={clientBanner} setClientBanner={setClientBanner} adminBannerInput={adminBannerInput} setAdminBannerInput={setAdminBannerInput} />}
 
           {/* ═══════════════════════════════ MSSP PORTFOLIO ══════════════════════════ */}
           {activeTab==='mssp' && <MSSPPortfolio currentTenant={currentTenant} setCurrentTenant={setCurrentTenant} DEMO_TENANTS={DEMO_TENANTS} isAdmin={isAdmin} setActiveTab={setActiveTab} setAdminBannerInput={setAdminBannerInput} />}
