@@ -233,7 +233,8 @@ export default function DashboardPage() {
   // In production this comes from the session/JWT. Change to test paywalls.
   const [userTier, setUserTier] = useState<Tier>('community');
   const tierLevel = {community:0,team:1,business:2,mssp:3}[userTier];
-  const canUse = (min:'community'|'team'|'business'|'mssp') => tierLevel >= {community:0,team:1,business:2,mssp:3}[min];
+  const tierMap: Record<string,number> = {community:0,team:1,business:2,mssp:3};
+  const canUse = (min: Tier) => tierLevel >= tierMap[min];
 
   // ── Per-tenant demo data ──────────────────────────────────────────────────────
   const TENANT_ALERTS: Record<string, typeof DEMO_ALERTS> = {
@@ -308,14 +309,18 @@ export default function DashboardPage() {
     try {
       const resp = await fetch('/api/intel/industry', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({industry:ind}) });
       if (resp.ok) { const d = await resp.json(); setCustomIntel(d.items); }
-    } catch(e) {}
+    } catch(_e) { /* silent */ }
     setIntelLoading(false);
   }
 
   async function getVulnAiHelp(vuln:Vuln) {
     setVulnAiLoading(vuln.id);
     try {
-      const resp = await fetch('/api/copilot', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:`For ${vuln.cve} (${vuln.title}), provide information NOT covered in standard remediation docs. Structure your response with these ALL-CAPS section headers on their own lines: DETECTION QUERIES, KNOWN IOCS AND INDICATORS, COMPENSATING CONTROLS, COMMON MISTAKES, ATTACK CHAINING. Under DETECTION QUERIES use these exact sub-labels: 'SPLUNK QUERY FOR <purpose>', 'MICROSOFT SENTINEL KQL: <purpose>' (Sentinel workspace tables: SecurityEvent, SigninLogs, AuditLogs, CommonSecurityLog), 'MICROSOFT DEFENDER ADVANCED HUNTING: <purpose>' (Defender XDR tables: DeviceProcessEvents, DeviceNetworkEvents, DeviceFileEvents, IdentityLogonEvents — distinct from Sentinel). Each query immediately after its label. No markdown, no backticks, plain text.`}) });
+      const splatLabel = 'SPLUNK QUERY FOR [purpose]';
+      const sentKQL = 'MICROSOFT SENTINEL KQL: [purpose]';
+      const defKQL = 'MICROSOFT DEFENDER ADVANCED HUNTING: [purpose]';
+      const vulnPrompt = 'For ' + vuln.cve + ' (' + vuln.title + '), provide information NOT covered in standard remediation docs. Structure your response with these ALL-CAPS section headers on their own lines: DETECTION QUERIES, KNOWN IOCS AND INDICATORS, COMPENSATING CONTROLS, COMMON MISTAKES, ATTACK CHAINING. Under DETECTION QUERIES use these exact sub-labels: ' + splatLabel + ', ' + sentKQL + ' (Sentinel workspace tables: SecurityEvent, SigninLogs, AuditLogs, CommonSecurityLog), ' + defKQL + ' (Defender XDR tables: DeviceProcessEvents, DeviceNetworkEvents, DeviceFileEvents, IdentityLogonEvents). Each query immediately after its label. No markdown, no backticks, plain text.';
+      const resp = await fetch('/api/copilot', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:vulnPrompt}) });
       if (resp.ok) {
         const d = await resp.json();
         const text = d.response || d.message || 'AI response unavailable — check your Anthropic API key in the Tools tab.';
