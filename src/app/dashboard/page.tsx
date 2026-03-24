@@ -162,7 +162,7 @@ function GateWall({ feature, requiredTier, children, userTier }: GateWallProps) 
 
 // ─── AI Remediation Output Renderer ─────────────────────────────────────────
 function RemediationOutput({ text }: { text: string }) {
-  const [copied, setCopied] = useState<string|null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
 
   function copyCode(code: string, id: string) {
     navigator.clipboard.writeText(code).then(()=>{
@@ -635,15 +635,16 @@ function ToolsTab({ connected, setConnected }: { connected: ConnectedMap; setCon
 }
 
 type ModalState = { type: string; data?: unknown };
+type SetOfStrings = Set<string>;
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [automation, setAutomation] = useState<AutomationLevel>(1);
   const [modal, setModal] = useState<ModalState | null>(null);
-  const [selectedAlert, setSelectedAlert] = useState<Alert|null>(null);
-  const [selectedVuln, setSelectedVuln] = useState<Vuln|null>(null);
-  const [selectedIncident, setSelectedIncident] = useState<Incident|null>(null);
-  const [vulnAiLoading, setVulnAiLoading] = useState<string|null>(null);
+  const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
+  const [selectedVuln, setSelectedVuln] = useState<Vuln | null>(null);
+  const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
+  const [vulnAiLoading, setVulnAiLoading] = useState<string | null>(null);
   const [vulnAiTexts, setVulnAiTexts] = useState<Record<string,string>>({});
   const [industry, setIndustry] = useState('Financial Services');
   // Load persisted settings from Redis on mount
@@ -658,14 +659,14 @@ export default function DashboardPage() {
     fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:ind})}).catch(()=>{});
   }
   const [intelLoading, setIntelLoading] = useState(false);
-  const [customIntel, setCustomIntel] = useState<IntelItem[]|null>(null);
-  const [expandedAlerts, setExpandedAlerts] = useState<Set<string>>(new Set());
-  const [deployAgentDevice, setDeployAgentDevice] = useState<GapDevice|null>(null);
+  const [customIntel, setCustomIntel] = useState<IntelItem[] | null>(null);
+  const [expandedAlerts, setExpandedAlerts] = useState<SetOfStrings>(new Set());
+  const [deployAgentDevice, setDeployAgentDevice] = useState<GapDevice | null>(null);
   const [incidentStatuses, setIncidentStatuses] = useState<Record<string,string>>({});
-  const [deletedIncidents, setDeletedIncidents] = useState<Set<string>>(new Set());
+  const [deletedIncidents, setDeletedIncidents] = useState<SetOfStrings>(new Set());
   function deleteIncident(id:string) { setDeletedIncidents(prev=>new Set([...prev,id])); setSelectedIncident(null); }
-  const [gapToolFilter, setGapToolFilter] = useState<string|null>(null);
-  const [expandedIntel, setExpandedIntel] = useState<Set<string>>(new Set());
+  const [gapToolFilter, setGapToolFilter] = useState<string | null>(null);
+  const [expandedIntel, setExpandedIntel] = useState<SetOfStrings>(new Set());
   const [demoMode, setDemoMode] = useState(true);
   const [connectedTools, setConnectedTools] = useState<ConnectedMap>({});
   const [currentTenant, setCurrentTenant] = useState('global');
