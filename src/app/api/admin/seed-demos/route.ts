@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-function getTenantId(req: NextRequest): string {
-  return req.headers.get('x-tenant-id') || 'global';
+function requireAdmin(req: NextRequest): boolean {
+  return req.headers.get('x-is-admin') === 'true';
 }
 
 export async function POST(req: NextRequest) {
-  const _tenantId = getTenantId(req);
-  return NextResponse.json({"ok": true, "message": "Demo data seeded"});
+  if (!requireAdmin(req)) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
+  const _tenantId = req.headers.get('x-tenant-id') || 'global';
+  return NextResponse.json({"ok":true,"message":"Demo data seeded"});
 }
