@@ -767,20 +767,27 @@ export default function DashboardPage() {
     setIntelLoading(false);
   }
 
-  async function getVulnAiHelp(vuln) {
-    setVulnAiLoading(vuln.id);
+  async function getVulnAiHelp(vuln, queryType) {
+    const loadKey = vuln.id + ':' + queryType;
+    setVulnAiLoading(loadKey);
+    const prompts = {
+      splunk: 'For ' + vuln.cve + ' (' + vuln.title + '), write 2-3 production-ready Splunk SPL detection queries. Use realistic Splunk index/sourcetype names. Label each: SPLUNK QUERY FOR [purpose]. Immediately follow each label with the query. No markdown, no backticks, plain text only.',
+      sentinel: 'For ' + vuln.cve + ' (' + vuln.title + '), write 2-3 production-ready Microsoft Sentinel KQL detection queries using these tables: SecurityEvent, SigninLogs, AuditLogs, CommonSecurityLog, DeviceEvents. Label each: MICROSOFT SENTINEL KQL: [purpose]. Immediately follow each label with the query. No markdown, no backticks, plain text only.',
+      defender: 'For ' + vuln.cve + ' (' + vuln.title + '), write 2-3 production-ready Microsoft Defender Advanced Hunting KQL queries using these tables: DeviceProcessEvents, DeviceNetworkEvents, DeviceFileEvents, DeviceRegistryEvents, IdentityLogonEvents. Label each: MICROSOFT DEFENDER ADVANCED HUNTING: [purpose]. Immediately follow each label with the query. No markdown, no backticks, plain text only.',
+      iocs: 'For ' + vuln.cve + ' (' + vuln.title + '), provide known IOCs and threat indicators. Structure with these ALL-CAPS headers: KNOWN IP ADDRESSES, FILE HASHES, DOMAINS AND URLS, PROCESS INDICATORS, REGISTRY KEYS, MITRE TECHNIQUES. No markdown, plain text only.',
+    };
     try {
-      const resp = await fetch('/api/copilot', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:`For ${vuln.cve} (${vuln.title}), provide information NOT covered in standard remediation docs. Structure your response with these ALL-CAPS section headers on their own lines: DETECTION QUERIES, KNOWN IOCS AND INDICATORS, COMPENSATING CONTROLS, COMMON MISTAKES, ATTACK CHAINING. Under DETECTION QUERIES use these exact sub-labels: 'SPLUNK QUERY FOR [purpose]', 'MICROSOFT SENTINEL KQL: [purpose]' (Sentinel workspace tables: SecurityEvent, SigninLogs, AuditLogs, CommonSecurityLog), 'MICROSOFT DEFENDER ADVANCED HUNTING: [purpose]' (Defender XDR tables: DeviceProcessEvents, DeviceNetworkEvents, DeviceFileEvents, IdentityLogonEvents — distinct from Sentinel). Each query immediately after its label. No markdown, no backticks, plain text.`}) });
+      const resp = await fetch('/api/copilot', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt: prompts[queryType]}) });
       if (resp.ok) {
         const d = await resp.json();
         const text = d.response || d.message || 'AI response unavailable — check your Anthropic API key in the Tools tab.';
         let i = 0;
-        const interval = setInterval(()=>{ setVulnAiTexts(prev=>({...prev,[vuln.id]:text.slice(0,i)})); i++; if(i>text.length) clearInterval(interval); }, 12);
+        const interval = setInterval(()=>{ setVulnAiTexts(prev=>({...prev,[loadKey]:text.slice(0,i)})); i++; if(i>text.length) clearInterval(interval); }, 12);
       } else {
-        setVulnAiTexts(prev=>({...prev,[vuln.id]:'Request failed — check your Anthropic API key in the Tools tab and ensure it is saved.'}));
+        setVulnAiTexts(prev=>({...prev,[loadKey]:'Request failed — check your Anthropic API key in the Tools tab.'}));
       }
     } catch(e) {
-      setVulnAiTexts(prev=>({...prev,[vuln.id]:'Request failed — check your Anthropic API key in the Tools tab and ensure it is saved.'}));
+      setVulnAiTexts(prev=>({...prev,[loadKey]:'Request failed — check your Anthropic API key in the Tools tab.'}));
     }
     setVulnAiLoading(null);
   }
@@ -1269,20 +1276,44 @@ export default function DashboardPage() {
                               </div>
                             ))}
                             <div style={{marginTop:12,padding:'10px',background:'var(--wt-card2)',border:'1px solid #4f8fff18',borderRadius:8}}>
-                              <div style={{fontSize:'0.6rem',fontWeight:700,color:'#4f8fff',marginBottom:6,display:'flex',alignItems:'center',gap:6}}>
+                              <div style={{fontSize:'0.6rem',fontWeight:700,color:'#4f8fff',marginBottom:8,display:'flex',alignItems:'center',gap:6}}>
                                 <span style={{width:6,height:6,borderRadius:'50%',background:'#4f8fff',display:'block'}} />AI Remediation Assistant
                               </div>
-                              {vulnAiTexts[vuln.id] ? (
-                                <div>
-                                  <RemediationOutput text={vulnAiTexts[vuln.id]} />
-                                  <button onClick={()=>setVulnAiTexts(prev=>{const n={...prev};delete n[vuln.id];return n;})} style={{marginTop:8,fontSize:'0.6rem',padding:'2px 8px',borderRadius:4,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-dim)',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>↺ Regenerate</button>
-                                </div>
-                              ) : (
-                                <button onClick={()=>getVulnAiHelp(vuln)} disabled={vulnAiLoading===vuln.id} style={{padding:'6px 14px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.72rem',fontWeight:700,cursor:vulnAiLoading===vuln.id?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:6}}>
-                                  {vulnAiLoading===vuln.id?<span style={{display:'inline-block',width:10,height:10,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />:'✦'}
-                                  {vulnAiLoading===vuln.id?'Generating guidance…':'Ask AI for remediation help'}
-                                </button>
-                              )}
+                              <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:8}}>
+                                {[
+                                  {type:'splunk',label:'Splunk',color:'#f97316'},
+                                  {type:'sentinel',label:'Sentinel',color:'#4f8fff'},
+                                  {type:'defender',label:'Defender',color:'#22d49a'},
+                                  {type:'iocs',label:'IOCs',color:'#f0405e'},
+                                ].map(q=>{
+                                  const key = vuln.id + ':' + q.type;
+                                  const isLoading = vulnAiLoading === key;
+                                  const hasResult = !!vulnAiTexts[key];
+                                  return (
+                                    <button key={q.type} onClick={()=>getVulnAiHelp(vuln,q.type)} disabled={isLoading} style={{padding:'4px 11px',borderRadius:5,border:'1px solid ' + q.color + '40',background:hasResult ? q.color + '20' : 'transparent',color:q.color,fontSize:'0.66rem',fontWeight:700,cursor:isLoading?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4,opacity:isLoading?0.7:1}}>
+                                      {isLoading && <span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid ' + q.color,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />}
+                                      {!isLoading && hasResult && <span>✓</span>}
+                                      {!isLoading && !hasResult && <span>✦</span>}
+                                      {q.label}
+                                    </button>
+                                  );
+                                })}
+                                {['splunk','sentinel','defender','iocs'].some(t=>vulnAiTexts[vuln.id+':'+t]) && (
+                                  <button onClick={()=>setVulnAiTexts(prev=>{const n={...prev};['splunk','sentinel','defender','iocs'].forEach(t=>{delete n[vuln.id+':'+t];}); return n;})} style={{marginLeft:'auto',fontSize:'0.58rem',padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-dim)',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear all</button>
+                                )}
+                              </div>
+                              {['splunk','sentinel','defender','iocs'].map(t=>{
+                                const key = vuln.id + ':' + t;
+                                if (!vulnAiTexts[key]) return null;
+                                const colors = {splunk:'#f97316',sentinel:'#4f8fff',defender:'#22d49a',iocs:'#f0405e'};
+                                const labels = {splunk:'Splunk SPL',sentinel:'Sentinel KQL',defender:'Defender KQL',iocs:'IOCs'};
+                                return (
+                                  <div key={t} style={{marginBottom:8}}>
+                                    <div style={{fontSize:'0.58rem',fontWeight:700,color:colors[t],marginBottom:4,textTransform:'uppercase',letterSpacing:'0.5px'}}>{labels[t]}</div>
+                                    <RemediationOutput text={vulnAiTexts[key]} />
+                                  </div>
+                                );
+                              })}
                             </div>
                           </div>
                         </div>
