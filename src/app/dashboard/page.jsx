@@ -1,4 +1,5 @@
 'use client';
+import './dashboard.css';
 import React, { useState, useEffect } from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -338,9 +339,12 @@ function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS }) {
                         </div>
                         <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:1}}>Last seen {client.lastSeen} · {client.seats} seats</div>
                       </div>
-                      <button onClick={()=>setCurrentTenant(client.id)} style={{padding:'5px 12px',borderRadius:7,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>
-                        {isSelected?'Viewing':'Switch →'}
-                      </button>
+                      <div style={{display:'flex',gap:5,flexShrink:0}}>
+                        <button onClick={()=>{setCurrentTenant(client.id);setActiveTab('overview');}} style={{padding:'5px 12px',borderRadius:7,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.66rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                          {isSelected?'● Viewing':'View Dashboard →'}
+                        </button>
+                        <button onClick={()=>{setAdminBannerInput('['+client.name+'] ');setActiveTab('admin');}} style={{padding:'5px 10px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.66rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}} title='Send message to this client'>📢</button>
+                      </div>
                     </div>
 
                     {/* Revenue view */}
@@ -620,7 +624,17 @@ function ToolsTab({ connected, setConnected }) {
                   <span style={{fontSize:'0.82rem',fontWeight:700}}>{tool.name}</span>
                   <span style={{fontSize:'0.5rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff18'}}>{tool.category}</span>
                 </div>
-                <div style={{fontSize:'0.64rem',color:'var(--wt-muted)'}}>{isOn?'Connected — syncing alerts':''+tool.desc}</div>
+                <div style={{fontSize:'0.64rem',color:isOn?'#22d49a':'var(--wt-muted)',display:'flex',alignItems:'center',gap:4}}>
+                  {isOn && <span style={{width:5,height:5,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 5px #22c992',display:'block'}} />}
+                  {isOn ? 'Connected' : tool.desc}
+                </div>
+                {isOn && connected[tool.id] && (
+                  <div style={{fontSize:'0.58rem',color:'var(--wt-dim)',marginTop:2}}>
+                    {Object.entries(connected[tool.id]).filter(([k])=>!k.includes('secret')&&!k.includes('password')&&!k.includes('token')&&!k.includes('key')).slice(0,2).map(([k,v])=>(
+                      <span key={k} style={{marginRight:8}}>{k}: <span style={{fontFamily:'JetBrains Mono,monospace'}}>{String(v).slice(0,20)}</span></span>
+                    ))}
+                  </div>
+                )}
               </div>
               {isOn
                 ? <button onClick={()=>{if(window.confirm('Disconnect '+tool.name+'?')) handleDisconnect(tool.id);}} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #f0405e30',background:'#f0405e10',color:'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:5}}>🗑 Disconnect</button>
@@ -661,7 +675,7 @@ function ToolsTab({ connected, setConnected }) {
   );
 }
 
-const DASHBOARD_CSS = '\n        *{margin:0;padding:0;box-sizing:border-box}\n        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}\n        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}\n\n        /* ── Dark theme (default) ── */\n        .wt-root {\n          --wt-bg: #050508;\n          --wt-sidebar: #07080f;\n          --wt-card: #09091a;\n          --wt-card2: #0a0d14;\n          --wt-border: #141820;\n          --wt-border2: #1e2536;\n          --wt-text: #e8ecf4;\n          --wt-muted: #6b7a94;\n          --wt-secondary: #8a9ab0;\n          --wt-dim: #3a4050;\n        }\n        /* ── Light theme ── */\n        .wt-root.light {\n          --wt-bg: #f5f6fa;\n          --wt-sidebar: #ffffff;\n          --wt-card: #ffffff;\n          --wt-card2: #f0f2f8;\n          --wt-border: #e2e5ef;\n          --wt-border2: #c8cedd;\n          --wt-text: #0f1117;\n          --wt-muted: #5a6580;\n          --wt-secondary: #4a5568;\n          --wt-dim: #8090a8;\n        }\n\n        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap;color:var(--wt-muted)}\n        .tab-btn.active{background:#4f8fff18;color:#4f8fff}\n        .tab-btn:not(.active) {color:var(--wt-secondary);background:var(--wt-card2)}\n        .row-hover{transition:background .12s}\n        .row-hover:hover{background:var(--wt-card2)!important}\n        .vuln-row:hover{background:var(--wt-card2)!important;cursor:pointer}\n        .alert-card{border-radius:10px;border:1px solid var(--wt-border);background:var(--wt-card);transition:border-color .15s}\n        .alert-card:hover{border-color:#4f8fff28}\n      ';
+// CSS moved to dashboard.css
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -708,8 +722,10 @@ export default function DashboardPage() {
   const [clientBanner, setClientBanner] = useState(null);
   const [adminBannerInput, setAdminBannerInput] = useState('');
   const [connectedTools, setConnectedTools] = useState({});
+  const [credentialsLoaded, setCredentialsLoaded] = useState(false);
   const [liveAlerts, setLiveAlerts] = useState([]);
-  const [liveVulns, setLiveVulns] = useState([]);
+  const [syncStatus, setSyncStatus] = useState('idle'); // idle | syncing | ok | error
+  const [syncError, setSyncError] = useState(null);
   const [lastSynced, setLastSynced] = useState(null);
   const [currentTenant, setCurrentTenant] = useState('global');
 
@@ -717,14 +733,19 @@ export default function DashboardPage() {
   useEffect(()=>{
     fetch('/api/integrations/credentials')
       .then(r=>r.json())
-      .then(d=>{ if (d.connected && Object.keys(d.connected).length > 0) setConnectedTools(d.connected); })
-      .catch(()=>{});
+      .then(d=>{
+        if (d.connected && Object.keys(d.connected).length > 0) setConnectedTools(d.connected);
+        setCredentialsLoaded(true);
+      })
+      .catch(()=>{ setCredentialsLoaded(true); });
   },[]);
 
-  // Sync live data from connected tools when in LIVE mode
+  // Sync live data — only after credentials loaded, only in LIVE mode
   useEffect(()=>{
-    if (demoMode || Object.keys(connectedTools).length === 0) return;
+    if (!credentialsLoaded || demoMode || Object.keys(connectedTools).length === 0) return;
     const doSync = () => {
+      setSyncStatus('syncing');
+      setSyncError(null);
       const integrations = Object.entries(connectedTools).map(([id, credentials]) => ({id, credentials}));
       fetch('/api/integrations/sync', {
         method: 'POST',
@@ -735,17 +756,24 @@ export default function DashboardPage() {
       .then(d=>{
         if (d.results) {
           const allAlerts = d.results.flatMap(r => r.alerts || []);
-          if (allAlerts.length > 0) setLiveAlerts(allAlerts);
+          setLiveAlerts(allAlerts);
+          // Check for per-tool errors
+          const errors = d.results.filter(r=>r.error).map(r=>`${r.toolId}: ${r.error}`);
+          if (errors.length > 0) { setSyncError(errors.join(' · ')); setSyncStatus('error'); }
+          else { setSyncStatus('ok'); }
+        } else {
+          setSyncStatus('error'); setSyncError(d.error || 'Sync failed');
         }
-        setLastSynced(new Date().toISOString());
+        setLastSynced(new Date().toLocaleTimeString());
       })
-      .catch(()=>{});
+      .catch(e=>{ setSyncStatus('error'); setSyncError(e.message); });
     };
     doSync();
-    const interval = setInterval(doSync, 60000); // re-sync every 60s
+    const interval = setInterval(doSync, 60000);
     return () => clearInterval(interval);
-  },[demoMode, connectedTools]);
-  const [isAdmin] = useState(true); // Replace with real auth check
+  },[demoMode, connectedTools, credentialsLoaded]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [sessionLoaded, setSessionLoaded] = useState(false);
   const [userTier, setUserTier] = useState('community');
   const [theme, setTheme] = useState('dark');
 
@@ -760,6 +788,23 @@ export default function DashboardPage() {
   function toggleIntel(id) {
     setExpandedIntel(prev => { const n = new Set(prev); n.has(id)?n.delete(id):n.add(id); return n; });
   }
+
+  // Load session — check auth and get isAdmin from server
+  useEffect(()=>{
+    fetch('/api/auth/session')
+      .then(r=>r.json())
+      .then(d=>{
+        if (d.authenticated) {
+          setIsAdmin(d.isAdmin || false);
+          if (d.tenantId) setCurrentTenant(d.tenantId);
+        } else {
+          // Not authenticated — redirect to login (or allow demo mode)
+          // For now: allow dashboard access but mark as not admin
+        }
+        setSessionLoaded(true);
+      })
+      .catch(()=>{ setSessionLoaded(true); });
+  },[]);
 
   // Theme preference intentionally uses localStorage — it must apply synchronously
   // before React hydrates to avoid a dark→light flash. Not user data, pure display state.
@@ -802,31 +847,23 @@ export default function DashboardPage() {
     'client-gov': DEMO_INCIDENTS.slice(0,1).map(i=>({...i, id:'INC-GOV-01', title:'[Gov] '+i.title})),
   };
 
-  // Merge DEMO_TOOLS with connectedTools so the overview reflects real connections
-  // Any tool in connectedTools is active; DEMO_TOOLS provides the base list + demo-active tools
+  // Tool status: in DEMO show demo-active tools; in LIVE show connected tools
   const tools = ALL_TOOLS.map(t => {
     const isConnected = !!connectedTools[t.id];
     const demo = DEMO_TOOLS.find(d=>d.id===t.id);
     return {
-      id: t.id,
-      name: t.name,
-      configured: isConnected || (demo?.configured || false),
-      active: isConnected || (demo?.active || false),
+      id: t.id, name: t.name,
+      configured: isConnected || (!demoMode ? false : (demo?.configured || false)),
+      active: demoMode ? (demo?.active || false) : isConnected,
       alertCount: demo?.alertCount,
     };
-  }).filter(t => t.active || DEMO_TOOLS.find(d=>d.id===t.id));
-  // Use live alerts from API when in LIVE mode and we have them, otherwise demo data
-  const rawAlerts = (!demoMode && liveAlerts.length > 0) 
-    ? liveAlerts 
-    : (TENANT_ALERTS[currentTenant] || DEMO_ALERTS);
-  // When a tool is connected, suppress demo alerts from that source
-  // (real alerts from the API would replace them)
-  const connectedToolNames = new Set(Object.keys(connectedTools).map(id=>
-    ALL_TOOLS.find(t=>t.id===id)?.name.split(' ')[0].toLowerCase() || id
-  ));
-  const alerts = demoMode && Object.keys(connectedTools).length > 0
-    ? rawAlerts.filter(a => !connectedToolNames.has(a.source.toLowerCase().split(' ')[0]))
-    : rawAlerts;
+  }).filter(t => demoMode ? DEMO_TOOLS.find(d=>d.id===t.id) : t.active);
+
+  // DEMO: always use demo data. LIVE: use live data if available, else empty (not demo)
+  const rawAlerts = demoMode
+    ? (TENANT_ALERTS[currentTenant] || DEMO_ALERTS)
+    : liveAlerts;
+  const alerts = rawAlerts;
   const vulns = TENANT_VULNS[currentTenant] || DEMO_VULNS;
   const incidents = TENANT_INCIDENTS[currentTenant] || DEMO_INCIDENTS;
 
@@ -910,7 +947,7 @@ export default function DashboardPage() {
 
   return (
     <div className={`wt-root${theme === 'light' ? ' light' : ''}`} style={{display:'flex',minHeight:'100vh',background:'var(--wt-bg)',color:'var(--wt-text)',fontFamily:'Inter,sans-serif'}}>
-      <style dangerouslySetInnerHTML={{__html:DASHBOARD_CSS}} />
+      {/* CSS loaded via dashboard.css import */}
 
       {/* SIDEBAR */}
       <div style={{width:48,background:'var(--wt-sidebar)',borderRight:'1px solid #141820',display:'flex',flexDirection:'column',alignItems:'center',padding:'10px 0',gap:4,flexShrink:0}}>
@@ -994,14 +1031,45 @@ export default function DashboardPage() {
             </div>
             )}
             <div style={{display:'flex',alignItems:'center',gap:5,fontSize:'0.7rem',color:'var(--wt-muted)'}}>
-              <span style={{width:6,height:6,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',display:'block',animation:'pulse 2s ease infinite'}} />
-              {activeTools.length} tools live
+              {demoMode ? (
+                <><span style={{width:6,height:6,borderRadius:'50%',background:'#f0a030',display:'block'}} />{tools.filter(t=>t.active).length} tools (demo)</>
+              ) : syncStatus==='syncing' ? (
+                <><span style={{width:8,height:8,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}} /><span style={{color:'#4f8fff'}}>Syncing…</span></>
+              ) : syncStatus==='error' ? (
+                <><span style={{width:6,height:6,borderRadius:'50%',background:'#f0405e',display:'block'}} /><span style={{color:'#f0405e'}} title={syncError||''}>Sync error</span></>
+              ) : syncStatus==='ok' ? (
+                <><span style={{width:6,height:6,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',display:'block',animation:'pulse 2s ease infinite'}} />{tools.filter(t=>t.active).length} live · {lastSynced}</>
+              ) : (
+                <><span style={{width:6,height:6,borderRadius:'50%',background:'#6b7a94',display:'block'}} />{Object.keys(connectedTools).length} connected</>
+              )}
             </div>
           </div>
         </div>
 
         {/* CONTENT */}
         <div style={{flex:1,overflow:'auto',padding:'16px 18px',background:'var(--wt-bg)'}}>
+
+          {/* LIVE MODE — no data yet banner */}
+          {!demoMode && liveAlerts.length === 0 && Object.keys(connectedTools).length > 0 && (
+            <div style={{padding:'12px 16px',background:'#4f8fff08',border:'1px solid #4f8fff20',borderRadius:10,marginBottom:14,display:'flex',alignItems:'center',gap:10}}>
+              {syncStatus==='syncing' ? <span style={{width:12,height:12,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite',flexShrink:0}} /> : <span style={{fontSize:'0.9rem'}}>📡</span>}
+              <div>
+                <div style={{fontSize:'0.74rem',fontWeight:700,color:'#4f8fff'}}>{syncStatus==='syncing'?'Fetching live data from connected tools…':'Live mode — awaiting first sync'}</div>
+                {syncError && <div style={{fontSize:'0.64rem',color:'#f0405e',marginTop:2}}>{syncError}</div>}
+                {!syncError && syncStatus!=='syncing' && <div style={{fontSize:'0.64rem',color:'var(--wt-muted)',marginTop:1}}>Connected: {Object.keys(connectedTools).join(', ')} · Data syncs every 60s</div>}
+              </div>
+            </div>
+          )}
+          {!demoMode && Object.keys(connectedTools).length === 0 && (
+            <div style={{padding:'12px 16px',background:'#f0a03008',border:'1px solid #f0a03020',borderRadius:10,marginBottom:14,display:'flex',alignItems:'center',gap:10}}>
+              <span style={{fontSize:'0.9rem'}}>🔌</span>
+              <div>
+                <div style={{fontSize:'0.74rem',fontWeight:700,color:'#f0a030'}}>No tools connected — switch to Demo mode or connect a tool</div>
+                <div style={{fontSize:'0.64rem',color:'var(--wt-muted)',marginTop:1}}>Go to the Tools tab to connect Taegis, Tenable, CrowdStrike and more</div>
+              </div>
+              <button onClick={()=>setDemoMode(true)} style={{marginLeft:'auto',padding:'5px 12px',borderRadius:6,border:'1px solid #f0a03030',background:'#f0a03010',color:'#f0a030',fontSize:'0.66rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Switch to Demo</button>
+            </div>
+          )}
 
           {/* ═══════════════════════════════ OVERVIEW ═══════════════════════════════ */}
           {activeTab==='overview' && (
@@ -1719,35 +1787,58 @@ export default function DashboardPage() {
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Admin Portal</h2>
                 <span style={{fontSize:'0.62rem',color:'#f0a030',background:'#f0a03012',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025'}}>Admin Only</span>
               </div>
+
+              {/* Platform Stats */}
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+                {[
+                  {label:'Active Clients',val:'4',color:'#4f8fff'},
+                  {label:'API Calls Today',val:'2,847',color:'#22d49a'},
+                  {label:'Alerts Triaged',val:'312',color:'#f0a030'},
+                  {label:'MRR',val:'£891',color:'#8b6fff'},
+                  {label:'Uptime',val:'99.97%',color:'#22d49a'},
+                  {label:'Avg Response',val:'1.2s',color:'#4f8fff'},
+                ].map(s=>(
+                  <div key={s.label} style={{padding:'14px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:10}}>
+                    <div style={{fontSize:'1.4rem',fontWeight:900,color:s.color,fontFamily:'JetBrains Mono,monospace',letterSpacing:-1}}>{s.val}</div>
+                    <div style={{fontSize:'0.6rem',color:'var(--wt-muted)',marginTop:2}}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Per-client management */}
+              <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
+                <div style={{fontSize:'0.72rem',fontWeight:700,marginBottom:12,color:'var(--wt-text)'}}>Client Management</div>
+                {[
+                  {id:'client-acme',  name:'Acme Financial',  plan:'Business', status:'Active',  posture:82, alerts:8},
+                  {id:'client-nhs',   name:'NHS Trust Alpha', plan:'Business', status:'Active',  posture:71, alerts:15},
+                  {id:'client-retail',name:'RetailCo UK',     plan:'Team',     status:'Active',  posture:91, alerts:4},
+                  {id:'client-gov',   name:'Gov Dept Beta',   plan:'Business', status:'Overdue', posture:78, alerts:9},
+                ].map(c=>(
+                  <div key={c.id} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',background:'var(--wt-card2)',borderRadius:8,marginBottom:6,border:`1px solid ${c.status==='Overdue'?'#f0405e20':'var(--wt-border)'}`}}>
+                    <div style={{flex:1}}>
+                      <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:2}}>
+                        <span style={{fontSize:'0.78rem',fontWeight:700}}>{c.name}</span>
+                        <span style={{fontSize:'0.52rem',padding:'1px 6px',borderRadius:3,background:c.status==='Overdue'?'#f0405e15':'#22d49a12',color:c.status==='Overdue'?'#f0405e':'#22d49a',fontWeight:700}}>{c.status}</span>
+                        <span style={{fontSize:'0.52rem',color:'var(--wt-dim)'}}>{c.plan}</span>
+                      </div>
+                      <div style={{fontSize:'0.62rem',color:'var(--wt-muted)'}}>Posture: {c.posture}% · {c.alerts} alerts</div>
+                    </div>
+                    <button onClick={()=>{setCurrentTenant(c.id);setActiveTab('overview');}} style={{padding:'4px 10px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>View Dashboard →</button>
+                    <button onClick={()=>{setAdminBannerInput(`[${c.name}] `);}} style={{padding:'4px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.62rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📢 Message</button>
+                    {c.status==='Overdue' && <button style={{padding:'4px 10px',borderRadius:6,border:'1px solid #f97316',background:'#f9731610',color:'#f97316',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Chase Payment</button>}
+                  </div>
+                ))}
+              </div>
+
               {/* Message Banner */}
               <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
-                <div style={{fontSize:'0.72rem',fontWeight:700,marginBottom:10,color:'#f0a030'}}>📢 Client Message Banner</div>
-                <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginBottom:10,lineHeight:1.6}}>Send a dismissable banner message to all clients. Useful for maintenance notices, security alerts, or announcements.</div>
-                <textarea value={adminBannerInput} onChange={e=>setAdminBannerInput(e.target.value)} placeholder='e.g. Scheduled maintenance Sunday 02:00–04:00 UTC. Dashboard may be briefly unavailable.' rows={3} style={{width:'100%',padding:'8px 10px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.74rem',fontFamily:'Inter,sans-serif',resize:'vertical',outline:'none',boxSizing:'border-box'}} />
+                <div style={{fontSize:'0.72rem',fontWeight:700,marginBottom:8,color:'#f0a030'}}>📢 Broadcast Banner to All Clients</div>
+                <textarea value={adminBannerInput} onChange={e=>setAdminBannerInput(e.target.value)} placeholder='e.g. Scheduled maintenance Sunday 02:00–04:00 UTC. Dashboard may be briefly unavailable.' rows={2} style={{width:'100%',padding:'8px 10px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.74rem',fontFamily:'Inter,sans-serif',resize:'none',outline:'none',boxSizing:'border-box'}} />
                 <div style={{display:'flex',gap:8,marginTop:8}}>
-                  <button onClick={()=>{setClientBanner(adminBannerInput.trim()||null);setAdminBannerInput('');fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientBanner:adminBannerInput.trim()||''})}).catch(()=>{});}} style={{padding:'6px 16px',borderRadius:7,border:'none',background:'#f0a030',color:'#fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Publish Banner</button>
+                  <button onClick={()=>{if(!adminBannerInput.trim())return;setClientBanner(adminBannerInput.trim());setAdminBannerInput('');fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientBanner:adminBannerInput.trim()})}).catch(()=>{});}} style={{padding:'6px 16px',borderRadius:7,border:'none',background:'#f0a030',color:'#fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Publish to All</button>
                   {clientBanner && <button onClick={()=>{setClientBanner(null);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientBanner:''})}).catch(()=>{});}} style={{padding:'6px 14px',borderRadius:7,border:'1px solid #f0405e30',background:'#f0405e0a',color:'#f0405e',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear Banner</button>}
                 </div>
-                {clientBanner && <div style={{marginTop:10,padding:'8px 12px',background:'#f0a03012',border:'1px solid #f0a03030',borderRadius:7,fontSize:'0.7rem',color:'#f0a030'}}>Active: {clientBanner}</div>}
-              </div>
-              {/* Platform Stats */}
-              <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
-                <div style={{fontSize:'0.72rem',fontWeight:700,marginBottom:12,color:'var(--wt-text)'}}>Platform Usage</div>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
-                  {[
-                    {label:'Active Clients',val:'4',color:'#4f8fff'},
-                    {label:'API Calls Today',val:'2,847',color:'#22d49a'},
-                    {label:'Alerts Triaged',val:'312',color:'#f0a030'},
-                    {label:'MRR',val:'£891',color:'#8b6fff'},
-                    {label:'Uptime',val:'99.97%',color:'#22d49a'},
-                    {label:'Avg Response',val:'1.2s',color:'#4f8fff'},
-                  ].map(s=>(
-                    <div key={s.label} style={{padding:'12px',background:'var(--wt-card2)',borderRadius:8,border:'1px solid var(--wt-border)'}}>
-                      <div style={{fontSize:'1.3rem',fontWeight:900,color:s.color,fontFamily:'JetBrains Mono,monospace',letterSpacing:-1}}>{s.val}</div>
-                      <div style={{fontSize:'0.6rem',color:'var(--wt-muted)',marginTop:2}}>{s.label}</div>
-                    </div>
-                  ))}
-                </div>
+                {clientBanner && <div style={{marginTop:8,padding:'8px 12px',background:'#f0a03012',border:'1px solid #f0a03030',borderRadius:7,fontSize:'0.7rem',color:'#f0a030'}}>📢 Active: {clientBanner}</div>}
               </div>
             </div>
           )}

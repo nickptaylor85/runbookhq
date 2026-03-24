@@ -1,66 +1,100 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default function Login() {
+export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [totpCode, setTotpCode] = useState('');
-  const [needs2fa, setNeeds2fa] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const router = useRouter();
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);setError('');
+    setLoading(true);
+    setError('');
     try {
-      const r = await fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, totpCode: needs2fa ? totpCode : undefined }) });
-      const d = await r.json();
-      if (d.ok) window.location.href = '/dashboard';
-      else if (d.requires2fa) { setNeeds2fa(true); setError(''); }
-      else setError(d.error || 'Invalid credentials');
-    } catch(e) { setError('Network error'); }
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json() as { ok?: boolean; error?: string };
+      if (res.ok && data.ok) {
+        router.push('/dashboard');
+      } else {
+        setError(data.error || 'Login failed');
+      }
+    } catch {
+      setError('Network error — please try again');
+    }
     setLoading(false);
   }
 
-  return (<>
-    <style dangerouslySetInnerHTML={{__html: CSS}} />
-    <div className="auth-page">
-      <div className="auth-card">
-        <div className="auth-logo"><div className="auth-logo-icon">W</div>Watchtower</div>
-        <h1 className="auth-title">{needs2fa ? 'Two-Factor Authentication' : 'Welcome back'}</h1>
-        <p className="auth-sub">{needs2fa ? 'Enter the code from your authenticator app.' : 'Sign in to your SOC dashboard.'}</p>
-        <form onSubmit={handleLogin}>
-          {!needs2fa && <>
-            <div className="auth-field"><label>Email</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@company.com" required /></div>
-            <div className="auth-field"><label>Password</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Password" required /></div>
-          </>}
-          {needs2fa && <div className="auth-field"><label>Authenticator Code</label><input type="text" value={totpCode} onChange={e=>setTotpCode(e.target.value.replace(/\D/g,'').substring(0,6))} placeholder="000000" required autoFocus maxLength={6} style={{fontSize:'1.5rem',textAlign:'center',letterSpacing:'8px',fontFamily:'JetBrains Mono,monospace'}} /></div>}
-          {error && <div className="auth-error">{error}</div>}
-          <button className="auth-btn" type="submit" disabled={loading}>{loading ? 'Verifying...' : needs2fa ? 'Verify →' : 'Sign In'}</button>
-        </form>
-        {needs2fa && <button onClick={()=>{setNeeds2fa(false);setTotpCode('');setError('')}} style={{background:'none',border:'none',color:'#3b8bff',cursor:'pointer',fontSize:'.76rem',marginTop:12,display:'block',textAlign:'center',width:'100%'}}>← Back to login</button>}
-        {!needs2fa && <p className="auth-link">No account yet? <a href="/signup">Start free trial</a></p>}
+  return (
+    <div style={{ minHeight:'100vh', background:'#050508', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter,sans-serif', color:'#e8ecf4' }}>
+      <div style={{ width:'100%', maxWidth:380, padding:'0 24px' }}>
+        {/* Logo */}
+        <div style={{ textAlign:'center', marginBottom:32 }}>
+          <a href="/" style={{ display:'inline-flex', alignItems:'center', gap:8, textDecoration:'none', color:'inherit' }}>
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+              <rect width="32" height="32" rx="9" fill="url(#lg)"/>
+              <path d="M16 6L24 10V18C24 22 20.5 25.5 16 27C11.5 25.5 8 22 8 18V10L16 6Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" strokeWidth="0.8"/>
+              <path d="M13 16.5L15 18.5L19.5 13.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <defs><linearGradient id="lg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse"><stop stopColor="#3b7fff"/><stop offset="1" stopColor="#7c3aff"/></linearGradient></defs>
+            </svg>
+            <span style={{ fontWeight:800, fontSize:'1.1rem' }}>Watchtower</span>
+          </a>
+        </div>
+
+        <div style={{ background:'#0a0d14', border:'1px solid #1e2536', borderRadius:16, padding:'28px 28px' }}>
+          <h1 style={{ fontSize:'1.2rem', fontWeight:800, marginBottom:4 }}>Sign in</h1>
+          <p style={{ fontSize:'0.78rem', color:'#6b7a94', marginBottom:24 }}>Access your SOC dashboard</p>
+
+          <form onSubmit={handleLogin}>
+            <div style={{ marginBottom:14 }}>
+              <label style={{ display:'block', fontSize:'0.72rem', color:'#6b7a94', fontWeight:600, marginBottom:6 }}>Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                placeholder="you@company.com"
+                style={{ width:'100%', padding:'10px 12px', background:'#070a14', border:'1px solid #1e2536', borderRadius:8, color:'#e8ecf4', fontSize:'0.88rem', fontFamily:'Inter,sans-serif', outline:'none', boxSizing:'border-box' }}
+              />
+            </div>
+            <div style={{ marginBottom:20 }}>
+              <label style={{ display:'block', fontSize:'0.72rem', color:'#6b7a94', fontWeight:600, marginBottom:6 }}>Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                placeholder="••••••••••"
+                style={{ width:'100%', padding:'10px 12px', background:'#070a14', border:'1px solid #1e2536', borderRadius:8, color:'#e8ecf4', fontSize:'0.88rem', fontFamily:'JetBrains Mono,monospace', outline:'none', boxSizing:'border-box' }}
+              />
+            </div>
+            {error && (
+              <div style={{ marginBottom:16, padding:'8px 12px', background:'#f0405e0a', border:'1px solid #f0405e30', borderRadius:7, fontSize:'0.76rem', color:'#f0405e' }}>
+                {error}
+              </div>
+            )}
+            <button
+              type="submit"
+              disabled={loading}
+              style={{ width:'100%', padding:'11px', background: loading ? '#3a3a5a' : '#4f8fff', border:'none', borderRadius:9, color:'#fff', fontWeight:700, fontSize:'0.9rem', cursor: loading ? 'not-allowed' : 'pointer', fontFamily:'Inter,sans-serif', transition:'background .15s' }}
+            >
+              {loading ? 'Signing in…' : 'Sign in →'}
+            </button>
+          </form>
+
+          <p style={{ marginTop:20, textAlign:'center', fontSize:'0.72rem', color:'#3a4050' }}>
+            Don&apos;t have an account? <a href="/signup" style={{ color:'#4f8fff', textDecoration:'none', fontWeight:600 }}>Sign up</a>
+          </p>
+        </div>
       </div>
     </div>
-  </>);
+  );
 }
-
-const CSS = `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@600&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}body{background:#050508;color:#e6ecf8;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
-.auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 50% 30%,rgba(91,154,255,.04),transparent 60%)}
-.auth-card{width:100%;max-width:420px;background:linear-gradient(145deg,#0b0f18,#10141e);border:1px solid #1a2030;border-radius:20px;padding:40px 32px}
-.auth-logo{display:flex;align-items:center;gap:8px;font-weight:900;font-size:1rem;margin-bottom:28px;justify-content:center}
-.auth-logo-icon{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#3b8bff,#7c6aff);display:flex;align-items:center;justify-content:center;font-size:.65rem;color:#fff;font-weight:900}
-.auth-title{font-size:1.4rem;font-weight:900;letter-spacing:-1px;text-align:center;margin-bottom:6px}
-.auth-sub{font-size:.78rem;color:#8a9ab8;text-align:center;margin-bottom:28px}
-.auth-field{margin-bottom:16px}
-.auth-field label{display:block;font-size:.72rem;font-weight:600;color:#8a9ab8;margin-bottom:5px}
-.auth-field input{width:100%;padding:10px 14px;background:#10141e;border:1px solid #252e42;border-radius:10px;color:#e6ecf8;font-size:.85rem;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s}
-.auth-field input:focus{border-color:#3b8bff}
-.auth-field input::placeholder{color:#50607a}
-.auth-error{background:rgba(255,68,102,.1);border:1px solid rgba(255,68,102,.15);color:#f0405e;padding:8px 12px;border-radius:8px;font-size:.76rem;margin-bottom:12px}
-.auth-btn{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#3b8bff,#7c6aff);color:#fff;font-size:.88rem;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;transition:all .25s;box-shadow:0 4px 16px rgba(91,154,255,.25);margin-top:4px}
-.auth-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(91,154,255,.35)}
-.auth-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
-.auth-link{text-align:center;margin-top:20px;font-size:.76rem;color:#50607a}
-.auth-link a{color:#3b8bff;text-decoration:none;font-weight:600}`;

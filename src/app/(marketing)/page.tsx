@@ -493,7 +493,12 @@ export default function LandingPage() {
       <footer className='section' style={{ borderTop:'1px solid #141820', padding:'20px 28px' }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', maxWidth:1100, margin:'0 auto' }}>
           <a href='/' style={{ display:'flex', alignItems:'center', gap:7, fontWeight:800, fontSize:'0.9rem' }}>
-            <div style={{ width:22,height:22,borderRadius:6,background:'linear-gradient(135deg,#4f8fff,#8b6fff)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.55rem',color:'#fff',fontWeight:900 }}>W</div>
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" style={{flexShrink:0}}>
+              <rect width="22" height="22" rx="6" fill="url(#fg)"/>
+              <path d="M11 4L17.5 7V12.5C17.5 15.5 14.8 18 11 19C7.2 18 4.5 15.5 4.5 12.5V7L11 4Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" strokeWidth="0.6"/>
+              <path d="M9 11.5L10.5 13L13.5 10" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <defs><linearGradient id="fg" x1="0" y1="0" x2="22" y2="22" gradientUnits="userSpaceOnUse"><stop stopColor="#3b7fff"/><stop offset="1" stopColor="#7c3aff"/></linearGradient></defs>
+            </svg>
             Watchtower
           </a>
           <div style={{ display:'flex', gap:18 }}>

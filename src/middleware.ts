@@ -1,47 +1,76 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { createHmac } from 'crypto';
 
-export function middleware(request: NextRequest) {
-  const path = request.nextUrl.pathname;
+// Simple session verification - inline to avoid import issues in edge runtime
+function verifySessionToken(token: string): { userId: string; tenantId: string; isAdmin: boolean } | null {
+  try {
+    const secret = process.env.WATCHTOWER_SESSION_SECRET || 'watchtower-dev-session-secret';
+    const [encoded, sig] = token.split('.');
+    if (!encoded || !sig) return null;
+    const expectedSig = createHmac('sha256', secret).update(encoded).digest('base64url');
+    if (sig !== expectedSig) return null;
+    const payload = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8'));
+    if (Date.now() - payload.iat > 86400000) return null; // 24h expiry
+    return payload;
+  } catch {
+    return null;
+  }
+}
 
-  // Public routes
-  if (path === '/' || path.startsWith('/login') || path.startsWith('/signup') || path.startsWith('/demo') || path.startsWith('/pricing') || path.startsWith('/api/auth') || path.startsWith('/api/stripe') || path.startsWith('/_next')) {
+// Routes that don't require auth
+const PUBLIC_PATHS = ['/', '/demo', '/pricing', '/guide', '/login', '/signup',
+  '/stripe/success', '/api/auth/login', '/api/auth/logout', '/api/stripe/webhook',
+  '/_next/', '/favicon', '/robots.txt', '/sitemap'];
+
+export function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
+  // Allow public paths
+  if (PUBLIC_PATHS.some(p => pathname.startsWith(p))) {
     return NextResponse.next();
   }
 
-  // API routes: accept cookie OR API key
-  if (path.startsWith('/api/')) {
-    const authCookie = request.cookies.get('secops-auth');
-    const apiKey = request.headers.get('x-api-key') || request.headers.get('authorization')?.replace('Bearer ', '');
-
-    // API key auth (validated in the route handler via validateApiKey)
-    if (apiKey && apiKey.startsWith('wt_')) {
-      return NextResponse.next();
-    }
-
-    // Cookie auth
-    if (authCookie?.value) {
-      const dashPw = process.env.DASHBOARD_PASSWORD;
-      if ((dashPw && authCookie.value === dashPw) || authCookie.value.includes('@')) {
-        return NextResponse.next();
-      }
-    }
-
-    return NextResponse.json({ error: 'Unauthorized. Provide a valid session cookie or X-API-Key header.' }, { status: 401 });
-  }
-
-  // Dashboard/settings/admin routes: cookie only
-  const authCookie = request.cookies.get('secops-auth');
-  if (!authCookie?.value) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  const dashPw = process.env.DASHBOARD_PASSWORD;
-  if ((dashPw && authCookie.value === dashPw) || authCookie.value.includes('@')) {
+  // Allow dashboard (client-side rendered, auth checked client-side for now)
+  if (pathname === '/dashboard') {
     return NextResponse.next();
   }
 
-  return NextResponse.redirect(new URL('/login', request.url));
+  // All /api/* routes require authentication
+  if (pathname.startsWith('/api/')) {
+    // Check session cookie
+    const sessionToken = req.cookies.get('wt_session')?.value;
+    
+    // Check X-API-Key header (for programmatic access)
+    const apiKey = req.headers.get('x-api-key');
+    const masterKey = process.env.WATCHTOWER_API_KEY;
+
+    let session = null;
+
+    if (sessionToken) {
+      session = verifySessionToken(sessionToken);
+    } else if (apiKey && masterKey && apiKey === masterKey) {
+      // Master API key — full access
+      const res = NextResponse.next();
+      res.headers.set('x-auth-method', 'api-key');
+      return res;
+    }
+
+    if (!session) {
+      return NextResponse.json(
+        { error: 'Unauthorized. Provide a valid session cookie or X-API-Key header.' },
+        { status: 401 }
+      );
+    }
+
+    // Inject verified identity into headers for API routes to use
+    const res = NextResponse.next();
+    res.headers.set('x-user-id', session.userId);
+    res.headers.set('x-tenant-id', session.tenantId);
+    res.headers.set('x-is-admin', String(session.isAdmin));
+    return res;
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {
