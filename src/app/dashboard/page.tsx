@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type SevKey = 'Critical'|'High'|'Medium'|'Low';
@@ -11,6 +11,11 @@ interface GapDevice { hostname:string; ip:string; os:string; missing:string[]; r
 interface Vuln { id:string; cve:string; title:string; severity:SevKey; cvss:number; prevalence:number; affected:number; affectedDevices:string[]; description:string; remediation:string[]; kev:boolean; patch?:string; }
 interface IntelItem { id:string; title:string; summary:string; severity:SevKey; source:string; time:string; iocs?:string[]; mitre?:string; industrySpecific:boolean; }
 interface Incident { id:string; title:string; severity:SevKey; status:'Active'|'Contained'|'Closed'; created:string; updated:string; alertCount:number; devices:string[]; mitreTactics:string[]; timeline:{t:string;actor:'AI'|'Analyst';action:string;detail:string}[]; aiSummary:string; }
+
+type Theme = 'dark' | 'light';
+type Tier = 'community' | 'team' | 'business' | 'mssp';
+type KeyStatus = 'idle' | 'saving' | 'saved' | 'error';
+
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const SEV_COLOR:Record<SevKey,string> = { Critical:'#f0405e', High:'#f97316', Medium:'#f0a030', Low:'#4f8fff' };
@@ -35,11 +40,11 @@ const DEMO_TOOLS:Tool[] = [
 ];
 
 const DEMO_GAP_DEVICES:GapDevice[] = [
-  {hostname:'SRV-LEGACY01',ip:'10.0.4.22',os:'Windows Server 2008',missing:['EDR','Vuln Scanner'],reason:'Legacy OS — agent incompatible',lastSeen:'2h ago'},
-  {hostname:'laptop-MKTG07',ip:'10.0.2.87',os:'Windows 11',missing:['EDR'],reason:'User-initiated uninstall',lastSeen:'15m ago'},
-  {hostname:'SRV-NAS01',ip:'10.0.3.15',os:'FreeNAS',missing:['EDR','Vuln Scanner','SIEM'],reason:'NAS device — no agent support',lastSeen:'5m ago'},
-  {hostname:'KIOSK-LOBBY',ip:'10.0.1.200',os:'Windows 10 IoT',missing:['Vuln Scanner'],reason:'IoT device — restricted access',lastSeen:'1m ago'},
-  {hostname:'laptop-HR03',ip:'10.0.2.44',os:'macOS 13',missing:['EDR'],reason:'Pending deployment — ticket open',lastSeen:'30m ago'},
+  {hostname:'SRV-LEGACY01',ip:'10.0.4.22',os:'Windows Server 2008',missing:['CrowdStrike Falcon','Tenable.io'],reason:'Legacy OS — agent incompatible',lastSeen:'2h ago'},
+  {hostname:'laptop-MKTG07',ip:'10.0.2.87',os:'Windows 11',missing:['CrowdStrike Falcon'],reason:'User-initiated uninstall',lastSeen:'15m ago'},
+  {hostname:'SRV-NAS01',ip:'10.0.3.15',os:'FreeNAS',missing:['CrowdStrike Falcon','Tenable.io','Splunk SIEM'],reason:'NAS device — no agent support',lastSeen:'5m ago'},
+  {hostname:'KIOSK-LOBBY',ip:'10.0.1.200',os:'Windows 10 IoT',missing:['Tenable.io','Microsoft Defender'],reason:'IoT device — restricted access',lastSeen:'1m ago'},
+  {hostname:'laptop-HR03',ip:'10.0.2.44',os:'macOS 13',missing:['CrowdStrike Falcon'],reason:'Pending deployment — ticket open',lastSeen:'30m ago'},
 ];
 
 const DEMO_ALERTS:Alert[] = [
@@ -105,13 +110,14 @@ function SevBadge({sev}:{sev:SevKey}) {
 }
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
-function Modal({title,onClose,children}:{title:string;onClose:()=>void;children:React.ReactNode}) {
+type ModalProps = {title:string;onClose:()=>void;children:React.ReactNode};
+function Modal({title,onClose,children}: ModalProps) {
   return (
     <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={onClose}>
-      <div style={{background:'#0a0d14',border:'1px solid #1e2536',borderRadius:16,maxWidth:700,width:'100%',maxHeight:'85vh',overflow:'auto',position:'relative'}} onClick={e=>e.stopPropagation()}>
-        <div style={{display:'flex',alignItems:'center',padding:'16px 20px',borderBottom:'1px solid #141820',position:'sticky',top:0,background:'#0a0d14',zIndex:10}}>
+      <div style={{background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:16,maxWidth:700,width:'100%',maxHeight:'85vh',overflow:'auto',position:'relative'}} onClick={e=>e.stopPropagation()}>
+        <div style={{display:'flex',alignItems:'center',padding:'16px 20px',borderBottom:'1px solid #141820',position:'sticky',top:0,background:'var(--wt-card2)',zIndex:10}}>
           <span style={{fontWeight:700,fontSize:'0.92rem'}}>{title}</span>
-          <button onClick={onClose} style={{marginLeft:'auto',background:'none',border:'none',color:'#6b7a94',cursor:'pointer',fontSize:'1.2rem',lineHeight:1}}>×</button>
+          <button onClick={onClose} style={{marginLeft:'auto',background:'none',border:'none',color:'var(--wt-muted)',cursor:'pointer',fontSize:'1.2rem',lineHeight:1}}>×</button>
         </div>
         <div style={{padding:20}}>{children}</div>
       </div>
@@ -120,16 +126,273 @@ function Modal({title,onClose,children}:{title:string;onClose:()=>void;children:
 }
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
-function StatCard({val,label,sub,color,onClick}:{val:string|number;label:string;sub?:string;color:string;onClick?:()=>void}) {
+type StatCardProps = {val:string|number;label:string;sub?:string;color:string;onClick?:()=>void};
+function StatCard({val,label,sub,color,onClick}: StatCardProps) {
   return (
-    <div onClick={onClick} style={{padding:'14px 12px',background:'#09091a',border:'1px solid #141820',borderRadius:10,textAlign:'center',cursor:onClick?'pointer':'default',transition:'border-color .15s'}}
+    <div onClick={onClick} style={{padding:'14px 12px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:10,textAlign:'center',cursor:onClick?'pointer':'default',transition:'border-color .15s'}}
       onMouseEnter={e=>{ if(onClick)(e.currentTarget as HTMLElement).style.borderColor='#4f8fff40'; }}
-      onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.borderColor='#141820'; }}>
+      onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.borderColor='var(--wt-border)'; }}>
       <div style={{fontSize:'1.5rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color,letterSpacing:-1}}>{val}</div>
-      <div style={{fontSize:'0.62rem',fontWeight:700,color:'#6b7a94',textTransform:'uppercase',letterSpacing:'0.4px',marginTop:2}}>{label}</div>
-      {sub && <div style={{fontSize:'0.56rem',color:'#3a4050',marginTop:2}}>{sub}</div>}
+      <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.4px',marginTop:2}}>{label}</div>
+      {sub && <div style={{fontSize:'0.56rem',color:'var(--wt-dim)',marginTop:2}}>{sub}</div>}
       {onClick && <div style={{fontSize:'0.48rem',color:'#4f8fff',marginTop:4}}>click to view →</div>}
     </div>
+  );
+}
+
+// ─── Paywall Gate ────────────────────────────────────────────────────────────
+type GateWallProps = { feature:string; requiredTier:'team'|'business'|'mssp'; children:React.ReactNode; userTier:string; };
+function GateWall({ feature, requiredTier, children, userTier }: GateWallProps) {
+  const levels: Record<string,number> = {community:0,team:1,business:2,mssp:3};
+  if ((levels[userTier]||0) >= levels[requiredTier]) return (<>{children}</>);
+  const tierColors: Record<string,string> = {team:'#4f8fff',business:'#22d49a',mssp:'#8b6fff'};
+  const tierPrices: Record<string,string> = {team:'£49/seat',business:'£199/mo',mssp:'£799/mo'};
+  return (
+    <div style={{position:'relative',overflow:'hidden',borderRadius:12}}>
+      <div style={{filter:'blur(3px)',opacity:0.3,pointerEvents:'none',userSelect:'none'}}>{children}</div>
+      <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'rgba(5,5,8,0.85)',backdropFilter:'blur(2px)',borderRadius:12,border:`1px solid ${tierColors[requiredTier]}20`}}>
+        <div style={{fontSize:'1.4rem',marginBottom:8}}>🔒</div>
+        <div style={{fontSize:'0.82rem',fontWeight:700,marginBottom:4}}>{feature}</div>
+        <div style={{fontSize:'0.72rem',color:'var(--wt-muted)',marginBottom:14,textAlign:'center',maxWidth:260}}>Available on {requiredTier.charAt(0).toUpperCase()+requiredTier.slice(1)} plan and above</div>
+        <a href='/pricing' style={{padding:'8px 20px',borderRadius:8,background:tierColors[requiredTier],color:'#fff',fontSize:'0.76rem',fontWeight:700,textDecoration:'none',display:'inline-block'}}>Upgrade to {requiredTier.charAt(0).toUpperCase()+requiredTier.slice(1)} — {tierPrices[requiredTier]}</a>
+      </div>
+    </div>
+  );
+}
+
+// ─── AI Remediation Output Renderer ─────────────────────────────────────────
+function RemediationOutput({ text }: { text: string }) {
+  const [copied, setCopied] = useState<string|null>(null);
+
+  function copyCode(code: string, id: string) {
+    navigator.clipboard.writeText(code).then(()=>{
+      setCopied(id);
+      setTimeout(()=>setCopied(null), 2000);
+    });
+  }
+
+  // Parse text into sections. Detect: ALL-CAPS headings, KQL QUERY N:, code blocks
+  const lines = text.split('\n');
+  const blocks: Block[] = [];
+  let codeBuffer: string[] = [];
+  let inCode = false;
+  let codeId = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    if (!trimmed) { if (!inCode) continue; }
+
+    // Detect code block start: line ending in { or contains | where or | search or | stats
+    const endsWithOp = ['{','}',';','|'].some(c=>trimmed.endsWith(c)); const isCodeLine = endsWithOp || /^(DeviceProcess|DeviceNetwork|Security|Identity|Cloud|Mailbox|source=|index=)/.test(trimmed) || (inCode && trimmed.length > 0);
+    const isQueryLabel = /^(KQL QUERY|SPLUNK QUERY|SENTINEL|DEFENDER|MICROSOFT|SOURCE=)/i.test(trimmed);
+    const isMajorHeading = /^[A-Z][A-Z\s\-:\/]+$/.test(trimmed) && trimmed.length > 8 && trimmed.length < 80 && !isCodeLine;
+    const isSubHeading = /^(KQL QUERY \d+:|SPLUNK QUERY FOR |MICROSOFT |DETECTION |REMEDIATION |COMPENSATING |COMMON |HOW ATTACKERS)/i.test(trimmed);
+
+    if (isSubHeading || isQueryLabel) {
+      if (inCode && codeBuffer.length) { blocks.push({ type:'code', content:codeBuffer.join('\n'), id:`code-${++codeId}` }); codeBuffer = []; inCode = false; }
+      blocks.push({ type:'subheading', content:trimmed });
+      inCode = true; // next lines are likely code
+    } else if (isMajorHeading) {
+      if (inCode && codeBuffer.length) { blocks.push({ type:'code', content:codeBuffer.join('\n'), id:`code-${++codeId}` }); codeBuffer = []; inCode = false; }
+      blocks.push({ type:'heading', content:trimmed });
+      inCode = false;
+    } else if (inCode && trimmed) {
+      codeBuffer.push(line);
+    } else {
+      if (codeBuffer.length) { blocks.push({ type:'code', content:codeBuffer.join('\n'), id:`code-${++codeId}` }); codeBuffer = []; inCode = false; }
+      blocks.push({ type:'text', content:trimmed });
+    }
+  }
+  if (codeBuffer.length) blocks.push({ type:'code', content:codeBuffer.join('\n'), id:`code-${++codeId}` });
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',gap:10}}>
+      {blocks.map((block, i) => {
+        if (block.type === 'heading') return (
+          <div key={i} style={{fontSize:'0.58rem',fontWeight:800,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1.5px',paddingTop: i>0?8:0,borderTop: i>0?'1px solid var(--wt-border)':'none',marginTop: i>0?2:0}}>{block.content}</div>
+        );
+        if (block.type === 'subheading') return (
+          <div key={i} style={{fontSize:'0.68rem',fontWeight:700,color:'var(--wt-text)',marginTop:4,marginBottom:-4}}>{block.content}</div>
+        );
+        if (block.type === 'code') return (
+          <div key={i} style={{position:'relative',background:'#020306',border:'1px solid #1a2235',borderRadius:8,overflow:'hidden'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'5px 10px',borderBottom:'1px solid #1a2235',background:'#060912'}}>
+              <span style={{fontSize:'0.54rem',fontWeight:700,color:'#4f8fff',letterSpacing:'0.5px',textTransform:'uppercase'}}>Query</span>
+              <button onClick={()=>copyCode(block.content, block.id||'')} style={{fontSize:'0.56rem',fontWeight:600,padding:'2px 8px',borderRadius:4,border:'1px solid #1e2536',background:'transparent',color:copied===block.id?'#22d49a':'var(--wt-muted)',cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'color .15s'}}>
+                {copied===block.id?'✓ Copied':'Copy'}
+              </button>
+            </div>
+            <pre style={{margin:0,padding:'10px 12px',fontSize:'0.63rem',fontFamily:'JetBrains Mono,monospace',color:'#a8c0e8',lineHeight:1.7,overflowX:'auto',whiteSpace:'pre-wrap',wordBreak:'break-all'}}>{block.content.trim()}</pre>
+          </div>
+        );
+        return (
+          <div key={i} style={{fontSize:'0.72rem',color:'var(--wt-secondary)',lineHeight:1.7}}>{block.content}</div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── MSSP Portfolio Component ────────────────────────────────────────────────
+type MSSPTenant = {id:string;name:string;type:string};
+type MSSPPortfolioProps = { currentTenant:string; setCurrentTenant:(t:string)=>void; DEMO_TENANTS:MSSPTenant[]; };
+function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS }: MSSPPortfolioProps) {
+const portfolioViewOptions = ['security','revenue'] as const; type PortfolioView = typeof portfolioViewOptions[number]; const [portfolioView, setPortfolioView] = useState<PortfolioView>('security');
+            const CLIENTS = [
+              {id:'client-acme',  name:'Acme Financial',  plan:'Business', seats:8,  mrr:199,   extraClients:0, contractStart:'2024-01-15', renewalDate:'2025-01-15', billingStatus:'Paid',    posture:82, alerts:8,  critAlerts:3, incidents:2, coverage:94, kevVulns:3, lastSeen:'2m ago'},
+              {id:'client-nhs',   name:'NHS Trust Alpha', plan:'Business', seats:14, mrr:199,   extraClients:0, contractStart:'2024-03-01', renewalDate:'2025-03-01', billingStatus:'Paid',    posture:71, alerts:15, critAlerts:5, incidents:3, coverage:88, kevVulns:7, lastSeen:'1m ago'},
+              {id:'client-retail',name:'RetailCo UK',     plan:'Team',     seats:6,  mrr:294,   extraClients:0, contractStart:'2024-06-10', renewalDate:'2025-06-10', billingStatus:'Paid',    posture:91, alerts:4,  critAlerts:1, incidents:1, coverage:97, kevVulns:4, lastSeen:'5m ago'},
+              {id:'client-gov',   name:'Gov Dept Beta',  plan:'Business', seats:10, mrr:199,   extraClients:0, contractStart:'2024-09-20', renewalDate:'2025-09-20', billingStatus:'Overdue', posture:78, alerts:9,  critAlerts:3, incidents:1, coverage:92, kevVulns:5, lastSeen:'8m ago'},
+            ];
+            const totalMRR = CLIENTS.reduce((s,c)=>s+c.mrr,0);
+            const totalARR = totalMRR * 12;
+            const overdueMRR = CLIENTS.filter(c=>c.billingStatus==='Overdue').reduce((s,c)=>s+c.mrr,0);
+            const totalSeats = CLIENTS.reduce((s,c)=>s+c.seats,0);
+            return (
+            <div style={{display:'flex',flexDirection:'column',gap:14}}>
+              {/* Header */}
+              <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+                <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Client Portfolio</h2>
+                <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{CLIENTS.length} clients</span>
+                <div style={{display:'flex',gap:3,background:'var(--wt-card2)',borderRadius:7,padding:3,marginLeft:8}}>
+                  {(['security','revenue']).map(v=>(
+                    <button key={v} onClick={()=>setPortfolioView(v)} style={{padding:'4px 12px',borderRadius:5,border:'none',background:portfolioView===v?'#4f8fff':'transparent',color:portfolioView===v?'#fff':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',textTransform:'capitalize'}}>{v}</button>
+                  ))}
+                </div>
+                <span style={{marginLeft:'auto',fontSize:'0.62rem',color:'var(--wt-dim)'}}>Admin: <strong style={{color:'var(--wt-text)'}}>{DEMO_TENANTS.find(t=>t.id===currentTenant)?.name||'Global'}</strong></span>
+              </div>
+
+              {/* Revenue summary stats */}
+              {portfolioView==='revenue' && (
+                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+                  {[
+                    {label:'Monthly Recurring Revenue', val:`£${totalMRR.toLocaleString()}`, sub:'MRR', color:'#22d49a'},
+                    {label:'Annual Recurring Revenue',  val:`£${(totalARR/1000).toFixed(1)}k`, sub:'ARR', color:'#4f8fff'},
+                    {label:'Total Seats Under Management', val:totalSeats, sub:'seats', color:'#8b6fff'},
+                    {label:'Overdue Balance', val:overdueMRR>0?`£${overdueMRR}`:'£0', sub:overdueMRR>0?'action needed':'all clear', color:overdueMRR>0?'#f0405e':'#22d49a'},
+                  ].map(s=>(
+                    <div key={s.label} style={{padding:'14px 16px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:12}}>
+                      <div style={{fontSize:'1.8rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-2,lineHeight:1}}>{s.val}</div>
+                      <div style={{fontSize:'0.58rem',fontWeight:700,color:s.color,textTransform:'uppercase',letterSpacing:'0.5px',marginTop:3}}>{s.sub}</div>
+                      <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:2}}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Security summary stats */}
+              {portfolioView==='security' && (
+                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+                  {[
+                    {label:'Active Incidents', val:CLIENTS.reduce((s,c)=>s+c.incidents,0), color:'#f0405e'},
+                    {label:'Critical Alerts',  val:CLIENTS.reduce((s,c)=>s+c.critAlerts,0), color:'#f0405e'},
+                    {label:'KEV Outstanding',  val:CLIENTS.reduce((s,c)=>s+c.kevVulns,0), color:'#f97316'},
+                    {label:'Avg Coverage',     val:`${Math.round(CLIENTS.reduce((s,c)=>s+c.coverage,0)/CLIENTS.length)}%`, color:'#22d49a'},
+                  ].map(s=>(
+                    <div key={s.label} style={{padding:'14px 16px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:12,textAlign:'center'}}>
+                      <div style={{fontSize:'1.8rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-2}}>{s.val}</div>
+                      <div style={{fontSize:'0.6rem',color:'var(--wt-muted)',marginTop:2}}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Per-client rows */}
+              {CLIENTS.map(client=>{
+                const isSelected = currentTenant===client.id;
+                const postureColor = client.posture>=85?'#22d49a':client.posture>=70?'#f0a030':'#f0405e';
+                const daysToRenewal = Math.round((new Date(client.renewalDate).getTime()-Date.now())/(86400000));
+                const renewalColor = daysToRenewal<30?'#f0405e':daysToRenewal<90?'#f0a030':'#22d49a';
+                return (
+                  <div key={client.id} style={{background:isSelected?'#080d18':'var(--wt-card)',border:`1px solid ${isSelected?'#4f8fff40':'var(--wt-border)'}`,borderRadius:12,overflow:'hidden'}}>
+                    {/* Client header */}
+                    <div style={{padding:'12px 16px',display:'flex',alignItems:'center',gap:12,borderBottom:'1px solid var(--wt-border)'}}>
+                      <div style={{width:9,height:9,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',flexShrink:0}} />
+                      <div style={{flex:1}}>
+                        <div style={{display:'flex',alignItems:'center',gap:7}}>
+                          <span style={{fontSize:'0.86rem',fontWeight:700}}>{client.name}</span>
+                          <span style={{fontSize:'0.54rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff20'}}>{client.plan}</span>
+                          {client.billingStatus==='Overdue' && <span style={{fontSize:'0.54rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#f0405e12',color:'#f0405e',border:'1px solid #f0405e20'}}>⚠ OVERDUE</span>}
+                          {isSelected && <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff15',color:'#4f8fff',border:'1px solid #4f8fff25'}}>VIEWING</span>}
+                        </div>
+                        <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:1}}>Last seen {client.lastSeen} · {client.seats} seats</div>
+                      </div>
+                      <button onClick={()=>setCurrentTenant(client.id)} style={{padding:'5px 12px',borderRadius:7,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>
+                        {isSelected?'Viewing':'Switch →'}
+                      </button>
+                    </div>
+
+                    {/* Revenue view */}
+                    {portfolioView==='revenue' && (
+                      <div style={{padding:'12px 16px',display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:8}}>
+                        {[
+                          {label:'MRR', val:`£${client.mrr}`, color:'#22d49a'},
+                          {label:'ARR', val:`£${(client.mrr*12).toLocaleString()}`, color:'#4f8fff'},
+                          {label:'Seats', val:client.seats, color:'var(--wt-secondary)'},
+                          {label:'Plan', val:client.plan, color:'#8b6fff'},
+                          {label:'Billing', val:client.billingStatus, color:client.billingStatus==='Paid'?'#22d49a':'#f0405e'},
+                          {label:'Renewal', val:`${daysToRenewal}d`, color:renewalColor},
+                        ].map(s=>(
+                          <div key={s.label} style={{textAlign:'center'}}>
+                            <div style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-0.5}}>{s.val}</div>
+                            <div style={{fontSize:'0.52rem',color:'var(--wt-dim)',marginTop:2}}>{s.label}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Security view */}
+                    {portfolioView==='security' && (
+                      <div style={{padding:'12px 16px',display:'flex',alignItems:'center',gap:16,flexWrap:'wrap'}}>
+                        <div style={{display:'flex',alignItems:'center',gap:6}}>
+                          <div style={{width:32,height:32,borderRadius:'50%',background:`conic-gradient(${postureColor} ${client.posture}%,var(--wt-border) 0)`,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                            <div style={{width:22,height:22,borderRadius:'50%',background:'var(--wt-card)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.5rem',fontWeight:900,color:postureColor}}>{client.posture}</div>
+                          </div>
+                          <span style={{fontSize:'0.6rem',color:'var(--wt-dim)'}}>Posture</span>
+                        </div>
+                        {[
+                          {label:'Alerts',    val:client.alerts,      color:client.critAlerts>0?'#f0a030':'var(--wt-secondary)'},
+                          {label:'Critical',  val:client.critAlerts,  color:client.critAlerts>0?'#f0405e':'var(--wt-secondary)'},
+                          {label:'Incidents', val:client.incidents,   color:client.incidents>0?'#f0405e':'var(--wt-secondary)'},
+                          {label:'KEV Vulns', val:client.kevVulns,    color:'#f97316'},
+                          {label:'Coverage',  val:`${client.coverage}%`, color:client.coverage>=95?'#22d49a':client.coverage>=85?'#f0a030':'#f0405e'},
+                        ].map(s=>(
+                          <div key={s.label} style={{textAlign:'center',minWidth:52}}>
+                            <div style={{fontSize:'1.1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-1}}>{s.val}</div>
+                            <div style={{fontSize:'0.52rem',color:'var(--wt-dim)'}}>{s.label}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* Revenue breakdown footer */}
+              {portfolioView==='revenue' && (
+                <div style={{padding:'12px 16px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,display:'flex',gap:20,flexWrap:'wrap'}}>
+                  <div>
+                    <div style={{fontSize:'0.58rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>Revenue Breakdown</div>
+                    <div style={{display:'flex',gap:12}}>
+                      {[
+                        {plan:'Business', clients:CLIENTS.filter(c=>c.plan==='Business').length, mrr:CLIENTS.filter(c=>c.plan==='Business').reduce((s,c)=>s+c.mrr,0), color:'#22d49a'},
+                        {plan:'Team',     clients:CLIENTS.filter(c=>c.plan==='Team').length,     mrr:CLIENTS.filter(c=>c.plan==='Team').reduce((s,c)=>s+c.mrr,0),     color:'#4f8fff'},
+                      ].filter(p=>p.clients>0).map(p=>(
+                        <div key={p.plan} style={{display:'flex',alignItems:'center',gap:6}}>
+                          <div style={{width:8,height:8,borderRadius:2,background:p.color,flexShrink:0}} />
+                          <span style={{fontSize:'0.68rem',color:'var(--wt-secondary)'}}>{p.plan}: <strong style={{color:p.color}}>£{p.mrr}/mo</strong> · {p.clients} client{p.clients!==1?'s':''}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{marginLeft:'auto',textAlign:'right'}}>
+                    <div style={{fontSize:'0.58rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>Your MSSP fee to Watchtower</div>
+                    <div style={{fontSize:'0.8rem',fontWeight:700,color:'var(--wt-secondary)'}}>£799/mo base + {CLIENTS.length>5?`${CLIENTS.length-5} × £79 = £${799+(CLIENTS.length-5)*79}/mo`:'no extras (≤5 clients)'}</div>
+                  </div>
+                </div>
+              )}
+            </div>
   );
 }
 
@@ -179,17 +442,15 @@ const CRED_FIELDS: Record<string,{key:string;label:string;secret?:boolean;placeh
 const CATEGORIES = ['All','EDR','SIEM','NDR','XDR','Vuln','CSPM','Email','Network','Identity'];
 
 type ConnectedMap = Record<string,Record<string,string>>;
-type KeyStatus = 'idle'|'saving'|'saved'|'error';
-function ToolsTab() {
-  const [connected, setConnected] = useState<ConnectedMap>({});
+type SetConnected = (fn: ConnectedMap | ((prev: ConnectedMap) => ConnectedMap)) => void;
+function ToolsTab({ connected, setConnected }: { connected: ConnectedMap; setConnected: SetConnected; }) {
   const [filter, setFilter] = useState('All');
   const [modal, setModal] = useState<{id:string;name:string}|null>(null);
   const [formVals, setFormVals] = useState<Record<string,string>>({});
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ok:boolean;message:string}|null>(null);
   const [anthropicKey, setAnthropicKey] = useState('');
-  const [keyStatus, setKeyStatus] = useState<KeyStatus>('idle');
-  const [aiTestStatus, setAiTestStatus] = useState<{ok:boolean;configured:boolean;message:string}|null>(null);
+  const [aiTestStatus, setAiTestStatus] = useState<{ok:boolean;configured:boolean;message:string;tenantId?:string}|null>(null);
   const [aiTestLoading, setAiTestLoading] = useState(false);
 
   useEffect(()=>{ testAiKey(); },[]);
@@ -200,7 +461,7 @@ function ToolsTab() {
     try {
       const res = await fetch('/api/settings/anthropic-key', {
         method:'POST', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({key: anthropicKey.trim()}),
+        body:JSON.stringify({key: anthropicKey.trim(), tenantId: aiTestStatus?.tenantId || 'global'}),
       });
       const data = await res.json();
       if (res.ok && data.ok) {
@@ -212,7 +473,7 @@ function ToolsTab() {
         setKeyStatus('error');
         setTimeout(()=>setKeyStatus('idle'), 4000);
       }
-    } catch(_e) { setKeyStatus('error'); setTimeout(()=>setKeyStatus('idle'), 3000); }
+    } catch(e) { setKeyStatus('error'); setTimeout(()=>setKeyStatus('idle'), 3000); }
   }
 
   async function testAiKey() {
@@ -256,12 +517,12 @@ function ToolsTab() {
 
   function handleSave() {
     if (!modal || !testResult?.ok) return;
-    setConnected(prev=>({...prev,[modal.id]:formVals}));
+    setConnected((prev: ConnectedMap)=>({...prev,[modal.id]:formVals}));
     setModal(null);
   }
 
   function handleDisconnect(id:string) {
-    setConnected(prev=>{ const n={...prev}; delete n[id]; return n; });
+    setConnected((prev: ConnectedMap)=>{ const n={...prev}; delete n[id]; return n; });
   }
 
   return (
@@ -271,7 +532,7 @@ function ToolsTab() {
         <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{Object.keys(connected).length} connected</span>
         <div style={{display:'flex',gap:4,marginLeft:'auto',flexWrap:'wrap'}}>
           {CATEGORIES.map(c=>(
-            <button key={c} onClick={()=>setFilter(c)} style={{padding:'3px 10px',borderRadius:5,border:`1px solid ${filter===c?'#4f8fff40':'#1e2536'}`,background:filter===c?'#4f8fff18':'transparent',color:filter===c?'#4f8fff':'#6b7a94',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{c}</button>
+            <button key={c} onClick={()=>setFilter(c)} style={{padding:'3px 10px',borderRadius:5,border:`1px solid ${filter===c?'#4f8fff40':'var(--wt-border2)'}`,background:filter===c?'#4f8fff18':'transparent',color:filter===c?'#4f8fff':'#6b7a94',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{c}</button>
           ))}
         </div>
       </div>
@@ -284,7 +545,7 @@ function ToolsTab() {
           <span style={{fontSize:'0.58rem',fontWeight:700,padding:'2px 8px',borderRadius:4,background: aiTestStatus?.ok ? '#22d49a12' : '#f0a03012',color: aiTestStatus?.ok ? '#22d49a' : '#f0a030',border:`1px solid ${aiTestStatus?.ok ? '#22d49a20' : '#f0a03020'}`}}>
             {aiTestLoading ? 'Checking…' : aiTestStatus?.ok ? '✓ Active' : aiTestStatus?.configured ? '⚠ Key invalid' : '○ Not configured'}
           </span>
-          <button onClick={testAiKey} disabled={aiTestLoading} style={{marginLeft:'auto',padding:'3px 10px',borderRadius:5,border:'1px solid #1e2536',background:'transparent',color:'#6b7a94',fontSize:'0.62rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+          <button onClick={testAiKey} disabled={aiTestLoading} style={{marginLeft:'auto',padding:'3px 10px',borderRadius:5,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.62rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
             {aiTestLoading ? '…' : 'Test Key'}
           </button>
         </div>
@@ -295,24 +556,25 @@ function ToolsTab() {
         )}
         {!aiTestStatus?.ok && (
           <>
-            <div style={{fontSize:'0.7rem',color:'#6b7a94',marginBottom:10,lineHeight:1.7}}>
-              Add your Anthropic API key in <strong style={{color:'#e8ecf4'}}>Vercel → Project Settings → Environment Variables</strong> as <code style={{background:'#141820',padding:'1px 5px',borderRadius:3,fontFamily:'JetBrains Mono,monospace',fontSize:'0.68rem'}}>ANTHROPIC_API_KEY</code>, then redeploy. Or paste below to auto-save via API.
+            <div style={{fontSize:'0.7rem',color:'var(--wt-muted)',marginBottom:10,lineHeight:1.7}}>
+              Add your Anthropic API key in <strong style={{color:'var(--wt-text)'}}>Vercel → Project Settings → Environment Variables</strong> as <code style={{background:'var(--wt-border)',padding:'1px 5px',borderRadius:3,fontFamily:'JetBrains Mono,monospace',fontSize:'0.68rem'}}>ANTHROPIC_API_KEY</code>, then redeploy. Or paste below to auto-save via API.
             </div>
             <div style={{display:'flex',gap:8,alignItems:'center'}}>
-              <input type='password' value={anthropicKey} onChange={e=>setAnthropicKey(e.target.value)} placeholder='sk-ant-api03-...' style={{flex:1,padding:'8px 12px',borderRadius:7,border:'1px solid #1e2536',background:'#050508',color:'#e8ecf4',fontSize:'0.76rem',fontFamily:'JetBrains Mono,monospace',outline:'none'}} />
+              <input type='password' value={anthropicKey} onChange={e=>setAnthropicKey(e.target.value)} placeholder='sk-ant-api03-...' style={{flex:1,padding:'8px 12px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'var(--wt-bg)',color:'var(--wt-text)',fontSize:'0.76rem',fontFamily:'JetBrains Mono,monospace',outline:'none'}} />
               <button onClick={saveAnthropicKey} disabled={!anthropicKey.trim()||keyStatus==='saving'} style={{padding:'8px 16px',borderRadius:7,border:'none',background:keyStatus==='error'?'#f0405e':'#4f8fff',color:'#fff',fontSize:'0.74rem',fontWeight:700,cursor:anthropicKey.trim()?'pointer':'not-allowed',fontFamily:'Inter,sans-serif',flexShrink:0,opacity:anthropicKey.trim()?1:0.5}}>
                 {keyStatus==='saving'?'Saving…':keyStatus==='error'?'✗ Failed':'Save Key'}
               </button>
             </div>
-            <div style={{fontSize:'0.62rem',color:'#3a4050',marginTop:8}}>
-              Get your key at <a href='https://console.anthropic.com/account/keys' target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{color:'#4f8fff',textDecoration:'none'}}>console.anthropic.com</a>
+            <div style={{fontSize:'0.62rem',color:'var(--wt-dim)',marginTop:8}}>
+              Get your key at <a href='https://console.anthropic.com/account/keys' target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{color:'#4f8fff',textDecoration:'none'}}>console.anthropic.com</a> · Tenant: <code style={{fontFamily:'JetBrains Mono,monospace',fontSize:'0.6rem',background:'var(--wt-border)',padding:'1px 4px',borderRadius:2}}>{aiTestStatus?.tenantId || 'global'}</code>
             </div>
           </>
         )}
         {aiTestStatus?.ok && (
-          <div style={{fontSize:'0.7rem',color:'#6b7a94',lineHeight:1.6}}>
-            AI triage, Co-Pilot, and remediation assistant are all active. To update your key, add a new value in Vercel environment variables and redeploy.
+          <div style={{fontSize:'0.7rem',color:'var(--wt-muted)',lineHeight:1.6}}>
+            AI triage, Co-Pilot, and remediation assistant are all active.
           </div>
+          <button onClick={async()=>{ await fetch('/api/settings/anthropic-key',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({tenantId:aiTestStatus?.tenantId||'global'})}); await testAiKey(); }} style={{marginTop:8,padding:'5px 12px',borderRadius:7,border:'1px solid #f0405e25',background:'#f0405e0a',color:'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Remove Key</button>
         )}
       </div>
 
@@ -320,14 +582,14 @@ function ToolsTab() {
         {filtered.map(tool=>{
           const isOn = !!connected[tool.id];
           return (
-            <div key={tool.id} style={{padding:'12px 16px',background:'#09091a',border:`1px solid ${isOn?'#22c99218':'#141820'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12}}>
+            <div key={tool.id} style={{padding:'12px 16px',background:'var(--wt-card)',border:`1px solid ${isOn?'#22c99218':'var(--wt-border)'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12}}>
               <div style={{width:9,height:9,borderRadius:'50%',background:isOn?'#22c992':'#252e42',boxShadow:isOn?'0 0 7px #22c992':'none',flexShrink:0}} />
               <div style={{flex:1}}>
                 <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:1}}>
                   <span style={{fontSize:'0.82rem',fontWeight:700}}>{tool.name}</span>
                   <span style={{fontSize:'0.5rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff18'}}>{tool.category}</span>
                 </div>
-                <div style={{fontSize:'0.64rem',color:'#6b7a94'}}>{isOn?'Connected — syncing alerts':''+tool.desc}</div>
+                <div style={{fontSize:'0.64rem',color:'var(--wt-muted)'}}>{isOn?'Connected — syncing alerts':''+tool.desc}</div>
               </div>
               {isOn
                 ? <button onClick={()=>handleDisconnect(tool.id)} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #f0405e20',background:'#f0405e08',color:'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Disconnect</button>
@@ -338,13 +600,13 @@ function ToolsTab() {
       </div>
       {modal && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={()=>setModal(null)}>
-          <div style={{background:'#0a0d14',border:'1px solid #1e2536',borderRadius:16,maxWidth:480,width:'100%',padding:24,maxHeight:'85vh',overflow:'auto'}} onClick={e=>e.stopPropagation()}>
+          <div style={{background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:16,maxWidth:480,width:'100%',padding:24,maxHeight:'85vh',overflow:'auto'}} onClick={e=>e.stopPropagation()}>
             <div style={{fontSize:'0.92rem',fontWeight:800,marginBottom:4}}>Connect {modal.name}</div>
-            <div style={{fontSize:'0.7rem',color:'#6b7a94',marginBottom:18}}>Credentials are sent directly to the integration API for validation and never stored on our servers.</div>
+            <div style={{fontSize:'0.7rem',color:'var(--wt-muted)',marginBottom:18}}>Credentials are sent directly to the integration API for validation and never stored on our servers.</div>
             {(CRED_FIELDS[modal.id]||[]).map(f=>(
               <div key={f.key} style={{marginBottom:12}}>
                 <div style={{fontSize:'0.68rem',fontWeight:600,color:'#8a9ab8',marginBottom:4}}>{f.label}</div>
-                <input type={f.secret?'password':'text'} value={formVals[f.key]||''} onChange={e=>setFormVals(p=>({...p,[f.key]:e.target.value}))} placeholder={f.placeholder||''} style={{width:'100%',padding:'9px 12px',background:'#050508',border:'1px solid #1e2536',borderRadius:8,color:'#e8ecf4',fontSize:'0.76rem',fontFamily:f.secret?'JetBrains Mono,monospace':'Inter,sans-serif',outline:'none'}} />
+                <input type={f.secret?'password':'text'} value={formVals[f.key]||''} onChange={e=>setFormVals(p=>({...p,[f.key]:e.target.value}))} placeholder={f.placeholder||''} style={{width:'100%',padding:'9px 12px',background:'var(--wt-bg)',border:'1px solid var(--wt-border2)',borderRadius:8,color:'var(--wt-text)',fontSize:'0.76rem',fontFamily:f.secret?'JetBrains Mono,monospace':'Inter,sans-serif',outline:'none'}} />
               </div>
             ))}
             {testResult && (
@@ -356,10 +618,10 @@ function ToolsTab() {
               <button onClick={handleTest} disabled={testing||Object.keys(formVals).length===0} style={{flex:1,padding:'9px 0',borderRadius:8,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.78rem',fontWeight:700,cursor:testing?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',opacity:testing?0.7:1}}>
                 {testing?'Testing…':'Test Connection'}
               </button>
-              <button onClick={handleSave} disabled={!testResult?.ok} style={{flex:1,padding:'9px 0',borderRadius:8,border:'none',background:testResult?.ok?'#4f8fff':'#1e2536',color:testResult?.ok?'#fff':'#3a4050',fontSize:'0.78rem',fontWeight:700,cursor:testResult?.ok?'pointer':'not-allowed',fontFamily:'Inter,sans-serif'}}>
+              <button onClick={handleSave} disabled={!testResult?.ok} style={{flex:1,padding:'9px 0',borderRadius:8,border:'none',background:testResult?.ok?'#4f8fff':'var(--wt-border2)',color:testResult?.ok?'#fff':'#3a4050',fontSize:'0.78rem',fontWeight:700,cursor:testResult?.ok?'pointer':'not-allowed',fontFamily:'Inter,sans-serif'}}>
                 Save & Connect
               </button>
-              <button onClick={()=>setModal(null)} style={{padding:'9px 16px',borderRadius:8,border:'1px solid #1e2536',background:'transparent',color:'#6b7a94',fontSize:'0.78rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Cancel</button>
+              <button onClick={()=>setModal(null)} style={{padding:'9px 16px',borderRadius:8,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.78rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Cancel</button>
             </div>
           </div>
         </div>
@@ -379,17 +641,96 @@ export default function DashboardPage() {
   const [vulnAiLoading, setVulnAiLoading] = useState<string|null>(null);
   const [vulnAiTexts, setVulnAiTexts] = useState<Record<string,string>>({});
   const [industry, setIndustry] = useState('Financial Services');
+  // Load persisted settings from Redis on mount
+  useEffect(()=>{
+    fetch('/api/settings/user')
+      .then(r=>r.json())
+      .then(d=>{ if (d.settings?.industry) setIndustry(d.settings.industry); })
+      .catch(()=>{});
+  },[]);
+  function setIndustryPersisted(ind: string) {
+    setIndustry(ind);
+    fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:ind})}).catch(()=>{});
+  }
   const [intelLoading, setIntelLoading] = useState(false);
   const [customIntel, setCustomIntel] = useState<IntelItem[]|null>(null);
   const [expandedAlerts, setExpandedAlerts] = useState<Set<string>>(new Set());
   const [deployAgentDevice, setDeployAgentDevice] = useState<GapDevice|null>(null);
   const [incidentStatuses, setIncidentStatuses] = useState<Record<string,string>>({});
+  const [deletedIncidents, setDeletedIncidents] = useState<Set<string>>(new Set());
+  function deleteIncident(id:string) { setDeletedIncidents(prev=>new Set([...prev,id])); setSelectedIncident(null); }
   const [gapToolFilter, setGapToolFilter] = useState<string|null>(null);
+  const [expandedIntel, setExpandedIntel] = useState<Set<string>>(new Set());
+  const [demoMode, setDemoMode] = useState(true);
+  const [connectedTools, setConnectedTools] = useState<ConnectedMap>({});
+  const [currentTenant, setCurrentTenant] = useState('global');
+  const [isAdmin] = useState(true); // Replace with real auth check
+
+  const DEMO_TENANTS = [
+    {id:'global', name:'My Organisation', type:'direct'},
+    {id:'client-acme', name:'Acme Financial', type:'client'},
+    {id:'client-nhs', name:'NHS Trust Alpha', type:'client'},
+    {id:'client-retail', name:'RetailCo UK', type:'client'},
+    {id:'client-gov', name:'Gov Dept Beta', type:'client'},
+  ];
+
+  function toggleIntel(id: string) {
+    setExpandedIntel(prev => { const n = new Set(prev); n.has(id)?n.delete(id):n.add(id); return n; });
+  }
+
+  // Theme preference intentionally uses localStorage — it must apply synchronously
+  // before React hydrates to avoid a dark→light flash. Not user data, pure display state.
+  useEffect(()=>{
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('wt_theme') : null;
+    if (saved === 'light') setTheme('light');
+  },[]);
+
+  function toggleTheme() {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    if (typeof window !== 'undefined') localStorage.setItem('wt_theme', next);
+  }
+
+  // ── Tier ─────────────────────────────────────────────────────────────────────
+  // In production this comes from the session/JWT. Change to test paywalls.
+  const tierLevel = {community:0,team:1,business:2,mssp:3}[userTier];
+  const canUse = (min: Tier) => tierLevel >= {community:0,team:1,business:2,mssp:3}[min];
+
+  // ── Per-tenant demo data ──────────────────────────────────────────────────────
+  const TENANT_ALERTS: {[k:string]: Alert[]} = {
+    'global': DEMO_ALERTS,
+    'client-acme': DEMO_ALERTS.slice(0,3).map(a=>({...a, id:a.id+'-acme', device:'acme-'+a.device, source:a.source})),
+    'client-nhs': DEMO_ALERTS.slice(1,4).map(a=>({...a, id:a.id+'-nhs', device:'nhs-'+a.device, severity:a.severity==='Low'?'Medium':a.severity as any})),
+    'client-retail': DEMO_ALERTS.slice(0,2).map(a=>({...a, id:a.id+'-retail', device:'retail-'+a.device})),
+    'client-gov': DEMO_ALERTS.slice(2,5).map(a=>({...a, id:a.id+'-gov', device:'gov-'+a.device})),
+  };
+  const TENANT_VULNS: {[k:string]: Vuln[]} = {
+    'global': DEMO_VULNS,
+    'client-acme': DEMO_VULNS.slice(0,4).map(v=>({...v, id:v.id+'-acme', affected: Math.max(1, Math.round(v.affected*0.6)), affectedDevices: v.affectedDevices.map(d=>'acme-'+d)})),
+    'client-nhs': DEMO_VULNS.slice(0,7).map(v=>({...v, id:v.id+'-nhs', affected: Math.max(1, Math.round(v.affected*1.4)), affectedDevices: v.affectedDevices.map(d=>'nhs-'+d)})),
+    'client-retail': DEMO_VULNS.slice(0,5).map(v=>({...v, id:v.id+'-retail', affectedDevices: v.affectedDevices.map(d=>'retail-'+d)})),
+    'client-gov': DEMO_VULNS.slice(1,6).map(v=>({...v, id:v.id+'-gov', affectedDevices: v.affectedDevices.map(d=>'gov-'+d)})),
+  };
+  const TENANT_INCIDENTS: {[k:string]: Incident[]} = {
+    'global': DEMO_INCIDENTS,
+    'client-acme': DEMO_INCIDENTS.slice(0,1).map(i=>({...i, id:'INC-ACME-01', title:'[Acme] '+i.title})),
+    'client-nhs': DEMO_INCIDENTS.map(i=>({...i, id:'INC-NHS-'+i.id.slice(-2), title:'[NHS] '+i.title})),
+    'client-retail': [],
+    'client-gov': DEMO_INCIDENTS.slice(0,1).map(i=>({...i, id:'INC-GOV-01', title:'[Gov] '+i.title})),
+  };
 
   const tools = DEMO_TOOLS;
-  const alerts = DEMO_ALERTS;
-  const vulns = DEMO_VULNS;
-  const incidents = DEMO_INCIDENTS;
+  const rawAlerts = TENANT_ALERTS[currentTenant] || DEMO_ALERTS;
+  // When a tool is connected, suppress demo alerts from that source
+  // (real alerts from the API would replace them)
+  const connectedToolNames = new Set(Object.keys(connectedTools).map(id=>
+    ALL_TOOLS.find(t=>t.id===id)?.name.split(' ')[0].toLowerCase() || id
+  ));
+  const alerts = demoMode && Object.keys(connectedTools).length > 0
+    ? rawAlerts.filter(a => !connectedToolNames.has(a.source.toLowerCase().split(' ')[0]))
+    : rawAlerts;
+  const vulns = TENANT_VULNS[currentTenant] || DEMO_VULNS;
+  const incidents = TENANT_INCIDENTS[currentTenant] || DEMO_INCIDENTS;
 
   const activeTools = tools.filter(t=>t.active);
   const taegisActive = tools.find(t=>t.id==='taegis')?.active || false;
@@ -406,6 +747,18 @@ export default function DashboardPage() {
   const postureColor = '#f0a030';
 
   const autLabel = ['Recommend Only','Auto + Notify','Full Auto'][automation];
+  const autColor = ['#6b7a94','#f0a030','#22d49a'][automation];
+  // Automation effects: filter what's "acted on" based on level
+  const actedAlerts = alerts.filter(a => {
+    if (automation === 0) return false; // Recommend Only — no auto actions
+    if (automation === 1) return a.verdict === 'FP' && a.confidence >= 90; // Auto+Notify — auto-close high-confidence FPs only
+    return a.confidence >= 80; // Full Auto — act on all high-confidence verdicts
+  });
+  const automationBannerText = automation === 0
+    ? 'AI is recommending only — all actions require analyst approval.'
+    : automation === 1
+    ? `AI auto-closed ${actedAlerts.length} high-confidence false positive${actedAlerts.length!==1?'s':''} and notified your team.`
+    : `AI acted autonomously on ${actedAlerts.length} alert${actedAlerts.length!==1?'s':''} — ${alerts.filter(a=>a.verdict==='TP'&&a.confidence>=80).length} threats contained, ${alerts.filter(a=>a.verdict==='FP'&&a.confidence>=80).length} FPs suppressed.`;
 
   const intelItems = customIntel || (DEMO_INTEL_BY_INDUSTRY[industry] || DEMO_INTEL_BY_INDUSTRY['default']);
   const allIntel = [...intelItems, ...DEMO_INTEL_BY_INDUSTRY['default'].filter(i=>!intelItems.find(x=>x.id===i.id))];
@@ -423,7 +776,7 @@ export default function DashboardPage() {
   async function getVulnAiHelp(vuln:Vuln) {
     setVulnAiLoading(vuln.id);
     try {
-      const resp = await fetch('/api/copilot', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:`For ${vuln.cve} (${vuln.title}), provide information NOT covered in standard remediation docs. Focus on: 1) Specific detection queries for Splunk, Microsoft Sentinel (KQL), and Microsoft Defender for Endpoint (KQL/Advanced Hunting) to find exploitation attempts — include actual query syntax. 2) Known exploitation indicators and IOCs seen in the wild. 3) Compensating controls if patching is not immediately possible. 4) Common mistakes teams make when remediating this CVE. 5) How attackers typically chain this with other techniques. Plain text only, be specific and technical. Label each KQL query clearly.`}) });
+      const resp = await fetch('/api/copilot', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:`For ${vuln.cve} (${vuln.title}), provide information NOT covered in standard remediation docs. Structure your response with these ALL-CAPS section headers on their own lines: DETECTION QUERIES, KNOWN IOCS AND INDICATORS, COMPENSATING CONTROLS, COMMON MISTAKES, ATTACK CHAINING. Under DETECTION QUERIES use these exact sub-labels: 'SPLUNK QUERY FOR [purpose]', 'MICROSOFT SENTINEL KQL: [purpose]' (Sentinel workspace tables: SecurityEvent, SigninLogs, AuditLogs, CommonSecurityLog), 'MICROSOFT DEFENDER ADVANCED HUNTING: [purpose]' (Defender XDR tables: DeviceProcessEvents, DeviceNetworkEvents, DeviceFileEvents, IdentityLogonEvents — distinct from Sentinel). Each query immediately after its label. No markdown, no backticks, plain text.`}) });
       if (resp.ok) {
         const d = await resp.json();
         const text = d.response || d.message || 'AI response unavailable — check your Anthropic API key in the Tools tab.';
@@ -447,27 +800,54 @@ export default function DashboardPage() {
     setExpandedAlerts(prev => { const n = new Set(prev); n.has(id)?n.delete(id):n.add(id); return n; });
   }
 
-  const TABS = ['overview','alerts','coverage','vulns','intel','incidents','tools'];
+  const TABS = ['overview','alerts','coverage','vulns','intel','incidents','tools','mssp'];
 
   return (
-    <div style={{display:'flex',minHeight:'100vh',background:'#050508',color:'#e8ecf4',fontFamily:'Inter,sans-serif'}}>
+    <div className={`wt-root${theme === 'light' ? ' light' : ''}`} style={{display:'flex',minHeight:'100vh',background:'var(--wt-bg)',color:'var(--wt-text)',fontFamily:'Inter,sans-serif'}}>
       <style>{`
         *{margin:0;padding:0;box-sizing:border-box}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
         @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap}
+
+        /* ── Dark theme (default) ── */
+        .wt-root {
+          --wt-bg: #050508;
+          --wt-sidebar: #07080f;
+          --wt-card: #09091a;
+          --wt-card2: #0a0d14;
+          --wt-border: #141820;
+          --wt-border2: #1e2536;
+          --wt-text: #e8ecf4;
+          --wt-muted: #6b7a94;
+          --wt-secondary: #8a9ab0;
+          --wt-dim: #3a4050;
+        }
+        /* ── Light theme ── */
+        .wt-root.light {
+          --wt-bg: #f5f6fa;
+          --wt-sidebar: #ffffff;
+          --wt-card: #ffffff;
+          --wt-card2: #f0f2f8;
+          --wt-border: #e2e5ef;
+          --wt-border2: #c8cedd;
+          --wt-text: #0f1117;
+          --wt-muted: #5a6580;
+          --wt-secondary: #4a5568;
+          --wt-dim: #8090a8;
+        }
+
+        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap;color:var(--wt-muted)}
         .tab-btn.active{background:#4f8fff18;color:#4f8fff}
-        .tab-btn:not(.active){color:#6b7a94}
-        .tab-btn:not(.active):hover{color:#a0adc4;background:#0a0d14}
+        .tab-btn:not(.active):hover{color:var(--wt-secondary);background:var(--wt-card2)}
         .row-hover{transition:background .12s}
-        .row-hover:hover{background:#0d1020!important}
-        .vuln-row:hover{background:#0a0d18!important;cursor:pointer}
-        .alert-card{border-radius:10px;border:1px solid #141820;background:#09091a;transition:border-color .15s}
+        .row-hover:hover{background:var(--wt-card2)!important}
+        .vuln-row:hover{background:var(--wt-card2)!important;cursor:pointer}
+        .alert-card{border-radius:10px;border:1px solid var(--wt-border);background:var(--wt-card);transition:border-color .15s}
         .alert-card:hover{border-color:#4f8fff28}
       `}</style>
 
       {/* SIDEBAR */}
-      <div style={{width:48,background:'#08090f',borderRight:'1px solid #141820',display:'flex',flexDirection:'column',alignItems:'center',padding:'10px 0',gap:4,flexShrink:0}}>
+      <div style={{width:48,background:'var(--wt-sidebar)',borderRight:'1px solid #141820',display:'flex',flexDirection:'column',alignItems:'center',padding:'10px 0',gap:4,flexShrink:0}}>
         <div style={{width:30,height:30,borderRadius:8,background:'linear-gradient(135deg,#4f8fff,#8b6fff)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.62rem',color:'#fff',fontWeight:900,marginBottom:10}}>W</div>
         {[{t:'overview',i:'📊'},{t:'alerts',i:'🔔'},{t:'coverage',i:'🛡'},{t:'vulns',i:'🔍'},{t:'intel',i:'🌐'},{t:'incidents',i:'📋'},{t:'tools',i:'🔌'}].map(({t,i})=>(
           <button key={t} onClick={()=>setActiveTab(t)} title={t.charAt(0).toUpperCase()+t.slice(1)} style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem',border:'none',cursor:'pointer',background:activeTab===t?'#4f8fff18':'transparent',transition:'background .15s'}}>
@@ -484,24 +864,43 @@ export default function DashboardPage() {
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
 
         {/* TOP BAR */}
-        <div style={{display:'flex',alignItems:'center',padding:'8px 18px',borderBottom:'1px solid #141820',gap:12,background:'#07080f',flexShrink:0,flexWrap:'wrap'}}>
+        <div style={{display:'flex',alignItems:'center',padding:'8px 18px',borderBottom:'1px solid #141820',gap:12,background:'var(--wt-sidebar)',flexShrink:0,flexWrap:'wrap'}}>
           <div style={{display:'flex',gap:2}}>
-            {TABS.map(t=>(
+            {TABS.filter(t=>t!=='mssp'||(userTier==='mssp')).map(t=>(
               <button key={t} className={`tab-btn${activeTab===t?' active':''}`} onClick={()=>setActiveTab(t)}>
-                {t.charAt(0).toUpperCase()+t.slice(1)}
+                {t==='mssp'?'Portfolio':t.charAt(0).toUpperCase()+t.slice(1)}
                 {t==='alerts'&&critAlerts.length>0&&<span style={{marginLeft:5,fontSize:'0.48rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f0405e',color:'#fff'}}>{critAlerts.length}</span>}
                 {t==='vulns'&&kevVulns.length>0&&<span style={{marginLeft:5,fontSize:'0.48rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f97316',color:'#fff'}}>{kevVulns.length} KEV</span>}
               </button>
             ))}
           </div>
           <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:10}}>
-            <div style={{display:'flex',alignItems:'center',gap:6,padding:'4px 10px',borderRadius:7,background:'#0a0d14',border:'1px solid #141820'}}>
-              <span style={{fontSize:'0.62rem',color:'#6b7a94'}}>Automation:</span>
+            <button onClick={toggleTheme} title={theme==='dark'?'Light mode':'Dark mode'} style={{width:32,height:32,borderRadius:8,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.9rem',flexShrink:0}}>{theme==='dark'?'☀️':'🌙'}</button>
+              <button onClick={()=>setDemoMode(d=>!d)} title={demoMode?'Switch to live data':'Switch to demo data'} style={{padding:'4px 10px',borderRadius:7,border:`1px solid ${demoMode?'#f0a03030':'#22d49a30'}`,background:demoMode?'#f0a03010':'#22d49a10',color:demoMode?'#f0a030':'#22d49a',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>{demoMode?'● DEMO':'● LIVE'}</button>
+              <select value={userTier} onChange={e=>setUserTier(e.target.value as any)} title='Simulate plan tier' style={{padding:'3px 7px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.6rem',fontWeight:700,fontFamily:'Inter,sans-serif',cursor:'pointer',outline:'none'}} >
+                {(['community','team','business','mssp']).map(t=><option key={t} value={t}>{t.charAt(0).toUpperCase()+t.slice(1)}</option>)}
+              </select>
+              {isAdmin && (
+                <select value={currentTenant} onChange={e=>setCurrentTenant(e.target.value)} style={{padding:'4px 8px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.68rem',fontFamily:'Inter,sans-serif',cursor:'pointer',outline:'none',maxWidth:140}}>
+                  {DEMO_TENANTS.map(t=>(
+                    <option key={t.id} value={t.id}>{t.type==='client'?'◦ ':''}{t.name}</option>
+                  ))}
+                </select>
+              )}
+            {canUse('team') ? (
+            <div style={{display:'flex',alignItems:'center',gap:6,padding:'4px 10px',borderRadius:7,background:'var(--wt-card2)',border:'1px solid #141820'}}>
+              <span style={{fontSize:'0.62rem',color:'var(--wt-muted)'}}>Automation:</span>
               {(['Recommend','Auto+Notify','Full Auto']).map((l,i)=>(
-                <button key={l} onClick={()=>setAutomation(i as AutomationLevel)} style={{padding:'2px 8px',borderRadius:4,fontSize:'0.58rem',fontWeight:700,border:'none',cursor:'pointer',background:automation===i?'#4f8fff':'transparent',color:automation===i?'#fff':'#6b7a94',fontFamily:'Inter,sans-serif',transition:'all .15s'}}>{l}</button>
+                <button key={l} onClick={()=>setAutomation(i as AutomationLevel)} style={{padding:'2px 8px',borderRadius:4,fontSize:'0.58rem',fontWeight:700,border:'none',cursor:'pointer',background:automation===i?`${autColor}`:'transparent',color:automation===i?'#fff':'#6b7a94',fontFamily:'Inter,sans-serif',transition:'all .15s'}}>{l}</button>
               ))}
             </div>
-            <div style={{display:'flex',alignItems:'center',gap:5,fontSize:'0.7rem',color:'#6b7a94'}}>
+            ) : (
+            <div style={{display:'flex',alignItems:'center',gap:6,padding:'4px 10px',borderRadius:7,background:'var(--wt-card2)',border:'1px solid #4f8fff20',opacity:0.7,cursor:'not-allowed'}} title='Upgrade to Team to enable automation'>
+              <span style={{fontSize:'0.62rem',color:'var(--wt-muted)'}}>Automation:</span>
+              <a href='/pricing' style={{fontSize:'0.58rem',color:'#4f8fff',fontWeight:700,textDecoration:'none'}}>🔒 Upgrade to Team</a>
+            </div>
+            )}
+            <div style={{display:'flex',alignItems:'center',gap:5,fontSize:'0.7rem',color:'var(--wt-muted)'}}>
               <span style={{width:6,height:6,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',display:'block',animation:'pulse 2s ease infinite'}} />
               {activeTools.length} tools live
             </div>
@@ -509,7 +908,7 @@ export default function DashboardPage() {
         </div>
 
         {/* CONTENT */}
-        <div style={{flex:1,overflow:'auto',padding:'16px 18px'}}>
+        <div style={{flex:1,overflow:'auto',padding:'16px 18px',background:'var(--wt-bg)'}}>
 
           {/* ═══════════════════════════════ OVERVIEW ═══════════════════════════════ */}
           {activeTab==='overview' && (
@@ -520,7 +919,7 @@ export default function DashboardPage() {
                 <div style={{width:7,height:7,borderRadius:'50%',background:'#4f8fff',boxShadow:'0 0 8px #4f8fff',flexShrink:0,marginTop:2,animation:'pulse 3s ease infinite'}} />
                 <div style={{flex:1}}>
                   <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',marginBottom:3}}>AI SHIFT BRIEF — {new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
-                  <div style={{fontSize:'0.78rem',color:'#8a9ab0',lineHeight:1.65}}>Processed {alerts.length} alerts this session. Auto-closed {fpAlerts.length} false positives. Escalated {tpAlerts.length} true positives to incidents. <strong style={{color:'#f0405e'}}>{critAlerts.length} critical alerts</strong> require immediate attention. Estate coverage at {coveredPct}% — {gapDevices.length} devices missing agents.</div>
+                  <div style={{fontSize:'0.78rem',color:'var(--wt-secondary)',lineHeight:1.65}}>Processed {alerts.length} alerts this session. Auto-closed {fpAlerts.length} false positives. Escalated {tpAlerts.length} true positives to incidents. <strong style={{color:'#f0405e'}}>{critAlerts.length} critical alerts</strong> require immediate attention. Estate coverage at {coveredPct}% — {gapDevices.length} devices missing agents.</div>
                 </div>
                 <span style={{fontSize:'0.62rem',color:'#22d49a',fontWeight:700,background:'#22d49a12',padding:'3px 8px',borderRadius:4,flexShrink:0}}>AI Active</span>
               </div>
@@ -531,37 +930,37 @@ export default function DashboardPage() {
                 <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:10}}>
 
                   {/* Devices + Gaps */}
-                  <div onClick={()=>setModal({type:'gaps'})} style={{padding:16,background:'#09091a',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
+                  <div onClick={()=>setModal({type:'gaps'})} style={{padding:16,background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
                     onMouseEnter={e=>(e.currentTarget as HTMLElement).style.borderColor='#4f8fff40'}
-                    onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor='#141820'}>
+                    onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor='var(--wt-border)'}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
                       <div>
-                        <div style={{fontSize:'0.72rem',fontWeight:700,color:'#6b7a94',marginBottom:2}}>Devices</div>
-                        <div style={{fontSize:'2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',letterSpacing:-2,color:'#e8ecf4'}}>{totalDevices}</div>
+                        <div style={{fontSize:'0.72rem',fontWeight:700,color:'var(--wt-muted)',marginBottom:2}}>Devices</div>
+                        <div style={{fontSize:'2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',letterSpacing:-2,color:'var(--wt-text)'}}>{totalDevices}</div>
                       </div>
                       <div style={{textAlign:'right'}}>
                         <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',marginBottom:2}}>{gapDevices.length} with gaps</div>
-                        <div style={{fontSize:'0.52rem',color:'#3a4050'}}>Click to view →</div>
+                        <div style={{fontSize:'0.52rem',color:'var(--wt-dim)'}}>Click to view →</div>
                       </div>
                     </div>
-                    <div style={{height:6,background:'#141820',borderRadius:3,overflow:'hidden'}}>
+                    <div style={{height:6,background:'var(--wt-border)',borderRadius:3,overflow:'hidden'}}>
                       <div style={{height:'100%',background:'linear-gradient(90deg,#22d49a,#4f8fff)',borderRadius:3,width:`${coveredPct}%`,transition:'width 1s'}} />
                     </div>
-                    <div style={{fontSize:'0.6rem',color:'#6b7a94',marginTop:4}}>{coveredPct}% agent coverage</div>
+                    <div style={{fontSize:'0.6rem',color:'var(--wt-muted)',marginTop:4}}>{coveredPct}% agent coverage</div>
                   </div>
 
                   {/* Tool Status */}
-                  <div onClick={()=>setModal({type:'tools'})} style={{padding:16,background:'#09091a',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
+                  <div onClick={()=>setModal({type:'tools'})} style={{padding:16,background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
                     onMouseEnter={e=>(e.currentTarget as HTMLElement).style.borderColor='#4f8fff40'}
-                    onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor='#141820'}>
+                    onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor='var(--wt-border)'}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
                       <div>
-                        <div style={{fontSize:'0.72rem',fontWeight:700,color:'#6b7a94',marginBottom:2}}>Tool Status</div>
-                        <div style={{fontSize:'2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',letterSpacing:-2,color:'#22d49a'}}>{activeTools.length}<span style={{fontSize:'1rem',color:'#3a4050'}}>/{tools.length}</span></div>
+                        <div style={{fontSize:'0.72rem',fontWeight:700,color:'var(--wt-muted)',marginBottom:2}}>Tool Status</div>
+                        <div style={{fontSize:'2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',letterSpacing:-2,color:'#22d49a'}}>{activeTools.length}<span style={{fontSize:'1rem',color:'var(--wt-dim)'}}>/{tools.length}</span></div>
                       </div>
                       <div style={{textAlign:'right'}}>
                         <div style={{fontSize:'0.62rem',fontWeight:700,color:tools.filter(t=>!t.active).length>0?'#f0a030':'#22d49a',marginBottom:2}}>{tools.filter(t=>!t.active).length} inactive</div>
-                        <div style={{fontSize:'0.52rem',color:'#3a4050'}}>Click to manage →</div>
+                        <div style={{fontSize:'0.52rem',color:'var(--wt-dim)'}}>Click to manage →</div>
                       </div>
                     </div>
                     <div style={{display:'flex',flexWrap:'wrap',gap:4}}>
@@ -572,48 +971,48 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Alert Sources */}
-                  <div onClick={()=>setModal({type:'alerts-ingested'})} style={{padding:16,background:'#09091a',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
+                  <div onClick={()=>setModal({type:'alerts-ingested'})} style={{padding:16,background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
                     onMouseEnter={e=>(e.currentTarget as HTMLElement).style.borderColor='#4f8fff40'}
-                    onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor='#141820'}>
+                    onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor='var(--wt-border)'}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
                       <div>
-                        <div style={{fontSize:'0.72rem',fontWeight:700,color:'#6b7a94',marginBottom:2}}>Alerts Ingested</div>
+                        <div style={{fontSize:'0.72rem',fontWeight:700,color:'var(--wt-muted)',marginBottom:2}}>Alerts Ingested</div>
                         <div style={{fontSize:'2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',letterSpacing:-2,color:'#4f8fff'}}>{alerts.length}</div>
                       </div>
                       <div style={{textAlign:'right'}}>
                         <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',marginBottom:2}}>{critAlerts.length} critical</div>
-                        <div style={{fontSize:'0.52rem',color:'#3a4050'}}>Click for AI detail →</div>
+                        <div style={{fontSize:'0.52rem',color:'var(--wt-dim)'}}>Click for AI detail →</div>
                       </div>
                     </div>
                     <div style={{display:'flex',gap:6}}>
                       {[{l:'TP',v:tpAlerts.length,c:'#f0405e'},{l:'FP',v:fpAlerts.length,c:'#22d49a'},{l:'SUS',v:alerts.filter(a=>a.verdict==='SUS').length,c:'#f0a030'}].map(s=>(
-                        <div key={s.l} style={{flex:1,textAlign:'center',padding:'4px 0',background:'#050508',borderRadius:6}}>
+                        <div key={s.l} style={{flex:1,textAlign:'center',padding:'4px 0',background:'var(--wt-bg)',borderRadius:6}}>
                           <div style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.c}}>{s.v}</div>
-                          <div style={{fontSize:'0.5rem',color:'#3a4050',fontWeight:700}}>{s.l}</div>
+                          <div style={{fontSize:'0.5rem',color:'var(--wt-dim)',fontWeight:700}}>{s.l}</div>
                         </div>
                       ))}
                     </div>
                   </div>
 
                   {/* Vulns / SLA */}
-                  <div onClick={()=>setActiveTab('vulns')} style={{padding:16,background:'#09091a',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
+                  <div onClick={()=>setActiveTab('vulns')} style={{padding:16,background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
                     onMouseEnter={e=>(e.currentTarget as HTMLElement).style.borderColor='#4f8fff40'}
-                    onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor='#141820'}>
+                    onMouseLeave={e=>(e.currentTarget as HTMLElement).style.borderColor='var(--wt-border)'}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
                       <div>
-                        <div style={{fontSize:'0.72rem',fontWeight:700,color:'#6b7a94',marginBottom:2}}>Vulnerabilities</div>
+                        <div style={{fontSize:'0.72rem',fontWeight:700,color:'var(--wt-muted)',marginBottom:2}}>Vulnerabilities</div>
                         <div style={{fontSize:'2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',letterSpacing:-2,color:'#f0405e'}}>{vulns.length}</div>
                       </div>
                       <div style={{textAlign:'right'}}>
                         <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',marginBottom:2}}>{kevVulns.length} KEV — patch now</div>
-                        <div style={{fontSize:'0.52rem',color:'#3a4050'}}>Click for details →</div>
+                        <div style={{fontSize:'0.52rem',color:'var(--wt-dim)'}}>Click for details →</div>
                       </div>
                     </div>
                     <div style={{display:'flex',gap:6}}>
                       {[{l:'Crit',v:critVulns.length,c:'#f0405e'},{l:'High',v:vulns.filter(v=>v.severity==='High').length,c:'#f97316'},{l:'Med',v:vulns.filter(v=>v.severity==='Medium').length,c:'#f0a030'}].map(s=>(
-                        <div key={s.l} style={{flex:1,textAlign:'center',padding:'4px 0',background:'#050508',borderRadius:6}}>
+                        <div key={s.l} style={{flex:1,textAlign:'center',padding:'4px 0',background:'var(--wt-bg)',borderRadius:6}}>
                           <div style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.c}}>{s.v}</div>
-                          <div style={{fontSize:'0.5rem',color:'#3a4050',fontWeight:700}}>{s.l}</div>
+                          <div style={{fontSize:'0.5rem',color:'var(--wt-dim)',fontWeight:700}}>{s.l}</div>
                         </div>
                       ))}
                     </div>
@@ -621,11 +1020,74 @@ export default function DashboardPage() {
                 </div>
               </div>
 
+              {/* Recent Activity Row */}
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+                {/* Recent Alerts */}
+                <div style={{padding:'14px 16px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
+                    <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1px',flex:1}}>Recent Alerts</div>
+                    <button onClick={()=>setActiveTab('alerts')} style={{fontSize:'0.58rem',color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:600}}>View all →</button>
+                  </div>
+                  {alerts.slice(0,4).map(a=>(
+                    <div key={a.id} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 0',borderBottom:'1px solid var(--wt-border)'}}>
+                      <div style={{width:4,height:24,borderRadius:2,background:SEV_COLOR[a.severity],flexShrink:0}} />
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{fontSize:'0.72rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.title}</div>
+                        <div style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{a.source} · {a.device} · {a.time}</div>
+                      </div>
+                      <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:VERDICT_STYLE[a.verdict].bg,color:VERDICT_STYLE[a.verdict].c,flexShrink:0}}>{a.verdict}</span>
+                    </div>
+                  ))}
+                </div>
+                {/* Active Incidents */}
+                <div style={{padding:'14px 16px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
+                    <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',flex:1}}>Active Incidents</div>
+                    <button onClick={()=>setActiveTab('incidents')} style={{fontSize:'0.58rem',color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:600}}>View all →</button>
+                  </div>
+                  {incidents.filter(i=>(incidentStatuses[i.id]||i.status)!=='Closed').slice(0,3).map(inc=>(
+                    <div key={inc.id} onClick={()=>{setActiveTab('incidents');setSelectedIncident(inc);}} style={{padding:'6px 0',borderBottom:'1px solid var(--wt-border)',cursor:'pointer'}}>
+                      <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:2}}>
+                        <span style={{fontSize:'0.6rem',fontWeight:700,color:'#4f8fff',fontFamily:'JetBrains Mono,monospace'}}>{inc.id}</span>
+                        <SevBadge sev={inc.severity} />
+                        <span style={{fontSize:'0.52rem',padding:'1px 5px',borderRadius:3,background:'#f0405e12',color:'#f0405e',fontWeight:700,border:'1px solid #f0405e20'}}>{(incidentStatuses[inc.id]||inc.status).toUpperCase()}</span>
+                      </div>
+                      <div style={{fontSize:'0.7rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{inc.title}</div>
+                      <div style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{inc.alertCount} alerts · {inc.devices.length} devices</div>
+                    </div>
+                  ))}
+                  {incidents.filter(i=>(incidentStatuses[i.id]||i.status)!=='Closed').length===0 && (
+                    <div style={{fontSize:'0.72rem',color:'var(--wt-muted)',padding:'12px 0',textAlign:'center'}}>✓ No active incidents</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Top Active Threats */}
+              <div style={{padding:'14px 16px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12}}>
+                <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
+                  <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'1px',flex:1}}>🔥 Top Threats Right Now</div>
+                  <button onClick={()=>setActiveTab('intel')} style={{fontSize:'0.58rem',color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:600}}>View intel →</button>
+                </div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+                  {[
+                    {title:'CVE-2024-21413',desc:'Outlook NTLM — CISA KEV',color:'#f0405e',badge:'CRITICAL'},
+                    {title:'TA505 Active',desc:'Cobalt Strike campaign — fin. sector',color:'#f0a030',badge:'HIGH'},
+                    {title:'LockBit 3.0',desc:'New infra post-takedown',color:'#f0a030',badge:'HIGH'},
+                  ].map(t=>(
+                    <div key={t.title} style={{padding:'8px 10px',background:'var(--wt-card2)',border:`1px solid ${t.color}18`,borderRadius:8}}>
+                      <div style={{fontSize:'0.52rem',fontWeight:800,color:t.color,marginBottom:3}}>{t.badge}</div>
+                      <div style={{fontSize:'0.72rem',fontWeight:700,marginBottom:2}}>{t.title}</div>
+                      <div style={{fontSize:'0.6rem',color:'var(--wt-muted)'}}>{t.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               {/* Posture */}
-              <div style={{display:'flex',alignItems:'center',gap:12,padding:16,background:'#09091a',border:'1px solid #141820',borderRadius:12}}>
+              <div style={{display:'flex',alignItems:'center',gap:12,padding:16,background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12}}>
                 <div style={{position:'relative',width:64,height:64,flexShrink:0}}>
                   <svg viewBox='0 0 100 100' style={{width:'100%',height:'100%'}}>
-                    <circle cx={50} cy={50} r={42} fill='none' stroke='#141820' strokeWidth={8} />
+                    <circle cx={50} cy={50} r={42} fill='none' stroke='var(--wt-border)' strokeWidth={8} />
                     <circle cx={50} cy={50} r={42} fill='none' stroke={postureColor} strokeWidth={8} strokeDasharray={`${(posture/100)*264} 264`} strokeLinecap='round' transform='rotate(-90 50 50)' style={{transition:'stroke-dasharray 1s ease'}} />
                   </svg>
                   <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-60%)',fontSize:'1.2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:postureColor}}>{posture}</div>
@@ -633,7 +1095,7 @@ export default function DashboardPage() {
                 </div>
                 <div>
                   <div style={{fontSize:'0.82rem',fontWeight:700,marginBottom:3}}>Security Posture</div>
-                  <div style={{fontSize:'0.74rem',color:'#6b7a94',lineHeight:1.6}}>{critAlerts.length} critical alerts active · {kevVulns.length} KEV patches outstanding · {gapDevices.length} devices uncovered</div>
+                  <div style={{fontSize:'0.74rem',color:'var(--wt-muted)',lineHeight:1.6}}>{critAlerts.length} critical alerts active · {kevVulns.length} KEV patches outstanding · {gapDevices.length} devices uncovered</div>
                   <div style={{fontSize:'0.64rem',color:'#f0a030',marginTop:4}}>⚠ Under pressure — address critical alerts and KEV patches to improve grade</div>
                 </div>
               </div>
@@ -645,8 +1107,10 @@ export default function DashboardPage() {
             <div style={{display:'flex',flexDirection:'column',gap:8}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Live Alerts</h2>
-                <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{autLabel} — AI handling enabled</span>
-                <span style={{marginLeft:'auto',fontSize:'0.7rem',color:'#6b7a94'}}>{alerts.length} total · {fpAlerts.length} auto-closed · {tpAlerts.length} escalated</span>
+                <span style={{fontSize:'0.62rem',fontWeight:600,padding:'3px 10px',borderRadius:5,background:`${autColor}12`,color:autColor,border:`1px solid ${autColor}20`}}>
+                  {'⚡✦🤖'[automation]} {autLabel} — {automationBannerText}
+                </span>
+                <span style={{marginLeft:'auto',fontSize:'0.7rem',color:'var(--wt-muted)'}}>{alerts.length} total · {fpAlerts.length} auto-closed · {tpAlerts.length} escalated</span>
               </div>
               {alerts.map(alert=>{
                 const vStyle = VERDICT_STYLE[alert.verdict];
@@ -663,8 +1127,8 @@ export default function DashboardPage() {
                         <div style={{display:'flex',gap:6,flexWrap:'wrap',alignItems:'center'}}>
                           <SevBadge sev={alert.severity} />
                           <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff18'}}>{alert.source}</span>
-                          <span style={{fontSize:'0.52rem',color:'#3a4050',fontFamily:'JetBrains Mono,monospace'}}>{alert.device}</span>
-                          <span style={{fontSize:'0.52rem',color:'#3a4050'}}>{alert.time}</span>
+                          <span style={{fontSize:'0.52rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{alert.device}</span>
+                          <span style={{fontSize:'0.52rem',color:'var(--wt-dim)'}}>{alert.time}</span>
                           {alert.mitre && <span style={{fontSize:'0.48rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{alert.mitre}</span>}
                         </div>
                       </div>
@@ -675,18 +1139,18 @@ export default function DashboardPage() {
                           </span>
                         )}
                         <span style={{fontSize:'0.56rem',fontWeight:800,padding:'2px 8px',borderRadius:4,color:vStyle.c,background:vStyle.bg}}>{vStyle.label}</span>
-                        <span style={{fontSize:'0.72rem',color:'#3a4050'}}>{expanded?'▲':'▼'}</span>
+                        <span style={{fontSize:'0.72rem',color:'var(--wt-dim)'}}>{expanded?'▲':'▼'}</span>
                       </div>
                     </div>
                     {expanded && (
                       <div style={{padding:'0 14px 14px 14px',borderTop:'1px solid #141820'}}>
                         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginTop:12}}>
                           <div>
-                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'#4a5568',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Reasoning</div>
-                            <div style={{fontSize:'0.74rem',color:'#8a9ab0',lineHeight:1.65}}>{alert.aiReasoning}</div>
-                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'#4a5568',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6,marginTop:10}}>Evidence Chain</div>
+                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Reasoning</div>
+                            <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65}}>{alert.aiReasoning}</div>
+                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6,marginTop:10}}>Evidence Chain</div>
                             {alert.evidenceChain.map(e=>(
-                              <div key={e} style={{fontSize:'0.72rem',color:'#a0adc4',padding:'2px 0 2px 12px',position:'relative'}}>
+                              <div key={e} style={{fontSize:'0.72rem',color:'var(--wt-secondary)',padding:'2px 0 2px 12px',position:'relative'}}>
                                 <span style={{position:'absolute',left:0,top:9,width:5,height:5,borderRadius:'50%',background:'#4f8fff',display:'block'}} />{e}
                               </div>
                             ))}
@@ -700,9 +1164,9 @@ export default function DashboardPage() {
                             ))}
                             {alert.runbookSteps.length>0 && (
                               <>
-                                <div style={{fontSize:'0.6rem',fontWeight:700,color:'#4a5568',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6,marginTop:10}}>Runbook Steps</div>
+                                <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6,marginTop:10}}>Runbook Steps</div>
                                 {alert.runbookSteps.map((s,i)=>(
-                                  <div key={s} style={{fontSize:'0.72rem',color:'#8a9ab0',padding:'2px 0',display:'flex',gap:6}}>
+                                  <div key={s} style={{fontSize:'0.72rem',color:'var(--wt-secondary)',padding:'2px 0',display:'flex',gap:6}}>
                                     <span style={{color:'#4f8fff',fontWeight:700,flexShrink:0,fontSize:'0.6rem',background:'#4f8fff15',borderRadius:3,padding:'1px 4px'}}>{i+1}</span><span>{s}</span>
                                   </div>
                                 ))}
@@ -740,13 +1204,13 @@ export default function DashboardPage() {
                     const gapCount = Math.round(totalDevices*(1-pct/100));
                     const pctColor = pct>=95?'#22d49a':pct>=85?'#f0a030':'#f0405e';
                     return (
-                      <div key={tool.id} style={{padding:'10px 14px',background:'#09091a',border:'1px solid #141820',borderRadius:10,display:'flex',alignItems:'center',gap:12}}>
+                      <div key={tool.id} onClick={()=>setGapToolFilter(gapToolFilter===tool.id?null:tool.id)} style={{padding:'10px 14px',background:gapToolFilter===tool.id?'var(--wt-card2)':'var(--wt-card)',border:`1px solid ${gapToolFilter===tool.id?'#4f8fff40':'#141820'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12,cursor:'pointer'}}>
                         <div style={{width:110,fontSize:'0.76rem',fontWeight:600,flexShrink:0}}>{tool.name}</div>
-                        <div style={{flex:1,height:8,background:'#141820',borderRadius:4,overflow:'hidden'}}>
+                        <div style={{flex:1,height:8,background:'var(--wt-border)',borderRadius:4,overflow:'hidden'}}>
                           <div style={{height:'100%',background:`linear-gradient(90deg,${pctColor},${pctColor}aa)`,borderRadius:4,width:`${pct}%`,transition:'width 1s'}} />
                         </div>
                         <span style={{fontSize:'0.72rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:pctColor,minWidth:36,textAlign:'right'}}>{pct}%</span>
-                        <span style={{fontSize:'0.6rem',color:'#3a4050',minWidth:80,textAlign:'right'}}>{gapCount>0?<span style={{color:'#f0a030'}}>{gapCount} devices missing</span>:'Full coverage'}</span>
+                        <span style={{fontSize:'0.6rem',color:'var(--wt-dim)',minWidth:80,textAlign:'right'}}>{gapCount>0?<span style={{color:'#f0a030'}}>{gapCount} devices missing</span>:'Full coverage'}</span>
                       </div>
                     );
                   })}
@@ -757,23 +1221,40 @@ export default function DashboardPage() {
               <div>
                 <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Devices with Gaps ({gapDevices.length})</div>
                 <div style={{display:'flex',flexDirection:'column',gap:6}}>
-                  {gapDevices.map(dev=>(
-                    <div key={dev.hostname} style={{padding:'12px 14px',background:'#09091a',border:'1px solid #f0405e18',borderRadius:10}}>
+                  {/* CSV export button */}
+                  {gapToolFilter && (
+                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+                      <span style={{fontSize:'0.68rem',color:'#4f8fff',fontWeight:600}}>Showing devices missing {ALL_TOOLS.find(t=>t.id===gapToolFilter)?.name||gapToolFilter}</span>
+                      <button onClick={()=>{
+                        const filtered = gapDevices.filter(d=>d.missing.some(m=>ALL_TOOLS.find(t=>t.id===gapToolFilter)?.name && m.includes(ALL_TOOLS.find(t=>t.id===gapToolFilter)!.name.split(' ')[0])));
+                        const csv = ['Hostname,IP,OS,Missing Tools,Reason,Last Seen', ...filtered.map(d=>`${d.hostname},${d.ip},${d.os},"${d.missing.join('; ')}","${d.reason}",${d.lastSeen}`)].join('
+');
+                        const blob = new Blob([csv],{type:'text/csv'});
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a'); a.href=url; a.download=`coverage-gaps-${gapToolFilter}.csv`; a.click();
+                        URL.revokeObjectURL(url);
+                      }} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Export CSV ↓</button>
+                      <button onClick={()=>setGapToolFilter(null)} style={{padding:'3px 8px',borderRadius:5,border:'1px solid var(--wt-border)',background:'none',color:'var(--wt-muted)',fontSize:'0.6rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear ×</button>
+                    </div>
+                  )}
+                  {(gapToolFilter ? gapDevices.filter(d=>d.missing.some(m=>ALL_TOOLS.find(t=>t.id===gapToolFilter)?.name && m.includes(ALL_TOOLS.find(t=>t.id===gapToolFilter)!.name.split(' ')[0]))) : gapDevices).map(dev=>(
+                    <div key={dev.hostname} style={{padding:'12px 14px',background:'var(--wt-card)',border:'1px solid #f0405e18',borderRadius:10}}>
                       <div style={{display:'flex',alignItems:'flex-start',gap:10}}>
                         <div style={{flex:1}}>
                           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                             <span style={{fontSize:'0.8rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace'}}>{dev.hostname}</span>
-                            <span style={{fontSize:'0.6rem',color:'#3a4050',fontFamily:'JetBrains Mono,monospace'}}>{dev.ip}</span>
-                            <span style={{fontSize:'0.58rem',color:'#6b7a94'}}>{dev.os}</span>
+                            <span style={{fontSize:'0.6rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{dev.ip}</span>
+                            <span style={{fontSize:'0.58rem',color:'var(--wt-muted)'}}>{dev.os}</span>
                           </div>
                           <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:4}}>
-                            {dev.missing.map(m=>(
-                              <span key={m} style={{fontSize:'0.52rem',fontWeight:700,padding:'2px 7px',borderRadius:3,background:'#f0405e12',color:'#f0405e',border:'1px solid #f0405e20'}}>Missing: {m}</span>
-                            ))}
+                            {dev.missing.map(m=>{
+                              const catColor = m.includes('Falcon')||m.includes('Defender')||m.includes('SentinelOne')||m.includes('Carbon Black')?'#f0405e':m.includes('Splunk')||m.includes('Sentinel')||m.includes('QRadar')||m.includes('Elastic')?'#f0a030':m.includes('Tenable')||m.includes('Nessus')||m.includes('Qualys')?'#8b6fff':'#4f8fff';
+                              return <span key={m} style={{fontSize:'0.62rem',fontWeight:700,padding:'3px 8px',borderRadius:4,background:`${catColor}14`,color:catColor,border:`1px solid ${catColor}28`,display:'flex',alignItems:'center',gap:4}}><span style={{fontSize:'0.5rem'}}>✗</span>{m}</span>;
+                            })}
                           </div>
-                          <div style={{fontSize:'0.66rem',color:'#6b7a94'}}>{dev.reason} · Last seen {dev.lastSeen}</div>
+                          <div style={{fontSize:'0.66rem',color:'var(--wt-muted)'}}>{dev.reason} · Last seen {dev.lastSeen}</div>
                         </div>
-                        <button onClick={()=>setDeployAgentDevice(dev)} style={{padding:'4px 10px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Deploy Agent</button>
+
                       </div>
                     </div>
                   ))}
@@ -793,8 +1274,8 @@ export default function DashboardPage() {
               <div style={{display:'flex',flexDirection:'column',gap:6}}>
                 {DEMO_VULNS.map((vuln,rank)=>(
                   <div key={vuln.id}>
-                    <div className='vuln-row' onClick={()=>setSelectedVuln(selectedVuln?.id===vuln.id?null:vuln)} style={{padding:'10px 14px',background:selectedVuln?.id===vuln.id?'#0a0d18':'#09091a',border:`1px solid ${selectedVuln?.id===vuln.id?'#4f8fff30':'#141820'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12}}>
-                      <div style={{width:22,height:22,borderRadius:6,background:rank<3?'#f0405e18':'#141820',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.62rem',fontWeight:900,color:rank<3?'#f0405e':'#6b7a94',flexShrink:0,fontFamily:'JetBrains Mono,monospace'}}>{rank+1}</div>
+                    <div className='vuln-row' onClick={()=>setSelectedVuln(selectedVuln?.id===vuln.id?null:vuln)} style={{padding:'10px 14px',background:selectedVuln?.id===vuln.id?'#0a0d18':'#09091a',border:`1px solid ${selectedVuln?.id===vuln.id?'#4f8fff30':'var(--wt-border)'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12}}>
+                      <div style={{width:22,height:22,borderRadius:6,background:rank<3?'#f0405e18':'var(--wt-border)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.62rem',fontWeight:900,color:rank<3?'#f0405e':'#6b7a94',flexShrink:0,fontFamily:'JetBrains Mono,monospace'}}>{rank+1}</div>
                       <div style={{flex:1,minWidth:0}}>
                         <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:2}}>
                           <span style={{fontSize:'0.78rem',fontWeight:700}}>{vuln.title}</span>
@@ -803,8 +1284,8 @@ export default function DashboardPage() {
                         <div style={{display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}>
                           <SevBadge sev={vuln.severity} />
                           <span style={{fontSize:'0.6rem',color:'#4f8fff',fontFamily:'JetBrains Mono,monospace',fontWeight:700}}>CVSS {vuln.cvss}</span>
-                          <span style={{fontSize:'0.6rem',color:'#3a4050',fontFamily:'JetBrains Mono,monospace'}}>{vuln.cve}</span>
-                          <span style={{fontSize:'0.58rem',color:'#6b7a94'}}>{vuln.affected} device{vuln.affected!==1?'s':''} affected</span>
+                          <span style={{fontSize:'0.6rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{vuln.cve}</span>
+                          <span style={{fontSize:'0.58rem',color:'var(--wt-muted)'}}>{vuln.affected} device{vuln.affected!==1?'s':''} affected</span>
                           <span style={{fontSize:'0.58rem',color:'#f0a030'}}>{vuln.prevalence}% prevalence in estate</span>
                         </div>
                       </div>
@@ -814,10 +1295,10 @@ export default function DashboardPage() {
                       <div style={{padding:'14px 16px',background:'#070912',border:'1px solid #4f8fff20',borderTop:'none',borderRadius:'0 0 10px 10px',marginBottom:0}}>
                         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
                           <div>
-                            <div style={{fontSize:'0.7rem',color:'#8a9ab0',lineHeight:1.65,marginBottom:10}}>{vuln.description}</div>
-                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'#4a5568',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Affected Devices</div>
+                            <div style={{fontSize:'0.7rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:10}}>{vuln.description}</div>
+                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Affected Devices</div>
                             <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
-                              {vuln.affectedDevices.map(d=><span key={d} style={{fontSize:'0.58rem',padding:'2px 7px',borderRadius:3,background:'#141820',color:'#6b7a94',fontFamily:'JetBrains Mono,monospace'}}>{d}</span>)}
+                              {vuln.affectedDevices.map(d=><span key={d} style={{fontSize:'0.58rem',padding:'2px 7px',borderRadius:3,background:'var(--wt-border)',color:'var(--wt-muted)',fontFamily:'JetBrains Mono,monospace'}}>{d}</span>)}
                             </div>
                             <div style={{marginTop:10,display:'flex',gap:6,flexWrap:'wrap'}}>
                               {vuln.patch && <div style={{fontSize:'0.64rem',color:'#22d49a',width:'100%'}}>📦 Patch: <strong>{vuln.patch}</strong></div>}
@@ -827,19 +1308,22 @@ export default function DashboardPage() {
                             </div>
                           </div>
                           <div>
-                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'#4a5568',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Remediation Steps</div>
+                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Remediation Steps</div>
                             {vuln.remediation.map((r,i)=>(
-                              <div key={r} style={{fontSize:'0.7rem',color:'#8a9ab0',padding:'3px 0 3px 14px',position:'relative',lineHeight:1.5}}>
+                              <div key={r} style={{fontSize:'0.7rem',color:'var(--wt-secondary)',padding:'3px 0 3px 14px',position:'relative',lineHeight:1.5}}>
                                 <span style={{position:'absolute',left:0,top:9,width:5,height:5,borderRadius:'50%',background:'#22d49a',display:'block'}} />
                                 {r}
                               </div>
                             ))}
-                            <div style={{marginTop:12,padding:'10px',background:'#0a0d14',border:'1px solid #4f8fff18',borderRadius:8}}>
+                            <div style={{marginTop:12,padding:'10px',background:'var(--wt-card2)',border:'1px solid #4f8fff18',borderRadius:8}}>
                               <div style={{fontSize:'0.6rem',fontWeight:700,color:'#4f8fff',marginBottom:6,display:'flex',alignItems:'center',gap:6}}>
                                 <span style={{width:6,height:6,borderRadius:'50%',background:'#4f8fff',display:'block'}} />AI Remediation Assistant
                               </div>
                               {vulnAiTexts[vuln.id] ? (
-                                <div style={{fontSize:'0.7rem',color:'#a0adc4',lineHeight:1.65}}>{vulnAiTexts[vuln.id]}</div>
+                                <div>
+                                  <RemediationOutput text={vulnAiTexts[vuln.id]} />
+                                  <button onClick={()=>setVulnAiTexts(prev=>{const n={...prev};delete n[vuln.id];return n;})} style={{marginTop:8,fontSize:'0.6rem',padding:'2px 8px',borderRadius:4,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-dim)',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>↺ Regenerate</button>
+                                </div>
                               ) : (
                                 <button onClick={()=>getVulnAiHelp(vuln)} disabled={vulnAiLoading===vuln.id} style={{padding:'6px 14px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.72rem',fontWeight:700,cursor:vulnAiLoading===vuln.id?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:6}}>
                                   {vulnAiLoading===vuln.id?<span style={{display:'inline-block',width:10,height:10,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />:'✦'}
@@ -859,12 +1343,13 @@ export default function DashboardPage() {
 
           {/* ═══════════════════════════════ INTEL ══════════════════════════════════ */}
           {activeTab==='intel' && (
+            <GateWall feature='Threat Intelligence' requiredTier='team' userTier={userTier}>
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Threat Intelligence</h2>
                 <div style={{display:'flex',alignItems:'center',gap:6,marginLeft:'auto'}}>
-                  <span style={{fontSize:'0.7rem',color:'#6b7a94'}}>Industry:</span>
-                  <select value={industry} onChange={e=>{setIndustry(e.target.value);fetchIntelForIndustry(e.target.value);}} style={{padding:'4px 10px',borderRadius:6,border:'1px solid #1e2536',background:'#0a0d14',color:'#e8ecf4',fontSize:'0.76rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                  <span style={{fontSize:'0.7rem',color:'var(--wt-muted)'}}>Industry:</span>
+                  <select value={industry} onChange={e=>{setIndustryPersisted(e.target.value);fetchIntelForIndustry(e.target.value);}} style={{padding:'4px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.76rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                     {INDUSTRIES.map(i=><option key={i} value={i}>{i}</option>)}
                   </select>
                   {intelLoading && <span style={{width:14,height:14,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}} />}
@@ -876,43 +1361,98 @@ export default function DashboardPage() {
                 <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>
                   {industry} — Active Threats
                 </div>
-                {allIntel.filter(i=>i.industrySpecific).map(item=>(
-                  <div key={item.id} style={{padding:'12px 14px',background:'#0a0206',border:'1px solid #f0405e18',borderRadius:10,marginBottom:6}}>
-                    <div style={{display:'flex',alignItems:'flex-start',gap:10}}>
-                      <div style={{flex:1}}>
-                        <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4}}>
-                          <SevBadge sev={item.severity} />
-                          <span style={{fontSize:'0.78rem',fontWeight:700}}>{item.title}</span>
+                {allIntel.filter(i=>i.industrySpecific).map(item=>{
+                  const isExpanded = expandedIntel.has(item.id);
+                  return (
+                  <div key={item.id} style={{background:'#0a0206',border:`1px solid ${isExpanded?'#f0405e30':'#f0405e18'}`,borderRadius:10,marginBottom:6,overflow:'hidden'}}>
+                    <div style={{padding:'12px 14px',cursor:'pointer'}} onClick={()=>toggleIntel(item.id)}>
+                      <div style={{display:'flex',alignItems:'flex-start',gap:10}}>
+                        <div style={{flex:1}}>
+                          <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4}}>
+                            <SevBadge sev={item.severity} />
+                            <span style={{fontSize:'0.78rem',fontWeight:700}}>{item.title}</span>
+                          </div>
+                          <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:6}}>{item.summary}</div>
+                          <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+                            <span style={{fontSize:'0.58rem',color:'#4f8fff'}}>{item.source}</span>
+                            <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{item.time}</span>
+                            {item.mitre && <span style={{fontSize:'0.52rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{item.mitre}</span>}
+                            {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.58rem',fontWeight:700,color:'#f0a030',background:'#f0a03012',padding:'1px 6px',borderRadius:3,border:'1px solid #f0a03025'}}>{item.iocs.length} IOCs — click to view</span>}
+                            <a href={`https://www.google.com/search?q=${encodeURIComponent(item.title+' threat intelligence')}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.52rem',color:'#4f8fff',textDecoration:'none',padding:'1px 6px',border:'1px solid #4f8fff20',borderRadius:3,background:'#4f8fff0a'}}>Read more →</a>
+                          </div>
                         </div>
-                        <div style={{fontSize:'0.74rem',color:'#8a9ab0',lineHeight:1.65,marginBottom:6}}>{item.summary}</div>
-                        <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
-                          <span style={{fontSize:'0.58rem',color:'#4f8fff'}}>{item.source}</span>
-                          <span style={{fontSize:'0.58rem',color:'#3a4050'}}>{item.time}</span>
-                          {item.mitre && <span style={{fontSize:'0.52rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{item.mitre}</span>}
-                          {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.58rem',color:'#f0a030'}}>{item.iocs.length} IOCs available</span>}
-                        </div>
+                        <span style={{fontSize:'0.7rem',color:'var(--wt-dim)',flexShrink:0}}>{isExpanded?'▲':'▼'}</span>
                       </div>
                     </div>
+                    {isExpanded && item.iocs && item.iocs.length>0 && (
+                      <div style={{padding:'10px 14px 14px',borderTop:'1px solid #f0405e15',background:'#07010a'}}>
+                        <div style={{fontSize:'0.6rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Indicators of Compromise</div>
+                        <div style={{display:'flex',flexDirection:'column',gap:4}}>
+                          {item.iocs.map(ioc=>(
+                            <div key={ioc} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 8px',background:'#0d0208',border:'1px solid #1e1010',borderRadius:6}}>
+                              <span style={{width:6,height:6,borderRadius:'50%',background:'#f0a030',flexShrink:0}} />
+                              <code style={{fontSize:'0.68rem',fontFamily:'JetBrains Mono,monospace',color:'#f0c070',flex:1,wordBreak:'break-all'}}>{ioc}</code>
+                              <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(ioc);}} style={{fontSize:'0.54rem',padding:'2px 7px',borderRadius:3,border:'1px solid #f0a03025',background:'transparent',color:'#f0a030',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Copy</button>
+                            </div>
+                          ))}
+                        </div>
+                        {item.mitre && (
+                          <div style={{marginTop:10,display:'flex',alignItems:'center',gap:8}}>
+                            <span style={{fontSize:'0.6rem',color:'var(--wt-dim)'}}>MITRE ATT&CK:</span>
+                            <a href={`https://attack.mitre.org/techniques/${item.mitre.replace('.','/')}/`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.66rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:'#7c6aff',textDecoration:'none',padding:'2px 8px',border:'1px solid #7c6aff25',borderRadius:3,background:'#7c6aff10'}}>{item.mitre} →</a>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* General intel */}
               <div>
-                <div style={{fontSize:'0.62rem',fontWeight:700,color:'#6b7a94',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>General Intelligence</div>
-                {allIntel.filter(i=>!i.industrySpecific).map(item=>(
-                  <div key={item.id} style={{padding:'12px 14px',background:'#09091a',border:'1px solid #141820',borderRadius:10,marginBottom:6}}>
-                    <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4}}>
-                      <SevBadge sev={item.severity} />
-                      <span style={{fontSize:'0.78rem',fontWeight:700}}>{item.title}</span>
+                <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>General Intelligence</div>
+                {allIntel.filter(i=>!i.industrySpecific).map(item=>{
+                  const isExpanded = expandedIntel.has(item.id);
+                  return (
+                  <div key={item.id} style={{background:'var(--wt-card)',border:`1px solid ${isExpanded?'#4f8fff30':'var(--wt-border)'}`,borderRadius:10,marginBottom:6,overflow:'hidden'}}>
+                    <div style={{padding:'12px 14px',cursor:'pointer'}} onClick={()=>toggleIntel(item.id)}>
+                      <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4}}>
+                        <SevBadge sev={item.severity} />
+                        <span style={{fontSize:'0.78rem',fontWeight:700,flex:1}}>{item.title}</span>
+                        <span style={{fontSize:'0.7rem',color:'var(--wt-dim)',flexShrink:0}}>{isExpanded?'▲':'▼'}</span>
+                      </div>
+                      <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:6}}>{item.summary}</div>
+                      <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+                        <span style={{fontSize:'0.58rem',color:'#4f8fff'}}>{item.source}</span>
+                        <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{item.time}</span>
+                        {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.58rem',fontWeight:700,color:'#f0a030',background:'#f0a03012',padding:'1px 6px',borderRadius:3,border:'1px solid #f0a03025'}}>{item.iocs.length} IOCs</span>}
+                        {item.mitre && <span style={{fontSize:'0.52rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{item.mitre}</span>}
+                      </div>
                     </div>
-                    <div style={{fontSize:'0.74rem',color:'#8a9ab0',lineHeight:1.65,marginBottom:6}}>{item.summary}</div>
-                    <div style={{display:'flex',gap:8,alignItems:'center'}}>
-                      <span style={{fontSize:'0.58rem',color:'#4f8fff'}}>{item.source}</span>
-                      <span style={{fontSize:'0.58rem',color:'#3a4050'}}>{item.time}</span>
-                    </div>
+                    {isExpanded && item.iocs && item.iocs.length>0 && (
+                      <div style={{padding:'10px 14px 14px',borderTop:'1px solid var(--wt-border)',background:'var(--wt-card2)'}}>
+                        <div style={{fontSize:'0.6rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Indicators of Compromise</div>
+                        <div style={{display:'flex',flexDirection:'column',gap:4}}>
+                          {item.iocs.map(ioc=>(
+                            <div key={ioc} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 8px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:6}}>
+                              <span style={{width:6,height:6,borderRadius:'50%',background:'#f0a030',flexShrink:0}} />
+                              <code style={{fontSize:'0.68rem',fontFamily:'JetBrains Mono,monospace',color:'#f0c070',flex:1,wordBreak:'break-all'}}>{ioc}</code>
+                              <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(ioc);}} style={{fontSize:'0.54rem',padding:'2px 7px',borderRadius:3,border:'1px solid #f0a03025',background:'transparent',color:'#f0a030',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Copy</button>
+                            </div>
+                          ))}
+                        </div>
+                        {item.mitre && (
+                          <div style={{marginTop:10,display:'flex',alignItems:'center',gap:8}}>
+                            <span style={{fontSize:'0.6rem',color:'var(--wt-dim)'}}>MITRE ATT&CK:</span>
+                            <a href={`https://attack.mitre.org/techniques/${item.mitre.replace('.','/')}/`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.66rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:'#7c6aff',textDecoration:'none',padding:'2px 8px',border:'1px solid #7c6aff25',borderRadius:3,background:'#7c6aff10'}}>{item.mitre} →</a>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Darktrace anomalies if active */}
@@ -924,34 +1464,36 @@ export default function DashboardPage() {
                     {device:'laptop-CFO01',score:88,desc:'Unusual internal reconnaissance — scanning 10.0.0.0/24 subnet',time:'2h ago'},
                     {device:'SRV-APP02',score:72,desc:'Elevated data transfer to external storage provider — 3x baseline',time:'3h ago'},
                   ].map(a=>(
-                    <div key={a.device} style={{padding:'10px 14px',background:'#09091a',border:'1px solid #8b6fff18',borderRadius:10,marginBottom:5,display:'flex',alignItems:'center',gap:10}}>
+                    <div key={a.device} style={{padding:'10px 14px',background:'var(--wt-card)',border:'1px solid #8b6fff18',borderRadius:10,marginBottom:5,display:'flex',alignItems:'center',gap:10}}>
                       <div style={{width:38,height:38,borderRadius:8,background:'#8b6fff15',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
                         <span style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:'#8b6fff'}}>{a.score}</span>
                       </div>
                       <div style={{flex:1}}>
                         <div style={{fontSize:'0.76rem',fontWeight:700,marginBottom:2}}>{a.device}</div>
-                        <div style={{fontSize:'0.7rem',color:'#6b7a94'}}>{a.desc}</div>
+                        <div style={{fontSize:'0.7rem',color:'var(--wt-muted)'}}>{a.desc}</div>
                       </div>
-                      <span style={{fontSize:'0.6rem',color:'#3a4050',flexShrink:0}}>{a.time}</span>
+                      <span style={{fontSize:'0.6rem',color:'var(--wt-dim)',flexShrink:0}}>{a.time}</span>
                     </div>
                   ))}
                 </div>
               )}
             </div>
+          </GateWall>
           )}
 
           {/* ═══════════════════════════════ INCIDENTS ══════════════════════════════ */}
           {activeTab==='incidents' && (
+            <GateWall feature='Incident Management' requiredTier='team' userTier={userTier}>
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Incidents</h2>
                 <span style={{fontSize:'0.62rem',color:'#f0405e',background:'#f0405e12',padding:'2px 8px',borderRadius:4}}>{incidents.filter(i=>i.status==='Active').length} Active</span>
               </div>
-              {incidents.map(inc=>{
+              {incidents.filter(inc=>!deletedIncidents.has(inc.id)).map(inc=>{
                 const isSel = selectedIncident?.id===inc.id;
                 const incStatus = incidentStatuses[inc.id] || inc.status; const statusColor = incStatus==='Active'?'#f0405e':incStatus==='Contained'?'#f0a030':'#22d49a';
                 return (
-                  <div key={inc.id} style={{background:'#09091a',border:`1px solid ${isSel?'#4f8fff40':'#141820'}`,borderRadius:12,overflow:'hidden'}}>
+                  <div key={inc.id} style={{background:'var(--wt-card)',border:`1px solid ${isSel?'#4f8fff40':'var(--wt-border)'}`,borderRadius:12,overflow:'hidden'}}>
                     <div style={{padding:'12px 16px',cursor:'pointer',display:'flex',alignItems:'flex-start',gap:12}} onClick={()=>setSelectedIncident(isSel?null:inc)}>
                       <div style={{flex:1}}>
                         <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
@@ -962,40 +1504,42 @@ export default function DashboardPage() {
                         <div style={{fontSize:'0.84rem',fontWeight:700,marginBottom:4}}>{inc.title}</div>
                         <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
                           {inc.mitreTactics.map(t=><span key={t} style={{fontSize:'0.52rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{t}</span>)}
-                          <span style={{fontSize:'0.58rem',color:'#3a4050'}}>{inc.alertCount} alerts · {inc.devices.length} devices</span>
-                          <span style={{fontSize:'0.58rem',color:'#3a4050'}}>Updated {inc.updated.split(' ')[1]}</span>
+                          <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{inc.alertCount} alerts · {inc.devices.length} devices</span>
+                          <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>Updated {inc.updated.split(' ')[1]}</span>
                         </div>
                       </div>
-                      <span style={{fontSize:'0.7rem',color:'#3a4050',flexShrink:0}}>{isSel?'▲':'▼'}</span>
+                      <span style={{fontSize:'0.7rem',color:'var(--wt-dim)',flexShrink:0}}>{isSel?'▲':'▼'}</span>
                     </div>
                     {isSel && (
                       <div style={{borderTop:'1px solid #141820',padding:'14px 16px'}}>
-                        <div style={{fontSize:'0.74rem',color:'#8a9ab0',lineHeight:1.65,padding:'10px',background:'linear-gradient(135deg,rgba(79,143,255,0.04),rgba(34,201,146,0.04))',border:'1px solid #4f8fff15',borderRadius:8,marginBottom:12}}>
+                        <GateWall feature='AI Attack Narrative' requiredTier='team' userTier={userTier}>
+              <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,padding:'10px',background:'linear-gradient(135deg,rgba(79,143,255,0.04),rgba(34,201,146,0.04))',border:'1px solid #4f8fff15',borderRadius:8,marginBottom:12}}>
                           <span style={{fontSize:'0.6rem',fontWeight:700,color:'#4f8fff',display:'block',marginBottom:4}}>AI ATTACK NARRATIVE</span>
                           {inc.aiSummary}
                         </div>
-                        <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4a5568',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Attack Timeline</div>
+                        </GateWall>
+                        <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Attack Timeline</div>
                         <div style={{display:'flex',flexDirection:'column',gap:0}}>
                           {inc.timeline.map((event,i)=>(
                             <div key={i} style={{display:'flex',gap:0,padding:'5px 0'}}>
                               <div style={{display:'flex',flexDirection:'column',alignItems:'center',minWidth:50}}>
-                                <span style={{fontSize:'0.6rem',fontFamily:'JetBrains Mono,monospace',color:'#3a4050',marginBottom:3}}>{event.t}</span>
+                                <span style={{fontSize:'0.6rem',fontFamily:'JetBrains Mono,monospace',color:'var(--wt-dim)',marginBottom:3}}>{event.t}</span>
                                 <div style={{width:8,height:8,borderRadius:'50%',background:event.actor==='AI'?'#4f8fff':'#22d49a',flexShrink:0}} />
-                                {i<inc.timeline.length-1&&<div style={{width:1,flex:1,background:'#141820',minHeight:16,marginTop:2}} />}
+                                {i<inc.timeline.length-1&&<div style={{width:1,flex:1,background:'var(--wt-border)',minHeight:16,marginTop:2}} />}
                               </div>
                               <div style={{flex:1,paddingLeft:10,paddingBottom:8}}>
                                 <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:1}}>
                                   <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:event.actor==='AI'?'#4f8fff15':'#22d49a15',color:event.actor==='AI'?'#4f8fff':'#22d49a'}}>{event.actor}</span>
                                   <span style={{fontSize:'0.74rem',fontWeight:600}}>{event.action}</span>
                                 </div>
-                                <div style={{fontSize:'0.68rem',color:'#6b7a94'}}>{event.detail}</div>
+                                <div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>{event.detail}</div>
                               </div>
                             </div>
                           ))}
                         </div>
                         <div style={{display:'flex',gap:6,marginTop:10}}>
-                          {['Add Note','Escalate','Close Incident'].map(a=>(
-                            <button key={a} onClick={()=>{ if(a==='Close Incident') closeIncident(inc.id); }} style={{padding:'5px 12px',borderRadius:6,border:`1px solid ${a==='Close Incident'?'#22d49a30':'#1e2536'}`,background:a==='Close Incident'?'#22d49a0a':'transparent',color:a==='Close Incident'?'#22d49a':'#8a9ab0',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{a}</button>
+                          {['Add Note','Escalate','Close Incident','Delete'].map(a=>(
+                            <button key={a} onClick={()=>{ if(a==='Close Incident') closeIncident(inc.id); if(a==='Delete') deleteIncident(inc.id); }} style={{padding:'5px 12px',borderRadius:6,border:`1px solid ${a==='Close Incident'?'#22d49a30':a==='Delete'?'#f0405e25':'var(--wt-border2)'}`,background:a==='Close Incident'?'#22d49a0a':a==='Delete'?'#f0405e0a':'transparent',color:a==='Close Incident'?'#22d49a':a==='Delete'?'#f0405e':'#8a9ab0',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{a}</button>
                           ))}
                         </div>
                       </div>
@@ -1004,11 +1548,15 @@ export default function DashboardPage() {
                 );
               })}
             </div>
+          </GateWall>
           )}
           {/* ═══════════════════════════════ TOOLS ══════════════════════════════════ */}
           {activeTab==='tools' && (
-            <ToolsTab />
+            <ToolsTab connected={connectedTools} setConnected={setConnectedTools} />
           )}
+
+          {/* ═══════════════════════════════ MSSP PORTFOLIO ══════════════════════════ */}
+          {activeTab==='mssp' && <MSSPPortfolio currentTenant={currentTenant} setCurrentTenant={setCurrentTenant} DEMO_TENANTS={DEMO_TENANTS} />}
         </div>
       </div>
 
@@ -1017,7 +1565,7 @@ export default function DashboardPage() {
       {/* Deploy Agent Modal */}
       {deployAgentDevice && (
         <Modal title={`Deploy Agent — ${deployAgentDevice.hostname}`} onClose={()=>setDeployAgentDevice(null)}>
-          <div style={{fontSize:'0.78rem',color:'#8a9ab0',lineHeight:1.7,marginBottom:16}}>
+          <div style={{fontSize:'0.78rem',color:'var(--wt-secondary)',lineHeight:1.7,marginBottom:16}}>
             This device is missing: <strong style={{color:'#f0405e'}}>{deployAgentDevice.missing.join(', ')}</strong><br />
             Reason: {deployAgentDevice.reason}
           </div>
@@ -1028,13 +1576,13 @@ export default function DashboardPage() {
             {title:'3. Manual install — macOS/Linux',desc:'Run the curl command on the target device via SSH or terminal.',btn:'Copy curl command',color:'#22d49a'},
             {title:'4. Group Policy / MDM',desc:'Deploy at scale via GPO (Windows) or MDM profile (macOS). Recommended for 10+ devices.',btn:'Download GPO template',color:'#8b6fff'},
           ].map(opt=>(
-            <div key={opt.title} style={{padding:'12px 14px',background:'#09091a',border:'1px solid #141820',borderRadius:10,marginBottom:8}}>
+            <div key={opt.title} style={{padding:'12px 14px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:10,marginBottom:8}}>
               <div style={{fontSize:'0.76rem',fontWeight:700,marginBottom:4}}>{opt.title}</div>
-              <div style={{fontSize:'0.68rem',color:'#6b7a94',marginBottom:8,lineHeight:1.5}}>{opt.desc}</div>
+              <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginBottom:8,lineHeight:1.5}}>{opt.desc}</div>
               <button style={{padding:'5px 14px',borderRadius:6,border:`1px solid ${opt.color}30`,background:`${opt.color}12`,color:opt.color,fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{opt.btn}</button>
             </div>
           ))}
-          <div style={{marginTop:12,padding:'10px 14px',background:'#0a0d14',border:'1px solid #4f8fff15',borderRadius:8,fontSize:'0.68rem',color:'#6b7a94',lineHeight:1.6}}>
+          <div style={{marginTop:12,padding:'10px 14px',background:'var(--wt-card2)',border:'1px solid #4f8fff15',borderRadius:8,fontSize:'0.68rem',color:'var(--wt-muted)',lineHeight:1.6}}>
             💡 After deployment, the agent will check in within 5 minutes. This device will be removed from the gaps list automatically.
           </div>
         </Modal>
@@ -1050,14 +1598,17 @@ export default function DashboardPage() {
             <div key={dev.hostname} style={{padding:'12px 0',borderBottom:'1px solid #141820'}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontSize:'0.82rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace'}}>{dev.hostname}</span>
-                <span style={{fontSize:'0.6rem',color:'#3a4050',fontFamily:'JetBrains Mono,monospace'}}>{dev.ip}</span>
-                <span style={{fontSize:'0.6rem',color:'#6b7a94'}}>{dev.os}</span>
-                <span style={{fontSize:'0.58rem',color:'#3a4050',marginLeft:'auto'}}>Last seen {dev.lastSeen}</span>
+                <span style={{fontSize:'0.6rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{dev.ip}</span>
+                <span style={{fontSize:'0.6rem',color:'var(--wt-muted)'}}>{dev.os}</span>
+                <span style={{fontSize:'0.58rem',color:'var(--wt-dim)',marginLeft:'auto'}}>Last seen {dev.lastSeen}</span>
               </div>
-              <div style={{display:'flex',gap:5,marginBottom:4}}>
-                {dev.missing.map(m=><span key={m} style={{fontSize:'0.56rem',fontWeight:700,padding:'2px 7px',borderRadius:3,background:'#f0405e12',color:'#f0405e',border:'1px solid #f0405e20'}}>Missing: {m}</span>)}
+              <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:4}}>
+                {dev.missing.map(m=>{
+                  const catColor = m.includes('Falcon')||m.includes('Defender')||m.includes('SentinelOne')||m.includes('Carbon Black')?'#f0405e':m.includes('Splunk')||m.includes('Sentinel')||m.includes('QRadar')||m.includes('Elastic')?'#f0a030':m.includes('Tenable')||m.includes('Nessus')||m.includes('Qualys')?'#8b6fff':'#4f8fff';
+                  return <span key={m} style={{fontSize:'0.62rem',fontWeight:700,padding:'3px 8px',borderRadius:4,background:`${catColor}14`,color:catColor,border:`1px solid ${catColor}28`,display:'inline-flex',alignItems:'center',gap:4}}><span style={{fontSize:'0.5rem'}}>✗</span>{m}</span>;
+                })}
               </div>
-              <div style={{fontSize:'0.68rem',color:'#6b7a94'}}>{dev.reason}</div>
+              <div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>{dev.reason}</div>
             </div>
           ))}
         </Modal>
@@ -1083,9 +1634,9 @@ export default function DashboardPage() {
         <Modal title={`Alert Ingestion — What AI Did`} onClose={()=>setModal(null)}>
           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:16}}>
             {[{val:alerts.length,label:'Ingested',c:'#4f8fff'},{val:fpAlerts.length,label:'Auto-Closed FPs',c:'#22d49a'},{val:tpAlerts.length,label:'Escalated TPs',c:'#f0405e'}].map(s=>(
-              <div key={s.label} style={{textAlign:'center',padding:'10px',background:'#050508',borderRadius:8,border:'1px solid #141820'}}>
+              <div key={s.label} style={{textAlign:'center',padding:'10px',background:'var(--wt-bg)',borderRadius:8,border:'1px solid #141820'}}>
                 <div style={{fontSize:'1.6rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.c,letterSpacing:-1}}>{s.val}</div>
-                <div style={{fontSize:'0.6rem',color:'#4a5568'}}>{s.label}</div>
+                <div style={{fontSize:'0.6rem',color:'var(--wt-dim)'}}>{s.label}</div>
               </div>
             ))}
           </div>
