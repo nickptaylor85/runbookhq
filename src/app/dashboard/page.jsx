@@ -659,6 +659,8 @@ export default function DashboardPage() {
   const [connectedTools, setConnectedTools] = useState({});
   const [currentTenant, setCurrentTenant] = useState('global');
   const [isAdmin] = useState(true); // Replace with real auth check
+  const [userTier, setUserTier] = useState('community');
+  const [theme, setTheme] = useState('dark');
 
   const DEMO_TENANTS = [
     {id:'global', name:'My Organisation', type:'direct'},
