@@ -178,8 +178,9 @@ const CRED_FIELDS: Record<string,{key:string;label:string;secret?:boolean;placeh
 
 const CATEGORIES = ['All','EDR','SIEM','NDR','XDR','Vuln','CSPM','Email','Network','Identity'];
 
+type ConnectedMap = Record<string,Record<string,string>>;
+type KeyStatus = 'idle'|'saving'|'saved'|'error';
 function ToolsTab() {
-  type ConnectedMap = Record<string,Record<string,string>>;
   const [connected, setConnected] = useState<ConnectedMap>({});
   const [filter, setFilter] = useState('All');
   const [modal, setModal] = useState<{id:string;name:string}|null>(null);
@@ -187,7 +188,7 @@ function ToolsTab() {
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ok:boolean;message:string}|null>(null);
   const [anthropicKey, setAnthropicKey] = useState('');
-  const [keyStatus, setKeyStatus] = useState<'idle'|'saving'|'saved'|'error'>('idle');
+  const [keyStatus, setKeyStatus] = useState<KeyStatus>('idle');
   const [aiTestStatus, setAiTestStatus] = useState<{ok:boolean;configured:boolean;message:string}|null>(null);
   const [aiTestLoading, setAiTestLoading] = useState(false);
 
@@ -203,7 +204,6 @@ function ToolsTab() {
       });
       const data = await res.json();
       if (res.ok && data.ok) {
-      if (res.ok && data.ok) {
         setKeyStatus('saved');
         setAnthropicKey('');
         await testAiKey();
@@ -212,7 +212,7 @@ function ToolsTab() {
         setKeyStatus('error');
         setTimeout(()=>setKeyStatus('idle'), 4000);
       }
-    } catch(e) { setKeyStatus('error'); setTimeout(()=>setKeyStatus('idle'), 3000); }
+    } catch(_e) { setKeyStatus('error'); setTimeout(()=>setKeyStatus('idle'), 3000); }
   }
 
   async function testAiKey() {
