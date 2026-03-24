@@ -10,7 +10,8 @@ interface Alert { id:string; title:string; severity:SevKey; source:string; devic
 interface GapDevice { hostname:string; ip:string; os:string; missing:string[]; reason:string; lastSeen:string; }
 interface Vuln { id:string; cve:string; title:string; severity:SevKey; cvss:number; prevalence:number; affected:number; affectedDevices:string[]; description:string; remediation:string[]; kev:boolean; patch?:string; }
 interface IntelItem { id:string; title:string; summary:string; severity:SevKey; source:string; time:string; iocs?:string[]; mitre?:string; industrySpecific:boolean; }
-interface Incident { id:string; title:string; severity:SevKey; status:'Active'|'Contained'|'Closed'; created:string; updated:string; alertCount:number; devices:string[]; mitreTactics:string[]; timeline:{t:string;actor:'AI'|'Analyst';action:string;detail:string}[]; aiSummary:string; }
+type TimelineEntry = {t:string; actor:'AI'|'Analyst'; action:string; detail:string};
+interface Incident { id:string; title:string; severity:SevKey; status:'Active'|'Contained'|'Closed'; created:string; updated:string; alertCount:number; devices:string[]; mitreTactics:string[]; timeline:TimelineEntry[]; aiSummary:string; }
 
 type Theme = 'dark' | 'light';
 type Tier = 'community' | 'team' | 'business' | 'mssp';
