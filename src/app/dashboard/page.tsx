@@ -11,7 +11,7 @@ interface GapDevice { hostname:string; ip:string; os:string; missing:string[]; r
 interface Vuln { id:string; cve:string; title:string; severity:SevKey; cvss:number; prevalence:number; affected:number; affectedDevices:string[]; description:string; remediation:string[]; kev:boolean; patch?:string; }
 interface IntelItem { id:string; title:string; summary:string; severity:SevKey; source:string; time:string; iocs?:string[]; mitre?:string; industrySpecific:boolean; }
 type TimelineActor = 'AI' | 'Analyst';
-type TimelineEntry = {t:string; actor:TimelineActor; action:string; detail:string};
+interface TimelineEntry { t:string; actor:TimelineActor; action:string; detail:string }
 type IncidentStatus = 'Active' | 'Contained' | 'Closed';
 interface Incident { id:string; title:string; severity:SevKey; status:IncidentStatus; created:string; updated:string; alertCount:number; devices:string[]; mitreTactics:string[]; timeline:TimelineEntry[]; aiSummary:string; }
 
@@ -22,7 +22,7 @@ type KeyStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const SEV_COLOR:Record<SevKey,string> = { Critical:'#f0405e', High:'#f97316', Medium:'#f0a030', Low:'#4f8fff' };
-type VStyle = {c:string; bg:string; label:string};
+interface VStyle { c:string; bg:string; label:string }
 const VERDICT_STYLE:Record<VerdictKey,VStyle> = {
   TP:{c:'#f0405e',bg:'#f0405e12',label:'True Positive'},
   FP:{c:'#22d49a',bg:'#22d49a12',label:'False Positive'},
@@ -108,14 +108,15 @@ const DEMO_INTEL_BY_INDUSTRY:Record<string,IntelItem[]> = {
   ],
 };
 
+interface SevBadgeProps { sev: SevKey }
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-function SevBadge({sev}:{sev:SevKey}) {
+function SevBadge({sev}: SevBadgeProps) {
   return <span style={{fontSize:'0.5rem',fontWeight:800,padding:'1px 6px',borderRadius:3,color:'#fff',background:SEV_COLOR[sev]}}>{sev.toUpperCase()}</span>;
 }
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
 type OnClose = () => void;
-type ModalProps = { title:string; onClose:OnClose; children:React.ReactNode };
+interface ModalProps { title:string; onClose:OnClose; children:React.ReactNode }
 function Modal({title,onClose,children}: ModalProps) {
   return (
     <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={onClose}>
@@ -131,7 +132,7 @@ function Modal({title,onClose,children}: ModalProps) {
 }
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
-type StatCardProps = { val:string | number; label:string; sub?:string; color:string; onClick?:OnClose };
+interface StatCardProps { val:string | number; label:string; sub?:string; color:string; onClick?:OnClose }
 function StatCard({val,label,sub,color,onClick}: StatCardProps) {
   return (
     <div onClick={onClick} style={{padding:'14px 12px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:10,textAlign:'center',cursor:onClick?'pointer':'default',transition:'border-color .15s'}}
@@ -147,7 +148,7 @@ function StatCard({val,label,sub,color,onClick}: StatCardProps) {
 
 // ─── Paywall Gate ────────────────────────────────────────────────────────────
 type RequiredTier = 'team' | 'business' | 'mssp';
-type GateWallProps = { feature:string; requiredTier:RequiredTier; children:React.ReactNode; userTier:string; };
+interface GateWallProps { feature:string; requiredTier:RequiredTier; children:React.ReactNode; userTier:string }
 function GateWall({ feature, requiredTier, children, userTier }: GateWallProps) {
   const levels: Record<string,number> = {community:0,team:1,business:2,mssp:3};
   if ((levels[userTier]||0) >= levels[requiredTier]) return (<>{children}</>);
@@ -166,10 +167,10 @@ function GateWall({ feature, requiredTier, children, userTier }: GateWallProps) 
   );
 }
 
-type RemediationOutputProps = { text: string };
+interface RemediationOutputProps { text: string }
 // ─── AI Remediation Output Renderer ─────────────────────────────────────────
 type BlockType = 'heading' | 'subheading' | 'code' | 'text';
-type Block = { type: BlockType; content: string; id?: string };
+interface Block { type: BlockType; content: string; id?: string }
 function RemediationOutput({ text }: RemediationOutputProps) {
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -245,9 +246,9 @@ function RemediationOutput({ text }: RemediationOutputProps) {
 
 type PortfolioView = 'security' | 'revenue';
 // ─── MSSP Portfolio Component ────────────────────────────────────────────────
-type MSSPTenant = {id:string;name:string;type:string};
+interface MSSPTenant { id:string; name:string; type:string }
 type SetTenant = (t:string) => void;
-type MSSPPortfolioProps = { currentTenant:string; setCurrentTenant:SetTenant; DEMO_TENANTS:MSSPTenant[] };
+interface MSSPPortfolioProps { currentTenant:string; setCurrentTenant:SetTenant; DEMO_TENANTS:MSSPTenant[] }
 function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS }: MSSPPortfolioProps) {
   const [portfolioView, setPortfolioView] = useState<PortfolioView>('security');
             const CLIENTS = [
@@ -429,7 +430,7 @@ const ALL_TOOLS = [
   {id:'okta',name:'Okta',category:'Identity',desc:'Identity & access management'},
 ];
 
-type CredField = {key:string; label:string; secret?:boolean; placeholder?:string};
+interface CredField { key:string; label:string; secret?:boolean; placeholder?:string }
 const CRED_FIELDS: Record<string,CredField[]> = {
   crowdstrike:[{key:'client_id',label:'Client ID'},{key:'client_secret',label:'Client Secret',secret:true},{key:'base_url',label:'Base URL (optional)',placeholder:'https://api.crowdstrike.com'}],
   defender:[{key:'tenant_id',label:'Tenant ID',placeholder:'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'},{key:'client_id',label:'Application (Client) ID'},{key:'client_secret',label:'Client Secret',secret:true}],
@@ -454,11 +455,11 @@ const CRED_FIELDS: Record<string,CredField[]> = {
 const CATEGORIES = ['All','EDR','SIEM','NDR','XDR','Vuln','CSPM','Email','Network','Identity'];
 
 type ConnectedMap = Record<string,Record<string,string>>;
-type ToolsTabProps = { connected: ConnectedMap; setConnected: SetConnected };
 type SetConnected = (fn: ConnectedMap | ((prev: ConnectedMap) => ConnectedMap)) => void;
-type ModalTool = { id: string; name: string };
-type TestResult = { ok: boolean; message: string };
-type AiTestStatus = { ok: boolean; configured: boolean; message: string; tenantId?: string };
+interface ToolsTabProps { connected: ConnectedMap; setConnected: SetConnected }
+interface ModalTool { id: string; name: string }
+interface TestResult { ok: boolean; message: string }
+interface AiTestStatus { ok: boolean; configured: boolean; message: string; tenantId?: string }
 function ToolsTab({ connected, setConnected }: ToolsTabProps) {
   const [filter, setFilter] = useState('All');
   const [modal, setModal] = useState<ModalTool | null>(null);
@@ -534,12 +535,12 @@ function ToolsTab({ connected, setConnected }: ToolsTabProps) {
 
   function handleSave() {
     if (!modal || !testResult?.ok) return;
-    setConnected((prev: ConnectedMap)=>({...prev,[modal.id]:formVals}));
+    setConnected(prev=>({...prev,[modal.id]:formVals}));
     setModal(null);
   }
 
   function handleDisconnect(id:string) {
-    setConnected((prev: ConnectedMap)=>{ const n={...prev}; delete n[id]; return n; });
+    setConnected(prev=>{ const n={...prev}; delete n[id]; return n; });
   }
 
   return (
