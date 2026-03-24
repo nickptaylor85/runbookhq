@@ -560,7 +560,12 @@ export const taegis: IntegrationAdapter = {
     const tokenData = await tokenRes.json();
     const token = tokenData.access_token;
     const query = `query { alertsServiceSearch(in: { limit: 100, offset: 0, cql_query: "severity >= 3 AND status != SUPPRESSED" }) { alerts { id title message severity status created_at confidence_score entities { type entities { ... on AssetEndpoint { hostname ip_addresses } } } } } }`;
-    const res = await fetch(`https://${region}.taegis.secureworks.com/graphql`, {
+    // Correct GraphQL endpoint per region:
+    // us1 → api.ctpx.secureworks.com, eu1/us2 → api.{region}.taegis.secureworks.com
+    const graphqlHost = region === 'us1' || !region
+      ? 'api.ctpx.secureworks.com'
+      : `api.${region}.taegis.secureworks.com`;
+    const res = await fetch(`https://${graphqlHost}/graphql`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ query }),
