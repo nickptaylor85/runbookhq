@@ -1,18 +1,10 @@
-import { NextResponse } from 'next/server';
-import { loadPlatformData, savePlatformData } from '@/lib/config-store';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET() {
-  const configs = await loadPlatformData();
-  const logs = (configs.auditLog || []).slice(-100).reverse();
-  return NextResponse.json({ logs, total: configs.auditLog?.length || 0 });
+function getTenantId(req: NextRequest): string {
+  return req.headers.get('x-tenant-id') || 'global';
 }
 
-export async function POST(req: Request) {
-  const { action, detail } = await req.json();
-  const configs = await loadPlatformData();
-  if (!configs.auditLog) configs.auditLog = [];
-  configs.auditLog.push({ action, detail, time: new Date().toISOString() });
-  if (configs.auditLog.length > 1000) configs.auditLog = configs.auditLog.slice(-500);
-  await savePlatformData(configs);
-  return NextResponse.json({ ok: true });
+export async function GET(req: NextRequest) {
+  const _tenantId = getTenantId(req);
+  return NextResponse.json({"ok": true, "events": []});
 }

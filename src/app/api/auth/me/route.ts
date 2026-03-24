@@ -1,30 +1,13 @@
-import { NextResponse } from 'next/server';
-import { loadPlatformData } from '@/lib/config-store';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(req: Request) {
-  const cookie = req.headers.get('cookie') || '';
-  const authMatch = cookie.match(/secops-auth=([^;]+)/);
-  const email = authMatch?.[1] ? decodeURIComponent(authMatch[1]) : null;
-  if (!email || !email.includes('@')) return NextResponse.json({ user: null });
+function getTenantId(req: NextRequest): string {
+  return req.headers.get('x-tenant-id') || 'global';
+}
 
-  const platform = await loadPlatformData();
-  const user = platform.users?.[email];
-  if (!user) return NextResponse.json({ user: null });
-
-  const tenant = platform.tenants?.[user.tenantId];
-  const adminOriginal = cookie.match(/secops-admin-original=([^;]+)/);
-  const isImpersonating = !!adminOriginal;
-  const adminEmail = adminOriginal ? decodeURIComponent(adminOriginal[1]) : null;
-  return NextResponse.json({
-    user: {
-      email: user.email, org: user.org, plan: user.plan, role: user.role,
-      tenantId: user.tenantId, createdAt: user.createdAt,
-      trialEndsAt: user.trialEndsAt, totpEnabled: !!user.totpEnabled,
-      lastLoginAt: user.lastLoginAt, addons: user.addons || [],
-      seats: user.seats, seatLimit: user.seatLimit,
-      isImpersonating, adminEmail,
-    },
-    addons: user.addons || [],
-    tenant: tenant ? { id: tenant.id, name: tenant.name, plan: tenant.plan, members: tenant.members, memberCount: tenant.members?.length || 0 } : null,
-  });
+export async function GET(req: NextRequest) {
+  const userId = req.headers.get('x-user-id');
+  const tenantId = getTenantId(req);
+  const isAdmin = req.headers.get('x-is-admin') === 'true';
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  return NextResponse.json({ ok: true, userId, tenantId, isAdmin });
 }

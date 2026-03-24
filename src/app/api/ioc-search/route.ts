@@ -1,45 +1,77 @@
-import { getTenantFromRequest } from '@/lib/config-store';
-import { NextResponse } from 'next/server';
-import { tenableHeaders, tenableAPI, getTaegisToken, taegisGraphQL } from '@/lib/api-clients';
+import { NextRequest, NextResponse } from 'next/server';
+import { redisGet, KEYS, getAnthropicKey } from '@/lib/redis';
+import { decrypt } from '@/lib/encrypt';
+import { checkRateLimit } from '@/lib/ratelimit';
 
-export async function POST(req: Request) {
-  const { tenantId } = getTenantFromRequest(req);
-  const { ioc } = await req.json();
-  if (!ioc || ioc.length < 3) return NextResponse.json({ ioc, resultCount: 0, results: [] });
+function getTenantId(req: NextRequest): string {
+  return req.headers.get('x-tenant-id') || 'global';
+}
 
-  const results: any[] = [];
-  const q = ioc.toLowerCase();
+export async function POST(req: NextRequest) {
+  try {
+    const userId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+    const rl = await checkRateLimit(`ioc-search:${userId}`, 15, 60);
+    if (!rl.ok) {
+      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+    }
 
-  // Search Tenable
-  const headers = await tenableHeaders(tenantId || undefined);
-  if (headers) {
-    try {
-      const data = await tenableAPI(`/workbenches/assets?filter.0.filter=host.hostname&filter.0.quality=match&filter.0.value=${encodeURIComponent(ioc)}`);
-      (data.assets || []).forEach((a: any) => {
-        results.push({ tool: 'Tenable.io', type: 'asset', severity: 'info', match: a.agent_name?.[0] || a.fqdn?.[0] || a.ipv4?.[0] || ioc, detail: `OS: ${a.operating_system?.[0] || 'Unknown'}, IP: ${a.ipv4?.[0] || ''}` });
+    const body = await req.json() as { ioc?: unknown };
+    if (!body || typeof body.ioc !== 'string' || body.ioc.length > 500) {
+      return NextResponse.json({ error: 'ioc string required (max 500 chars)' }, { status: 400 });
+    }
+
+    const { ioc } = body;
+    const tenantId = getTenantId(req);
+
+    // Load connected tools
+    const raw = await redisGet(KEYS.TOOL_CREDS(tenantId));
+    const connected: Record<string, Record<string, string>> = raw
+      ? JSON.parse(decrypt(raw))
+      : {};
+
+    const results: Record<string, unknown> = {};
+
+    // Search Tenable if connected
+    if (connected.tenable) {
+      try {
+        const headers = {
+          'X-ApiKeys': `accessKey=${connected.tenable.access_key};secretKey=${connected.tenable.secret_key}`,
+          'Accept': 'application/json',
+        };
+        const res = await fetch(
+          `https://cloud.tenable.com/workbenches/assets?filter.0.filter=host.hostname&filter.0.quality=match&filter.0.value=${encodeURIComponent(ioc)}`,
+          { headers }
+        );
+        if (res.ok) {
+          const data = await res.json() as { assets?: unknown[] };
+          results.tenable = { found: (data.assets?.length || 0) > 0, count: data.assets?.length || 0 };
+        }
+      } catch (e: any) {
+        results.tenable = { error: e.message };
+      }
+    }
+
+    // Generate hunt queries via AI if API key available
+    const apiKey = await getAnthropicKey(tenantId);
+    if (apiKey) {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 800,
+          system: 'You are a threat hunting assistant. Return only detection queries, no explanation.',
+          messages: [{ role: 'user', content: `Generate Splunk SPL and Sentinel KQL queries to hunt for this IOC: ${ioc}. Plain text only, no markdown.` }],
+        }),
       });
-    } catch(e) {}
+      if (resp.ok) {
+        const d = await resp.json() as { content: Array<{ type: string; text: string }> };
+        results.huntQueries = d.content?.find((b: any) => b.type === 'text')?.text || '';
+      }
+    }
 
-    // Also search vulns
-    try {
-      const data = await tenableAPI('/workbenches/vulnerabilities?date_range=30');
-      (data.vulnerabilities || []).filter((v: any) => (v.plugin_name || '').toLowerCase().includes(q) || String(v.plugin_id).includes(q)).slice(0, 5).forEach((v: any) => {
-        results.push({ tool: 'Tenable.io', type: 'vulnerability', severity: v.severity >= 4 ? 'critical' : v.severity >= 3 ? 'high' : 'medium', match: v.plugin_name, detail: `Plugin ${v.plugin_id}, ${v.count || 0} hosts, VPR ${v.vpr_score || 'N/A'}` });
-      });
-    } catch(e) {}
+    return NextResponse.json({ ok: true, ioc, results });
+  } catch (e: any) {
+    return NextResponse.json({ ok: false, message: e.message }, { status: 500 });
   }
-
-  // Search Taegis
-  const taegisAuth = await getTaegisToken(tenantId || undefined);
-  if (taegisAuth) {
-    try {
-      const query = `query { alertsServiceSearch(in: { cql_query: "FROM alert WHERE severity >= 0.4 AND (metadata.title CONTAINS '${ioc.replace(/'/g, '')}') EARLIEST=-7d", offset: 0, limit: 5 }) { alerts { list { id metadata { title severity } status } } } }`;
-      const data = await taegisGraphQL(query, {}, taegisAuth.token, taegisAuth.base);
-      (data.data?.alertsServiceSearch?.alerts?.list || []).forEach((a: any) => {
-        results.push({ tool: 'Taegis XDR', type: 'alert', severity: (a.metadata?.severity || 0) >= 0.8 ? 'critical' : 'high', match: a.metadata?.title || 'Taegis Alert', detail: `Status: ${a.status || 'unknown'}` });
-      });
-    } catch(e) {}
-  }
-
-  return NextResponse.json({ ioc, resultCount: results.length, results, demo: false });
 }
