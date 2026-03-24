@@ -519,7 +519,8 @@ export const taegis: IntegrationAdapter = {
   async testConnection(creds) {
     try {
       const region = creds.region || 'us1';
-      const tokenRes = await fetch(`https://api.ctpx.secureworks.com/auth/api/v2/auth/token`, {
+      const base = `https://${region}.taegis.secureworks.com`;
+      const tokenRes = await fetch(`${base}/auth/api/v2/auth/token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ client_id: creds.client_id, client_secret: creds.client_secret }),
@@ -529,7 +530,9 @@ export const taegis: IntegrationAdapter = {
     } catch(e: any) { return { ok: false, message: 'Connection failed', details: e.message }; }
   },
   async fetchAlerts(creds, since) {
-    const tokenRes = await fetch(`https://api.ctpx.secureworks.com/auth/api/v2/auth/token`, {
+    const region = creds.region || 'us1';
+    const base = `https://${region}.taegis.secureworks.com`;
+    const tokenRes = await fetch(`${base}/auth/api/v2/auth/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ client_id: creds.client_id, client_secret: creds.client_secret }),
@@ -537,7 +540,7 @@ export const taegis: IntegrationAdapter = {
     const tokenData = await tokenRes.json();
     const token = tokenData.access_token;
     const query = `query { alertsServiceSearch(in: { limit: 100, offset: 0, cql_query: "severity >= 3 AND status != SUPPRESSED" }) { alerts { id title message severity status entities { type entities { ... on AssetEndpoint { hostname } } } } } }`;
-    const res = await fetch('https://api.ctpx.secureworks.com/graphql', {
+    const res = await fetch(`${base}/graphql`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ query }),
