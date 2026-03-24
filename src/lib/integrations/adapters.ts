@@ -77,9 +77,19 @@ export const tenable: IntegrationAdapter = {
     } catch(e: any) { return { ok: false, message: e.message }; }
   },
   async fetchAlerts(creds, since) {
-    const res = await fetch('https://cloud.tenable.com/workbenches/vulnerabilities?date_range=7&filter.0.filter=severity&filter.0.quality=gte&filter.0.value=high&filter.search_type=and', {
-      headers: { 'X-ApiKeys': `accessKey=${creds.access_key};secretKey=${creds.secret_key}`, Accept: 'application/json' },
+    // Tenable.io API — get high/critical vulnerabilities from the last 7 days
+    const headers = { 'X-ApiKeys': `accessKey=${creds.access_key};secretKey=${creds.secret_key}`, 'Accept': 'application/json' };
+    // Export vulnerability data via workbench
+    const params = new URLSearchParams({
+      date_range: '7',
+      'filter.0.filter': 'severity',
+      'filter.0.quality': 'gte',
+      'filter.0.value': '3', // 3=High, 4=Critical
+      'filter.search_type': 'and',
+      limit: '100',
     });
+    const res = await fetch(`https://cloud.tenable.com/workbenches/vulnerabilities?${params.toString()}`, { headers });
+    if (!res.ok) throw new Error(`Tenable API error: HTTP ${res.status}`);
     const data = await res.json();
     return (data.vulnerabilities || []).slice(0, 100).map((v: any): NormalisedAlert => ({
       id: safeId('tenable', v.plugin_id, v.asset_id),
@@ -549,13 +559,15 @@ export const taegis: IntegrationAdapter = {
     });
     const tokenData = await tokenRes.json();
     const token = tokenData.access_token;
-    const query = `query { alertsServiceSearch(in: { limit: 100, offset: 0, cql_query: "severity >= 3 AND status != SUPPRESSED" }) { alerts { id title message severity status entities { type entities { ... on AssetEndpoint { hostname } } } } } }`;
+    const query = `query { alertsServiceSearch(in: { limit: 100, offset: 0, cql_query: "severity >= 3 AND status != SUPPRESSED" }) { alerts { id title message severity status created_at confidence_score entities { type entities { ... on AssetEndpoint { hostname ip_addresses } } } } } }`;
     const res = await fetch(`https://${region}.taegis.secureworks.com/graphql`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ query }),
     });
+    if (!res.ok) throw new Error(`Taegis GraphQL error: HTTP ${res.status}`);
     const data = await res.json();
+    if (data.errors) throw new Error(`Taegis query error: ${data.errors[0]?.message}`);
     return (data.data?.alertsServiceSearch?.alerts || []).map((a: any): NormalisedAlert => ({
       id: safeId('taegis', a.id),
       source: 'Taegis XDR',

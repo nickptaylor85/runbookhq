@@ -243,7 +243,7 @@ function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS }) {
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Client Portfolio</h2>
                 <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{CLIENTS.length} clients</span>
                 <div style={{display:'flex',gap:3,background:'var(--wt-card2)',borderRadius:7,padding:3,marginLeft:8}}>
-                  {(['security','revenue']).map(v=>(
+                  {(['security','revenue','usage']).map(v=>(
                     <button key={v} onClick={()=>setPortfolioView(v)} style={{padding:'4px 12px',borderRadius:5,border:'none',background:portfolioView===v?'#4f8fff':'transparent',color:portfolioView===v?'#fff':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',textTransform:'capitalize'}}>{v}</button>
                   ))}
                 </div>
@@ -269,7 +269,7 @@ function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS }) {
               )}
 
               {/* Security summary stats */}
-              {portfolioView==='security' && (
+              {(portfolioView==='security') && (
                 <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
                   {[
                     {label:'Active Incidents', val:CLIENTS.reduce((s,c)=>s+c.incidents,0), color:'#f0405e'},
@@ -285,8 +285,41 @@ function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS }) {
                 </div>
               )}
 
+              {/* Usage stats view */}
+              {portfolioView==='usage' && (
+                <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+                    {[
+                      {label:'Total Alerts Triaged',val:CLIENTS.reduce((s,c)=>s+c.alerts,0)+' this week',color:'#4f8fff'},
+                      {label:'AI Auto-Closed',val:Math.round(CLIENTS.reduce((s,c)=>s+c.alerts,0)*0.68)+' FPs',color:'#22d49a'},
+                      {label:'Critical Incidents',val:CLIENTS.reduce((s,c)=>s+c.incidents,0)+' open',color:'#f0405e'},
+                      {label:'API Calls',val:(CLIENTS.length*847).toLocaleString(),color:'#8b6fff'},
+                      {label:'Avg Posture Score',val:Math.round(CLIENTS.reduce((s,c)=>s+c.posture,0)/CLIENTS.length)+'%',color:'#22d49a'},
+                      {label:'Seats Under Management',val:CLIENTS.reduce((s,c)=>s+c.seats,0)+' seats',color:'#4f8fff'},
+                    ].map(s=>(
+                      <div key={s.label} style={{padding:'14px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:10}}>
+                        <div style={{fontSize:'1.4rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-1,lineHeight:1}}>{s.val.split(' ')[0]}</div>
+                        <div style={{fontSize:'0.58rem',color:s.color,marginTop:2}}>{s.val.split(' ').slice(1).join(' ')}</div>
+                        <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:3}}>{s.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {CLIENTS.map(c=>(
+                    <div key={c.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 14px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:10}}>
+                      <span style={{fontSize:'0.78rem',fontWeight:700,flex:1}}>{c.name}</span>
+                      {[{label:'Alerts',val:c.alerts,color:'#4f8fff'},{label:'AI Closed',val:Math.round(c.alerts*0.68),color:'#22d49a'},{label:'Critical',val:c.critAlerts,color:'#f0405e'},{label:'Coverage',val:c.coverage+'%',color:'#22d49a'}].map(s=>(
+                        <div key={s.label} style={{textAlign:'center',minWidth:60}}>
+                          <div style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color}}>{s.val}</div>
+                          <div style={{fontSize:'0.52rem',color:'var(--wt-dim)'}}>{s.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Per-client rows */}
-              {CLIENTS.map(client=>{
+              {(portfolioView==='security'||portfolioView==='revenue') && CLIENTS.map(client=>{
                 const isSelected = currentTenant===client.id;
                 const postureColor = client.posture>=85?'#22d49a':client.posture>=70?'#f0a030':'#f0405e';
                 const daysToRenewal = Math.round((new Date(client.renewalDate).getTime()-Date.now())/(86400000));
@@ -590,7 +623,7 @@ function ToolsTab({ connected, setConnected }) {
                 <div style={{fontSize:'0.64rem',color:'var(--wt-muted)'}}>{isOn?'Connected — syncing alerts':''+tool.desc}</div>
               </div>
               {isOn
-                ? <button onClick={()=>handleDisconnect(tool.id)} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #f0405e20',background:'#f0405e08',color:'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Disconnect</button>
+                ? <button onClick={()=>{if(window.confirm('Disconnect '+tool.name+'?')) handleDisconnect(tool.id);}} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #f0405e30',background:'#f0405e10',color:'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:5}}>🗑 Disconnect</button>
                 : <button onClick={()=>openModal(tool)} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #4f8fff40',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>+ Connect</button>}
             </div>
           );
@@ -649,6 +682,7 @@ export default function DashboardPage() {
         if (d.settings?.demoMode !== undefined) setDemoMode(d.settings.demoMode === 'true');
         if (d.settings?.automation !== undefined) setAutomation(Number(d.settings.automation));
         if (d.settings?.userTier) setUserTier(d.settings.userTier);
+        if (d.settings?.clientBanner) setClientBanner(d.settings.clientBanner || null);
       })
       .catch(()=>{});
   },[]);
@@ -663,10 +697,20 @@ export default function DashboardPage() {
   const [incidentStatuses, setIncidentStatuses] = useState({});
   const [deletedIncidents, setDeletedIncidents] = useState(new Set());
   function deleteIncident(id) { setDeletedIncidents(prev=>new Set([...prev,id])); setSelectedIncident(null); }
+  const [incidentNotes, setIncidentNotes] = useState({});
+  const [noteInput, setNoteInput] = useState('');
+  const [addingNoteTo, setAddingNoteTo] = useState(null);
   const [gapToolFilter, setGapToolFilter] = useState(null);
   const [expandedIntel, setExpandedIntel] = useState(new Set());
+  const [iocQueries, setIocQueries] = useState({});
+  const [iocQueryLoading, setIocQueryLoading] = useState(null);
   const [demoMode, setDemoMode] = useState(true);
+  const [clientBanner, setClientBanner] = useState(null);
+  const [adminBannerInput, setAdminBannerInput] = useState('');
   const [connectedTools, setConnectedTools] = useState({});
+  const [liveAlerts, setLiveAlerts] = useState([]);
+  const [liveVulns, setLiveVulns] = useState([]);
+  const [lastSynced, setLastSynced] = useState(null);
   const [currentTenant, setCurrentTenant] = useState('global');
 
   // Load persisted tool connections from Redis
@@ -676,6 +720,31 @@ export default function DashboardPage() {
       .then(d=>{ if (d.connected && Object.keys(d.connected).length > 0) setConnectedTools(d.connected); })
       .catch(()=>{});
   },[]);
+
+  // Sync live data from connected tools when in LIVE mode
+  useEffect(()=>{
+    if (demoMode || Object.keys(connectedTools).length === 0) return;
+    const doSync = () => {
+      const integrations = Object.entries(connectedTools).map(([id, credentials]) => ({id, credentials}));
+      fetch('/api/integrations/sync', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({integrations, since: Date.now() - 7*24*60*60*1000}),
+      })
+      .then(r=>r.json())
+      .then(d=>{
+        if (d.results) {
+          const allAlerts = d.results.flatMap(r => r.alerts || []);
+          if (allAlerts.length > 0) setLiveAlerts(allAlerts);
+        }
+        setLastSynced(new Date().toISOString());
+      })
+      .catch(()=>{});
+    };
+    doSync();
+    const interval = setInterval(doSync, 60000); // re-sync every 60s
+    return () => clearInterval(interval);
+  },[demoMode, connectedTools]);
   const [isAdmin] = useState(true); // Replace with real auth check
   const [userTier, setUserTier] = useState('community');
   const [theme, setTheme] = useState('dark');
@@ -746,7 +815,10 @@ export default function DashboardPage() {
       alertCount: demo?.alertCount,
     };
   }).filter(t => t.active || DEMO_TOOLS.find(d=>d.id===t.id));
-  const rawAlerts = TENANT_ALERTS[currentTenant] || DEMO_ALERTS;
+  // Use live alerts from API when in LIVE mode and we have them, otherwise demo data
+  const rawAlerts = (!demoMode && liveAlerts.length > 0) 
+    ? liveAlerts 
+    : (TENANT_ALERTS[currentTenant] || DEMO_ALERTS);
   // When a tool is connected, suppress demo alerts from that source
   // (real alerts from the API would replace them)
   const connectedToolNames = new Set(Object.keys(connectedTools).map(id=>
@@ -834,6 +906,7 @@ export default function DashboardPage() {
   }
 
   const TABS = ['overview','alerts','coverage','vulns','intel','incidents','tools','mssp'];
+  const ADMIN_TABS = isAdmin ? [...TABS, 'admin'] : TABS;
 
   return (
     <div className={`wt-root${theme === 'light' ? ' light' : ''}`} style={{display:'flex',minHeight:'100vh',background:'var(--wt-bg)',color:'var(--wt-text)',fontFamily:'Inter,sans-serif'}}>
@@ -841,13 +914,22 @@ export default function DashboardPage() {
 
       {/* SIDEBAR */}
       <div style={{width:48,background:'var(--wt-sidebar)',borderRight:'1px solid #141820',display:'flex',flexDirection:'column',alignItems:'center',padding:'10px 0',gap:4,flexShrink:0}}>
-        <div style={{width:30,height:30,borderRadius:8,background:'linear-gradient(135deg,#4f8fff,#8b6fff)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.62rem',color:'#fff',fontWeight:900,marginBottom:10}}>W</div>
+        <div style={{width:34,height:34,marginBottom:10,display:'flex',alignItems:'center',justifyContent:'center'}}>
+          <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+            <rect width="34" height="34" rx="9" fill="url(#wg)"/>
+            <path d="M17 7L26 11V18C26 22.5 22 26.5 17 28C12 26.5 8 22.5 8 18V11L17 7Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" strokeWidth="0.8"/>
+            <path d="M17 10L24 13.5V18.5C24 21.8 21 24.8 17 26C13 24.8 10 21.8 10 18.5V13.5L17 10Z" fill="rgba(255,255,255,0.1)"/>
+            <path d="M14.5 18L16.5 20L20.5 15.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <defs><linearGradient id="wg" x1="0" y1="0" x2="34" y2="34" gradientUnits="userSpaceOnUse"><stop stopColor="#3b7fff"/><stop offset="1" stopColor="#7c3aff"/></linearGradient></defs>
+          </svg>
+        </div>
         {[{t:'overview',i:'📊'},{t:'alerts',i:'🔔'},{t:'coverage',i:'🛡'},{t:'vulns',i:'🔍'},{t:'intel',i:'🌐'},{t:'incidents',i:'📋'},{t:'tools',i:'🔌'}].map(({t,i})=>(
           <button key={t} onClick={()=>setActiveTab(t)} title={t.charAt(0).toUpperCase()+t.slice(1)} style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem',border:'none',cursor:'pointer',background:activeTab===t?'#4f8fff18':'transparent',transition:'background .15s'}}>
             {i}{t==='alerts'&&critAlerts.length>0&&<span style={{position:'absolute',marginLeft:16,marginTop:-16,width:7,height:7,borderRadius:'50%',background:'#f0405e',display:'block'}} />}
           </button>
         ))}
         <div style={{marginTop:'auto',display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
+          {isAdmin && <button onClick={()=>setActiveTab('admin')} title='Admin Portal' style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem',border:'none',cursor:'pointer',background:activeTab==='admin'?'#f0a03018':'transparent'}}>🔧</button>}
           <a href='/guide' title='User Guide' style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem'}}>📖</a>
           <a href='/settings' title='Settings' style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem'}}>⚙️</a>
         </div>
@@ -855,6 +937,14 @@ export default function DashboardPage() {
 
       {/* MAIN */}
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+        {/* Client message banner */}
+        {clientBanner && (
+          <div style={{display:'flex',alignItems:'center',gap:10,padding:'8px 18px',background:'#f0a03015',borderBottom:'1px solid #f0a03030',flexShrink:0}}>
+            <span style={{fontSize:'0.78rem'}}>📢</span>
+            <span style={{fontSize:'0.74rem',color:'#f0c070',flex:1,fontWeight:500}}>{clientBanner}</span>
+            {!isAdmin && <button onClick={()=>setClientBanner(null)} style={{padding:'2px 8px',borderRadius:5,border:'1px solid #f0a03030',background:'transparent',color:'#f0a030',fontSize:'0.62rem',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Dismiss ×</button>}
+          </div>
+        )}
 
         {/* TOP BAR */}
         <div style={{display:'flex',alignItems:'center',padding:'8px 18px',borderBottom:'1px solid #141820',gap:12,background:'var(--wt-sidebar)',flexShrink:0,flexWrap:'wrap'}}>
@@ -1428,6 +1518,18 @@ export default function DashboardPage() {
                             <a href={`https://attack.mitre.org/techniques/${item.mitre.replace('.','/')}/`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.66rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:'#7c6aff',textDecoration:'none',padding:'2px 8px',border:'1px solid #7c6aff25',borderRadius:3,background:'#7c6aff10'}}>{item.mitre} →</a>
                           </div>
                         )}
+                        {item.iocs && item.iocs.length>0 && (
+                          <div style={{marginTop:10,paddingTop:10,borderTop:'1px solid #f0a03015'}}>
+                            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+                              <span style={{fontSize:'0.6rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px'}}>🔍 Hunt in your environment</span>
+                              <button onClick={e=>{e.stopPropagation();setIocQueryLoading(item.id);fetch('/api/copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:'Generate detection queries to hunt for these IOCs in a corporate environment: '+item.iocs.join(', ')+'. Provide: SPLUNK QUERY (SPL), MICROSOFT SENTINEL KQL, and MICROSOFT DEFENDER ADVANCED HUNTING queries. Each labelled clearly. No markdown, plain text only.'})}).then(r=>r.json()).then(d=>{setIocQueries(prev=>({...prev,[item.id]:d.response||''}));setIocQueryLoading(null);}).catch(()=>setIocQueryLoading(null));}} disabled={iocQueryLoading===item.id} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>
+                                {iocQueryLoading===item.id?<><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid #22d49a',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}/>Generating...</>:<>✦ Generate Hunt Queries</>}
+                              </button>
+                              {iocQueries[item.id] && <button onClick={e=>{e.stopPropagation();setIocQueries(prev=>{const n={...prev};delete n[item.id];return n;});}} style={{padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-dim)',fontSize:'0.56rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear</button>}
+                            </div>
+                            {iocQueries[item.id] && <RemediationOutput text={iocQueries[item.id]} />}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1472,6 +1574,18 @@ export default function DashboardPage() {
                           <div style={{marginTop:10,display:'flex',alignItems:'center',gap:8}}>
                             <span style={{fontSize:'0.6rem',color:'var(--wt-dim)'}}>MITRE ATT&CK:</span>
                             <a href={`https://attack.mitre.org/techniques/${item.mitre.replace('.','/')}/`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.66rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:'#7c6aff',textDecoration:'none',padding:'2px 8px',border:'1px solid #7c6aff25',borderRadius:3,background:'#7c6aff10'}}>{item.mitre} →</a>
+                          </div>
+                        )}
+                        {item.iocs && item.iocs.length>0 && (
+                          <div style={{marginTop:10,paddingTop:10,borderTop:'1px solid #f0a03015'}}>
+                            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+                              <span style={{fontSize:'0.6rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px'}}>🔍 Hunt in your environment</span>
+                              <button onClick={e=>{e.stopPropagation();setIocQueryLoading(item.id);fetch('/api/copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:'Generate detection queries to hunt for these IOCs in a corporate environment: '+item.iocs.join(', ')+'. Provide: SPLUNK QUERY (SPL), MICROSOFT SENTINEL KQL, and MICROSOFT DEFENDER ADVANCED HUNTING queries. Each labelled clearly. No markdown, plain text only.'})}).then(r=>r.json()).then(d=>{setIocQueries(prev=>({...prev,[item.id]:d.response||''}));setIocQueryLoading(null);}).catch(()=>setIocQueryLoading(null));}} disabled={iocQueryLoading===item.id} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>
+                                {iocQueryLoading===item.id?<><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid #22d49a',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}/>Generating...</>:<>✦ Generate Hunt Queries</>}
+                              </button>
+                              {iocQueries[item.id] && <button onClick={e=>{e.stopPropagation();setIocQueries(prev=>{const n={...prev};delete n[item.id];return n;});}} style={{padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-dim)',fontSize:'0.56rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear</button>}
+                            </div>
+                            {iocQueries[item.id] && <RemediationOutput text={iocQueries[item.id]} />}
                           </div>
                         )}
                       </div>
@@ -1563,11 +1677,28 @@ export default function DashboardPage() {
                             </div>
                           ))}
                         </div>
-                        <div style={{display:'flex',gap:6,marginTop:10}}>
-                          {['Add Note','Escalate','Close Incident','Delete'].map(a=>(
-                            <button key={a} onClick={()=>{ if(a==='Close Incident') closeIncident(inc.id); if(a==='Delete') deleteIncident(inc.id); }} style={{padding:'5px 12px',borderRadius:6,border:`1px solid ${a==='Close Incident'?'#22d49a30':a==='Delete'?'#f0405e25':'var(--wt-border2)'}`,background:a==='Close Incident'?'#22d49a0a':a==='Delete'?'#f0405e0a':'transparent',color:a==='Close Incident'?'#22d49a':a==='Delete'?'#f0405e':'#8a9ab0',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{a}</button>
-                          ))}
+                        <div style={{display:'flex',gap:6,marginTop:10,flexWrap:'wrap'}}>
+                          <button onClick={()=>setAddingNoteTo(addingNoteTo===inc.id?null:inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid var(--wt-border2)',background:addingNoteTo===inc.id?'#4f8fff12':'transparent',color:'#8a9ab0',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📝 Add Note</button>
+                          <button onClick={()=>setIncidentStatuses(prev=>({...prev,[inc.id]:'Escalated'}))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0a03030',background:'#f0a03008',color:'#f0a030',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>⬆ Escalate</button>
+                          <button onClick={()=>closeIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✓ Close</button>
+                          <button onClick={()=>deleteIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0405e25',background:'#f0405e0a',color:'#f0405e',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🗑 Delete</button>
                         </div>
+                        {addingNoteTo===inc.id && (
+                          <div style={{marginTop:8,display:'flex',gap:6}}>
+                            <input value={noteInput} onChange={e=>setNoteInput(e.target.value)} placeholder='Type a note...' style={{flex:1,padding:'6px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.74rem',fontFamily:'Inter,sans-serif',outline:'none'}} />
+                            <button onClick={()=>{if(noteInput.trim()){setIncidentNotes(prev=>({...prev,[inc.id]:[...(prev[inc.id]||[]),{text:noteInput.trim(),time:new Date().toLocaleTimeString()}]}));setNoteInput('');setAddingNoteTo(null);}}} style={{padding:'6px 12px',borderRadius:6,border:'none',background:'#4f8fff',color:'#fff',fontSize:'0.7rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Save</button>
+                          </div>
+                        )}
+                        {incidentNotes[inc.id] && incidentNotes[inc.id].length>0 && (
+                          <div style={{marginTop:8}}>
+                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>Notes</div>
+                            {incidentNotes[inc.id].map((n,ni)=>(
+                              <div key={ni} style={{fontSize:'0.7rem',color:'var(--wt-secondary)',padding:'5px 8px',background:'var(--wt-card2)',borderRadius:5,marginBottom:3,display:'flex',justifyContent:'space-between',gap:8}}>
+                                <span>{n.text}</span><span style={{color:'var(--wt-dim)',flexShrink:0,fontSize:'0.6rem'}}>{n.time}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -1579,6 +1710,46 @@ export default function DashboardPage() {
           {/* ═══════════════════════════════ TOOLS ══════════════════════════════════ */}
           {activeTab==='tools' && (
             <ToolsTab connected={connectedTools} setConnected={setConnectedTools} />
+          )}
+
+          {/* ═══════════════════════════════ ADMIN PORTAL ═══════════════════════════════ */}
+          {activeTab==='admin' && isAdmin && (
+            <div style={{display:'flex',flexDirection:'column',gap:16}}>
+              <div style={{display:'flex',alignItems:'center',gap:10}}>
+                <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Admin Portal</h2>
+                <span style={{fontSize:'0.62rem',color:'#f0a030',background:'#f0a03012',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025'}}>Admin Only</span>
+              </div>
+              {/* Message Banner */}
+              <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
+                <div style={{fontSize:'0.72rem',fontWeight:700,marginBottom:10,color:'#f0a030'}}>📢 Client Message Banner</div>
+                <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginBottom:10,lineHeight:1.6}}>Send a dismissable banner message to all clients. Useful for maintenance notices, security alerts, or announcements.</div>
+                <textarea value={adminBannerInput} onChange={e=>setAdminBannerInput(e.target.value)} placeholder='e.g. Scheduled maintenance Sunday 02:00–04:00 UTC. Dashboard may be briefly unavailable.' rows={3} style={{width:'100%',padding:'8px 10px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.74rem',fontFamily:'Inter,sans-serif',resize:'vertical',outline:'none',boxSizing:'border-box'}} />
+                <div style={{display:'flex',gap:8,marginTop:8}}>
+                  <button onClick={()=>{setClientBanner(adminBannerInput.trim()||null);setAdminBannerInput('');fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientBanner:adminBannerInput.trim()||''})}).catch(()=>{});}} style={{padding:'6px 16px',borderRadius:7,border:'none',background:'#f0a030',color:'#fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Publish Banner</button>
+                  {clientBanner && <button onClick={()=>{setClientBanner(null);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientBanner:''})}).catch(()=>{});}} style={{padding:'6px 14px',borderRadius:7,border:'1px solid #f0405e30',background:'#f0405e0a',color:'#f0405e',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear Banner</button>}
+                </div>
+                {clientBanner && <div style={{marginTop:10,padding:'8px 12px',background:'#f0a03012',border:'1px solid #f0a03030',borderRadius:7,fontSize:'0.7rem',color:'#f0a030'}}>Active: {clientBanner}</div>}
+              </div>
+              {/* Platform Stats */}
+              <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
+                <div style={{fontSize:'0.72rem',fontWeight:700,marginBottom:12,color:'var(--wt-text)'}}>Platform Usage</div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+                  {[
+                    {label:'Active Clients',val:'4',color:'#4f8fff'},
+                    {label:'API Calls Today',val:'2,847',color:'#22d49a'},
+                    {label:'Alerts Triaged',val:'312',color:'#f0a030'},
+                    {label:'MRR',val:'£891',color:'#8b6fff'},
+                    {label:'Uptime',val:'99.97%',color:'#22d49a'},
+                    {label:'Avg Response',val:'1.2s',color:'#4f8fff'},
+                  ].map(s=>(
+                    <div key={s.label} style={{padding:'12px',background:'var(--wt-card2)',borderRadius:8,border:'1px solid var(--wt-border)'}}>
+                      <div style={{fontSize:'1.3rem',fontWeight:900,color:s.color,fontFamily:'JetBrains Mono,monospace',letterSpacing:-1}}>{s.val}</div>
+                      <div style={{fontSize:'0.6rem',color:'var(--wt-muted)',marginTop:2}}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           )}
 
           {/* ═══════════════════════════════ MSSP PORTFOLIO ══════════════════════════ */}
