@@ -1,12 +1,28 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { ALL_TOOLS, CATEGORIES } from './dashboardData';
+import React, { useState, useEffect } from 'react';
 
-export type ConnectedMap = Record<string, Record<string, string>>;
-export type SetConnected = (fn: ConnectedMap | ((prev: ConnectedMap) => ConnectedMap)) => void;
+const ALL_TOOLS = [
+  {id:'crowdstrike',name:'CrowdStrike Falcon',category:'EDR',desc:'Endpoint detection & response'},
+  {id:'defender',name:'Microsoft Defender',category:'EDR',desc:'Defender for Endpoint — Azure AD app required'},
+  {id:'sentinelone',name:'SentinelOne',category:'EDR',desc:'AI-powered endpoint protection'},
+  {id:'carbonblack',name:'Carbon Black',category:'EDR',desc:'Carbon Black Cloud'},
+  {id:'splunk',name:'Splunk SIEM',category:'SIEM',desc:'Splunk Enterprise Security or Cloud'},
+  {id:'sentinel',name:'Microsoft Sentinel',category:'SIEM',desc:'Cloud-native SIEM — Azure AD app required'},
+  {id:'qradar',name:'IBM QRadar',category:'SIEM',desc:'Security intelligence platform'},
+  {id:'elastic',name:'Elastic Security',category:'SIEM',desc:'SIEM built on Elastic Stack'},
+  {id:'darktrace',name:'Darktrace',category:'NDR',desc:'AI network anomaly detection — HMAC auth'},
+  {id:'taegis',name:'Secureworks Taegis',category:'XDR',desc:'Extended detection & response'},
+  {id:'tenable',name:'Tenable.io',category:'Vuln',desc:'Cloud vulnerability management'},
+  {id:'nessus',name:'Nessus',category:'Vuln',desc:'On-premise vulnerability scanner'},
+  {id:'qualys',name:'Qualys',category:'Vuln',desc:'Cloud-based vulnerability management'},
+  {id:'wiz',name:'Wiz',category:'CSPM',desc:'Cloud security posture management'},
+  {id:'proofpoint',name:'Proofpoint',category:'Email',desc:'Email security & threat protection'},
+  {id:'mimecast',name:'Mimecast',category:'Email',desc:'Email security platform'},
+  {id:'zscaler',name:'Zscaler',category:'Network',desc:'Zero trust network access'},
+  {id:'okta',name:'Okta',category:'Identity',desc:'Identity & access management'},
+];
 
-
-const CRED_FIELDS: Record<string,{key:string;label:string;secret?:boolean;placeholder?:string}[]> = {
+const CRED_FIELDS = {
   crowdstrike:[{key:'client_id',label:'Client ID'},{key:'client_secret',label:'Client Secret',secret:true},{key:'base_url',label:'Base URL (optional)',placeholder:'https://api.crowdstrike.com'}],
   defender:[{key:'tenant_id',label:'Tenant ID',placeholder:'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'},{key:'client_id',label:'Application (Client) ID'},{key:'client_secret',label:'Client Secret',secret:true}],
   sentinelone:[{key:'host',label:'Management URL',placeholder:'https://your-tenant.sentinelone.net'},{key:'api_token',label:'API Token',secret:true}],
@@ -27,16 +43,17 @@ const CRED_FIELDS: Record<string,{key:string;label:string;secret?:boolean;placeh
   okta:[{key:'domain',label:'Okta Domain',placeholder:'https://company.okta.com'},{key:'api_token',label:'API Token',secret:true}],
 };
 
+const CATEGORIES = ['All','EDR','SIEM','NDR','XDR','Vuln','CSPM','Email','Network','Identity'];
 
-export function ToolsTab({ connected, setConnected }: { connected: ConnectedMap; setConnected: SetConnected; }) {
+function ToolsTab({ connected, setConnected }) {
   const [filter, setFilter] = useState('All');
-  const [modal, setModal] = useState<{id:string;name:string}|null>(null);
-  const [formVals, setFormVals] = useState<Record<string,string>>({});
+  const [modal, setModal] = useState(null);
+  const [formVals, setFormVals] = useState({});
   const [testing, setTesting] = useState(false);
-  const [testResult, setTestResult] = useState<{ok:boolean;message:string}|null>(null);
+  const [testResult, setTestResult] = useState(null);
   const [anthropicKey, setAnthropicKey] = useState('');
-  type KeyStatus = 'idle'|'saving'|'saved'|'error'; const [keyStatus, setKeyStatus] = useState<KeyStatus>('idle');
-  const [aiTestStatus, setAiTestStatus] = useState<{ok:boolean;configured:boolean;message:string;tenantId?:string}|null>(null);
+  const [keyStatus, setKeyStatus] = useState('idle');
+  const [aiTestStatus, setAiTestStatus] = useState(null);
   const [aiTestLoading, setAiTestLoading] = useState(false);
 
   useEffect(()=>{ testAiKey(); },[]);
@@ -75,9 +92,14 @@ export function ToolsTab({ connected, setConnected }: { connected: ConnectedMap;
     setAiTestLoading(false);
   }
 
+  async function handleRemoveKey() {
+    await fetch('/api/settings/anthropic-key', {method:'DELETE', headers:{'Content-Type':'application/json'}, body:JSON.stringify({tenantId: aiTestStatus ? aiTestStatus.tenantId : 'global'})});
+    await testAiKey();
+  }
+
   const filtered = filter==='All' ? ALL_TOOLS : ALL_TOOLS.filter(t=>t.category===filter);
 
-  function openModal(tool:{id:string;name:string}) {
+  function openModal(tool) {
     setModal(tool);
     setFormVals({});
     setTestResult(null);
@@ -103,12 +125,17 @@ export function ToolsTab({ connected, setConnected }: { connected: ConnectedMap;
 
   function handleSave() {
     if (!modal || !testResult?.ok) return;
-    setConnected((prev: ConnectedMap)=>({...prev,[modal.id]:formVals}));
+    const newCreds = {...formVals};
+    setConnected(prev=>({...prev,[modal.id]:newCreds}));
+    // Persist to Redis
+    fetch('/api/integrations/credentials', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({toolId:modal.id, credentials:newCreds})}).catch(()=>{});
     setModal(null);
   }
 
-  function handleDisconnect(id:string) {
-    setConnected((prev: ConnectedMap)=>{ const n={...prev}; delete n[id]; return n; });
+  function handleDisconnect(id) {
+    setConnected(prev=>{ const n={...prev}; delete n[id]; return n; });
+    // Remove from Redis
+    fetch('/api/integrations/credentials', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({toolId:id, credentials:null})}).catch(()=>{});
   }
 
   return (
@@ -157,10 +184,12 @@ export function ToolsTab({ connected, setConnected }: { connected: ConnectedMap;
           </>
         )}
         {aiTestStatus?.ok && (
+          <>
           <div style={{fontSize:'0.7rem',color:'var(--wt-muted)',lineHeight:1.6}}>
             AI triage, Co-Pilot, and remediation assistant are all active.
           </div>
-          <button onClick={async()=>{ await fetch('/api/settings/anthropic-key',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({tenantId:aiTestStatus?.tenantId||'global'})}); await testAiKey(); }} style={{marginTop:8,padding:'5px 12px',borderRadius:7,border:'1px solid #f0405e25',background:'#f0405e0a',color:'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Remove Key</button>
+          <button onClick={handleRemoveKey} style={{marginTop:8,padding:'5px 12px',borderRadius:7,border:'1px solid #f0405e25',background:'#f0405e0a',color:'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Remove Key</button>
+          </>
         )}
       </div>
 
@@ -175,10 +204,20 @@ export function ToolsTab({ connected, setConnected }: { connected: ConnectedMap;
                   <span style={{fontSize:'0.82rem',fontWeight:700}}>{tool.name}</span>
                   <span style={{fontSize:'0.5rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff18'}}>{tool.category}</span>
                 </div>
-                <div style={{fontSize:'0.64rem',color:'var(--wt-muted)'}}>{isOn?'Connected — syncing alerts':''+tool.desc}</div>
+                <div style={{fontSize:'0.64rem',color:isOn?'#22d49a':'var(--wt-muted)',display:'flex',alignItems:'center',gap:4}}>
+                  {isOn && <span style={{width:5,height:5,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 5px #22c992',display:'block'}} />}
+                  {isOn ? 'Connected' : tool.desc}
+                </div>
+                {isOn && connected[tool.id] && (
+                  <div style={{fontSize:'0.58rem',color:'var(--wt-dim)',marginTop:2}}>
+                    {Object.entries(connected[tool.id]).filter(([k])=>!k.includes('secret')&&!k.includes('password')&&!k.includes('token')&&!k.includes('key')).slice(0,2).map(([k,v])=>(
+                      <span key={k} style={{marginRight:8}}>{k}: <span style={{fontFamily:'JetBrains Mono,monospace'}}>{String(v).slice(0,20)}</span></span>
+                    ))}
+                  </div>
+                )}
               </div>
               {isOn
-                ? <button onClick={()=>handleDisconnect(tool.id)} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #f0405e20',background:'#f0405e08',color:'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Disconnect</button>
+                ? <button onClick={()=>{if(window.confirm('Disconnect '+tool.name+'?')) handleDisconnect(tool.id);}} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #f0405e30',background:'#f0405e10',color:'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:5}}>🗑 Disconnect</button>
                 : <button onClick={()=>openModal(tool)} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #4f8fff40',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>+ Connect</button>}
             </div>
           );
@@ -215,3 +254,6 @@ export function ToolsTab({ connected, setConnected }: { connected: ConnectedMap;
     </div>
   );
 }
+
+const DASHBOARD_CSS = '*{margin:0;padding:0;box-sizing:border-box}\n        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}\n        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}\n\n        /* ── Dark theme (default) ── */\n        .wt-root {\n          --wt-bg: #050508;\n          --wt-sidebar: #07080f;\n          --wt-card: #09091a;\n          --wt-card2: #0a0d14;\n          --wt-border: #141820;\n          --wt-border2: #1e2536;\n          --wt-text: #e8ecf4;\n          --wt-muted: #6b7a94;\n          --wt-secondary: #8a9ab0;\n          --wt-dim: #3a4050;\n        }\n        /* ── Light theme ── */\n        .wt-root.light {\n          --wt-bg: #f5f6fa;\n          --wt-sidebar: #ffffff;\n          --wt-card: #ffffff;\n          --wt-card2: #f0f2f8;\n          --wt-border: #e2e5ef;\n          --wt-border2: #c8cedd;\n          --wt-text: #0f1117;\n          --wt-muted: #5a6580;\n          --wt-secondary: #4a5568;\n          --wt-dim: #8090a8;\n        }\n\n        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap;color:var(--wt-muted)}\n        .tab-btn.active{background:#4f8fff18;color:#4f8fff}\n        .tab-btn:not(.active) {color:var(--wt-secondary);background:var(--wt-card2)}\n        .row-hover{transition:background .12s}\n        .row-hover:hover{background:var(--wt-card2)!important}\n        .vuln-row:hover{background:var(--wt-card2)!important;cursor:pointer}\n        .alert-card{border-radius:10px;border:1px solid var(--wt-border);background:var(--wt-card);transition:border-color .15s}\n        .alert-card:hover{border-color:#4f8fff28}';
+export default ToolsTab;
