@@ -1,10 +1,10 @@
 'use client';
-import './dashboard.css';
 import { useDashboardState } from './useDashboardState';
 import { ToolsTab } from './ToolsTab';
 import { MSSPPortfolio } from './MSSPPortfolio';
 import { RemediationOutput } from './RemediationOutput';
 import { SevBadge, Modal, StatCard, GateWall } from './DashboardComponents';
+import { DashboardStyles } from './DashboardStyles';
 import { SEV_COLOR, VERDICT_STYLE, DEMO_INTEL_BY_INDUSTRY, DEMO_GAP_DEVICES, ALL_TOOLS } from './dashboardData';
 
 export default function DashboardPage() {
@@ -27,7 +27,8 @@ export default function DashboardPage() {
   } = s;
 
   return (
-    <div className={`wt-root${theme === 'light' ? ' light' : ''}`} style={{display:'flex',minHeight:'100vh',background:'var(--wt-bg)',color:'var(--wt-text)',fontFamily:'Inter,sans-serif'}}>
+    <div className={'wt-root' + (theme === 'light' ? ' light' : '')} style={{display:'flex',minHeight:'100vh',background:'var(--wt-bg)',color:'var(--wt-text)',fontFamily:'Inter,sans-serif'}}>
+      <DashboardStyles />
 
 
       {/* SIDEBAR */}

@@ -1,0 +1,52 @@
+'use client';
+
+const CSS = `
+/* Watchtower Dashboard Styles */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+@keyframes spin  { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* Dark theme (default) */
+.wt-root {
+  --wt-bg: #050508;
+  --wt-sidebar: #07080f;
+  --wt-card: #09091a;
+  --wt-card2: #0a0d14;
+  --wt-border: #141820;
+  --wt-border2: #1e2536;
+  --wt-text: #e8ecf4;
+  --wt-muted: #6b7a94;
+  --wt-secondary: #8a9ab0;
+  --wt-dim: #3a4050;
+}
+
+/* Light theme */
+.wt-root.light {
+  --wt-bg: #f5f6fa;
+  --wt-sidebar: #ffffff;
+  --wt-card: #ffffff;
+  --wt-card2: #f0f2f8;
+  --wt-border: #e2e5ef;
+  --wt-border2: #c8cedd;
+  --wt-text: #0f1117;
+  --wt-muted: #5a6580;
+  --wt-secondary: #4a5568;
+  --wt-dim: #8090a8;
+}
+
+.tab-btn { padding: 7px 16px; border: none; background: transparent; cursor: pointer; font-size: 0.76rem; font-weight: 600; font-family: Inter,sans-serif; border-radius: 8px; transition: all .15s; white-space: nowrap; color: var(--wt-muted); }
+.tab-btn.active { background: #4f8fff18; color: #4f8fff; }
+.tab-btn:not(.active):hover { color: var(--wt-secondary); background: var(--wt-card2); }
+.row-hover { transition: background .12s; }
+.row-hover:hover { background: var(--wt-card2) !important; }
+.vuln-row:hover { background: var(--wt-card2) !important; cursor: pointer; }
+.alert-card { border-radius: 10px; border: 1px solid var(--wt-border); background: var(--wt-card); transition: border-color .15s; }
+.alert-card:hover { border-color: #4f8fff28; }
+
+`;
+
+export function DashboardStyles() {
+  return <style dangerouslySetInnerHTML={{ __html: CSS }} />;
+}
