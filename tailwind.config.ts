@@ -1,7 +1,8 @@
-import type { Config } from "tailwindcss";
-const config: Config = {
-  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
-  theme: { extend: { fontFamily: { sans: ["Outfit","system-ui","sans-serif"], mono: ["IBM Plex Mono","monospace"] } } },
+// Tailwind is not installed in this project.
+// This file exists to prevent TypeScript errors from the config being referenced.
+const config = {
+  content: ['./src/**/*.{js,ts,jsx,tsx,mdx}'],
+  theme: { extend: {} },
   plugins: [],
 };
 export default config;
