@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 
 function getTenantId(req: NextRequest): string {
   // Read tenant from cookie (set at login) — falls back to 'global'
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   return cookieStore.get('wt_tenant')?.value || 'global';
 }
 

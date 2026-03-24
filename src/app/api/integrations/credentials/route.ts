@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { redisGet, redisSet, KEYS } from '@/lib/redis';
 import { cookies } from 'next/headers';
 
-function getTenantId(): string {
-  return cookies().get('wt_tenant')?.value || 'global';
+async function getTenantId(): Promise<string> {
+  const cookieStore = await cookies();
+  return cookieStore.get('wt_tenant')?.value || 'global';
 }
 
 export async function GET() {
   try {
-    const tenantId = getTenantId();
+    const tenantId = await getTenantId();
     const raw = await redisGet(KEYS.TOOL_CREDS(tenantId));
     const connected = raw ? JSON.parse(raw) : {};
     return NextResponse.json({ ok: true, connected });
@@ -20,7 +21,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const { toolId, credentials } = await req.json();
-    const tenantId = getTenantId();
+    const tenantId = await getTenantId();
     const raw = await redisGet(KEYS.TOOL_CREDS(tenantId));
     const existing = raw ? JSON.parse(raw) : {};
     if (credentials === null) {

@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 
 export async function GET() {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const tenantId = cookieStore.get('wt_tenant')?.value || 'global';
     const apiKey = await getAnthropicKey(tenantId);
     if (!apiKey) {

@@ -5,7 +5,7 @@ import { cookies } from 'next/headers';
 export async function POST(req: NextRequest) {
   try {
     const { prompt, messages } = await req.json();
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const tenantId = cookieStore.get('wt_tenant')?.value || 'global';
     const apiKey = await getAnthropicKey(tenantId);
     if (!apiKey) {
