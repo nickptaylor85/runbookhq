@@ -10,8 +10,10 @@ interface Alert { id:string; title:string; severity:SevKey; source:string; devic
 interface GapDevice { hostname:string; ip:string; os:string; missing:string[]; reason:string; lastSeen:string; }
 interface Vuln { id:string; cve:string; title:string; severity:SevKey; cvss:number; prevalence:number; affected:number; affectedDevices:string[]; description:string; remediation:string[]; kev:boolean; patch?:string; }
 interface IntelItem { id:string; title:string; summary:string; severity:SevKey; source:string; time:string; iocs?:string[]; mitre?:string; industrySpecific:boolean; }
-type TimelineEntry = {t:string; actor:'AI'|'Analyst'; action:string; detail:string};
-interface Incident { id:string; title:string; severity:SevKey; status:'Active'|'Contained'|'Closed'; created:string; updated:string; alertCount:number; devices:string[]; mitreTactics:string[]; timeline:TimelineEntry[]; aiSummary:string; }
+type TimelineActor = 'AI' | 'Analyst';
+type TimelineEntry = {t:string; actor:TimelineActor; action:string; detail:string};
+type IncidentStatus = 'Active' | 'Contained' | 'Closed';
+interface Incident { id:string; title:string; severity:SevKey; status:IncidentStatus; created:string; updated:string; alertCount:number; devices:string[]; mitreTactics:string[]; timeline:TimelineEntry[]; aiSummary:string; }
 
 type Theme = 'dark' | 'light';
 type Tier = 'community' | 'team' | 'business' | 'mssp';
@@ -128,7 +130,7 @@ function Modal({title,onClose,children}: ModalProps) {
 }
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
-type StatCardProps = {val:string|number;label:string;sub?:string;color:string;onClick?:()=>void};
+type StatCardProps = {val:string | number;label:string;sub?:string;color:string;onClick?:()=>void};
 function StatCard({val,label,sub,color,onClick}: StatCardProps) {
   return (
     <div onClick={onClick} style={{padding:'14px 12px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:10,textAlign:'center',cursor:onClick?'pointer':'default',transition:'border-color .15s'}}
@@ -143,7 +145,8 @@ function StatCard({val,label,sub,color,onClick}: StatCardProps) {
 }
 
 // ─── Paywall Gate ────────────────────────────────────────────────────────────
-type GateWallProps = { feature:string; requiredTier:'team'|'business'|'mssp'; children:React.ReactNode; userTier:string; };
+type RequiredTier = 'team' | 'business' | 'mssp';
+type GateWallProps = { feature:string; requiredTier:RequiredTier; children:React.ReactNode; userTier:string; };
 function GateWall({ feature, requiredTier, children, userTier }: GateWallProps) {
   const levels: Record<string,number> = {community:0,team:1,business:2,mssp:3};
   if ((levels[userTier]||0) >= levels[requiredTier]) return (<>{children}</>);
