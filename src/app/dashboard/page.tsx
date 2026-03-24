@@ -1,107 +1,12 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import { RemediationOutput } from './RemediationOutput';
+import React from 'react';
+import { useDashboardState } from './useDashboardState';
+import { ToolsTab } from './ToolsTab';
 import { MSSPPortfolio } from './MSSPPortfolio';
+import { RemediationOutput } from './RemediationOutput';
+import type { SevKey, Tier } from './dashboardTypes';
+import { SEV_COLOR, VERDICT_STYLE, DEMO_INTEL_BY_INDUSTRY, DEMO_GAP_DEVICES, ALL_TOOLS } from './dashboardData';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-type SevKey = 'Critical'|'High'|'Medium'|'Low';
-type VerdictKey = 'TP'|'FP'|'SUS'|'Pending';
-type AutomationLevel = 0|1|2;
-interface Tool { id:string; name:string; configured:boolean; active:boolean; alertCount?:number; }
-interface Alert { id:string; title:string; severity:SevKey; source:string; device:string; time:string; verdict:VerdictKey; confidence:number; aiReasoning:string; aiActions:string[]; evidenceChain:string[]; runbookSteps:string[]; mitre?:string; incidentId?:string; }
-interface GapDevice { hostname:string; ip:string; os:string; missing:string[]; reason:string; lastSeen:string; }
-interface Vuln { id:string; cve:string; title:string; severity:SevKey; cvss:number; prevalence:number; affected:number; affectedDevices:string[]; description:string; remediation:string[]; kev:boolean; patch?:string; }
-interface IntelItem { id:string; title:string; summary:string; severity:SevKey; source:string; time:string; iocs?:string[]; mitre?:string; industrySpecific:boolean; }
-interface Incident { id:string; title:string; severity:SevKey; status:'Active'|'Contained'|'Closed'; created:string; updated:string; alertCount:number; devices:string[]; mitreTactics:string[]; timeline:{t:string;actor:'AI'|'Analyst';action:string;detail:string}[]; aiSummary:string; }
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-const SEV_COLOR:Record<SevKey,string> = { Critical:'#f0405e', High:'#f97316', Medium:'#f0a030', Low:'#4f8fff' };
-const VERDICT_STYLE:Record<VerdictKey,{c:string,bg:string,label:string}> = {
-  TP:{c:'#f0405e',bg:'#f0405e12',label:'True Positive'},
-  FP:{c:'#22d49a',bg:'#22d49a12',label:'False Positive'},
-  SUS:{c:'#f0a030',bg:'#f0a03012',label:'Suspicious'},
-  Pending:{c:'#6b7a94',bg:'#6b7a9412',label:'Pending'},
-};
-const INDUSTRIES = ['Financial Services','Healthcare','Retail & eCommerce','Manufacturing','Energy & Utilities','Government & Public Sector','Legal & Professional','Technology','Education','Telecommunications'];
-
-// ─── Demo Data ─────────────────────────────────────────────────────────────────
-const DEMO_TOOLS:Tool[] = [
-  {id:'crowdstrike',name:'CrowdStrike',configured:true,active:true,alertCount:8},
-  {id:'defender',name:'Defender',configured:true,active:true,alertCount:5},
-  {id:'taegis',name:'Taegis XDR',configured:false,active:false},
-  {id:'darktrace',name:'Darktrace',configured:true,active:true,alertCount:3},
-  {id:'splunk',name:'Splunk',configured:true,active:true,alertCount:12},
-  {id:'sentinel',name:'Sentinel',configured:true,active:true,alertCount:4},
-  {id:'tenable',name:'Tenable',configured:true,active:true},
-  {id:'proofpoint',name:'Proofpoint',configured:true,active:true,alertCount:2},
-];
-
-const DEMO_GAP_DEVICES:GapDevice[] = [
-  {hostname:'SRV-LEGACY01',ip:'10.0.4.22',os:'Windows Server 2008',missing:['CrowdStrike Falcon','Tenable.io'],reason:'Legacy OS — agent incompatible',lastSeen:'2h ago'},
-  {hostname:'laptop-MKTG07',ip:'10.0.2.87',os:'Windows 11',missing:['CrowdStrike Falcon'],reason:'User-initiated uninstall',lastSeen:'15m ago'},
-  {hostname:'SRV-NAS01',ip:'10.0.3.15',os:'FreeNAS',missing:['CrowdStrike Falcon','Tenable.io','Splunk SIEM'],reason:'NAS device — no agent support',lastSeen:'5m ago'},
-  {hostname:'KIOSK-LOBBY',ip:'10.0.1.200',os:'Windows 10 IoT',missing:['Tenable.io','Microsoft Defender'],reason:'IoT device — restricted access',lastSeen:'1m ago'},
-  {hostname:'laptop-HR03',ip:'10.0.2.44',os:'macOS 13',missing:['CrowdStrike Falcon'],reason:'Pending deployment — ticket open',lastSeen:'30m ago'},
-];
-
-const DEMO_ALERTS:Alert[] = [
-  {id:'a1',title:'LSASS memory access — DC01',severity:'Critical',source:'CrowdStrike',device:'DC01',time:'09:14',verdict:'TP',confidence:98,aiReasoning:'Domain controller targeted by LSASS memory access. Service account credentials at high risk. T1003.001 — high-fidelity detection. No maintenance window active. Previous login from this account was legitimate, now accessing LSASS — strong indicator of credential dumping.',evidenceChain:['Domain controller targeted — highest value asset','Service account admin_svc used laterally across 3 hosts','T1003.001 — credential dumping technique, high-fidelity','No scheduled maintenance or admin activity logged','Sequence mirrors known Mimikatz behaviour'],aiActions:['Incident INC-0847 created and assigned to Tier 2','admin_svc account disabled (revert available)','SOC Slack #incidents channel notified','5-step runbook generated and attached'],runbookSteps:['Isolate DC01 from network immediately','Reset admin_svc credentials across all domains','Run forensic memory capture on DC01','Search SIEM for admin_svc lateral movement in last 48h','Notify CISO — potential domain compromise'],mitre:'T1003.001',incidentId:'INC-0847'},
-  {id:'a2',title:'C2 beacon to 185.220.101.42:443',severity:'High',source:'Darktrace',device:'SRV-FINANCE01',time:'09:16',verdict:'TP',confidence:94,aiReasoning:'Darktrace detected anomalous HTTPS beacon with JA3 fingerprint matching known C2. IP 185.220.101.42 appears on ThreatFox with LockBit association. Darktrace device confidence deviation 96/100. Beaconing interval is 300s — consistent with C2 heartbeat.',evidenceChain:['IP 185.220.101.42 on ThreatFox — LockBit C2','Darktrace: device behaviour deviation 96/100','JA3 TLS fingerprint matches known C2 tooling','300s beacon interval — classic C2 heartbeat','Same IP seen in sector threat intel feed 48h ago'],aiActions:['IP blocked at Zscaler perimeter','Darktrace packet capture initiated','Threat intel IOC added to watchlist','SRV-FINANCE01 network access restricted'],runbookSteps:['Block IP at all perimeter controls','Analyse all traffic from SRV-FINANCE01 last 72h','Check for additional beaconing hosts','Preserve memory image before isolation','Report IOC to information sharing group'],mitre:'T1071.001'},
-  {id:'a3',title:'Scheduled task created — SRV-APP02',severity:'Medium',source:'Defender',device:'SRV-APP02',time:'09:22',verdict:'SUS',confidence:67,aiReasoning:'Scheduled task created by non-standard account outside business hours. Technique is consistent with persistence but could be legitimate deployment tooling. User account has no prior history of scheduled task creation. Confidence is moderate — analyst review recommended.',evidenceChain:['Task created at 02:17 AM — outside business hours','Non-standard service account as task creator','No change ticket matching this action','Similar technique seen in APT29 playbook','No other anomalous activity from this account'],aiActions:['Alert flagged for analyst review','Task hash added to monitoring watchlist','No automated action taken — SUS confidence below threshold'],runbookSteps:['Review task definition and target binary','Cross-reference with change management system','Check source account login history','If unconfirmed legitimate — isolate and investigate'],mitre:'T1053.005'},
-  {id:'a4',title:'Windows Update triggered PowerShell',severity:'Low',source:'Splunk',device:'WS-SALES12',time:'09:31',verdict:'FP',confidence:99,aiReasoning:'PowerShell execution traced to Windows Update process (wuauclt.exe → powershell.exe). This is a known Microsoft update pattern. Parent process chain matches legitimate Microsoft signing certificate. Update KB5034441 scheduled for this host. No malicious indicators present.',evidenceChain:['Parent: wuauclt.exe — legitimate Windows Update process','Microsoft-signed certificate chain verified','KB5034441 scheduled for this host at 09:30','No network egress from PowerShell process','No payload or download cradle observed'],aiActions:['Auto-closed — False Positive 99% confidence','Suppression rule created for this update pattern'],runbookSteps:[],mitre:'T1059.001'},
-  {id:'a5',title:'Anomalous VPN login — new geography',severity:'Medium',source:'Sentinel',device:'cloud-vpn',time:'09:38',verdict:'SUS',confidence:72,aiReasoning:'User jsmith@corp logged in from Singapore — their established baseline is UK. Travel is possible but no flight booking detected in calendar. Account has MFA enabled. Timing is 03:00 local time in Singapore — unusual for legitimate travel. Monitoring and MFA re-challenge applied.',evidenceChain:['User baseline: London, UK — current location: Singapore','03:00 AM local login time — unusual pattern','No calendar events indicating travel','MFA enrolled but not challenged recently','No prior Singapore login in 12 months'],aiActions:['MFA re-challenge sent to user','Session maintained pending MFA response','Account flagged for 24h enhanced monitoring','HR calendar integration checked — no travel noted'],runbookSteps:['Await MFA response — escalate if no response in 10m','If MFA passed — continue monitoring for anomalies','If MFA failed — suspend account immediately','Check with user direct via phone'],mitre:'T1078'},
-  {id:'a6',title:'Large file upload to personal cloud',severity:'High',source:'Zscaler',device:'laptop-HR03',time:'10:02',verdict:'TP',confidence:88,aiReasoning:'HR03 user uploaded 18GB to a personal Google Drive account over 2 hours. Upload volume is 36x their daily baseline. User has a resignation notice on file (from HR record cross-reference). Files accessed include payroll data directories. DLP policy triggered.',evidenceChain:['18GB upload — 36x user daily baseline','Destination: personal Google Drive account','User has active resignation notice (HR integrated)','Files included: /finance/payroll/2025 directory','DLP tag: PII and financial data detected'],aiActions:['Upload throttled via Zscaler policy','HR and Legal teams alerted automatically','Files accessed logged to audit trail','Account flagged for enhanced DLP monitoring'],runbookSteps:['Legal team review of acceptable use policy breach','Preserve DLP logs for HR proceedings','Remotely wipe device on departure','Brief IT security on offboarding procedure'],mitre:'T1567.002'},
-];
-
-const DEMO_VULNS:Vuln[] = [
-  {id:'v1',cve:'CVE-2024-21413',title:'Microsoft Outlook NTLM Credential Leak',severity:'Critical',cvss:9.8,prevalence:94,affected:23,affectedDevices:['laptop-CFO01','laptop-SALES03','WS-HR01','+ 20 more'],description:'Critical RCE/NTLM relay vulnerability in Microsoft Outlook. Exploitable via malicious email links without user interaction. Actively exploited in the wild by APT actors.',remediation:['Apply Microsoft patch KB5002112 immediately','Enable Windows Credential Guard on all endpoints','Block outbound SMB (TCP 445) at perimeter','Add to email gateway URL filtering rules','Consider blocking external hyperlinks in email until patched'],kev:true,patch:'KB5002112'},
-  {id:'v2',cve:'CVE-2024-3400',title:'PAN-OS Command Injection — GlobalProtect',severity:'Critical',cvss:10.0,prevalence:88,affected:2,affectedDevices:['FW-EDGE01','FW-BRANCH01'],description:'Critical command injection in Palo Alto GlobalProtect gateway. CVSSv3 10.0. Exploited by nation-state actors (UNC5221) in the wild. Full command execution as root possible.',remediation:['Apply PAN-OS patch 11.1.2-h3 or later immediately','Enable Threat Prevention signatures for CVE-2024-3400','Review GlobalProtect logs for IOCs: sessions from unexpected IPs','Isolate affected firewalls if patch cannot be applied immediately','Contact Palo Alto PSIRT if compromise suspected'],kev:true,patch:'PAN-OS 11.1.2-h3'},
-  {id:'v3',cve:'CVE-2024-27198',title:'JetBrains TeamCity Auth Bypass',severity:'Critical',cvss:9.8,prevalence:76,affected:3,affectedDevices:['SRV-CICD01','SRV-BUILD02','SRV-BUILD03'],description:'Authentication bypass in JetBrains TeamCity build server. Allows unauthenticated remote code execution. APT29 (Cozy Bear) actively exploiting to compromise CI/CD pipelines and inject malicious build artifacts.',remediation:['Upgrade TeamCity to version 2023.11.4 immediately','If upgrade not possible, restrict TeamCity to VPN access only','Review all build logs for unexpected plugin installations','Audit service account permissions used by TeamCity','Check build artifacts for unexpected modifications'],kev:true,patch:'TeamCity 2023.11.4'},
-  {id:'v4',cve:'CVE-2023-46805',title:'Ivanti ICS/IPS Authentication Bypass',severity:'Critical',cvss:8.2,prevalence:71,affected:1,affectedDevices:['IVANTI-GW01'],description:'Authentication bypass affecting Ivanti Connect Secure and Policy Secure. Chained with CVE-2024-21887 for RCE. Mass exploitation observed. CISA emergency directive issued.',remediation:['Apply Ivanti patch immediately or take gateway offline','Run Ivanti Integrity Checker Tool','Reset all passwords for users authenticated via affected gateway','Review SIEM for suspicious authentication patterns','Consider replacing with alternative VPN solution if persistent issues'],kev:true},
-  {id:'v5',cve:'CVE-2024-1708',title:'ConnectWise ScreenConnect Path Traversal',severity:'Critical',cvss:8.4,prevalence:65,affected:1,affectedDevices:['SCREENCONNECT01'],description:'Path traversal vulnerability in ConnectWise ScreenConnect. Allows unauthenticated RCE. Ransomware groups actively using this to gain initial access to MSP-managed networks.',remediation:['Upgrade ScreenConnect to version 23.9.8 or later','If upgrade delayed, disable external access until patched','Review ScreenConnect audit logs for unauthorized sessions','Check all managed endpoints for unauthorized ScreenConnect sessions','Alert clients if you are an MSP using ScreenConnect'],kev:true,patch:'ScreenConnect 23.9.8'},
-  {id:'v6',cve:'CVE-2024-21762',title:'Fortinet FortiOS OOB Write — SSL VPN',severity:'Critical',cvss:9.6,prevalence:82,affected:2,affectedDevices:['FORTI-EDGE01','FORTI-DR01'],description:'Out-of-bounds write in Fortinet FortiOS SSL VPN. No authentication required. Likely exploited in the wild. Fortinet issued emergency patch.',remediation:['Upgrade FortiOS to 7.4.3 or 7.2.7 immediately','Disable SSL VPN if upgrade cannot be applied immediately','Monitor for IOCs: unexpected admin account creation, config changes','Check FortiGuard subscription is active and updated','Verify all admin accounts — delete any unrecognised'],kev:true,patch:'FortiOS 7.4.3'},
-  {id:'v7',cve:'CVE-2024-20767',title:'Adobe ColdFusion RCE — Public Files',severity:'High',cvss:8.7,prevalence:58,affected:4,affectedDevices:['SRV-WEB01','SRV-WEB02','SRV-WEB03','SRV-WEB04'],description:'Remote code execution in Adobe ColdFusion via the administrator panel. Allows arbitrary file read and potential RCE. Web-facing ColdFusion servers at significant risk.',remediation:['Apply Adobe patch APSB24-14 immediately','If ColdFusion admin interface is internet-facing, take offline','Restrict admin interface to management VLAN only','Enable WAF rules for ColdFusion exploit attempts','Review web server logs for scanning activity'],kev:false,patch:'APSB24-14'},
-  {id:'v8',cve:'CVE-2024-22024',title:'Ivanti Connect Secure XXE Injection',severity:'High',cvss:8.3,prevalence:52,affected:1,affectedDevices:['IVANTI-GW01'],description:'XXE injection in Ivanti Connect Secure and Neurons for ZTA. Can be used to access sensitive files. Affects same device as CVE-2023-46805 — prioritise remediation.',remediation:['Covered by same Ivanti patch as CVE-2023-46805','Verify patch applied to both vulnerabilities simultaneously','Run Ivanti ICT scan post-patching','Monitor for XML-related errors in gateway logs'],kev:false},
-  {id:'v9',cve:'CVE-2024-27956',title:'WordPress Automatic Plugin SQL Injection',severity:'High',cvss:9.8,prevalence:45,affected:2,affectedDevices:['SRV-WEB02','SRV-WEB03'],description:'Critical SQL injection in WordPress Automatic plugin. Allows unauthenticated attackers to create admin users and upload webshells. Rapidly weaponised.',remediation:['Update Automatic plugin to version 3.92.1 or later','Scan WordPress installations for unauthorized admin accounts','Check for uploaded files in wp-content/uploads — remove suspicious','Enable WAF plugin (Wordfence) or cloud WAF rule','Consider disabling XML-RPC if not needed'],kev:false,patch:'Automatic plugin 3.92.1'},
-  {id:'v10',cve:'CVE-2023-48788',title:'Fortinet EMS SQL Injection — RCE',severity:'High',cvss:9.3,prevalence:38,affected:1,affectedDevices:['EMS-SERVER01'],description:'SQL injection in Fortinet FortiClientEMS. Enables RCE without authentication. Widely exploited against internet-exposed EMS servers. DoJ charged attackers exploiting this.',remediation:['Upgrade FortiClientEMS to 7.2.3 or 7.0.10','Restrict EMS to internal network — no direct internet exposure','Check EMS logs for unauthorized SQL activity','Audit all managed endpoint agents for unexpected configuration changes'],kev:true,patch:'FortiClientEMS 7.2.3'},
-];
-
-const DEMO_INCIDENTS:Incident[] = [
-  {id:'INC-0847',title:'Domain Controller Compromise — admin_svc Credential Dump',severity:'Critical',status:'Active',created:'2026-03-22 09:14',updated:'2026-03-22 09:47',alertCount:4,devices:['DC01','SRV-FINANCE01','laptop-CFO01'],mitreTactics:['Initial Access','Credential Access','Lateral Movement'],aiSummary:'Multi-stage credential theft attack targeting domain infrastructure. Attacker gained initial access via spear-phish, executed LSASS dump on DC01, and used compromised admin_svc credentials to move laterally to SRV-FINANCE01. C2 beacon detected and blocked. Domain credentials at high risk — immediate reset recommended.',timeline:[
-    {t:'09:14',actor:'AI',action:'Initial alert correlated',detail:'LSASS access on DC01 — Incident created and Tier 2 assigned'},
-    {t:'09:15',actor:'AI',action:'admin_svc account disabled',detail:'Auto-response: account suspended across all domain controllers'},
-    {t:'09:16',actor:'AI',action:'C2 traffic blocked',detail:'IP 185.220.101.42 blocked at Zscaler perimeter. Darktrace PCAP initiated'},
-    {t:'09:22',actor:'Analyst',action:'Confirmed TP — escalated to Incident Commander',detail:'IR team engaged. DC01 isolated. Forensic image requested'},
-    {t:'09:31',actor:'AI',action:'Lateral movement path mapped',detail:'admin_svc lateral path: laptop-CFO01 → DC01 → SRV-FINANCE01'},
-    {t:'09:47',actor:'AI',action:'Updated kill chain analysis',detail:'Full attack timeline generated. MITRE ATT&CK mapping complete'},
-  ]},
-  {id:'INC-0846',title:'Suspected Insider Threat — Data Exfiltration',severity:'High',status:'Contained',created:'2026-03-22 08:45',updated:'2026-03-22 09:12',alertCount:3,devices:['laptop-HR03','cloud-email'],mitreTactics:['Collection','Exfiltration'],aiSummary:'HR employee with active resignation notice uploaded 18GB of payroll and personnel data to personal Google Drive. Email forwarding rule discovered directing inbox to personal Gmail. DLP policies enforced, legal team notified. Data exfiltration contained — no external breach confirmed.',timeline:[
-    {t:'08:45',actor:'AI',action:'DLP alert correlated with HR data',detail:'Zscaler flagged 18GB upload. HR system integration confirmed resignation notice'},
-    {t:'08:47',actor:'AI',action:'Upload throttled',detail:'Zscaler policy updated to block personal cloud storage for this user'},
-    {t:'09:00',actor:'AI',action:'Email forwarding rule discovered and deleted',detail:'3,200 emails forwarded to personal Gmail in 48h. Rule removed. HR and Legal auto-notified'},
-    {t:'09:12',actor:'Analyst',action:'Incident contained — legal review underway',detail:'IT forensics preserving audit trail. Device remote wipe scheduled for departure date'},
-  ]},
-];
-
-const DEMO_INTEL_BY_INDUSTRY:Record<string,IntelItem[]> = {
-  'Financial Services':[
-    {id:'i1',title:'TA505 Targeting UK Banks — Cobalt Strike Deployment',summary:'TA505 (Clop ransomware affiliate) observed targeting UK financial institutions with spear-phishing campaigns delivering Cobalt Strike beacons via fake SWIFT notification emails. 3 UK banks confirmed compromised in the last 14 days.',severity:'Critical',source:'NCSC & ThreatFox',time:'2h ago',iocs:['185.220.101.42','hxxps://swift-notification[.]com','cobalt-cs-payload-2024.exe'],mitre:'T1566.001',industrySpecific:true},
-    {id:'i2',title:'QakBot Resurgence — Banking Trojans via PDF Lures',summary:'QakBot (QBot) back in circulation after law enforcement takedown. New infrastructure and updated PDF lure themed around invoice disputes. Financial sector primary target. High evasion capability — bypasses standard email security.',severity:'High',source:'CISA KEV',time:'6h ago',iocs:['invoice-dispute-2024.pdf','hxxp://qakbot-new[.]ru'],mitre:'T1566.001',industrySpecific:true},
-    {id:'i3',title:'SWIFT Customer Security Programme — Audit Deadline',summary:'SWIFT CSP mandatory controls attestation deadline approaching. Ensure your SWIFT connector environments comply with CSP 2024 requirements, particularly around multi-factor authentication and anomaly detection integration.',severity:'Medium',source:'SWIFT ISAC',time:'1d ago',industrySpecific:true},
-  ],
-  'Healthcare':[
-    {id:'i4',title:'Rhysida Ransomware Targeting NHS Trusts',summary:'Rhysida ransomware group actively targeting NHS Trusts and healthcare providers. Gain access via phishing, move laterally to clinical systems, and exfiltrate patient data before encryption. 4 NHS Trusts hit in last 30 days.',severity:'Critical',source:'NCSC Health Alert',time:'4h ago',iocs:['rhysida-ransom.onion','185.181.60.92','health-tender-2024.exe'],mitre:'T1486',industrySpecific:true},
-    {id:'i5',title:'DICOM Vulnerability — Medical Imaging Systems Exposed',summary:'Multiple DICOM-compliant medical imaging systems found to have patient data exposed on the internet without authentication. Check for internet-exposed DICOM servers on port 104. Over 1,000 UK systems found exposed in recent scan.',severity:'High',source:'Cynerio Research',time:'1d ago',industrySpecific:true},
-  ],
-  'default':[
-    {id:'def1',title:'CISA KEV Update — 3 New Actively Exploited CVEs',summary:'CISA added CVE-2024-21413 (Outlook), CVE-2024-3400 (PAN-OS), and CVE-2024-27198 (TeamCity) to Known Exploited Vulnerabilities catalog. All three being actively exploited in the wild. Patch deadline: 72 hours.',severity:'Critical',source:'CISA KEV',time:'3h ago',iocs:[],mitre:'',industrySpecific:false},
-    {id:'def2',title:'LockBit 3.0 Infrastructure Resurfaces Post-Takedown',summary:'LockBit 3.0 operational infrastructure identified on new IP ranges following law enforcement takedown. Group recruiting new affiliates and offering updated locker with improved evasion. Healthcare and financial sectors primary targets.',severity:'High',source:'ThreatFox',time:'8h ago',iocs:['185.220.101.0/24','lockbit-ransom3.com'],mitre:'T1486',industrySpecific:false},
-    {id:'def3',title:'ThreatFox IOC Feed — 847 New C2 Indicators',summary:'ThreatFox published 847 new command-and-control indicators in the last 24 hours. Predominant malware families: AsyncRAT, RedLine Stealer, Cobalt Strike. Recommend enriching alert triage rules with updated IOC set.',severity:'Medium',source:'ThreatFox',time:'1h ago',industrySpecific:false},
-    {id:'def4',title:'URLhaus Phishing Kit — 23 New Malicious Domains',summary:'23 newly registered domains identified distributing credential harvesting kits mimicking Microsoft 365, DocuSign, and SharePoint. All domains registered in last 72h with low reputation.',severity:'Medium',source:'URLhaus',time:'2h ago',industrySpecific:false},
-  ],
-};
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 function SevBadge({sev}:{sev:SevKey}) {
   return <span style={{fontSize:'0.5rem',fontWeight:800,padding:'1px 6px',borderRadius:3,color:'#fff',background:SEV_COLOR[sev]}}>{sev.toUpperCase()}</span>;
 }
@@ -193,164 +98,77 @@ const TENANT_INCIDENTS: {[k:string]: Incident[]} = {
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState('overview');
-  const [automation, setAutomation] = useState<AutomationLevel>(1);
-  const [modal, setModal] = useState<{type:string;data?:unknown} | null>(null);
-  const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
-  const [selectedVuln, setSelectedVuln] = useState<Vuln | null>(null);
-  const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
-  const [vulnAiLoading, setVulnAiLoading] = useState<string | null>(null);
-  const [vulnAiTexts, setVulnAiTexts] = useState<Record<string,string>>({});
-  const [industry, setIndustry] = useState('Financial Services');
-  // Load persisted settings from Redis on mount
-  useEffect(()=>{
-    fetch('/api/settings/user')
-      .then(r=>r.json())
-      .then(d=>{ if (d.settings?.industry) setIndustry(d.settings.industry); })
-      .catch(()=>{});
-  },[]);
-  function setIndustryPersisted(ind: string) {
-    setIndustry(ind);
-    fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:ind})}).catch(()=>{});
-  }
-  const [intelLoading, setIntelLoading] = useState(false);
-  const [customIntel, setCustomIntel] = useState<IntelItem[] | null>(null);
-  const [expandedAlerts, setExpandedAlerts] = useState(new Set<string>());
-  const [deployAgentDevice, setDeployAgentDevice] = useState<GapDevice | null>(null);
-  const [incidentStatuses, setIncidentStatuses] = useState<Record<string,string>>({});
-  const [deletedIncidents, setDeletedIncidents] = useState(new Set<string>());
-  function deleteIncident(id:string) { setDeletedIncidents(prev=>new Set([...prev,id])); setSelectedIncident(null); }
-  const [gapToolFilter, setGapToolFilter] = useState<string | null>(null);
-  const [expandedIntel, setExpandedIntel] = useState(new Set<string>());
-  const [demoMode, setDemoMode] = useState(true);
-  const [connectedTools, setConnectedTools] = useState<ConnectedMap>({});
-  const [currentTenant, setCurrentTenant] = useState('global');
-  const [isAdmin] = useState(true); // Replace with real auth check
-
-  const DEMO_TENANTS = [
-    {id:'global', name:'My Organisation', type:'direct'},
-    {id:'client-acme', name:'Acme Financial', type:'client'},
-    {id:'client-nhs', name:'NHS Trust Alpha', type:'client'},
-    {id:'client-retail', name:'RetailCo UK', type:'client'},
-    {id:'client-gov', name:'Gov Dept Beta', type:'client'},
-  ];
-
-  function toggleIntel(id: string) {
-    setExpandedIntel(prev => { const n = new Set(prev); n.has(id)?n.delete(id):n.add(id); return n; });
-  }
-  const [theme, setTheme] = useState<Theme>('dark');
-
-  // Theme preference intentionally uses localStorage — it must apply synchronously
-  // before React hydrates to avoid a dark→light flash. Not user data, pure display state.
-  useEffect(()=>{
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('wt_theme') : null;
-    if (saved === 'light') setTheme('light');
-  },[]);
-
-  function toggleTheme() {
-    const next = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    if (typeof window !== 'undefined') localStorage.setItem('wt_theme', next);
-  }
-
-  // ── Tier ─────────────────────────────────────────────────────────────────────
-  // In production this comes from the session/JWT. Change to test paywalls.
-  const [userTier, setUserTier] = useState<Tier>('community');
-  const tierLevel = {community:0,team:1,business:2,mssp:3}[userTier];
-  const tierMap: Record<string,number> = {community:0,team:1,business:2,mssp:3};
-  const canUse = (min: Tier) => tierLevel >= tierMap[min];
-
-  // Per-tenant data resolved below after module-level definitions
-
-  const tools = DEMO_TOOLS;
-  const rawAlerts = TENANT_ALERTS[currentTenant] || DEMO_ALERTS;
-  // When a tool is connected, suppress demo alerts from that source
-  // (real alerts from the API would replace them)
-  const connectedToolNames = new Set(Object.keys(connectedTools).map(id=>
-    ALL_TOOLS.find(t=>t.id===id)?.name.split(' ')[0].toLowerCase() || id
-  ));
-  const alerts = demoMode && Object.keys(connectedTools).length > 0
-    ? rawAlerts.filter(a => !connectedToolNames.has(a.source.toLowerCase().split(' ')[0]))
-    : rawAlerts;
-  const vulns = TENANT_VULNS[currentTenant] || DEMO_VULNS;
-  const incidents = TENANT_INCIDENTS[currentTenant] || DEMO_INCIDENTS;
-
-  const activeTools = tools.filter(t=>t.active);
-  const taegisActive = tools.find(t=>t.id==='taegis')?.active || false;
-  const darktrace = tools.find(t=>t.id==='darktrace');
-  const totalDevices = 247;
-  const gapDevices = DEMO_GAP_DEVICES;
-  const coveredPct = Math.round(((totalDevices - gapDevices.length) / totalDevices) * 100);
-  const critAlerts = alerts.filter(a=>a.severity==='Critical');
-  const tpAlerts = alerts.filter(a=>a.verdict==='TP');
-  const fpAlerts = alerts.filter(a=>a.verdict==='FP');
-  const critVulns = vulns.filter(v=>v.severity==='Critical');
-  const kevVulns = vulns.filter(v=>v.kev);
-  const posture = 74;
-  const postureColor = '#f0a030';
-
-  const autLabel = ['Recommend Only','Auto + Notify','Full Auto'][automation];
-  const autColor = ['#6b7a94','#f0a030','#22d49a'][automation];
-  // Automation effects: filter what's "acted on" based on level
-  const actedAlerts = alerts.filter(a => {
-    if (automation === 0) return false; // Recommend Only — no auto actions
-    if (automation === 1) return a.verdict === 'FP' && a.confidence >= 90; // Auto+Notify — auto-close high-confidence FPs only
-    return a.confidence >= 80; // Full Auto — act on all high-confidence verdicts
-  });
-  const alertPlural = actedAlerts.length !== 1 ? 's' : '';
-  const tpContained = alerts.filter(a=>a.verdict==='TP' && a.confidence>=80).length;
-  const fpSuppressed = alerts.filter(a=>a.verdict==='FP' && a.confidence>=80).length;
-  const automationBannerText = automation === 0
-    ? 'AI is recommending only — all actions require analyst approval.'
-    : automation === 1
-    ? 'AI auto-closed ' + actedAlerts.length + ' high-confidence false positive' + alertPlural + ' and notified your team.'
-    : 'AI acted autonomously on ' + actedAlerts.length + ' alert' + alertPlural + ' — ' + tpContained + ' threats contained, ' + fpSuppressed + ' FPs suppressed.';
-
-  const intelItems = customIntel || (DEMO_INTEL_BY_INDUSTRY[industry] || DEMO_INTEL_BY_INDUSTRY['default']);
-  const allIntel = [...intelItems, ...DEMO_INTEL_BY_INDUSTRY['default'].filter(i=>!intelItems.find(x=>x.id===i.id))];
-
-  async function fetchIntelForIndustry(ind:string) {
-    setIntelLoading(true);
-    setCustomIntel(null);
-    try {
-      const resp = await fetch('/api/intel/industry', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({industry:ind}) });
-      if (resp.ok) { const d = await resp.json(); setCustomIntel(d.items); }
-    } catch(_e) { /* silent */ }
-    setIntelLoading(false);
-  }
-
-  async function getVulnAiHelp(vuln:Vuln) {
-    setVulnAiLoading(vuln.id);
-    try {
-      const splatLabel = 'SPLUNK QUERY FOR [purpose]';
-      const sentKQL = 'MICROSOFT SENTINEL KQL: [purpose]';
-      const defKQL = 'MICROSOFT DEFENDER ADVANCED HUNTING: [purpose]';
-      const vulnPrompt = 'For ' + vuln.cve + ' (' + vuln.title + '), provide information NOT covered in standard remediation docs. Structure your response with these ALL-CAPS section headers on their own lines: DETECTION QUERIES, KNOWN IOCS AND INDICATORS, COMPENSATING CONTROLS, COMMON MISTAKES, ATTACK CHAINING. Under DETECTION QUERIES use these exact sub-labels: ' + splatLabel + ', ' + sentKQL + ' (Sentinel workspace tables: SecurityEvent, SigninLogs, AuditLogs, CommonSecurityLog), ' + defKQL + ' (Defender XDR tables: DeviceProcessEvents, DeviceNetworkEvents, DeviceFileEvents, IdentityLogonEvents). Each query immediately after its label. No markdown, no backticks, plain text.';
-      const resp = await fetch('/api/copilot', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({prompt:vulnPrompt}) });
-      if (resp.ok) {
-        const d = await resp.json();
-        const text = d.response || d.message || 'AI response unavailable — check your Anthropic API key in the Tools tab.';
-        let i = 0;
-        const interval = setInterval(()=>{ setVulnAiTexts(prev=>({...prev,[vuln.id]:text.slice(0,i)})); i++; if(i>text.length) clearInterval(interval); }, 12);
-      } else {
-        setVulnAiTexts(prev=>({...prev,[vuln.id]:'Request failed — check your Anthropic API key in the Tools tab and ensure it is saved.'}));
-      }
-    } catch(e) {
-      setVulnAiTexts(prev=>({...prev,[vuln.id]:'Request failed — check your Anthropic API key in the Tools tab and ensure it is saved.'}));
-    }
-    setVulnAiLoading(null);
-  }
-
-  function closeIncident(id:string) {
-    setIncidentStatuses(prev=>({...prev,[id]:'Closed'}));
-    setSelectedIncident(null);
-  }
-
-  function toggleAlertExpand(id:string) {
-    setExpandedAlerts(prev => { const n = new Set(prev); n.has(id)?n.delete(id):n.add(id); return n; });
-  }
-
-  const TABS = ['overview','alerts','coverage','vulns','intel','incidents','tools','mssp'];
+  const s = useDashboardState();
+  const {
+    activeTab,
+    setActiveTab,
+    automation,
+    setAutomation,
+    modal,
+    setModal,
+    selectedAlert,
+    setSelectedAlert,
+    selectedVuln,
+    setSelectedVuln,
+    selectedIncident,
+    setSelectedIncident,
+    vulnAiLoading,
+    vulnAiTexts,
+    setVulnAiTexts,
+    industry,
+    setIndustryPersisted,
+    intelLoading,
+    customIntel,
+    expandedAlerts,
+    expandedIntel,
+    deployAgentDevice,
+    setDeployAgentDevice,
+    incidentStatuses,
+    deletedIncidents,
+    gapToolFilter,
+    setGapToolFilter,
+    demoMode,
+    setDemoMode,
+    connectedTools,
+    setConnectedTools,
+    currentTenant,
+    setCurrentTenant,
+    isAdmin,
+    theme,
+    toggleTheme,
+    userTier,
+    setUserTier,
+    DEMO_TENANTS,
+    toggleIntel,
+    toggleAlertExpand,
+    closeIncident,
+    deleteIncident,
+    fetchIntelForIndustry,
+    getVulnAiHelp,
+    canUse,
+    tools,
+    alerts,
+    vulns,
+    incidents,
+    activeTools,
+    totalDevices,
+    gapDevices,
+    coveredPct,
+    critAlerts,
+    tpAlerts,
+    fpAlerts,
+    critVulns,
+    kevVulns,
+    posture,
+    postureColor,
+    autLabel,
+    autColor,
+    actedAlerts,
+    automationBannerText,
+    intelItems,
+    allIntel,
+    TABS,
+  } = s;
 
   return (
     <div className={`wt-root${theme === 'light' ? ' light' : ''}`} style={{display:'flex',minHeight:'100vh',background:'var(--wt-bg)',color:'var(--wt-text)',fontFamily:'Inter,sans-serif'}}>
