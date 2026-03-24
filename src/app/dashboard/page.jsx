@@ -475,6 +475,11 @@ function ToolsTab({ connected, setConnected }) {
     setAiTestLoading(false);
   }
 
+  async function handleRemoveKey() {
+    await fetch('/api/settings/anthropic-key', {method:'DELETE', headers:{'Content-Type':'application/json'}, body:JSON.stringify({tenantId: aiTestStatus ? aiTestStatus.tenantId : 'global'})});
+    await testAiKey();
+  }
+
   const filtered = filter==='All' ? ALL_TOOLS : ALL_TOOLS.filter(t=>t.category===filter);
 
   function openModal(tool) {
@@ -557,10 +562,12 @@ function ToolsTab({ connected, setConnected }) {
           </>
         )}
         {aiTestStatus?.ok && (
+          <>
           <div style={{fontSize:'0.7rem',color:'var(--wt-muted)',lineHeight:1.6}}>
             AI triage, Co-Pilot, and remediation assistant are all active.
           </div>
-          <button onClick={async()=>{ await fetch('/api/settings/anthropic-key',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({tenantId:aiTestStatus?.tenantId||'global'})}); await testAiKey(); }} style={{marginTop:8,padding:'5px 12px',borderRadius:7,border:'1px solid #f0405e25',background:'#f0405e0a',color:'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Remove Key</button>
+          <button onClick={handleRemoveKey} style={{marginTop:8,padding:'5px 12px',borderRadius:7,border:'1px solid #f0405e25',background:'#f0405e0a',color:'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Remove Key</button>
+          </>
         )}
       </div>
 
