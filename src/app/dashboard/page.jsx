@@ -1325,30 +1325,55 @@ export default function DashboardPage() {
                         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginTop:12}}>
                           <div>
                             <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Reasoning</div>
-                            <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65}}>{alert.aiReasoning}</div>
-                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6,marginTop:10}}>Evidence Chain</div>
-                            {alert.evidenceChain.map(e=>(
-                              <div key={e} style={{fontSize:'0.72rem',color:'var(--wt-secondary)',padding:'2px 0 2px 12px',position:'relative'}}>
-                                <span style={{position:'absolute',left:0,top:9,width:5,height:5,borderRadius:'50%',background:'#4f8fff',display:'block'}} />{e}
+                            <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65}}>
+                              {alert.aiReasoning || alert.description || 'No AI reasoning available for this alert.'}
+                            </div>
+                            {(alert.evidenceChain||[]).length>0 && (<>
+                              <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6,marginTop:10}}>Evidence Chain</div>
+                              {(alert.evidenceChain||[]).map(e=>(
+                                <div key={e} style={{fontSize:'0.72rem',color:'var(--wt-secondary)',padding:'2px 0 2px 12px',position:'relative'}}>
+                                  <span style={{position:'absolute',left:0,top:9,width:5,height:5,borderRadius:'50%',background:'#4f8fff',display:'block'}} />{e}
+                                </div>
+                              ))}
+                            </>)}
+                            {/* Raw fields for live alerts */}
+                            {!alert.aiReasoning && (alert.tags||[]).length>0 && (
+                              <div style={{marginTop:8,display:'flex',gap:4,flexWrap:'wrap'}}>
+                                {(alert.tags||[]).map((t)=>(
+                                  <span key={t} style={{fontSize:'0.56rem',padding:'2px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff18'}}>{t}</span>
+                                ))}
                               </div>
-                            ))}
+                            )}
                           </div>
                           <div>
-                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Actions Taken</div>
-                            {alert.aiActions.map(a=>(
-                              <div key={a} style={{fontSize:'0.72rem',color:'#22d49a',padding:'2px 0',display:'flex',gap:6}}>
-                                <span>✓</span><span>{a}</span>
-                              </div>
-                            ))}
-                            {alert.runbookSteps.length>0 && (
+                            {(alert.aiActions||[]).length>0 && (<>
+                              <div style={{fontSize:'0.6rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Actions Taken</div>
+                              {(alert.aiActions||[]).map(a=>(
+                                <div key={a} style={{fontSize:'0.72rem',color:'#22d49a',padding:'2px 0',display:'flex',gap:6}}>
+                                  <span>✓</span><span>{a}</span>
+                                </div>
+                              ))}
+                            </>)}
+                            {(alert.runbookSteps||[]).length>0 && (
                               <>
                                 <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6,marginTop:10}}>Runbook Steps</div>
-                                {alert.runbookSteps.map((s,i)=>(
+                                {(alert.runbookSteps||[]).map((s,i)=>(
                                   <div key={s} style={{fontSize:'0.72rem',color:'var(--wt-secondary)',padding:'2px 0',display:'flex',gap:6}}>
                                     <span style={{color:'#4f8fff',fontWeight:700,flexShrink:0,fontSize:'0.6rem',background:'#4f8fff15',borderRadius:3,padding:'1px 4px'}}>{i+1}</span><span>{s}</span>
                                   </div>
                                 ))}
                               </>
+                            )}
+                            {/* Source info for live alerts with no AI enrichment */}
+                            {!(alert.aiActions||[]).length && !(alert.runbookSteps||[]).length && (
+                              <div style={{fontSize:'0.72rem',color:'var(--wt-muted)',lineHeight:1.6}}>
+                                <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>Alert Details</div>
+                                <div>Source: <strong style={{color:'var(--wt-text)'}}>{alert.source}</strong></div>
+                                {alert.sourceId && <div style={{marginTop:2}}>ID: <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:'0.66rem',color:'var(--wt-dim)'}}>{alert.sourceId}</span></div>}
+                                {alert.ip && <div style={{marginTop:2}}>IP: <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:'0.68rem'}}>{alert.ip}</span></div>}
+                                {alert.user && <div style={{marginTop:2}}>User: <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:'0.68rem'}}>{alert.user}</span></div>}
+                                {alert.mitre && <div style={{marginTop:2}}>MITRE: <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:'0.68rem',color:'#7c6aff'}}>{alert.mitre}</span></div>}
+                              </div>
                             )}
                             {alert.incidentId && (
                               <button onClick={()=>{ setActiveTab('incidents'); setSelectedIncident(incidents.find(i=>i.id===alert.incidentId)||null); }} style={{marginTop:10,padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
