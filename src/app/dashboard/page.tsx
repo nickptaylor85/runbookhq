@@ -161,6 +161,8 @@ function GateWall({ feature, requiredTier, children, userTier }: GateWallProps) 
 }
 
 // ─── AI Remediation Output Renderer ─────────────────────────────────────────
+type BlockType = 'heading' | 'subheading' | 'code' | 'text';
+type Block = { type: BlockType; content: string; id?: string };
 function RemediationOutput({ text }: { text: string }) {
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -190,21 +192,21 @@ function RemediationOutput({ text }: { text: string }) {
     const isSubHeading = /^(KQL QUERY \d+:|SPLUNK QUERY FOR |MICROSOFT |DETECTION |REMEDIATION |COMPENSATING |COMMON |HOW ATTACKERS)/i.test(trimmed);
 
     if (isSubHeading || isQueryLabel) {
-      if (inCode && codeBuffer.length) { blocks.push({ type:'code', content:codeBuffer.join('\n'), id:`code-${++codeId}` }); codeBuffer = []; inCode = false; }
+      if (inCode && codeBuffer.length) { blocks.push({ type:'code', content:codeBuffer.join('\n'), id:('code-' + (++codeId)) }); codeBuffer = []; inCode = false; }
       blocks.push({ type:'subheading', content:trimmed });
       inCode = true; // next lines are likely code
     } else if (isMajorHeading) {
-      if (inCode && codeBuffer.length) { blocks.push({ type:'code', content:codeBuffer.join('\n'), id:`code-${++codeId}` }); codeBuffer = []; inCode = false; }
+      if (inCode && codeBuffer.length) { blocks.push({ type:'code', content:codeBuffer.join('\n'), id:('code-' + (++codeId)) }); codeBuffer = []; inCode = false; }
       blocks.push({ type:'heading', content:trimmed });
       inCode = false;
     } else if (inCode && trimmed) {
       codeBuffer.push(line);
     } else {
-      if (codeBuffer.length) { blocks.push({ type:'code', content:codeBuffer.join('\n'), id:`code-${++codeId}` }); codeBuffer = []; inCode = false; }
+      if (codeBuffer.length) { blocks.push({ type:'code', content:codeBuffer.join('\n'), id:('code-' + (++codeId)) }); codeBuffer = []; inCode = false; }
       blocks.push({ type:'text', content:trimmed });
     }
   }
-  if (codeBuffer.length) blocks.push({ type:'code', content:codeBuffer.join('\n'), id:`code-${++codeId}` });
+  if (codeBuffer.length) blocks.push({ type:'code', content:codeBuffer.join('\n'), id:('code-' + (++codeId)) });
 
   return (
     <div style={{display:'flex',flexDirection:'column',gap:10}}>
