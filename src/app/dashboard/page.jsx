@@ -224,200 +224,203 @@ function RemediationOutput({ text }) {
 
 // ─── MSSP Portfolio Component ────────────────────────────────────────────────
 
-function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS }) {
-  const [portfolioView, setPortfolioView] = useState('security');
-            const CLIENTS = [
-              {id:'client-acme',  name:'Acme Financial',  plan:'Business', seats:8,  mrr:199,   extraClients:0, contractStart:'2024-01-15', renewalDate:'2025-01-15', billingStatus:'Paid',    posture:82, alerts:8,  critAlerts:3, incidents:2, coverage:94, kevVulns:3, lastSeen:'2m ago'},
-              {id:'client-nhs',   name:'NHS Trust Alpha', plan:'Business', seats:14, mrr:199,   extraClients:0, contractStart:'2024-03-01', renewalDate:'2025-03-01', billingStatus:'Paid',    posture:71, alerts:15, critAlerts:5, incidents:3, coverage:88, kevVulns:7, lastSeen:'1m ago'},
-              {id:'client-retail',name:'RetailCo UK',     plan:'Team',     seats:6,  mrr:294,   extraClients:0, contractStart:'2024-06-10', renewalDate:'2025-06-10', billingStatus:'Paid',    posture:91, alerts:4,  critAlerts:1, incidents:1, coverage:97, kevVulns:4, lastSeen:'5m ago'},
-              {id:'client-gov',   name:'Gov Dept Beta',  plan:'Business', seats:10, mrr:199,   extraClients:0, contractStart:'2024-09-20', renewalDate:'2025-09-20', billingStatus:'Overdue', posture:78, alerts:9,  critAlerts:3, incidents:1, coverage:92, kevVulns:5, lastSeen:'8m ago'},
-            ];
-            const totalMRR = CLIENTS.reduce((s,c)=>s+c.mrr,0);
-            const totalARR = totalMRR * 12;
-            const overdueMRR = CLIENTS.filter(c=>c.billingStatus==='Overdue').reduce((s,c)=>s+c.mrr,0);
-            const totalSeats = CLIENTS.reduce((s,c)=>s+c.seats,0);
-            return (
-            <div style={{display:'flex',flexDirection:'column',gap:14}}>
-              {/* Header */}
-              <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
-                <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Client Portfolio</h2>
-                <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{CLIENTS.length} clients</span>
-                <div style={{display:'flex',gap:3,background:'var(--wt-card2)',borderRadius:7,padding:3,marginLeft:8}}>
-                  {(['security','revenue','usage']).map(v=>(
-                    <button key={v} onClick={()=>setPortfolioView(v)} style={{padding:'4px 12px',borderRadius:5,border:'none',background:portfolioView===v?'#4f8fff':'transparent',color:portfolioView===v?'#fff':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',textTransform:'capitalize'}}>{v}</button>
-                  ))}
-                </div>
-                <span style={{marginLeft:'auto',fontSize:'0.62rem',color:'var(--wt-dim)'}}>Admin: <strong style={{color:'var(--wt-text)'}}>{DEMO_TENANTS.find(t=>t.id===currentTenant)?.name||'Global'}</strong></span>
-              </div>
+function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS, isAdmin, setActiveTab, setAdminBannerInput }) {
+  const [portfolioView, setPortfolioView] = React.useState('security');
+  const [selectedClient, setSelectedClient] = React.useState(null);
 
-              {/* Revenue summary stats */}
-              {portfolioView==='revenue' && (
-                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
-                  {[
-                    {label:'Monthly Recurring Revenue', val:`£${totalMRR.toLocaleString()}`, sub:'MRR', color:'#22d49a'},
-                    {label:'Annual Recurring Revenue',  val:`£${(totalARR/1000).toFixed(1)}k`, sub:'ARR', color:'#4f8fff'},
-                    {label:'Total Seats Under Management', val:totalSeats, sub:'seats', color:'#8b6fff'},
-                    {label:'Overdue Balance', val:overdueMRR>0?`£${overdueMRR}`:'£0', sub:overdueMRR>0?'action needed':'all clear', color:overdueMRR>0?'#f0405e':'#22d49a'},
-                  ].map(s=>(
-                    <div key={s.label} style={{padding:'14px 16px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:12}}>
-                      <div style={{fontSize:'1.8rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-2,lineHeight:1}}>{s.val}</div>
-                      <div style={{fontSize:'0.58rem',fontWeight:700,color:s.color,textTransform:'uppercase',letterSpacing:'0.5px',marginTop:3}}>{s.sub}</div>
-                      <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:2}}>{s.label}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
+  // The MSSP's own managed clients — organisations they provide SOC services to
+  // In production this would load from /api/portfolio based on the MSSP's tenant ID
+  const MY_CLIENTS = [
+    {id:'client-acme',  name:'Acme Financial',  sector:'Financial Services', seats:8,  mrr:199, contractStart:'2024-01-15', renewalDate:'2025-01-15', billingStatus:'Paid',    posture:82, alerts:8,  critAlerts:3, incidents:2, coverage:94, kevVulns:3,  lastSeen:'2m ago',  toolsConnected:4},
+    {id:'client-nhs',   name:'NHS Trust Alpha',  sector:'Healthcare',         seats:14, mrr:199, contractStart:'2024-03-01', renewalDate:'2025-03-01', billingStatus:'Paid',    posture:71, alerts:15, critAlerts:5, incidents:3, coverage:88, kevVulns:7,  lastSeen:'1m ago',  toolsConnected:6},
+    {id:'client-retail',name:'RetailCo UK',      sector:'Retail',             seats:6,  mrr:294, contractStart:'2024-06-10', renewalDate:'2025-06-10', billingStatus:'Paid',    posture:91, alerts:4,  critAlerts:1, incidents:1, coverage:97, kevVulns:4,  lastSeen:'5m ago',  toolsConnected:5},
+    {id:'client-gov',   name:'Gov Dept Beta',   sector:'Government',         seats:10, mrr:199, contractStart:'2024-09-20', renewalDate:'2025-09-20', billingStatus:'Overdue', posture:78, alerts:9,  critAlerts:3, incidents:1, coverage:92, kevVulns:5,  lastSeen:'8m ago',  toolsConnected:3},
+  ];
 
-              {/* Security summary stats */}
-              {(portfolioView==='security') && (
-                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
-                  {[
-                    {label:'Active Incidents', val:CLIENTS.reduce((s,c)=>s+c.incidents,0), color:'#f0405e'},
-                    {label:'Critical Alerts',  val:CLIENTS.reduce((s,c)=>s+c.critAlerts,0), color:'#f0405e'},
-                    {label:'KEV Outstanding',  val:CLIENTS.reduce((s,c)=>s+c.kevVulns,0), color:'#f97316'},
-                    {label:'Avg Coverage',     val:`${Math.round(CLIENTS.reduce((s,c)=>s+c.coverage,0)/CLIENTS.length)}%`, color:'#22d49a'},
-                  ].map(s=>(
-                    <div key={s.label} style={{padding:'14px 16px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:12,textAlign:'center'}}>
-                      <div style={{fontSize:'1.8rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-2}}>{s.val}</div>
-                      <div style={{fontSize:'0.6rem',color:'var(--wt-muted)',marginTop:2}}>{s.label}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
+  const totalMRR = MY_CLIENTS.reduce((s,c)=>s+c.mrr, 0);
+  const totalSeats = MY_CLIENTS.reduce((s,c)=>s+c.seats, 0);
+  const overdueMRR = MY_CLIENTS.filter(c=>c.billingStatus==='Overdue').reduce((s,c)=>s+c.mrr, 0);
 
-              {/* Usage stats view */}
-              {portfolioView==='usage' && (
-                <div style={{display:'flex',flexDirection:'column',gap:8}}>
-                  <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
-                    {[
-                      {label:'Total Alerts Triaged',val:CLIENTS.reduce((s,c)=>s+c.alerts,0)+' this week',color:'#4f8fff'},
-                      {label:'AI Auto-Closed',val:Math.round(CLIENTS.reduce((s,c)=>s+c.alerts,0)*0.68)+' FPs',color:'#22d49a'},
-                      {label:'Critical Incidents',val:CLIENTS.reduce((s,c)=>s+c.incidents,0)+' open',color:'#f0405e'},
-                      {label:'API Calls',val:(CLIENTS.length*847).toLocaleString(),color:'#8b6fff'},
-                      {label:'Avg Posture Score',val:Math.round(CLIENTS.reduce((s,c)=>s+c.posture,0)/CLIENTS.length)+'%',color:'#22d49a'},
-                      {label:'Seats Under Management',val:CLIENTS.reduce((s,c)=>s+c.seats,0)+' seats',color:'#4f8fff'},
-                    ].map(s=>(
-                      <div key={s.label} style={{padding:'14px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:10}}>
-                        <div style={{fontSize:'1.4rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-1,lineHeight:1}}>{s.val.split(' ')[0]}</div>
-                        <div style={{fontSize:'0.58rem',color:s.color,marginTop:2}}>{s.val.split(' ').slice(1).join(' ')}</div>
-                        <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:3}}>{s.label}</div>
-                      </div>
-                    ))}
-                  </div>
-                  {CLIENTS.map(c=>(
-                    <div key={c.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 14px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:10}}>
-                      <span style={{fontSize:'0.78rem',fontWeight:700,flex:1}}>{c.name}</span>
-                      {[{label:'Alerts',val:c.alerts,color:'#4f8fff'},{label:'AI Closed',val:Math.round(c.alerts*0.68),color:'#22d49a'},{label:'Critical',val:c.critAlerts,color:'#f0405e'},{label:'Coverage',val:c.coverage+'%',color:'#22d49a'}].map(s=>(
-                        <div key={s.label} style={{textAlign:'center',minWidth:60}}>
-                          <div style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color}}>{s.val}</div>
-                          <div style={{fontSize:'0.52rem',color:'var(--wt-dim)'}}>{s.label}</div>
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              )}
+  return (
+    <div style={{display:'flex',flexDirection:'column',gap:14}}>
 
-              {/* Per-client rows */}
-              {(portfolioView==='security'||portfolioView==='revenue') && CLIENTS.map(client=>{
-                const isSelected = currentTenant===client.id;
-                const postureColor = client.posture>=85?'#22d49a':client.posture>=70?'#f0a030':'#f0405e';
-                const daysToRenewal = Math.round((new Date(client.renewalDate).getTime()-Date.now())/(86400000));
-                const renewalColor = daysToRenewal<30?'#f0405e':daysToRenewal<90?'#f0a030':'#22d49a';
-                return (
-                  <div key={client.id} style={{background:isSelected?'#080d18':'var(--wt-card)',border:`1px solid ${isSelected?'#4f8fff40':'var(--wt-border)'}`,borderRadius:12,overflow:'hidden'}}>
-                    {/* Client header */}
-                    <div style={{padding:'12px 16px',display:'flex',alignItems:'center',gap:12,borderBottom:'1px solid var(--wt-border)'}}>
-                      <div style={{width:9,height:9,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',flexShrink:0}} />
-                      <div style={{flex:1}}>
-                        <div style={{display:'flex',alignItems:'center',gap:7}}>
-                          <span style={{fontSize:'0.86rem',fontWeight:700}}>{client.name}</span>
-                          <span style={{fontSize:'0.54rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff20'}}>{client.plan}</span>
-                          {client.billingStatus==='Overdue' && <span style={{fontSize:'0.54rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#f0405e12',color:'#f0405e',border:'1px solid #f0405e20'}}>⚠ OVERDUE</span>}
-                          {isSelected && <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff15',color:'#4f8fff',border:'1px solid #4f8fff25'}}>VIEWING</span>}
-                        </div>
-                        <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:1}}>Last seen {client.lastSeen} · {client.seats} seats</div>
-                      </div>
-                      <div style={{display:'flex',gap:5,flexShrink:0}}>
-                        <button onClick={()=>{setCurrentTenant(client.id);setActiveTab('overview');}} style={{padding:'5px 12px',borderRadius:7,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.66rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
-                          {isSelected?'● Viewing':'View Dashboard →'}
-                        </button>
-                        <button onClick={()=>{setAdminBannerInput('['+client.name+'] ');setActiveTab('admin');}} style={{padding:'5px 10px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.66rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}} title='Send message to this client'>📢</button>
-                      </div>
-                    </div>
+      {/* Header */}
+      <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+        <div>
+          <h2 style={{fontSize:'0.88rem',fontWeight:700,display:'flex',alignItems:'center',gap:8}}>
+            My Client Portfolio
+            <span style={{fontSize:'0.62rem',color:'#8b6fff',background:'#8b6fff12',padding:'2px 8px',borderRadius:4,border:'1px solid #8b6fff25',fontWeight:700}}>MSSP</span>
+          </h2>
+          <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginTop:2}}>Organisations you manage security for · {MY_CLIENTS.length} active clients</div>
+        </div>
+        <div style={{display:'flex',gap:3,background:'var(--wt-card2)',borderRadius:7,padding:3,marginLeft:'auto'}}>
+          {['security','revenue','usage'].map(v=>(
+            <button key={v} onClick={()=>setPortfolioView(v)} style={{padding:'5px 14px',borderRadius:5,border:'none',background:portfolioView===v?'#8b6fff':'transparent',color:portfolioView===v?'#fff':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',textTransform:'capitalize'}}>{v}</button>
+          ))}
+        </div>
+      </div>
 
-                    {/* Revenue view */}
-                    {portfolioView==='revenue' && (
-                      <div style={{padding:'12px 16px',display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:8}}>
-                        {[
-                          {label:'MRR', val:`£${client.mrr}`, color:'#22d49a'},
-                          {label:'ARR', val:`£${(client.mrr*12).toLocaleString()}`, color:'#4f8fff'},
-                          {label:'Seats', val:client.seats, color:'var(--wt-secondary)'},
-                          {label:'Plan', val:client.plan, color:'#8b6fff'},
-                          {label:'Billing', val:client.billingStatus, color:client.billingStatus==='Paid'?'#22d49a':'#f0405e'},
-                          {label:'Renewal', val:`${daysToRenewal}d`, color:renewalColor},
-                        ].map(s=>(
-                          <div key={s.label} style={{textAlign:'center'}}>
-                            <div style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-0.5}}>{s.val}</div>
-                            <div style={{fontSize:'0.52rem',color:'var(--wt-dim)',marginTop:2}}>{s.label}</div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Security view */}
-                    {portfolioView==='security' && (
-                      <div style={{padding:'12px 16px',display:'flex',alignItems:'center',gap:16,flexWrap:'wrap'}}>
-                        <div style={{display:'flex',alignItems:'center',gap:6}}>
-                          <div style={{width:32,height:32,borderRadius:'50%',background:`conic-gradient(${postureColor} ${client.posture}%,var(--wt-border) 0)`,display:'flex',alignItems:'center',justifyContent:'center'}}>
-                            <div style={{width:22,height:22,borderRadius:'50%',background:'var(--wt-card)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.5rem',fontWeight:900,color:postureColor}}>{client.posture}</div>
-                          </div>
-                          <span style={{fontSize:'0.6rem',color:'var(--wt-dim)'}}>Posture</span>
-                        </div>
-                        {[
-                          {label:'Alerts',    val:client.alerts,      color:client.critAlerts>0?'#f0a030':'var(--wt-secondary)'},
-                          {label:'Critical',  val:client.critAlerts,  color:client.critAlerts>0?'#f0405e':'var(--wt-secondary)'},
-                          {label:'Incidents', val:client.incidents,   color:client.incidents>0?'#f0405e':'var(--wt-secondary)'},
-                          {label:'KEV Vulns', val:client.kevVulns,    color:'#f97316'},
-                          {label:'Coverage',  val:`${client.coverage}%`, color:client.coverage>=95?'#22d49a':client.coverage>=85?'#f0a030':'#f0405e'},
-                        ].map(s=>(
-                          <div key={s.label} style={{textAlign:'center',minWidth:52}}>
-                            <div style={{fontSize:'1.1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-1}}>{s.val}</div>
-                            <div style={{fontSize:'0.52rem',color:'var(--wt-dim)'}}>{s.label}</div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-
-              {/* Revenue breakdown footer */}
-              {portfolioView==='revenue' && (
-                <div style={{padding:'12px 16px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,display:'flex',gap:20,flexWrap:'wrap'}}>
-                  <div>
-                    <div style={{fontSize:'0.58rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>Revenue Breakdown</div>
-                    <div style={{display:'flex',gap:12}}>
-                      {[
-                        {plan:'Business', clients:CLIENTS.filter(c=>c.plan==='Business').length, mrr:CLIENTS.filter(c=>c.plan==='Business').reduce((s,c)=>s+c.mrr,0), color:'#22d49a'},
-                        {plan:'Team',     clients:CLIENTS.filter(c=>c.plan==='Team').length,     mrr:CLIENTS.filter(c=>c.plan==='Team').reduce((s,c)=>s+c.mrr,0),     color:'#4f8fff'},
-                      ].filter(p=>p.clients>0).map(p=>(
-                        <div key={p.plan} style={{display:'flex',alignItems:'center',gap:6}}>
-                          <div style={{width:8,height:8,borderRadius:2,background:p.color,flexShrink:0}} />
-                          <span style={{fontSize:'0.68rem',color:'var(--wt-secondary)'}}>{p.plan}: <strong style={{color:p.color}}>£{p.mrr}/mo</strong> · {p.clients} client{p.clients!==1?'s':''}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div style={{marginLeft:'auto',textAlign:'right'}}>
-                    <div style={{fontSize:'0.58rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>Your MSSP fee to Watchtower</div>
-                    <div style={{fontSize:'0.8rem',fontWeight:700,color:'var(--wt-secondary)'}}>£799/mo base + {CLIENTS.length>5?`${CLIENTS.length-5} × £79 = £${799+(CLIENTS.length-5)*79}/mo`:'no extras (≤5 clients)'}</div>
-                  </div>
-                </div>
-              )}
+      {/* Security summary */}
+      {portfolioView==='security' && (
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+          {[
+            {label:'Active Incidents',  val:MY_CLIENTS.reduce((s,c)=>s+c.incidents,0),  color:'#f0405e'},
+            {label:'Critical Alerts',   val:MY_CLIENTS.reduce((s,c)=>s+c.critAlerts,0), color:'#f0405e'},
+            {label:'KEV Outstanding',   val:MY_CLIENTS.reduce((s,c)=>s+c.kevVulns,0),   color:'#f97316'},
+            {label:'Avg Posture Score', val:`${Math.round(MY_CLIENTS.reduce((s,c)=>s+c.posture,0)/MY_CLIENTS.length)}%`, color:'#22d49a'},
+          ].map(s=>(
+            <div key={s.label} style={{padding:'14px 16px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:12,textAlign:'center'}}>
+              <div style={{fontSize:'1.8rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-2}}>{s.val}</div>
+              <div style={{fontSize:'0.6rem',color:'var(--wt-muted)',marginTop:2}}>{s.label}</div>
             </div>
+          ))}
+        </div>
+      )}
+
+      {/* Revenue summary */}
+      {portfolioView==='revenue' && (
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+          {[
+            {label:'Monthly Recurring Revenue', val:`£${totalMRR.toLocaleString()}`, sub:'MRR', color:'#22d49a'},
+            {label:'Annual Recurring Revenue',  val:`£${(totalMRR*12/1000).toFixed(1)}k`, sub:'ARR', color:'#4f8fff'},
+            {label:'Seats Under Management',    val:totalSeats, sub:'seats', color:'#8b6fff'},
+            {label:'Overdue Balance',           val:overdueMRR>0?`£${overdueMRR}`:'£0', sub:overdueMRR>0?'action needed':'all clear', color:overdueMRR>0?'#f0405e':'#22d49a'},
+          ].map(s=>(
+            <div key={s.label} style={{padding:'14px 16px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:12}}>
+              <div style={{fontSize:'1.8rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-2,lineHeight:1}}>{s.val}</div>
+              <div style={{fontSize:'0.58rem',fontWeight:700,color:s.color,textTransform:'uppercase',letterSpacing:'0.5px',marginTop:3}}>{s.sub}</div>
+              <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:2}}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Usage summary */}
+      {portfolioView==='usage' && (
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+          {[
+            {label:'Total Alerts This Week',  val:MY_CLIENTS.reduce((s,c)=>s+c.alerts,0),   color:'#4f8fff'},
+            {label:'AI Auto-Closed',          val:Math.round(MY_CLIENTS.reduce((s,c)=>s+c.alerts,0)*0.68)+' FPs', color:'#22d49a'},
+            {label:'Tools Connected (avg)',   val:Math.round(MY_CLIENTS.reduce((s,c)=>s+c.toolsConnected,0)/MY_CLIENTS.length), color:'#8b6fff'},
+            {label:'Critical Incidents Open', val:MY_CLIENTS.reduce((s,c)=>s+c.incidents,0), color:'#f0405e'},
+            {label:'Avg Coverage',            val:Math.round(MY_CLIENTS.reduce((s,c)=>s+c.coverage,0)/MY_CLIENTS.length)+'%', color:'#22d49a'},
+            {label:'Seats Managed',           val:totalSeats, color:'#4f8fff'},
+          ].map(s=>(
+            <div key={s.label} style={{padding:'14px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:10}}>
+              <div style={{fontSize:'1.4rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-1}}>{s.val}</div>
+              <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:3}}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Per-client rows */}
+      {MY_CLIENTS.map(client=>{
+        const isSel = selectedClient===client.id;
+        const postureColor = client.posture>=85?'#22d49a':client.posture>=70?'#f0a030':'#f0405e';
+        const daysToRenewal = Math.round((new Date(client.renewalDate).getTime()-Date.now())/(86400000));
+        const renewalColor = daysToRenewal<30?'#f0405e':daysToRenewal<90?'#f0a030':'#22d49a';
+
+        return (
+          <div key={client.id} style={{background:currentTenant===client.id?'#080d18':'var(--wt-card)',border:`1px solid ${currentTenant===client.id?'#8b6fff40':client.billingStatus==='Overdue'?'#f0405e20':'var(--wt-border)'}`,borderRadius:12,overflow:'hidden'}}>
+
+            {/* Client header row */}
+            <div style={{padding:'12px 16px',display:'flex',alignItems:'center',gap:12,cursor:'pointer'}} onClick={()=>setSelectedClient(isSel?null:client.id)}>
+              <div style={{width:9,height:9,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',flexShrink:0}} />
+              <div style={{flex:1}}>
+                <div style={{display:'flex',alignItems:'center',gap:7,flexWrap:'wrap'}}>
+                  <span style={{fontSize:'0.86rem',fontWeight:700}}>{client.name}</span>
+                  <span style={{fontSize:'0.56rem',color:'var(--wt-dim)'}}>{client.sector}</span>
+                  {client.billingStatus==='Overdue' && <span style={{fontSize:'0.54rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#f0405e12',color:'#f0405e',border:'1px solid #f0405e20'}}>⚠ OVERDUE</span>}
+                  {currentTenant===client.id && <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#8b6fff15',color:'#8b6fff',border:'1px solid #8b6fff25'}}>VIEWING</span>}
+                </div>
+                <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:1}}>Last active {client.lastSeen} · {client.seats} seats · {client.toolsConnected} tools</div>
+              </div>
+              {/* Quick stats */}
+              {portfolioView==='security' && (
+                <div style={{display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:5}}>
+                    <div style={{width:28,height:28,borderRadius:'50%',background:`conic-gradient(${postureColor} ${client.posture}%,var(--wt-border) 0)`,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                      <div style={{width:20,height:20,borderRadius:'50%',background:'var(--wt-card)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.46rem',fontWeight:900,color:postureColor}}>{client.posture}</div>
+                    </div>
+                  </div>
+                  {[{label:'Alerts',val:client.alerts,c:client.critAlerts>0?'#f0a030':'var(--wt-secondary)'},{label:'Critical',val:client.critAlerts,c:client.critAlerts>0?'#f0405e':'var(--wt-secondary)'},{label:'Incidents',val:client.incidents,c:client.incidents>0?'#f0405e':'var(--wt-secondary)'},{label:'Coverage',val:client.coverage+'%',c:client.coverage>=95?'#22d49a':client.coverage>=85?'#f0a030':'#f0405e'}].map(s=>(
+                    <div key={s.label} style={{textAlign:'center',minWidth:46}}>
+                      <div style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.c,letterSpacing:-1}}>{s.val}</div>
+                      <div style={{fontSize:'0.5rem',color:'var(--wt-dim)'}}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {portfolioView==='revenue' && (
+                <div style={{display:'flex',gap:14}}>
+                  {[{label:'MRR',val:`£${client.mrr}`,c:'#22d49a'},{label:'Renewal',val:`${daysToRenewal}d`,c:renewalColor},{label:'Billing',val:client.billingStatus,c:client.billingStatus==='Paid'?'#22d49a':'#f0405e'}].map(s=>(
+                    <div key={s.label} style={{textAlign:'center',minWidth:52}}>
+                      <div style={{fontSize:'0.9rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:s.c,letterSpacing:-0.5}}>{s.val}</div>
+                      <div style={{fontSize:'0.5rem',color:'var(--wt-dim)'}}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {portfolioView==='usage' && (
+                <div style={{display:'flex',gap:14}}>
+                  {[{label:'Alerts',val:client.alerts,c:'#4f8fff'},{label:'AI Closed',val:Math.round(client.alerts*0.68),c:'#22d49a'},{label:'Tools',val:client.toolsConnected,c:'#8b6fff'}].map(s=>(
+                    <div key={s.label} style={{textAlign:'center',minWidth:46}}>
+                      <div style={{fontSize:'0.9rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:s.c}}>{s.val}</div>
+                      <div style={{fontSize:'0.5rem',color:'var(--wt-dim)'}}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* Action buttons */}
+              <div style={{display:'flex',gap:5,flexShrink:0,marginLeft:8}}>
+                <button onClick={e=>{e.stopPropagation();setCurrentTenant(client.id);if(setActiveTab)setActiveTab('overview');}} style={{padding:'5px 12px',borderRadius:7,border:'1px solid #8b6fff30',background:currentTenant===client.id?'#8b6fff20':'#8b6fff10',color:'#8b6fff',fontSize:'0.66rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                  {currentTenant===client.id?'● Viewing':'View →'}
+                </button>
+                <button onClick={e=>{e.stopPropagation();if(setAdminBannerInput)setAdminBannerInput('['+client.name+'] ');}} style={{padding:'5px 9px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.66rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}} title='Send message to this client'>📢</button>
+              </div>
+              <span style={{fontSize:'0.7rem',color:'var(--wt-dim)',flexShrink:0}}>{isSel?'▲':'▼'}</span>
+            </div>
+
+            {/* Expanded detail */}
+            {isSel && (
+              <div style={{borderTop:'1px solid var(--wt-border)',padding:'14px 16px',background:'var(--wt-card2)'}}>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,marginBottom:14}}>
+                  {[
+                    {label:'Contract Start',val:client.contractStart,c:'var(--wt-secondary)'},
+                    {label:'Next Renewal',  val:client.renewalDate,  c:renewalColor},
+                    {label:'Monthly Value', val:`£${client.mrr}`,   c:'#22d49a'},
+                    {label:'KEV Vulns',     val:client.kevVulns,    c:'#f97316'},
+                  ].map(s=>(
+                    <div key={s.label} style={{textAlign:'center',padding:'10px',background:'var(--wt-card)',borderRadius:8}}>
+                      <div style={{fontSize:'0.9rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:s.c}}>{s.val}</div>
+                      <div style={{fontSize:'0.56rem',color:'var(--wt-dim)',marginTop:3}}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                  <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('overview');}} style={{padding:'7px 16px',borderRadius:7,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>View Full Dashboard →</button>
+                  <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('alerts');}} style={{padding:'7px 14px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.72rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Alerts</button>
+                  <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('incidents');}} style={{padding:'7px 14px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.72rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Incidents</button>
+                  <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('vulns');}} style={{padding:'7px 14px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.72rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Vulns</button>
+                  {client.billingStatus==='Overdue' && <button style={{marginLeft:'auto',padding:'7px 14px',borderRadius:7,border:'1px solid #f97316',background:'#f9731610',color:'#f97316',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Chase Payment</button>}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* MSSP billing footer */}
+      <div style={{padding:'12px 16px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
+        <div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>Your Watchtower MSSP subscription: <strong style={{color:'#8b6fff'}}>£{799 + Math.max(0,(MY_CLIENTS.length-5)*79)}/mo</strong> · {MY_CLIENTS.length} clients ({MY_CLIENTS.length<=5?'included':MY_CLIENTS.length-5+' extra × £79'})</div>
+        <div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>Your MRR from clients: <strong style={{color:'#22d49a'}}>£{totalMRR}/mo</strong> · Margin: <strong style={{color:'#22d49a'}}>£{totalMRR-(799+Math.max(0,(MY_CLIENTS.length-5)*79))}/mo</strong></div>
+      </div>
+
+    </div>
   );
 }
+
 
 // ─── Tools Tab ───────────────────────────────────────────────────────────────
 const ALL_TOOLS = [
@@ -1795,70 +1798,202 @@ export default function DashboardPage() {
           )}
 
           {/* ═══════════════════════════════ ADMIN PORTAL ═══════════════════════════════ */}
-          {activeTab==='admin' && isAdmin && (
+          {activeTab==='admin' && isAdmin && (() => {
+            // All organisations subscribed to Watchtower platform
+            // Grouped by plan tier — this is Watchtower's customer list
+            const WTC_SUBSCRIBERS = [
+              // MSSP subscribers — have their own client portfolios
+              {id:'mssp-cyberguard', name:'CyberGuard Solutions',  type:'MSSP',     plan:'MSSP',     seats:0,  mrr:1115, clients:4,  status:'Active',  posture:84, alerts:36, incidents:7,  coverage:93, joined:'2024-01-10', billing:'Paid'},
+              {id:'mssp-secureops',  name:'SecureOps Ltd',         type:'MSSP',     plan:'MSSP',     seats:0,  mrr:957,  clients:2,  status:'Active',  posture:79, alerts:22, incidents:4,  coverage:90, joined:'2024-03-15', billing:'Paid'},
+              // Business subscribers — single org, enterprise features
+              {id:'org-fintech',     name:'FinTech Global',        type:'Business', plan:'Business', seats:10, mrr:199,  clients:0,  status:'Active',  posture:88, alerts:12, incidents:2,  coverage:96, joined:'2024-02-01', billing:'Paid'},
+              {id:'org-healthco',    name:'HealthCo Systems',      type:'Business', plan:'Business', seats:10, mrr:199,  clients:0,  status:'Active',  posture:72, alerts:19, incidents:3,  coverage:87, joined:'2024-04-20', billing:'Overdue'},
+              {id:'org-logistics',   name:'Logistics UK Ltd',      type:'Business', plan:'Business', seats:10, mrr:199,  clients:0,  status:'Churned', posture:0,  alerts:0,  incidents:0,  coverage:0,  joined:'2023-11-01', billing:'Churned'},
+              // Team subscribers
+              {id:'org-startup1',    name:'DevStack Inc',          type:'Team',     plan:'Team',     seats:4,  mrr:196,  clients:0,  status:'Active',  posture:91, alerts:5,  incidents:1,  coverage:98, joined:'2024-05-01', billing:'Paid'},
+              {id:'org-startup2',    name:'CloudBase Ltd',         type:'Team',     plan:'Team',     seats:3,  mrr:147,  clients:0,  status:'Trial',   posture:65, alerts:8,  incidents:0,  coverage:78, joined:'2024-03-28', billing:'Trial'},
+              // Community (free) — limited visibility
+              {id:'org-free1',       name:'TestOrg Alpha',         type:'Community',plan:'Community',seats:1,  mrr:0,    clients:0,  status:'Active',  posture:55, alerts:2,  incidents:0,  coverage:60, joined:'2024-06-01', billing:'Free'},
+            ];
+            const [adminView, setAdminView] = React.useState('subscribers');
+            const [filterPlan, setFilterPlan] = React.useState('All');
+            const [filterStatus, setFilterStatus] = React.useState('All');
+
+            const activeSubs = WTC_SUBSCRIBERS.filter(s=>s.status!=='Churned');
+            const totalMRR = WTC_SUBSCRIBERS.reduce((s,c)=>s+c.mrr,0);
+            const overdueRevenue = WTC_SUBSCRIBERS.filter(s=>s.billing==='Overdue').reduce((s,c)=>s+c.mrr,0);
+            const totalMSSPs = WTC_SUBSCRIBERS.filter(s=>s.type==='MSSP').length;
+            const totalManagedClients = WTC_SUBSCRIBERS.filter(s=>s.type==='MSSP').reduce((s,c)=>s+c.clients,0);
+
+            const filtered = WTC_SUBSCRIBERS.filter(s=>
+              (filterPlan==='All' || s.plan===filterPlan) &&
+              (filterStatus==='All' || s.status===filterStatus)
+            );
+
+            const planColor = {MSSP:'#8b6fff',Business:'#22d49a',Team:'#4f8fff',Community:'#6b7a94'};
+            const statusColor = {Active:'#22d49a',Trial:'#f0a030',Overdue:'#f0405e',Churned:'#3a4050',Free:'#6b7a94'};
+
+            return (
             <div style={{display:'flex',flexDirection:'column',gap:16}}>
-              <div style={{display:'flex',alignItems:'center',gap:10}}>
-                <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Admin Portal</h2>
-                <span style={{fontSize:'0.62rem',color:'#f0a030',background:'#f0a03012',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025'}}>Admin Only</span>
-              </div>
 
-              {/* Platform Stats */}
-              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
-                {[
-                  {label:'Active Clients',val:'4',color:'#4f8fff'},
-                  {label:'API Calls Today',val:'2,847',color:'#22d49a'},
-                  {label:'Alerts Triaged',val:'312',color:'#f0a030'},
-                  {label:'MRR',val:'£891',color:'#8b6fff'},
-                  {label:'Uptime',val:'99.97%',color:'#22d49a'},
-                  {label:'Avg Response',val:'1.2s',color:'#4f8fff'},
-                ].map(s=>(
-                  <div key={s.label} style={{padding:'14px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:10}}>
-                    <div style={{fontSize:'1.4rem',fontWeight:900,color:s.color,fontFamily:'JetBrains Mono,monospace',letterSpacing:-1}}>{s.val}</div>
-                    <div style={{fontSize:'0.6rem',color:'var(--wt-muted)',marginTop:2}}>{s.label}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Per-client management */}
-              <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
-                <div style={{fontSize:'0.72rem',fontWeight:700,marginBottom:12,color:'var(--wt-text)'}}>Client Management</div>
-                {[
-                  {id:'client-acme',  name:'Acme Financial',  plan:'Business', status:'Active',  posture:82, alerts:8},
-                  {id:'client-nhs',   name:'NHS Trust Alpha', plan:'Business', status:'Active',  posture:71, alerts:15},
-                  {id:'client-retail',name:'RetailCo UK',     plan:'Team',     status:'Active',  posture:91, alerts:4},
-                  {id:'client-gov',   name:'Gov Dept Beta',   plan:'Business', status:'Overdue', posture:78, alerts:9},
-                ].map(c=>(
-                  <div key={c.id} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',background:'var(--wt-card2)',borderRadius:8,marginBottom:6,border:`1px solid ${c.status==='Overdue'?'#f0405e20':'var(--wt-border)'}`}}>
-                    <div style={{flex:1}}>
-                      <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:2}}>
-                        <span style={{fontSize:'0.78rem',fontWeight:700}}>{c.name}</span>
-                        <span style={{fontSize:'0.52rem',padding:'1px 6px',borderRadius:3,background:c.status==='Overdue'?'#f0405e15':'#22d49a12',color:c.status==='Overdue'?'#f0405e':'#22d49a',fontWeight:700}}>{c.status}</span>
-                        <span style={{fontSize:'0.52rem',color:'var(--wt-dim)'}}>{c.plan}</span>
-                      </div>
-                      <div style={{fontSize:'0.62rem',color:'var(--wt-muted)'}}>Posture: {c.posture}% · {c.alerts} alerts</div>
-                    </div>
-                    <button onClick={()=>{setCurrentTenant(c.id);setActiveTab('overview');}} style={{padding:'4px 10px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>View Dashboard →</button>
-                    <button onClick={()=>{setAdminBannerInput(`[${c.name}] `);}} style={{padding:'4px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.62rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📢 Message</button>
-                    {c.status==='Overdue' && <button style={{padding:'4px 10px',borderRadius:6,border:'1px solid #f97316',background:'#f9731610',color:'#f97316',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Chase Payment</button>}
-                  </div>
-                ))}
-              </div>
-
-              {/* Message Banner */}
-              <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
-                <div style={{fontSize:'0.72rem',fontWeight:700,marginBottom:8,color:'#f0a030'}}>📢 Broadcast Banner to All Clients</div>
-                <textarea value={adminBannerInput} onChange={e=>setAdminBannerInput(e.target.value)} placeholder='e.g. Scheduled maintenance Sunday 02:00–04:00 UTC. Dashboard may be briefly unavailable.' rows={2} style={{width:'100%',padding:'8px 10px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.74rem',fontFamily:'Inter,sans-serif',resize:'none',outline:'none',boxSizing:'border-box'}} />
-                <div style={{display:'flex',gap:8,marginTop:8}}>
-                  <button onClick={()=>{if(!adminBannerInput.trim())return;setClientBanner(adminBannerInput.trim());setAdminBannerInput('');fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientBanner:adminBannerInput.trim()})}).catch(()=>{});}} style={{padding:'6px 16px',borderRadius:7,border:'none',background:'#f0a030',color:'#fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Publish to All</button>
-                  {clientBanner && <button onClick={()=>{setClientBanner(null);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientBanner:''})}).catch(()=>{});}} style={{padding:'6px 14px',borderRadius:7,border:'1px solid #f0405e30',background:'#f0405e0a',color:'#f0405e',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear Banner</button>}
+              {/* Header */}
+              <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+                <div>
+                  <h2 style={{fontSize:'0.88rem',fontWeight:700,display:'flex',alignItems:'center',gap:8}}>
+                    🔧 Watchtower Admin
+                    <span style={{fontSize:'0.62rem',color:'#f0a030',background:'#f0a03012',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025',fontWeight:700}}>PLATFORM ADMIN</span>
+                  </h2>
+                  <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginTop:3}}>All organisations subscribed to Watchtower · Impersonate any tenant to view their dashboard</div>
                 </div>
-                {clientBanner && <div style={{marginTop:8,padding:'8px 12px',background:'#f0a03012',border:'1px solid #f0a03030',borderRadius:7,fontSize:'0.7rem',color:'#f0a030'}}>📢 Active: {clientBanner}</div>}
+                <div style={{marginLeft:'auto',display:'flex',gap:4,background:'var(--wt-card2)',borderRadius:7,padding:3}}>
+                  {['subscribers','platform','broadcast'].map(v=>(
+                    <button key={v} onClick={()=>setAdminView(v)} style={{padding:'5px 14px',borderRadius:5,border:'none',background:adminView===v?'#f0a030':'transparent',color:adminView===v?'#fff':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',textTransform:'capitalize'}}>{v}</button>
+                  ))}
+                </div>
               </div>
+
+              {/* Platform stats */}
+              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+                {[
+                  {label:'Total MRR',      val:`£${totalMRR.toLocaleString()}`, sub:'monthly recurring', color:'#22d49a'},
+                  {label:'Active Orgs',    val:activeSubs.length,  sub:`${WTC_SUBSCRIBERS.length} total`, color:'#4f8fff'},
+                  {label:'MSSP Partners',  val:totalMSSPs,  sub:`${totalManagedClients} end-clients`, color:'#8b6fff'},
+                  {label:'Overdue',        val:overdueRevenue>0?`£${overdueRevenue}`:'£0', sub:overdueRevenue>0?'action needed':'all clear', color:overdueRevenue>0?'#f0405e':'#22d49a'},
+                ].map(s=>(
+                  <div key={s.label} style={{padding:'14px 16px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:12}}>
+                    <div style={{fontSize:'1.8rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-2,lineHeight:1}}>{s.val}</div>
+                    <div style={{fontSize:'0.58rem',fontWeight:700,color:s.color,textTransform:'uppercase',letterSpacing:'0.5px',marginTop:3}}>{s.sub}</div>
+                    <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:2}}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* SUBSCRIBERS VIEW */}
+              {adminView==='subscribers' && (
+                <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14,flexWrap:'wrap'}}>
+                    <span style={{fontSize:'0.72rem',fontWeight:700}}>All Subscribers</span>
+                    <div style={{display:'flex',gap:4,marginLeft:'auto',flexWrap:'wrap'}}>
+                      {['All','MSSP','Business','Team','Community'].map(p=>(
+                        <button key={p} onClick={()=>setFilterPlan(p)} style={{padding:'3px 9px',borderRadius:5,border:`1px solid ${filterPlan===p?planColor[p]||'#4f8fff':'var(--wt-border2)'}`,background:filterPlan===p?(planColor[p]||'#4f8fff')+'15':'transparent',color:filterPlan===p?planColor[p]||'#4f8fff':'var(--wt-muted)',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{p}</button>
+                      ))}
+                      <span style={{width:1,background:'var(--wt-border)',margin:'0 2px'}}/>
+                      {['All','Active','Trial','Overdue','Churned'].map(s=>(
+                        <button key={s} onClick={()=>setFilterStatus(s)} style={{padding:'3px 9px',borderRadius:5,border:`1px solid ${filterStatus===s?statusColor[s]||'#4f8fff':'var(--wt-border2)'}`,background:filterStatus===s?(statusColor[s]||'#4f8fff')+'15':'transparent',color:filterStatus===s?statusColor[s]||'#4f8fff':'var(--wt-muted)',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{s}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Column headers */}
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 90px 70px 60px 60px 140px',gap:8,padding:'6px 10px',fontSize:'0.56rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',borderBottom:'1px solid var(--wt-border)',marginBottom:4}}>
+                    <span>Organisation</span><span style={{textAlign:'center'}}>Plan</span><span style={{textAlign:'center'}}>MRR</span><span style={{textAlign:'center'}}>Status</span><span style={{textAlign:'center'}}>Posture</span><span style={{textAlign:'right'}}>Actions</span>
+                  </div>
+
+                  {filtered.map(sub=>(
+                    <div key={sub.id} style={{display:'grid',gridTemplateColumns:'1fr 90px 70px 60px 60px 140px',gap:8,padding:'9px 10px',alignItems:'center',borderBottom:'1px solid var(--wt-border)',opacity:sub.status==='Churned'?0.4:1}}>
+                      {/* Name + metadata */}
+                      <div>
+                        <div style={{display:'flex',alignItems:'center',gap:6}}>
+                          <span style={{fontSize:'0.78rem',fontWeight:700}}>{sub.name}</span>
+                          {sub.type==='MSSP' && <span style={{fontSize:'0.48rem',padding:'1px 5px',borderRadius:3,background:'#8b6fff15',color:'#8b6fff',fontWeight:700,border:'1px solid #8b6fff20'}}>MSSP · {sub.clients} clients</span>}
+                        </div>
+                        <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:1}}>Joined {sub.joined} · {sub.seats>0?sub.seats+' seats':'flat rate'}</div>
+                      </div>
+                      {/* Plan */}
+                      <div style={{textAlign:'center'}}>
+                        <span style={{fontSize:'0.6rem',fontWeight:700,padding:'2px 7px',borderRadius:4,background:(planColor[sub.plan]||'#6b7a94')+'15',color:planColor[sub.plan]||'#6b7a94',border:`1px solid ${(planColor[sub.plan]||'#6b7a94')}20`}}>{sub.plan}</span>
+                      </div>
+                      {/* MRR */}
+                      <div style={{textAlign:'center',fontSize:'0.74rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:sub.mrr>0?'var(--wt-text)':'var(--wt-dim)'}}>{sub.mrr>0?`£${sub.mrr}`:'—'}</div>
+                      {/* Status */}
+                      <div style={{textAlign:'center'}}>
+                        <span style={{fontSize:'0.56rem',fontWeight:700,padding:'2px 6px',borderRadius:3,background:(statusColor[sub.status]||'#6b7a94')+'15',color:statusColor[sub.status]||'#6b7a94'}}>{sub.status}</span>
+                      </div>
+                      {/* Posture */}
+                      <div style={{textAlign:'center',fontSize:'0.74rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:sub.posture>=85?'#22d49a':sub.posture>=70?'#f0a030':sub.posture>0?'#f0405e':'var(--wt-dim)'}}>{sub.posture>0?sub.posture+'%':'—'}</div>
+                      {/* Actions */}
+                      <div style={{display:'flex',gap:4,justifyContent:'flex-end'}}>
+                        {sub.status!=='Churned' && (
+                          <button onClick={()=>{setCurrentTenant(sub.id);setActiveTab('overview');}} style={{padding:'4px 8px',borderRadius:5,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Impersonate →</button>
+                        )}
+                        <button onClick={()=>setAdminBannerInput(`[${sub.name}] `)} style={{padding:'4px 7px',borderRadius:5,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.58rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📢</button>
+                        {sub.billing==='Overdue' && <button style={{padding:'4px 7px',borderRadius:5,border:'1px solid #f97316',background:'#f9731610',color:'#f97316',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>£ Chase</button>}
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* MRR breakdown footer */}
+                  <div style={{marginTop:12,padding:'10px 12px',background:'var(--wt-card2)',borderRadius:8,display:'flex',gap:16,flexWrap:'wrap'}}>
+                    {['MSSP','Business','Team'].map(p=>{
+                      const subs = WTC_SUBSCRIBERS.filter(s=>s.plan===p&&s.status!=='Churned');
+                      const mrr = subs.reduce((s,c)=>s+c.mrr,0);
+                      return mrr>0 ? (
+                        <div key={p} style={{display:'flex',alignItems:'center',gap:5}}>
+                          <div style={{width:7,height:7,borderRadius:2,background:planColor[p],flexShrink:0}}/>
+                          <span style={{fontSize:'0.66rem',color:'var(--wt-muted)'}}>{p}: <strong style={{color:planColor[p]}}>£{mrr}/mo</strong> · {subs.length} org{subs.length!==1?'s':''}</span>
+                        </div>
+                      ) : null;
+                    })}
+                    <div style={{marginLeft:'auto',fontSize:'0.66rem',color:'var(--wt-muted)'}}>Total ARR: <strong style={{color:'#22d49a'}}>£{(totalMRR*12).toLocaleString()}</strong></div>
+                  </div>
+                </div>
+              )}
+
+              {/* PLATFORM HEALTH VIEW */}
+              {adminView==='platform' && (
+                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}}>
+                  {[
+                    {label:'API Calls Today',val:'12,847',color:'#4f8fff',sub:'↑ 8% vs yesterday'},
+                    {label:'AI Tokens Used',val:'4.2M',color:'#8b6fff',sub:'across all tenants'},
+                    {label:'Redis Ops/min',val:'847',color:'#22d49a',sub:'avg latency 1.2ms'},
+                    {label:'Avg Uptime (30d)',val:'99.97%',color:'#22d49a',sub:'1 incident this month'},
+                    {label:'Active Sessions',val:'23',color:'#4f8fff',sub:'right now'},
+                    {label:'Sync Errors (24h)',val:'2',color:'#f0405e',sub:'Taegis · Splunk'},
+                    {label:'Alerts Triaged',val:'1,847',color:'#f0a030',sub:'across all orgs today'},
+                    {label:'New Signups (7d)',val:'3',color:'#22d49a',sub:'2 trial, 1 paid'},
+                    {label:'Churn (30d)',val:'1',color:'#f0405e',sub:'Logistics UK Ltd'},
+                  ].map(s=>(
+                    <div key={s.label} style={{padding:'14px 16px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:12}}>
+                      <div style={{fontSize:'1.6rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-2,lineHeight:1}}>{s.val}</div>
+                      <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:4}}>{s.label}</div>
+                      <div style={{fontSize:'0.58rem',color:s.color,marginTop:2,opacity:0.8}}>{s.sub}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* BROADCAST VIEW */}
+              {adminView==='broadcast' && (
+                <div style={{display:'flex',flexDirection:'column',gap:12}}>
+                  <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
+                    <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:4}}>📢 Broadcast to All Subscribers</div>
+                    <div style={{fontSize:'0.7rem',color:'var(--wt-muted)',marginBottom:12,lineHeight:1.6}}>Send a dismissable banner to every logged-in user across all tenants. Use for maintenance notices, security advisories, or product announcements.</div>
+                    <textarea value={adminBannerInput} onChange={e=>setAdminBannerInput(e.target.value)} placeholder='e.g. Scheduled maintenance Sunday 02:00–04:00 UTC…' rows={3} style={{width:'100%',padding:'10px 12px',borderRadius:8,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.78rem',fontFamily:'Inter,sans-serif',resize:'none',outline:'none',boxSizing:'border-box'}} />
+                    <div style={{display:'flex',gap:8,marginTop:10}}>
+                      <button onClick={()=>{if(!adminBannerInput.trim())return;setClientBanner(adminBannerInput.trim());setAdminBannerInput('');fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientBanner:adminBannerInput.trim()})}).catch(()=>{});}} style={{padding:'8px 20px',borderRadius:8,border:'none',background:'#f0a030',color:'#fff',fontSize:'0.78rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📢 Publish Platform-Wide</button>
+                      {clientBanner && <button onClick={()=>{setClientBanner(null);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientBanner:''})}).catch(()=>{});}} style={{padding:'8px 16px',borderRadius:8,border:'1px solid #f0405e30',background:'#f0405e0a',color:'#f0405e',fontSize:'0.78rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✕ Clear</button>}
+                    </div>
+                    {clientBanner && <div style={{marginTop:10,padding:'10px 14px',background:'#f0a03012',border:'1px solid #f0a03030',borderRadius:8,fontSize:'0.74rem',color:'#f0a030'}}>📢 Active banner: {clientBanner}</div>}
+                  </div>
+                  <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
+                    <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:12}}>Target Specific Subscriber</div>
+                    {WTC_SUBSCRIBERS.filter(s=>s.status!=='Churned').map(sub=>(
+                      <div key={sub.id} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 0',borderBottom:'1px solid var(--wt-border)'}}>
+                        <span style={{flex:1,fontSize:'0.76rem'}}>{sub.name}</span>
+                        <span style={{fontSize:'0.58rem',color:planColor[sub.plan]||'#6b7a94',fontWeight:700}}>{sub.plan}</span>
+                        <button onClick={()=>setAdminBannerInput(`[${sub.name}] `)} style={{padding:'4px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.62rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Compose →</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
             </div>
-          )}
+            );
+          })()}
 
           {/* ═══════════════════════════════ MSSP PORTFOLIO ══════════════════════════ */}
-          {activeTab==='mssp' && <MSSPPortfolio currentTenant={currentTenant} setCurrentTenant={setCurrentTenant} DEMO_TENANTS={DEMO_TENANTS} />}
+          {activeTab==='mssp' && <MSSPPortfolio currentTenant={currentTenant} setCurrentTenant={setCurrentTenant} DEMO_TENANTS={DEMO_TENANTS} isAdmin={isAdmin} setActiveTab={setActiveTab} setAdminBannerInput={setAdminBannerInput} />}
         </div>
       </div>
 
