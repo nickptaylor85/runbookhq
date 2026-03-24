@@ -4,170 +4,83 @@ import { useDashboardState } from './useDashboardState';
 import { ToolsTab } from './ToolsTab';
 import { MSSPPortfolio } from './MSSPPortfolio';
 import { RemediationOutput } from './RemediationOutput';
-import type { SevKey, Tier } from './dashboardTypes';
 import { SEV_COLOR, VERDICT_STYLE, DEMO_INTEL_BY_INDUSTRY, DEMO_GAP_DEVICES, ALL_TOOLS } from './dashboardData';
+import type { SevKey } from './dashboardTypes';
 
-function SevBadge({sev}:{sev:SevKey}) {
-  return <span style={{fontSize:'0.5rem',fontWeight:800,padding:'1px 6px',borderRadius:3,color:'#fff',background:SEV_COLOR[sev]}}>{sev.toUpperCase()}</span>;
+function SevBadge({ sev }: { sev: SevKey }) {
+  return (
+    <span style={{ fontSize: '0.5rem', fontWeight: 800, padding: '1px 6px', borderRadius: 3, color: '#fff', background: SEV_COLOR[sev] }}>
+      {sev.toUpperCase()}
+    </span>
+  );
 }
 
-// ─── Modal ────────────────────────────────────────────────────────────────────
-type ModalProps = {title:string;onClose:()=>void;children:React.ReactNode};
-function Modal({title,onClose,children}: ModalProps) {
+type ModalProps = { title: string; onClose: () => void; children: React.ReactNode };
+function Modal({ title, onClose, children }: ModalProps) {
   return (
-    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={onClose}>
-      <div style={{background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:16,maxWidth:700,width:'100%',maxHeight:'85vh',overflow:'auto',position:'relative'}} onClick={e=>e.stopPropagation()}>
-        <div style={{display:'flex',alignItems:'center',padding:'16px 20px',borderBottom:'1px solid #141820',position:'sticky',top:0,background:'var(--wt-card2)',zIndex:10}}>
-          <span style={{fontWeight:700,fontSize:'0.92rem'}}>{title}</span>
-          <button onClick={onClose} style={{marginLeft:'auto',background:'none',border:'none',color:'var(--wt-muted)',cursor:'pointer',fontSize:'1.2rem',lineHeight:1}}>×</button>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={onClose}>
+      <div style={{ background: 'var(--wt-card2)', border: '1px solid var(--wt-border2)', borderRadius: 16, maxWidth: 700, width: '100%', maxHeight: '85vh', overflow: 'auto', position: 'relative' }} onClick={e => e.stopPropagation()}>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #141820', position: 'sticky', top: 0, background: 'var(--wt-card2)', zIndex: 10 }}>
+          <span style={{ fontWeight: 700, fontSize: '0.92rem' }}>{title}</span>
+          <button onClick={onClose} style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'var(--wt-muted)', cursor: 'pointer', fontSize: '1.2rem', lineHeight: 1 }}>×</button>
         </div>
-        <div style={{padding:20}}>{children}</div>
+        <div style={{ padding: 20 }}>{children}</div>
       </div>
     </div>
   );
 }
 
-// ─── Stat Card ────────────────────────────────────────────────────────────────
-type StatCardProps = {val:string|number;label:string;sub?:string;color:string;onClick?:()=>void};
-function StatCard({val,label,sub,color,onClick}: StatCardProps) {
+type StatCardProps = { val: string | number; label: string; sub?: string; color: string; onClick?: () => void };
+function StatCard({ val, label, sub, color, onClick }: StatCardProps) {
   return (
-    <div onClick={onClick} style={{padding:'14px 12px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:10,textAlign:'center',cursor:onClick?'pointer':'default',transition:'border-color .15s'}}
-      onMouseEnter={e=>{ if(onClick)(e.currentTarget as HTMLElement).style.borderColor='#4f8fff40'; }}
-      onMouseLeave={e=>{ (e.currentTarget as HTMLElement).style.borderColor='var(--wt-border)'; }}>
-      <div style={{fontSize:'1.5rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color,letterSpacing:-1}}>{val}</div>
-      <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.4px',marginTop:2}}>{label}</div>
-      {sub && <div style={{fontSize:'0.56rem',color:'var(--wt-dim)',marginTop:2}}>{sub}</div>}
-      {onClick && <div style={{fontSize:'0.48rem',color:'#4f8fff',marginTop:4}}>click to view →</div>}
+    <div onClick={onClick} style={{ padding: '14px 12px', background: 'var(--wt-card)', border: '1px solid #141820', borderRadius: 10, textAlign: 'center', cursor: onClick ? 'pointer' : 'default', transition: 'border-color .15s' }}
+      onMouseEnter={e => { if (onClick) (e.currentTarget as HTMLElement).style.borderColor = '#4f8fff40'; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--wt-border)'; }}>
+      <div style={{ fontSize: '1.5rem', fontWeight: 900, fontFamily: 'JetBrains Mono,monospace', color, letterSpacing: -1 }}>{val}</div>
+      <div style={{ fontSize: '0.62rem', fontWeight: 700, color: 'var(--wt-muted)', textTransform: 'uppercase', letterSpacing: '0.4px', marginTop: 2 }}>{label}</div>
+      {sub && <div style={{ fontSize: '0.56rem', color: 'var(--wt-dim)', marginTop: 2 }}>{sub}</div>}
+      {onClick && <div style={{ fontSize: '0.48rem', color: '#4f8fff', marginTop: 4 }}>click to view →</div>}
     </div>
   );
 }
 
-// ─── Paywall Gate ────────────────────────────────────────────────────────────
-type GateWallProps = { feature:string; requiredTier:'team'|'business'|'mssp'; children:React.ReactNode; userTier:string; };
+type GateWallProps = { feature: string; requiredTier: string; children: React.ReactNode; userTier: string };
 function GateWall({ feature, requiredTier, children, userTier }: GateWallProps) {
-  const levels: Record<string,number> = {community:0,team:1,business:2,mssp:3};
-  if ((levels[userTier]||0) >= levels[requiredTier]) return (<>{children}</>);
-  const tierColors: Record<string,string> = {team:'#4f8fff',business:'#22d49a',mssp:'#8b6fff'};
-  const tierPrices: Record<string,string> = {team:'£49/seat',business:'£199/mo',mssp:'£799/mo'};
+  const levels: Record<string, number> = { community: 0, team: 1, business: 2, mssp: 3 };
+  if ((levels[userTier] || 0) >= (levels[requiredTier] || 0)) return (<>{children}</>);
+  const tierColors: Record<string, string> = { team: '#4f8fff', business: '#22d49a', mssp: '#8b6fff' };
+  const tierPrices: Record<string, string> = { team: '£49/seat', business: '£199/mo', mssp: '£799/mo' };
+  const label = requiredTier.charAt(0).toUpperCase() + requiredTier.slice(1);
   return (
-    <div style={{position:'relative',overflow:'hidden',borderRadius:12}}>
-      <div style={{filter:'blur(3px)',opacity:0.3,pointerEvents:'none',userSelect:'none'}}>{children}</div>
-      <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'rgba(5,5,8,0.85)',backdropFilter:'blur(2px)',borderRadius:12,border:`1px solid ${tierColors[requiredTier]}20`}}>
-        <div style={{fontSize:'1.4rem',marginBottom:8}}>🔒</div>
-        <div style={{fontSize:'0.82rem',fontWeight:700,marginBottom:4}}>{feature}</div>
-        <div style={{fontSize:'0.72rem',color:'var(--wt-muted)',marginBottom:14,textAlign:'center',maxWidth:260}}>Available on {requiredTier.charAt(0).toUpperCase()+requiredTier.slice(1)} plan and above</div>
-        <a href='/pricing' style={{padding:'8px 20px',borderRadius:8,background:tierColors[requiredTier],color:'#fff',fontSize:'0.76rem',fontWeight:700,textDecoration:'none',display:'inline-block'}}>Upgrade to {requiredTier.charAt(0).toUpperCase()+requiredTier.slice(1)} — {tierPrices[requiredTier]}</a>
+    <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 12 }}>
+      <div style={{ filter: 'blur(3px)', opacity: 0.3, pointerEvents: 'none', userSelect: 'none' }}>{children}</div>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(5,5,8,0.85)', backdropFilter: 'blur(2px)', borderRadius: 12, border: '1px solid #ffffff10' }}>
+        <div style={{ fontSize: '1.4rem', marginBottom: 8 }}>🔒</div>
+        <div style={{ fontSize: '0.82rem', fontWeight: 700, marginBottom: 4 }}>{feature}</div>
+        <div style={{ fontSize: '0.72rem', color: 'var(--wt-muted)', marginBottom: 14, textAlign: 'center', maxWidth: 260 }}>Available on {label} plan and above</div>
+        <a href='/pricing' style={{ padding: '8px 20px', borderRadius: 8, background: tierColors[requiredTier] || '#4f8fff', color: '#fff', fontSize: '0.76rem', fontWeight: 700, textDecoration: 'none', display: 'inline-block' }}>Upgrade to {label} — {tierPrices[requiredTier] || ''}</a>
       </div>
     </div>
   );
 }
 
-
-
-// ─── Tools Tab ───────────────────────────────────────────────────────────────
-import { ToolsTab } from './ToolsTab';
-import type { ConnectedMap, SetConnected } from './ToolsTab';
-
-
-type Theme = 'dark' | 'light';
-type Tier = 'community' | 'team' | 'business' | 'mssp';
-
-
-// ─── Per-tenant Demo Data (module level to avoid SWC typeof-in-function bug) ──
-const TENANT_ALERTS: {[k:string]: Alert[]} = {
-  global: DEMO_ALERTS,
-  'client-acme': DEMO_ALERTS.slice(0,3).map(a=>({...a, id:a.id+'-acme', device:'acme-'+a.device})),
-  'client-nhs': DEMO_ALERTS.slice(1,4).map(a=>({...a, id:a.id+'-nhs', device:'nhs-'+a.device})),
-  'client-retail': DEMO_ALERTS.slice(0,2).map(a=>({...a, id:a.id+'-retail', device:'retail-'+a.device})),
-  'client-gov': DEMO_ALERTS.slice(2,5).map(a=>({...a, id:a.id+'-gov', device:'gov-'+a.device})),
-};
-const TENANT_VULNS: {[k:string]: Vuln[]} = {
-  global: DEMO_VULNS,
-  'client-acme': DEMO_VULNS.slice(0,4).map(v=>({...v, id:v.id+'-acme', affected: Math.max(1, Math.round(v.affected*0.6)), affectedDevices: v.affectedDevices.map(d=>'acme-'+d)})),
-  'client-nhs': DEMO_VULNS.slice(0,7).map(v=>({...v, id:v.id+'-nhs', affected: Math.max(1, Math.round(v.affected*1.4)), affectedDevices: v.affectedDevices.map(d=>'nhs-'+d)})),
-  'client-retail': DEMO_VULNS.slice(0,5).map(v=>({...v, id:v.id+'-retail', affectedDevices: v.affectedDevices.map(d=>'retail-'+d)})),
-  'client-gov': DEMO_VULNS.slice(1,6).map(v=>({...v, id:v.id+'-gov', affectedDevices: v.affectedDevices.map(d=>'gov-'+d)})),
-};
-const TENANT_INCIDENTS: {[k:string]: Incident[]} = {
-  global: DEMO_INCIDENTS,
-  'client-acme': DEMO_INCIDENTS.slice(0,1).map(i=>({...i, id:'INC-ACME-01', title:'[Acme] '+i.title})),
-  'client-nhs': DEMO_INCIDENTS.map(i=>({...i, id:'INC-NHS-'+i.id.slice(-2), title:'[NHS] '+i.title})),
-  'client-retail': [],
-  'client-gov': DEMO_INCIDENTS.slice(0,1).map(i=>({...i, id:'INC-GOV-01', title:'[Gov] '+i.title})),
-};
-
-// ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const s = useDashboardState();
   const {
-    activeTab,
-    setActiveTab,
-    automation,
-    setAutomation,
-    modal,
-    setModal,
-    selectedAlert,
-    setSelectedAlert,
-    selectedVuln,
-    setSelectedVuln,
-    selectedIncident,
-    setSelectedIncident,
-    vulnAiLoading,
-    vulnAiTexts,
-    setVulnAiTexts,
-    industry,
-    setIndustryPersisted,
-    intelLoading,
-    customIntel,
-    expandedAlerts,
-    expandedIntel,
-    deployAgentDevice,
-    setDeployAgentDevice,
-    incidentStatuses,
-    deletedIncidents,
-    gapToolFilter,
-    setGapToolFilter,
-    demoMode,
-    setDemoMode,
-    connectedTools,
-    setConnectedTools,
-    currentTenant,
-    setCurrentTenant,
-    isAdmin,
-    theme,
-    toggleTheme,
-    userTier,
-    setUserTier,
-    DEMO_TENANTS,
-    toggleIntel,
-    toggleAlertExpand,
-    closeIncident,
-    deleteIncident,
-    fetchIntelForIndustry,
-    getVulnAiHelp,
-    canUse,
-    tools,
-    alerts,
-    vulns,
-    incidents,
-    activeTools,
-    totalDevices,
-    gapDevices,
-    coveredPct,
-    critAlerts,
-    tpAlerts,
-    fpAlerts,
-    critVulns,
-    kevVulns,
-    posture,
-    postureColor,
-    autLabel,
-    autColor,
-    actedAlerts,
-    automationBannerText,
-    intelItems,
-    allIntel,
-    TABS,
+    activeTab, setActiveTab, automation, setAutomation, modal, setModal,
+    selectedAlert, setSelectedAlert, selectedVuln, setSelectedVuln,
+    selectedIncident, setSelectedIncident, vulnAiLoading, vulnAiTexts, setVulnAiTexts,
+    industry, setIndustryPersisted, intelLoading, customIntel,
+    expandedAlerts, expandedIntel, deployAgentDevice, setDeployAgentDevice,
+    incidentStatuses, deletedIncidents, gapToolFilter, setGapToolFilter,
+    demoMode, setDemoMode, connectedTools, setConnectedTools,
+    currentTenant, setCurrentTenant, isAdmin, theme, toggleTheme,
+    userTier, setUserTier, DEMO_TENANTS,
+    toggleIntel, toggleAlertExpand, closeIncident, deleteIncident,
+    fetchIntelForIndustry, getVulnAiHelp, canUse,
+    tools, alerts, vulns, incidents, activeTools, totalDevices, gapDevices, coveredPct,
+    critAlerts, tpAlerts, fpAlerts, critVulns, kevVulns, posture, postureColor,
+    autLabel, autColor, actedAlerts, automationBannerText, intelItems, allIntel, TABS,
   } = s;
 
   return (
