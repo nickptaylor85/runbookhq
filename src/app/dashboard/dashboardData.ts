@@ -1,4 +1,4 @@
-import type { Tool, Alert, GapDevice, Vuln, IntelItem, Incident, SevKey } from './dashboardTypes';
+import type { Tool, Alert, GapDevice, Vuln, IntelItem, Incident, SevKey, VerdictKey } from './dashboardTypes';
 
 export const SEV_COLOR:Record<SevKey,string> = { Critical:'#f0405e', High:'#f97316', Medium:'#f0a030', Low:'#4f8fff' };
 export const VERDICT_STYLE:Record<VerdictKey,{c:string,bg:string,label:string}> = {
