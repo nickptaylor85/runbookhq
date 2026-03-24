@@ -63,12 +63,18 @@ export const tenable: IntegrationAdapter = {
   ],
   async testConnection(creds) {
     try {
-      const res = await fetch('https://cloud.tenable.com/session', {
-        headers: { 'X-ApiKeys': `accessKey=${creds.access_key};secretKey=${creds.secret_key}`, Accept: 'application/json' },
+      // Use /scans endpoint as a lightweight auth check (session endpoint deprecated)
+      const res = await fetch('https://cloud.tenable.com/scans?limit=1', {
+        headers: {
+          'X-ApiKeys': `accessKey=${creds.access_key};secretKey=${creds.secret_key}`,
+          'Accept': 'application/json',
+        },
       });
+      if (res.status === 401) throw new Error('Invalid API keys — check Access Key and Secret Key');
+      if (res.status === 403) throw new Error('API keys valid but insufficient permissions');
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return { ok: true, message: 'Connected to Tenable.io' };
-    } catch(e: any) { return { ok: false, message: 'Connection failed', details: e.message }; }
+    } catch(e: any) { return { ok: false, message: e.message }; }
   },
   async fetchAlerts(creds, since) {
     const res = await fetch('https://cloud.tenable.com/workbenches/vulnerabilities?date_range=7&filter.0.filter=severity&filter.0.quality=gte&filter.0.value=high&filter.search_type=and', {

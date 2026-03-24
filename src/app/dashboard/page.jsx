@@ -508,12 +508,17 @@ function ToolsTab({ connected, setConnected }) {
 
   function handleSave() {
     if (!modal || !testResult?.ok) return;
-    setConnected(prev=>({...prev,[modal.id]:formVals}));
+    const newCreds = {...formVals};
+    setConnected(prev=>({...prev,[modal.id]:newCreds}));
+    // Persist to Redis
+    fetch('/api/integrations/credentials', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({toolId:modal.id, credentials:newCreds})}).catch(()=>{});
     setModal(null);
   }
 
   function handleDisconnect(id) {
     setConnected(prev=>{ const n={...prev}; delete n[id]; return n; });
+    // Remove from Redis
+    fetch('/api/integrations/credentials', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({toolId:id, credentials:null})}).catch(()=>{});
   }
 
   return (
@@ -658,6 +663,14 @@ export default function DashboardPage() {
   const [demoMode, setDemoMode] = useState(true);
   const [connectedTools, setConnectedTools] = useState({});
   const [currentTenant, setCurrentTenant] = useState('global');
+
+  // Load persisted tool connections from Redis
+  useEffect(()=>{
+    fetch('/api/integrations/credentials')
+      .then(r=>r.json())
+      .then(d=>{ if (d.connected && Object.keys(d.connected).length > 0) setConnectedTools(d.connected); })
+      .catch(()=>{});
+  },[]);
   const [isAdmin] = useState(true); // Replace with real auth check
   const [userTier, setUserTier] = useState('community');
   const [theme, setTheme] = useState('dark');
