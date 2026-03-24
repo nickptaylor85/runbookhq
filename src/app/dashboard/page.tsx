@@ -234,11 +234,12 @@ function RemediationOutput({ text }: { text: string }) {
   );
 }
 
+type PortfolioView = 'security' | 'revenue';
 // ─── MSSP Portfolio Component ────────────────────────────────────────────────
 type MSSPTenant = {id:string;name:string;type:string};
 type MSSPPortfolioProps = { currentTenant:string; setCurrentTenant:(t:string)=>void; DEMO_TENANTS:MSSPTenant[]; };
 function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS }: MSSPPortfolioProps) {
-const portfolioViewOptions = ['security','revenue'] as const; type PortfolioView = typeof portfolioViewOptions[number]; const [portfolioView, setPortfolioView] = useState<PortfolioView>('security');
+  const [portfolioView, setPortfolioView] = useState<PortfolioView>('security');
             const CLIENTS = [
               {id:'client-acme',  name:'Acme Financial',  plan:'Business', seats:8,  mrr:199,   extraClients:0, contractStart:'2024-01-15', renewalDate:'2025-01-15', billingStatus:'Paid',    posture:82, alerts:8,  critAlerts:3, incidents:2, coverage:94, kevVulns:3, lastSeen:'2m ago'},
               {id:'client-nhs',   name:'NHS Trust Alpha', plan:'Business', seats:14, mrr:199,   extraClients:0, contractStart:'2024-03-01', renewalDate:'2025-03-01', billingStatus:'Paid',    posture:71, alerts:15, critAlerts:5, incidents:3, coverage:88, kevVulns:7, lastSeen:'1m ago'},
