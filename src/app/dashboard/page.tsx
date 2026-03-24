@@ -454,7 +454,8 @@ const CRED_FIELDS: Record<string,CredField[]> = {
 
 const CATEGORIES = ['All','EDR','SIEM','NDR','XDR','Vuln','CSPM','Email','Network','Identity'];
 
-type ConnectedMap = Record<string,Record<string,string>>;
+type InnerMap = Record<string,string>;
+type ConnectedMap = Record<string,InnerMap>;
 type SetConnected = (fn: ConnectedMap | ((prev: ConnectedMap) => ConnectedMap)) => void;
 interface ToolsTabProps { connected: ConnectedMap; setConnected: SetConnected }
 interface ModalTool { id: string; name: string }
@@ -463,7 +464,7 @@ interface AiTestStatus { ok: boolean; configured: boolean; message: string; tena
 function ToolsTab({ connected, setConnected }: ToolsTabProps) {
   const [filter, setFilter] = useState('All');
   const [modal, setModal] = useState<ModalTool | null>(null);
-  const [formVals, setFormVals] = useState<Record<string,string>>({});
+  const [formVals, setFormVals] = useState<StrMap>({});
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<TestResult | null>(null);
   const [anthropicKey, setAnthropicKey] = useState('');
@@ -650,6 +651,8 @@ function ToolsTab({ connected, setConnected }: ToolsTabProps) {
 
 type ModalState = { type: string; data?: unknown };
 type SetOfStrings = Set<string>;
+type StrMap = Record<string,string>;
+const DASHBOARD_CSS = '\n        *{margin:0;padding:0;box-sizing:border-box}\n        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}\n        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}\n\n        /* ── Dark theme (default) ── */\n        .wt-root {\n          --wt-bg: #050508;\n          --wt-sidebar: #07080f;\n          --wt-card: #09091a;\n          --wt-card2: #0a0d14;\n          --wt-border: #141820;\n          --wt-border2: #1e2536;\n          --wt-text: #e8ecf4;\n          --wt-muted: #6b7a94;\n          --wt-secondary: #8a9ab0;\n          --wt-dim: #3a4050;\n        }\n        /* ── Light theme ── */\n        .wt-root.light {\n          --wt-bg: #f5f6fa;\n          --wt-sidebar: #ffffff;\n          --wt-card: #ffffff;\n          --wt-card2: #f0f2f8;\n          --wt-border: #e2e5ef;\n          --wt-border2: #c8cedd;\n          --wt-text: #0f1117;\n          --wt-muted: #5a6580;\n          --wt-secondary: #4a5568;\n          --wt-dim: #8090a8;\n        }\n\n        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap;color:var(--wt-muted)}\n        .tab-btn.active{background:#4f8fff18;color:#4f8fff}\n        .tab-btn:not(.active):hover{color:var(--wt-secondary);background:var(--wt-card2)}\n        .row-hover{transition:background .12s}\n        .row-hover:hover{background:var(--wt-card2)!important}\n        .vuln-row:hover{background:var(--wt-card2)!important;cursor:pointer}\n        .alert-card{border-radius:10px;border:1px solid var(--wt-border);background:var(--wt-card);transition:border-color .15s}\n        .alert-card:hover{border-color:#4f8fff28}\n      ';
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -659,7 +662,7 @@ export default function DashboardPage() {
   const [selectedVuln, setSelectedVuln] = useState<Vuln | null>(null);
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [vulnAiLoading, setVulnAiLoading] = useState<string | null>(null);
-  const [vulnAiTexts, setVulnAiTexts] = useState<Record<string,string>>({});
+  const [vulnAiTexts, setVulnAiTexts] = useState<StrMap>({});
   const [industry, setIndustry] = useState('Financial Services');
   // Load persisted settings from Redis on mount
   useEffect(()=>{
@@ -676,7 +679,7 @@ export default function DashboardPage() {
   const [customIntel, setCustomIntel] = useState<IntelItem[] | null>(null);
   const [expandedAlerts, setExpandedAlerts] = useState<SetOfStrings>(new Set());
   const [deployAgentDevice, setDeployAgentDevice] = useState<GapDevice | null>(null);
-  const [incidentStatuses, setIncidentStatuses] = useState<Record<string,string>>({});
+  const [incidentStatuses, setIncidentStatuses] = useState<StrMap>({});
   const [deletedIncidents, setDeletedIncidents] = useState<SetOfStrings>(new Set());
   function deleteIncident(id:string) { setDeletedIncidents(prev=>new Set([...prev,id])); setSelectedIncident(null); }
   const [gapToolFilter, setGapToolFilter] = useState<string | null>(null);
@@ -824,47 +827,7 @@ export default function DashboardPage() {
 
   return (
     <div className={`wt-root${theme === 'light' ? ' light' : ''}`} style={{display:'flex',minHeight:'100vh',background:'var(--wt-bg)',color:'var(--wt-text)',fontFamily:'Inter,sans-serif'}}>
-      <style>{`
-        *{margin:0;padding:0;box-sizing:border-box}
-        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
-        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-
-        /* ── Dark theme (default) ── */
-        .wt-root {
-          --wt-bg: #050508;
-          --wt-sidebar: #07080f;
-          --wt-card: #09091a;
-          --wt-card2: #0a0d14;
-          --wt-border: #141820;
-          --wt-border2: #1e2536;
-          --wt-text: #e8ecf4;
-          --wt-muted: #6b7a94;
-          --wt-secondary: #8a9ab0;
-          --wt-dim: #3a4050;
-        }
-        /* ── Light theme ── */
-        .wt-root.light {
-          --wt-bg: #f5f6fa;
-          --wt-sidebar: #ffffff;
-          --wt-card: #ffffff;
-          --wt-card2: #f0f2f8;
-          --wt-border: #e2e5ef;
-          --wt-border2: #c8cedd;
-          --wt-text: #0f1117;
-          --wt-muted: #5a6580;
-          --wt-secondary: #4a5568;
-          --wt-dim: #8090a8;
-        }
-
-        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap;color:var(--wt-muted)}
-        .tab-btn.active{background:#4f8fff18;color:#4f8fff}
-        .tab-btn:not(.active):hover{color:var(--wt-secondary);background:var(--wt-card2)}
-        .row-hover{transition:background .12s}
-        .row-hover:hover{background:var(--wt-card2)!important}
-        .vuln-row:hover{background:var(--wt-card2)!important;cursor:pointer}
-        .alert-card{border-radius:10px;border:1px solid var(--wt-border);background:var(--wt-card);transition:border-color .15s}
-        .alert-card:hover{border-color:#4f8fff28}
-      `}</style>
+      <style dangerouslySetInnerHTML={{__html:DASHBOARD_CSS}} />
 
       {/* SIDEBAR */}
       <div style={{width:48,background:'var(--wt-sidebar)',borderRight:'1px solid #141820',display:'flex',flexDirection:'column',alignItems:'center',padding:'10px 0',gap:4,flexShrink:0}}>
