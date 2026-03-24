@@ -1525,8 +1525,7 @@ ACTIONS:
                             const reasonMatch = text.match(/REASONING:\s*([\s\S]+?)(?=EVIDENCE:|ACTIONS:|$)/i);
                             const evidenceMatch = text.match(/EVIDENCE:\s*([\s\S]+?)(?=ACTIONS:|$)/i);
                             const actionsMatch = text.match(/ACTIONS:\s*([\s\S]+?)$/i);
-                            const parseList = (s) => s ? s.split('
-').map(l=>l.replace(/^[-*•]\s*/,'')).filter(l=>l.trim().length>3) : [];
+                            const parseList = (s) => s ? s.split('\n').map(l=>l.replace(/^[-*•\d.]\s*/,'')).filter(l=>l.trim().length>3) : [];
                             setAiTriageCache(prev=>({...prev,[alert.id]:{
                               loading:false,
                               result:{
