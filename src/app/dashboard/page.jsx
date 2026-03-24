@@ -881,6 +881,7 @@ export default function DashboardPage() {
   const [connectedTools, setConnectedTools] = useState({});
   const [credentialsLoaded, setCredentialsLoaded] = useState(false);
   const [liveAlerts, setLiveAlerts] = useState([]);
+  const [aiTriageCache, setAiTriageCache] = useState({}); // alertId → {loading, result}
   const [syncStatus, setSyncStatus] = useState('idle'); // idle | syncing | ok | error
   const [syncError, setSyncError] = useState(null);
   const [lastSynced, setLastSynced] = useState(null);
@@ -1475,70 +1476,193 @@ export default function DashboardPage() {
                         <span style={{fontSize:'0.72rem',color:'var(--wt-dim)'}}>{expanded?'▲':'▼'}</span>
                       </div>
                     </div>
-                    {expanded && (
+                    {expanded && (()=>{
+                      // AI triage for live alerts
+                      const triage = aiTriageCache[alert.id];
+                      const hasBuiltinAI = !!(alert.aiReasoning);
+                      const isLiveAlert = !hasBuiltinAI;
+
+                      async function runTriage() {
+                        if (triage?.result || triage?.loading) return;
+                        setAiTriageCache(prev=>({...prev,[alert.id]:{loading:true}}));
+                        try {
+                          const prompt = `You are a SOC analyst. Triage this security alert and provide a concise analysis.
+
+Alert: ${alert.title}
+Source: ${alert.source}
+Severity: ${alert.severity}
+Device/Host: ${alert.device || 'Unknown'}
+Time: ${alert.time}
+${alert.description ? 'Description: '+alert.description : ''}
+${alert.ip ? 'IP: '+alert.ip : ''}
+${alert.user ? 'User: '+alert.user : ''}
+${alert.mitre ? 'MITRE Technique: '+alert.mitre : ''}
+Confidence: ${alert.confidence || 'N/A'}%
+
+Respond in this exact format:
+VERDICT: [TRUE POSITIVE / FALSE POSITIVE / SUSPICIOUS]
+CONFIDENCE: [0-100]%
+REASONING: [2-3 sentences explaining your verdict]
+EVIDENCE:
+- [key evidence point 1]
+- [key evidence point 2]
+- [key evidence point 3]
+ACTIONS:
+- [recommended action 1]
+- [recommended action 2]
+- [recommended action 3]`;
+
+                          const res = await fetch('/api/copilot', {
+                            method:'POST',
+                            headers:{'Content-Type':'application/json'},
+                            body:JSON.stringify({prompt}),
+                          });
+                          const data = await res.json();
+                          if (data.ok && data.response) {
+                            const text = data.response;
+                            const verdictMatch = text.match(/VERDICT:\s*(.+)/i);
+                            const confMatch = text.match(/CONFIDENCE:\s*(\d+)/i);
+                            const reasonMatch = text.match(/REASONING:\s*([\s\S]+?)(?=EVIDENCE:|ACTIONS:|$)/i);
+                            const evidenceMatch = text.match(/EVIDENCE:\s*([\s\S]+?)(?=ACTIONS:|$)/i);
+                            const actionsMatch = text.match(/ACTIONS:\s*([\s\S]+?)$/i);
+                            const parseList = (s) => s ? s.split('
+').map(l=>l.replace(/^[-*•]\s*/,'')).filter(l=>l.trim().length>3) : [];
+                            setAiTriageCache(prev=>({...prev,[alert.id]:{
+                              loading:false,
+                              result:{
+                                verdict: verdictMatch?.[1]?.trim() || 'SUSPICIOUS',
+                                confidence: confMatch?.[1] ? parseInt(confMatch[1]) : 65,
+                                reasoning: reasonMatch?.[1]?.trim() || text.slice(0,200),
+                                evidence: parseList(evidenceMatch?.[1]),
+                                actions: parseList(actionsMatch?.[1]),
+                                raw: text,
+                              }
+                            }}));
+                          } else {
+                            setAiTriageCache(prev=>({...prev,[alert.id]:{loading:false,error:data.message||'Triage failed'}}));
+                          }
+                        } catch(e) {
+                          setAiTriageCache(prev=>({...prev,[alert.id]:{loading:false,error:e.message}}));
+                        }
+                      }
+
+                      // Auto-trigger triage for live alerts when expanded
+                      if (isLiveAlert && !triage) { runTriage(); }
+
+                      const verdictStyle = {
+                        'TRUE POSITIVE': {c:'#f0405e',bg:'#f0405e12',label:'TRUE POSITIVE'},
+                        'FALSE POSITIVE': {c:'#22d49a',bg:'#22d49a12',label:'FALSE POSITIVE'},
+                        'SUSPICIOUS':     {c:'#f0a030',bg:'#f0a03012',label:'SUSPICIOUS'},
+                      }[triage?.result?.verdict?.toUpperCase()] || {c:'#6b7a94',bg:'#6b7a9412',label:'PENDING'};
+
+                      return (
                       <div style={{padding:'0 14px 14px 14px',borderTop:'1px solid #141820'}}>
+
+                        {/* Live alert AI triage panel */}
+                        {isLiveAlert && (
+                          <div style={{marginTop:12,padding:'12px 14px',background:'linear-gradient(135deg,rgba(79,143,255,0.05),rgba(139,111,255,0.05))',border:'1px solid #4f8fff20',borderRadius:10}}>
+                            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                              <span style={{fontSize:'0.6rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px'}}>⚡ AI Triage</span>
+                              {triage?.loading && <span style={{fontSize:'0.62rem',color:'#4f8fff',display:'flex',alignItems:'center',gap:5}}><span style={{width:8,height:8,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>Analysing…</span>}
+                              {triage?.result && <span style={{fontSize:'0.62rem',fontWeight:800,padding:'2px 10px',borderRadius:5,background:verdictStyle.bg,color:verdictStyle.c,border:`1px solid ${verdictStyle.c}25`}}>{verdictStyle.label} · {triage.result.confidence}%</span>}
+                              {triage?.error && <span style={{fontSize:'0.62rem',color:'#f0405e'}}>Triage error — <button onClick={()=>{setAiTriageCache(prev=>({...prev,[alert.id]:undefined}));setTimeout(runTriage,100);}} style={{color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontSize:'0.62rem',fontFamily:'Inter,sans-serif',padding:0}}>retry</button></span>}
+                              {triage?.result && <button onClick={runTriage} style={{marginLeft:'auto',fontSize:'0.58rem',color:'var(--wt-dim)',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',padding:0}}>↻ Re-triage</button>}
+                              {!triage && <button onClick={runTriage} style={{marginLeft:'auto',fontSize:'0.62rem',color:'#4f8fff',background:'#4f8fff10',border:'1px solid #4f8fff25',borderRadius:5,cursor:'pointer',fontFamily:'Inter,sans-serif',padding:'2px 8px'}}>Triage now</button>}
+                            </div>
+
+                            {triage?.loading && (
+                              <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                                {[90,70,55].map((w,i)=>(
+                                  <div key={i} style={{height:10,borderRadius:4,background:'var(--wt-border)',width:w+'%',animation:'pulse 1.5s ease infinite',animationDelay:i*0.15+'s'}}/>
+                                ))}
+                              </div>
+                            )}
+
+                            {triage?.result && (
+                              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+                                <div>
+                                  <div style={{fontSize:'0.68rem',color:'var(--wt-secondary)',lineHeight:1.7,marginBottom:8}}>{triage.result.reasoning}</div>
+                                  {triage.result.evidence.length>0 && (
+                                    <>
+                                      <div style={{fontSize:'0.58rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Evidence</div>
+                                      {triage.result.evidence.map((e,i)=>(
+                                        <div key={i} style={{fontSize:'0.68rem',color:'var(--wt-secondary)',padding:'2px 0 2px 12px',position:'relative'}}>
+                                          <span style={{position:'absolute',left:0,top:8,width:5,height:5,borderRadius:'50%',background:'#4f8fff',display:'block'}}/>{e}
+                                        </div>
+                                      ))}
+                                    </>
+                                  )}
+                                </div>
+                                <div>
+                                  {triage.result.actions.length>0 && (
+                                    <>
+                                      <div style={{fontSize:'0.58rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Recommended Actions</div>
+                                      {triage.result.actions.map((a,i)=>(
+                                        <div key={i} style={{fontSize:'0.68rem',color:'#22d49a',padding:'2px 0',display:'flex',gap:6}}>
+                                          <span style={{fontWeight:700,flexShrink:0,fontSize:'0.58rem',background:'#22d49a15',borderRadius:3,padding:'1px 4px'}}>{i+1}</span><span>{a}</span>
+                                        </div>
+                                      ))}
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Demo alert built-in AI enrichment */}
+                        {hasBuiltinAI && (
                         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginTop:12}}>
                           <div>
                             <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Reasoning</div>
-                            <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65}}>
-                              {alert.aiReasoning || alert.description || 'No AI reasoning available for this alert.'}
-                            </div>
+                            <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65}}>{alert.aiReasoning}</div>
                             {(alert.evidenceChain||[]).length>0 && (<>
                               <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6,marginTop:10}}>Evidence Chain</div>
                               {(alert.evidenceChain||[]).map(e=>(
                                 <div key={e} style={{fontSize:'0.72rem',color:'var(--wt-secondary)',padding:'2px 0 2px 12px',position:'relative'}}>
-                                  <span style={{position:'absolute',left:0,top:9,width:5,height:5,borderRadius:'50%',background:'#4f8fff',display:'block'}} />{e}
+                                  <span style={{position:'absolute',left:0,top:9,width:5,height:5,borderRadius:'50%',background:'#4f8fff',display:'block'}}/>{e}
                                 </div>
                               ))}
                             </>)}
-                            {/* Raw fields for live alerts */}
-                            {!alert.aiReasoning && (alert.tags||[]).length>0 && (
-                              <div style={{marginTop:8,display:'flex',gap:4,flexWrap:'wrap'}}>
-                                {(alert.tags||[]).map((t)=>(
-                                  <span key={t} style={{fontSize:'0.56rem',padding:'2px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff18'}}>{t}</span>
-                                ))}
-                              </div>
-                            )}
                           </div>
                           <div>
                             {(alert.aiActions||[]).length>0 && (<>
                               <div style={{fontSize:'0.6rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Actions Taken</div>
                               {(alert.aiActions||[]).map(a=>(
-                                <div key={a} style={{fontSize:'0.72rem',color:'#22d49a',padding:'2px 0',display:'flex',gap:6}}>
-                                  <span>✓</span><span>{a}</span>
+                                <div key={a} style={{fontSize:'0.72rem',color:'#22d49a',padding:'2px 0',display:'flex',gap:6}}><span>✓</span><span>{a}</span></div>
+                              ))}
+                            </>)}
+                            {(alert.runbookSteps||[]).length>0 && (<>
+                              <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6,marginTop:10}}>Runbook Steps</div>
+                              {(alert.runbookSteps||[]).map((s,i)=>(
+                                <div key={s} style={{fontSize:'0.72rem',color:'var(--wt-secondary)',padding:'2px 0',display:'flex',gap:6}}>
+                                  <span style={{color:'#4f8fff',fontWeight:700,flexShrink:0,fontSize:'0.6rem',background:'#4f8fff15',borderRadius:3,padding:'1px 4px'}}>{i+1}</span><span>{s}</span>
                                 </div>
                               ))}
                             </>)}
-                            {(alert.runbookSteps||[]).length>0 && (
-                              <>
-                                <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6,marginTop:10}}>Runbook Steps</div>
-                                {(alert.runbookSteps||[]).map((s,i)=>(
-                                  <div key={s} style={{fontSize:'0.72rem',color:'var(--wt-secondary)',padding:'2px 0',display:'flex',gap:6}}>
-                                    <span style={{color:'#4f8fff',fontWeight:700,flexShrink:0,fontSize:'0.6rem',background:'#4f8fff15',borderRadius:3,padding:'1px 4px'}}>{i+1}</span><span>{s}</span>
-                                  </div>
-                                ))}
-                              </>
-                            )}
-                            {/* Source info for live alerts with no AI enrichment */}
-                            {!(alert.aiActions||[]).length && !(alert.runbookSteps||[]).length && (
-                              <div style={{fontSize:'0.72rem',color:'var(--wt-muted)',lineHeight:1.6}}>
-                                <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>Alert Details</div>
-                                <div>Source: <strong style={{color:'var(--wt-text)'}}>{alert.source}</strong></div>
-                                {alert.sourceId && <div style={{marginTop:2}}>ID: <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:'0.66rem',color:'var(--wt-dim)'}}>{alert.sourceId}</span></div>}
-                                {alert.ip && <div style={{marginTop:2}}>IP: <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:'0.68rem'}}>{alert.ip}</span></div>}
-                                {alert.user && <div style={{marginTop:2}}>User: <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:'0.68rem'}}>{alert.user}</span></div>}
-                                {alert.mitre && <div style={{marginTop:2}}>MITRE: <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:'0.68rem',color:'#7c6aff'}}>{alert.mitre}</span></div>}
-                              </div>
-                            )}
                             {alert.incidentId && (
-                              <button onClick={()=>{ setActiveTab('incidents'); setSelectedIncident(incidents.find(i=>i.id===alert.incidentId)||null); }} style={{marginTop:10,padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
-                                → View {alert.incidentId}
-                              </button>
+                              <button onClick={()=>{ setActiveTab('incidents'); setSelectedIncident(incidents.find(i=>i.id===alert.incidentId)||null); }} style={{marginTop:10,padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>→ View {alert.incidentId}</button>
                             )}
                           </div>
                         </div>
+                        )}
+
+                        {/* Live alert metadata (shown alongside AI triage) */}
+                        {isLiveAlert && (
+                          <div style={{marginTop:10,display:'flex',gap:12,flexWrap:'wrap',fontSize:'0.64rem',color:'var(--wt-muted)'}}>
+                            <span>Source: <strong style={{color:'var(--wt-text)'}}>{alert.source}</strong></span>
+                            {alert.sourceId && <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:'0.6rem',color:'var(--wt-dim)'}}>ID: {alert.sourceId.slice(0,24)}{alert.sourceId.length>24?'…':''}</span>}
+                            {alert.ip && <span>IP: <span style={{fontFamily:'JetBrains Mono,monospace'}}>{alert.ip}</span></span>}
+                            {alert.user && <span>User: <strong>{alert.user}</strong></span>}
+                            {alert.mitre && <span style={{color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{alert.mitre}</span>}
+                            {(alert.tags||[]).filter(t=>!['taegis','xdr'].includes(t)).map(t=>(
+                              <span key={t} style={{padding:'1px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff18'}}>{t}</span>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
+                      );
+                    })()}
                   </div>
                 );
               })}
