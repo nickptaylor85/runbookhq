@@ -58,8 +58,10 @@ export async function POST(req: NextRequest) {
           return { toolId: id, alerts, count: alerts.length };
         } catch (e: any) {
           const errMsg = e?.message || String(e);
-          console.error(`Sync error [${id}]: ${errMsg}`);
-          return { toolId: id, alerts: [], error: errMsg, count: 0 };
+          const cause = e?.cause?.message || e?.cause?.code || '';
+          const fullErr = cause ? `${errMsg} (${cause})` : errMsg;
+          console.error(`Sync error [${id}]: ${fullErr}`);
+          return { toolId: id, alerts: [], error: fullErr, count: 0 };
         }
       })
     ).then(settled => settled.map(r =>
