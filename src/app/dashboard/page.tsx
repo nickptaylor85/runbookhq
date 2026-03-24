@@ -114,7 +114,8 @@ function SevBadge({sev}:{sev:SevKey}) {
 }
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
-type ModalProps = {title:string;onClose:()=>void;children:React.ReactNode};
+type OnClose = () => void;
+type ModalProps = { title:string; onClose:OnClose; children:React.ReactNode };
 function Modal({title,onClose,children}: ModalProps) {
   return (
     <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={onClose}>
@@ -130,7 +131,7 @@ function Modal({title,onClose,children}: ModalProps) {
 }
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
-type StatCardProps = {val:string | number;label:string;sub?:string;color:string;onClick?:()=>void};
+type StatCardProps = { val:string | number; label:string; sub?:string; color:string; onClick?:OnClose };
 function StatCard({val,label,sub,color,onClick}: StatCardProps) {
   return (
     <div onClick={onClick} style={{padding:'14px 12px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:10,textAlign:'center',cursor:onClick?'pointer':'default',transition:'border-color .15s'}}
@@ -165,10 +166,11 @@ function GateWall({ feature, requiredTier, children, userTier }: GateWallProps) 
   );
 }
 
+type RemediationOutputProps = { text: string };
 // ─── AI Remediation Output Renderer ─────────────────────────────────────────
 type BlockType = 'heading' | 'subheading' | 'code' | 'text';
 type Block = { type: BlockType; content: string; id?: string };
-function RemediationOutput({ text }: { text: string }) {
+function RemediationOutput({ text }: RemediationOutputProps) {
   const [copied, setCopied] = useState<string | null>(null);
 
   function copyCode(code: string, id: string) {
@@ -244,7 +246,8 @@ function RemediationOutput({ text }: { text: string }) {
 type PortfolioView = 'security' | 'revenue';
 // ─── MSSP Portfolio Component ────────────────────────────────────────────────
 type MSSPTenant = {id:string;name:string;type:string};
-type MSSPPortfolioProps = { currentTenant:string; setCurrentTenant:(t:string)=>void; DEMO_TENANTS:MSSPTenant[]; };
+type SetTenant = (t:string) => void;
+type MSSPPortfolioProps = { currentTenant:string; setCurrentTenant:SetTenant; DEMO_TENANTS:MSSPTenant[] };
 function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS }: MSSPPortfolioProps) {
   const [portfolioView, setPortfolioView] = useState<PortfolioView>('security');
             const CLIENTS = [
@@ -451,11 +454,12 @@ const CRED_FIELDS: Record<string,CredField[]> = {
 const CATEGORIES = ['All','EDR','SIEM','NDR','XDR','Vuln','CSPM','Email','Network','Identity'];
 
 type ConnectedMap = Record<string,Record<string,string>>;
+type ToolsTabProps = { connected: ConnectedMap; setConnected: SetConnected };
 type SetConnected = (fn: ConnectedMap | ((prev: ConnectedMap) => ConnectedMap)) => void;
 type ModalTool = { id: string; name: string };
 type TestResult = { ok: boolean; message: string };
 type AiTestStatus = { ok: boolean; configured: boolean; message: string; tenantId?: string };
-function ToolsTab({ connected, setConnected }: { connected: ConnectedMap; setConnected: SetConnected; }) {
+function ToolsTab({ connected, setConnected }: ToolsTabProps) {
   const [filter, setFilter] = useState('All');
   const [modal, setModal] = useState<ModalTool | null>(null);
   const [formVals, setFormVals] = useState<Record<string,string>>({});
