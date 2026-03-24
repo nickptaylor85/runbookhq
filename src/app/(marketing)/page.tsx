@@ -9,15 +9,32 @@ const ALERTS = [
   { sev:'med', title:'Anomalous VPN login — new geo', verdict:'SUS', conf:72, action:'MFA challenge sent', time:'09:38' },
 ];
 
-const TOOLS = ['CrowdStrike','Defender','Taegis XDR','SentinelOne','Splunk','Sentinel','Darktrace','Zscaler','Tenable','Proofpoint','Wiz','Carbon Black','QRadar','Elastic','Nessus','Okta'];
+const TOOLS = [
+  { name:'CrowdStrike',  slug:'crowdstrike',         color:'#f0405e' },
+  { name:'Defender',     slug:'microsoftdefender',   color:'#00a4ef' },
+  { name:'Taegis XDR',   slug:'secureworks',         color:'#e8172c' },
+  { name:'Tenable',      slug:'tenable',             color:'#00b3e3' },
+  { name:'SentinelOne',  slug:'sentinelone',         color:'#8c2be2' },
+  { name:'Splunk',       slug:'splunk',              color:'#65a637' },
+  { name:'Sentinel',     slug:'microsoftazure',      color:'#0078d4' },
+  { name:'Darktrace',    slug:'darktrace',           color:'#00a3e0' },
+  { name:'Zscaler',      slug:'zscaler',             color:'#00aae7' },
+  { name:'Proofpoint',   slug:'proofpoint',          color:'#007dba' },
+  { name:'Wiz',          slug:'wiz',                 color:'#00bfa5' },
+  { name:'QRadar',       slug:'ibm',                 color:'#006699' },
+  { name:'Elastic',      slug:'elastic',             color:'#00bfb3' },
+  { name:'Okta',         slug:'okta',                color:'#007dc1' },
+  { name:'CyberArk',     slug:'cyberark',            color:'#ef3b2d' },
+  { name:'Nessus',       slug:'tenable',             color:'#00b3e3' },
+];
 
 const FEATURES = [
-  { icon:'⚡', title:'AI Triage in 3.2s', body:'Every alert assessed, scored, and actioned before your analyst even opens Slack. TP, FP, or Suspicious — with a full evidence chain.' },
-  { icon:'🛡', title:'Estate Visibility', body:'Devices, coverage gaps, missing agents — mapped in real time. Know exactly where you\'re blind before an attacker finds it first.' },
-  { icon:'🔍', title:'Vulnerability Intel', body:'Top CVEs ranked by severity × prevalence in your estate. One click to AI-generated remediation instructions, tailored to your stack.' },
-  { icon:'🌐', title:'Live Threat Intel', body:'Industry-specific threat feeds updated every hour. CISA KEV, ThreatFox, Darktrace anomalies — all in one pane.' },
-  { icon:'🤖', title:'Autonomous Response', body:'Isolate a host, block an IP, disable a compromised account — automatically, in seconds. With a full audit trail and one-click revert.' },
-  { icon:'📊', title:'CISO-Ready Reports', body:'One-click PDF. Posture trends, SLA stats, risk narrative. Send to the board without touching a spreadsheet.' },
+  { icon:'⚡', title:'AI Triage in 3.2s', body:'Every alert assessed, scored, and actioned before your analyst opens Slack. TP, FP, or Suspicious — with a full evidence chain and confidence score.' },
+  { icon:'🛡', title:'Estate Visibility', body:'Devices, coverage gaps, missing agents — mapped in real time. Know exactly where you are blind before an attacker finds it first.' },
+  { icon:'🔍', title:'AI Remediation Queries', body:'Top CVEs ranked by severity. One click generates production-ready Splunk SPL, Sentinel KQL, and Defender hunting queries — tailored to your stack.' },
+  { icon:'🌐', title:'IOC Hunt Queries', body:'Industry threat feeds with one-click AI query generation. Hunt for specific IOCs across Splunk, Sentinel, and Defender from a single button.' },
+  { icon:'🤖', title:'Autonomous Response', body:'Isolate a host, block an IP, disable a compromised account — automatically, in seconds. Full audit trail and one-click revert.' },
+  { icon:'📊', title:'MSSP Portfolio View', body:'Manage multiple clients from one pane. Per-client posture, alerts, revenue, and usage stats. White-label ready.' },
 ];
 
 const STATS_BEFORE = ['400+ alerts/day','6 separate consoles','3.5h avg triage time','80% false positives'];
@@ -77,7 +94,12 @@ function LiveDashPreview() {
       </div>
       <div style={{ display:'flex', minHeight:320 }}>
         <div style={{ width:44, background:'#08090f', borderRight:'1px solid #121820', padding:'10px 0', display:'flex', flexDirection:'column', alignItems:'center', gap:6 }}>
-          <div style={{ width:28,height:28,borderRadius:7,background:'linear-gradient(135deg,#4f8fff,#8b6fff)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.6rem',color:'#fff',fontWeight:900,marginBottom:8 }}>W</div>
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" style={{marginBottom:8,flexShrink:0}}>
+              <rect width="28" height="28" rx="7" fill="url(#pg)"/>
+              <path d="M14 5.5L22 9V15.5C22 19.5 18.5 23 14 24.5C9.5 23 6 19.5 6 15.5V9L14 5.5Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" strokeWidth="0.7"/>
+              <path d="M11.5 14.5L13.5 16.5L17.5 12" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+              <defs><linearGradient id="pg" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse"><stop stopColor="#3b7fff"/><stop offset="1" stopColor="#7c3aff"/></linearGradient></defs>
+            </svg>
           {['📊','🔔','🛡','🔍','🌐','📋'].map((ic,i) => <div key={i} style={{ width:30,height:30,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:6,fontSize:'0.7rem',background:i===0?'#4f8fff18':'transparent' }}>{ic}</div>)}
         </div>
         <div style={{ flex:1, padding:'12px 16px' }}>
@@ -205,7 +227,7 @@ export default function LandingPage() {
         @keyframes glow{0%,100%{box-shadow:0 0 30px rgba(79,143,255,0.1)}50%{box-shadow:0 0 60px rgba(79,143,255,0.2)}}
         @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.85)}}
         .anim-hero{animation:fadeUp 0.9s ease both}
-        .tool-chip{font-size:0.72rem;font-weight:600;color:#4a5568;padding:6px 14px;border:1px solid #141820;border-radius:8px;background:#0a0d14;transition:all 0.2s;cursor:default}
+        .tool-chip{font-size:0.72rem;font-weight:600;color:#6b7a94;padding:8px 14px;border:1px solid #141820;border-radius:10px;background:#0a0d14;transition:all 0.2s;cursor:default;display:flex;align-items:center;gap:7px}
         .tool-chip:hover{border-color:#4f8fff40;color:#a0adc4;background:#4f8fff08}
         @media(max-width:900px){.hero-h1{font-size:2.6rem!important}.ai-grid{grid-template-columns:1fr!important}.feat-grid{grid-template-columns:1fr 1fr!important}.price-grid{grid-template-columns:1fr 1fr!important}.test-grid{grid-template-columns:1fr!important}}
         @media(max-width:600px){.hero-h1{font-size:2rem!important}.feat-grid{grid-template-columns:1fr!important}.price-grid{grid-template-columns:1fr!important}.before-after{flex-direction:column!important}.nav-links a:not(.nav-cta){display:none}}
@@ -215,7 +237,12 @@ export default function LandingPage() {
       {/* NAV */}
       <nav className='section' style={{ display:'flex', alignItems:'center', padding:'14px 28px', position:'sticky', top:0, zIndex:50, background:'rgba(5,5,8,0.85)', backdropFilter:'blur(18px)', borderBottom:'1px solid #ffffff06' }}>
         <a href='/' style={{ display:'flex', alignItems:'center', gap:8, fontWeight:800, fontSize:'0.98rem' }}>
-          <div style={{ width:28,height:28,borderRadius:7,background:'linear-gradient(135deg,#4f8fff,#8b6fff)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.62rem',color:'#fff',fontWeight:900 }}>W</div>
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" style={{flexShrink:0}}>
+            <rect width="28" height="28" rx="7" fill="url(#ng)"/>
+            <path d="M14 5.5L22 9V15.5C22 19.5 18.5 23 14 24.5C9.5 23 6 19.5 6 15.5V9L14 5.5Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" strokeWidth="0.7"/>
+            <path d="M11.5 14.5L13.5 16.5L17.5 12" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+            <defs><linearGradient id="ng" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse"><stop stopColor="#3b7fff"/><stop offset="1" stopColor="#7c3aff"/></linearGradient></defs>
+          </svg>
           Watchtower
         </a>
         <div className='nav-links' style={{ display:'flex', alignItems:'center', gap:2, marginLeft:'auto' }}>
@@ -232,20 +259,20 @@ export default function LandingPage() {
         <div style={{ position:'absolute', top:-100, left:'50%', transform:'translateX(-50%)', width:600, height:600, background:'radial-gradient(circle,rgba(79,143,255,0.07) 0%,transparent 65%)', pointerEvents:'none' }} />
         <div style={{ display:'inline-block', padding:'4px 16px', border:'1px solid #4f8fff25', borderRadius:20, fontSize:'0.7rem', fontWeight:700, color:'#4f8fff', marginBottom:24, letterSpacing:'0.5px' }}>
           <span style={{ width:6,height:6,borderRadius:'50%',background:'#4f8fff',boxShadow:'0 0 8px #4f8fff',display:'inline-block',marginRight:6,animation:'pulse-dot 2s ease infinite',verticalAlign:'middle' }} />
-          AI-Powered SOC Platform — Trusted by 200+ Security Teams
+          AI-Powered SOC — Single Pane of Glass for Your Entire Stack
         </div>
         <h1 className='hero-h1' style={{ fontSize:'4.4rem', fontWeight:900, letterSpacing:-3, lineHeight:1.03, marginBottom:22 }}>
           Your SOC team just got<br /><span style={{ background:'linear-gradient(135deg,#4f8fff 0%,#22d49a 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>a 10x multiplier.</span>
         </h1>
         <p style={{ fontSize:'1.08rem', color:'#6b7a94', lineHeight:1.8, maxWidth:540, margin:'0 auto 32px' }}>
-          Watchtower connects your entire security stack, triages every alert with AI in 3.2 seconds, and responds automatically. Your analysts arrive to a clean queue — threats contained, noise eliminated.
+          Watchtower connects Taegis, Tenable, CrowdStrike, Splunk and 15+ tools into one AI-powered dashboard. Triage every alert in 3.2 seconds. Hunt IOCs with one click. Respond automatically. Your analysts arrive to a clean queue.
         </p>
         <div style={{ display:'flex', gap:10, justifyContent:'center', marginBottom:52 }}>
           <a href='/demo' className='ld-btn' style={{ fontSize:'0.95rem', padding:'13px 30px' }}>Watch Live Demo →</a>
           <a href='/signup' className='ld-btn-ghost' style={{ fontSize:'0.95rem', padding:'13px 30px' }}>Start Free Trial</a>
         </div>
         <div style={{ display:'flex', gap:32, justifyContent:'center', alignItems:'center' }}>
-          {[{val:'85%',label:'noise eliminated'},{val:'3.2s',label:'triage per alert'},{val:'20+',label:'integrations'},{val:'£0',label:'to start'}].map((s,i,arr) => (
+          {[{val:'85%',label:'noise eliminated'},{val:'3.2s',label:'triage per alert'},{val:'18+',label:'integrations'},{val:'£0',label:'to start'}].map((s,i,arr) => (
             <span key={s.label} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
               <strong style={{ fontSize:'1.9rem', fontWeight:800, fontFamily:'JetBrains Mono,monospace', letterSpacing:-1 }}>{s.val}</strong>
               <span style={{ fontSize:'0.68rem', color:'#4a5568', fontWeight:500 }}>{s.label}</span>
@@ -356,9 +383,12 @@ export default function LandingPage() {
         <p style={{ color:'#6b7a94', fontSize:'0.88rem', marginBottom:32 }}>No rip-and-replace. Plugs into your existing stack in minutes, not months.</p>
         <div style={{ display:'flex', flexWrap:'wrap', justifyContent:'center', gap:8, maxWidth:780, margin:'0 auto' }}>
           {TOOLS.map((t,i) => (
-            <span key={t} className='tool-chip' style={{ opacity: toolsVisible ? 1 : 0, transform: toolsVisible ? 'none' : 'translateY(8px)', transition:`all 0.4s ease ${i*0.04}s` }}>{t}</span>
+            <span key={t.name} className='tool-chip' style={{ opacity: toolsVisible ? 1 : 0, transform: toolsVisible ? 'none' : 'translateY(8px)', transition:`all 0.4s ease ${i*0.04}s` }}>
+              <img src={`https://cdn.simpleicons.org/${t.slug}/${t.color.replace('#','')}`} alt={t.name} width={15} height={15} style={{flexShrink:0,opacity:0.85}} onError={(e)=>{(e.target as HTMLImageElement).style.display='none';}} />
+              {t.name}
+            </span>
           ))}
-          <span className='tool-chip' style={{ opacity: toolsVisible ? 1 : 0, transition:'all 0.4s ease 0.7s', borderStyle:'dashed' }}>+ your tool →</span>
+          <span className='tool-chip' style={{ opacity: toolsVisible ? 1 : 0, transition:'all 0.4s ease 0.7s', borderStyle:'dashed', borderColor:'#4f8fff40', color:'#4f8fff' }}>+ your tool →</span>
         </div>
       </section>
 
