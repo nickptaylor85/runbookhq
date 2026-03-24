@@ -1,72 +1,88 @@
 'use client';
-import { useState } from 'react';
-
-export default function Signup() {
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+export default function SignupPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [org, setOrg] = useState('');
-  const [plan, setPlan] = useState('pro');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
+  const router = useRouter();
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);setError('');
+    setLoading(true);
+    setError('');
     try {
-      const r = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, org, plan }) });
-      const d = await r.json();
-      if (d.ok) window.location.href = '/setup';
-      else setError(d.error || 'Registration failed');
-    } catch(e) { setError('Network error'); }
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json() as { ok?: boolean; error?: string };
+      if (res.ok && data.ok) {
+        router.push('/dashboard');
+      } else {
+        setError(data.error || 'Account creation failed. Contact admin to set up access.');
+      }
+    } catch { setError('Network error'); }
     setLoading(false);
   }
-
-  return (<>
-    <style dangerouslySetInnerHTML={{__html: CSS}} />
-    <div className="auth-page">
-      <div className="auth-card">
-        <div className="auth-logo"><div className="auth-logo-icon">W</div>Watchtower</div>
-        <h1 className="auth-title">Create your account</h1>
-        <p className="auth-sub">Start your 14-day free trial. No credit card required.</p>
-        <form onSubmit={handleSignup}>
-          <div className="auth-field"><label>Organisation name</label><input type="text" value={org} onChange={e=>setOrg(e.target.value)} placeholder="Acme Security" required /></div>
-          <div className="auth-field"><label>Work email</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@company.com" required /></div>
-          <div className="auth-field"><label>Password</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Min 8 characters" required minLength={8} /></div>
-          <div className="auth-field"><label>Plan</label><select value={plan} onChange={e=>setPlan(e.target.value)}><option value="starter">Community (Free)</option><option value="team">Team (£29/seat/mo)</option><option value="business">Business (£79/mo)</option><option value="mssp">MSSP (from £599/mo)</option><option value="enterprise">Enterprise (Custom)</option></select></div>
-          {error && <div className="auth-error">{error}</div>}
-          <button className="auth-btn" type="submit" disabled={loading}>{loading ? 'Creating account...' : 'Start Free Trial →'}</button>
-        </form>
-        <p className="auth-link">Already have an account? <a href="/login">Sign in</a></p>
+  return (
+    <div style={{ minHeight:'100vh', background:'#050508', display:'flex', alignItems:'center',
+      justifyContent:'center', fontFamily:'Inter,sans-serif', color:'#e8ecf4' }}>
+      <div style={{ width:'100%', maxWidth:380, padding:'0 24px' }}>
+        <div style={{ textAlign:'center', marginBottom:32 }}>
+          <a href="/" style={{ display:'inline-flex', alignItems:'center', gap:8,
+            textDecoration:'none', color:'inherit', fontWeight:800, fontSize:'1.1rem' }}>
+            Watchtower
+          </a>
+        </div>
+        <div style={{ background:'#0a0d14', border:'1px solid #1e2536', borderRadius:16, padding:'28px' }}>
+          <h1 style={{ fontSize:'1.2rem', fontWeight:800, marginBottom:4 }}>Get started</h1>
+          <p style={{ fontSize:'0.78rem', color:'#6b7a94', marginBottom:24 }}>
+            Create your account to access the dashboard
+          </p>
+          <form onSubmit={handleSignup}>
+            <div style={{ marginBottom:14 }}>
+              <label style={{ display:'block', fontSize:'0.72rem', color:'#6b7a94',
+                fontWeight:600, marginBottom:6 }}>Email</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                required placeholder="you@company.com"
+                style={{ width:'100%', padding:'10px 12px', background:'#070a14',
+                  border:'1px solid #1e2536', borderRadius:8, color:'#e8ecf4',
+                  fontSize:'0.88rem', fontFamily:'Inter,sans-serif', outline:'none',
+                  boxSizing:'border-box' as const }} />
+            </div>
+            <div style={{ marginBottom:20 }}>
+              <label style={{ display:'block', fontSize:'0.72rem', color:'#6b7a94',
+                fontWeight:600, marginBottom:6 }}>Password</label>
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+                required placeholder="Create a password"
+                style={{ width:'100%', padding:'10px 12px', background:'#070a14',
+                  border:'1px solid #1e2536', borderRadius:8, color:'#e8ecf4',
+                  fontSize:'0.88rem', fontFamily:'JetBrains Mono,monospace', outline:'none',
+                  boxSizing:'border-box' as const }} />
+            </div>
+            {error && (
+              <div style={{ marginBottom:16, padding:'8px 12px', background:'#f0405e0a',
+                border:'1px solid #f0405e30', borderRadius:7, fontSize:'0.76rem',
+                color:'#f0405e' }}>{error}</div>
+            )}
+            <button type="submit" disabled={loading}
+              style={{ width:'100%', padding:'11px', background: loading ? '#3a3a5a' : '#4f8fff',
+                border:'none', borderRadius:9, color:'#fff', fontWeight:700,
+                fontSize:'0.9rem', cursor: loading ? 'not-allowed' : 'pointer',
+                fontFamily:'Inter,sans-serif' }}>
+              {loading ? 'Creating account…' : 'Create account →'}
+            </button>
+          </form>
+          <p style={{ marginTop:20, textAlign:'center', fontSize:'0.72rem', color:'#3a4050' }}>
+            Already have an account?{' '}
+            <a href="/login" style={{ color:'#4f8fff', textDecoration:'none', fontWeight:600 }}>
+              Sign in
+            </a>
+          </p>
+        </div>
       </div>
     </div>
-  </>);
+  );
 }
-
-const CSS = `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}body{background:#050508;color:#e6ecf8;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
-.auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at 50% 30%,rgba(91,154,255,.04),transparent 60%)}
-.auth-card{width:100%;max-width:420px;background:linear-gradient(145deg,#0b0f18,#10141e);border:1px solid #1a2030;border-radius:20px;padding:40px 32px}
-.auth-logo{display:flex;align-items:center;gap:8px;font-weight:900;font-size:1rem;margin-bottom:28px;justify-content:center}
-.auth-logo-icon{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#3b8bff,#7c6aff);display:flex;align-items:center;justify-content:center;font-size:.65rem;color:#fff;font-weight:900}
-.auth-title{font-size:1.4rem;font-weight:900;letter-spacing:-1px;text-align:center;margin-bottom:6px}
-.auth-sub{font-size:.78rem;color:#8a9ab8;text-align:center;margin-bottom:28px}
-.auth-field{margin-bottom:16px}
-.auth-field label{display:block;font-size:.72rem;font-weight:600;color:#8a9ab8;margin-bottom:5px}
-.auth-field input,.auth-field select{width:100%;padding:10px 14px;background:#10141e;border:1px solid #252e42;border-radius:10px;color:#e6ecf8;font-size:.85rem;font-family:'Inter',sans-serif;outline:none;transition:border-color .2s}
-.auth-field input:focus,.auth-field select:focus{border-color:#3b8bff}
-.auth-field input::placeholder{color:#50607a}
-.auth-field select{cursor:pointer}
-.auth-error{background:rgba(255,68,102,.1);border:1px solid rgba(255,68,102,.15);color:#f0405e;padding:8px 12px;border-radius:8px;font-size:.76rem;margin-bottom:12px}
-.auth-btn{width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#3b8bff,#7c6aff);color:#fff;font-size:.88rem;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;transition:all .25s;box-shadow:0 4px 16px rgba(91,154,255,.25);margin-top:4px}
-.auth-btn:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(91,154,255,.35)}
-.auth-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
-.auth-link{text-align:center;margin-top:20px;font-size:.76rem;color:#50607a}
-.auth-link a{color:#3b8bff;text-decoration:none;font-weight:600}
-.auth-link a:hover{text-decoration:underline}
-@media(max-width:768px){
-.auth-page{padding:16px}
-.auth-card{padding:28px 20px;border-radius:16px}
-.auth-title{font-size:1.2rem}
-.auth-field input,.auth-field select{padding:11px 12px;font-size:.88rem}
-.auth-btn{padding:13px;font-size:.9rem}
-}`;

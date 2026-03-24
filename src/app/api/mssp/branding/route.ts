@@ -1,15 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+interface Branding {
+  name?: string;
+  logo?: string;
+  primaryColor?: string;
+  accentColor?: string;
+  domain?: string;
+}
+
 function getTenantId(req: NextRequest): string {
   return req.headers.get('x-tenant-id') || 'global';
 }
 
 export async function GET(req: NextRequest) {
   const _tenantId = getTenantId(req);
-  return NextResponse.json({"ok": true, "branding": {}});
+  return NextResponse.json({ ok: true, branding: {} as Branding });
 }
 
 export async function POST(req: NextRequest) {
   const _tenantId = getTenantId(req);
-  return NextResponse.json({"ok": true});
+  return NextResponse.json({ ok: true });
 }
