@@ -4,7 +4,7 @@ import { ToolsTab } from './ToolsTab';
 import { MSSPPortfolio } from './MSSPPortfolio';
 import { RemediationOutput } from './RemediationOutput';
 import { SevBadge, Modal, StatCard, GateWall } from './DashboardComponents';
-import { VERDICT_STYLE, DEMO_INTEL_BY_INDUSTRY, DEMO_GAP_DEVICES, ALL_TOOLS } from './dashboardData';
+import { SEV_COLOR, VERDICT_STYLE, DEMO_INTEL_BY_INDUSTRY, DEMO_GAP_DEVICES, ALL_TOOLS } from './dashboardData';
 
 export default function DashboardPage() {
   const s = useDashboardState();
