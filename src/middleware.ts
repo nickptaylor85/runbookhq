@@ -1,16 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createHmac } from 'crypto';
 
-// Simple session verification - inline to avoid import issues in edge runtime
-function verifySessionToken(token: string): { userId: string; tenantId: string; isAdmin: boolean } | null {
+// Session verification using Web Crypto API (Edge Runtime compatible)
+async function verifySessionToken(token: string): Promise<{ userId: string; tenantId: string; isAdmin: boolean } | null> {
   try {
     const secret = process.env.WATCHTOWER_SESSION_SECRET || 'watchtower-dev-session-secret';
     const [encoded, sig] = token.split('.');
     if (!encoded || !sig) return null;
-    const expectedSig = createHmac('sha256', secret).update(encoded).digest('base64url');
+    
+    const enc = new TextEncoder();
+    const keyData = enc.encode(secret);
+    const msgData = enc.encode(encoded);
+    
+    const key = await crypto.subtle.importKey(
+      'raw', keyData, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+    );
+    const signature = await crypto.subtle.sign('HMAC', key, msgData);
+    const expectedSig = btoa(String.fromCharCode(...new Uint8Array(signature)))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    
     if (sig !== expectedSig) return null;
-    const payload = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8'));
-    if (Date.now() - payload.iat > 86400000) return null; // 24h expiry
+    const payload = JSON.parse(atob(encoded.replace(/-/g, '+').replace(/_/g, '/')));
+    if (Date.now() - payload.iat > 86400000) return null;
     return payload;
   } catch {
     return null;
@@ -22,7 +32,7 @@ const PUBLIC_PATHS = ['/', '/demo', '/pricing', '/guide', '/login', '/signup',
   '/stripe/success', '/api/auth/login', '/api/auth/logout', '/api/stripe/webhook',
   '/_next/', '/favicon', '/robots.txt', '/sitemap'];
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Allow public paths
@@ -47,7 +57,7 @@ export function middleware(req: NextRequest) {
     let session = null;
 
     if (sessionToken) {
-      session = verifySessionToken(sessionToken);
+      session = await verifySessionToken(sessionToken);
     } else if (apiKey && masterKey && apiKey === masterKey) {
       // Master API key — full access
       const res = NextResponse.next();
