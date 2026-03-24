@@ -25,7 +25,7 @@ async function verifySessionToken(token: string): Promise<{ userId: string; tena
 }
 
 const PUBLIC_PATHS = ['/', '/demo', '/pricing', '/guide', '/login', '/signup',
-  '/stripe/success', '/api/auth/login', '/api/auth/logout', '/api/auth/session',
+  '/stripe/success', '/api/auth/login', '/api/auth/logout',
   '/api/stripe/webhook', '/_next/', '/favicon', '/robots.txt', '/sitemap'];
 
 export async function middleware(req: NextRequest) {
