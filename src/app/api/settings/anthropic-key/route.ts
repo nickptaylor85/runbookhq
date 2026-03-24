@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { redisSet, redisDel, setTenantAnthropicKey, KEYS } from '@/lib/redis';
 import { cookies } from 'next/headers';
 
-function getTenantId(req: NextRequest): string {
+async function await getTenantId(req: NextRequest): Promise<string> {
   // Read tenant from cookie (set at login) — falls back to 'global'
   const cookieStore = await cookies();
   return cookieStore.get('wt_tenant')?.value || 'global';
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     if (!key || !key.startsWith('sk-ant-')) {
       return NextResponse.json({ ok: false, message: 'Invalid key — must start with sk-ant-' }, { status: 400 });
     }
-    const tenantId = bodyTenantId || getTenantId(req);
+    const tenantId = bodyTenantId || await getTenantId(req);
     await setTenantAnthropicKey(tenantId, key.trim());
     return NextResponse.json({
       ok: true,
@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const { tenantId: bodyTenantId } = await req.json().catch(() => ({}));
-    const tenantId = bodyTenantId || getTenantId(req);
+    const tenantId = bodyTenantId || await getTenantId(req);
     await redisDel(KEYS.TENANT_ANTHROPIC_KEY(tenantId));
     return NextResponse.json({ ok: true, message: 'API key removed.' });
   } catch(e: any) {
