@@ -644,7 +644,12 @@ export default function DashboardPage() {
   useEffect(()=>{
     fetch('/api/settings/user')
       .then(r=>r.json())
-      .then(d=>{ if (d.settings?.industry) setIndustry(d.settings.industry); })
+      .then(d=>{
+        if (d.settings?.industry) setIndustry(d.settings.industry);
+        if (d.settings?.demoMode !== undefined) setDemoMode(d.settings.demoMode === 'true');
+        if (d.settings?.automation !== undefined) setAutomation(Number(d.settings.automation));
+        if (d.settings?.userTier) setUserTier(d.settings.userTier);
+      })
       .catch(()=>{});
   },[]);
   function setIndustryPersisted(ind) {
@@ -864,8 +869,15 @@ export default function DashboardPage() {
           </div>
           <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:10}}>
             <button onClick={toggleTheme} title={theme==='dark'?'Light mode':'Dark mode'} style={{width:32,height:32,borderRadius:8,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.9rem',flexShrink:0}}>{theme==='dark'?'☀️':'🌙'}</button>
-              <button onClick={()=>setDemoMode(d=>!d)} title={demoMode?'Switch to live data':'Switch to demo data'} style={{padding:'4px 10px',borderRadius:7,border:`1px solid ${demoMode?'#f0a03030':'#22d49a30'}`,background:demoMode?'#f0a03010':'#22d49a10',color:demoMode?'#f0a030':'#22d49a',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>{demoMode?'● DEMO':'● LIVE'}</button>
-              <select value={userTier} onChange={e=>setUserTier(e.target.value)} title='Simulate plan tier' style={{padding:'3px 7px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.6rem',fontWeight:700,fontFamily:'Inter,sans-serif',cursor:'pointer',outline:'none'}} >
+              <button onClick={()=>setDemoMode(d=>{
+                const next=!d;
+                fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});
+                return next;
+              })} title={demoMode?'Switch to live data':'Switch to demo data'} style={{padding:'4px 10px',borderRadius:7,border:`1px solid ${demoMode?'#f0a03030':'#22d49a30'}`,background:demoMode?'#f0a03010':'#22d49a10',color:demoMode?'#f0a030':'#22d49a',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>{demoMode?'● DEMO':'● LIVE'}</button>
+              <select value={userTier} onChange={e=>{
+                setUserTier(e.target.value);
+                fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userTier:e.target.value})}).catch(()=>{});
+              }} title='Simulate plan tier' style={{padding:'3px 7px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.6rem',fontWeight:700,fontFamily:'Inter,sans-serif',cursor:'pointer',outline:'none'}} >
                 {(['community','team','business','mssp']).map(t=><option key={t} value={t}>{t.charAt(0).toUpperCase()+t.slice(1)}</option>)}
               </select>
               {isAdmin && (
@@ -879,7 +891,10 @@ export default function DashboardPage() {
             <div style={{display:'flex',alignItems:'center',gap:6,padding:'4px 10px',borderRadius:7,background:'var(--wt-card2)',border:'1px solid #141820'}}>
               <span style={{fontSize:'0.62rem',color:'var(--wt-muted)'}}>Automation:</span>
               {(['Recommend','Auto+Notify','Full Auto']).map((l,i)=>(
-                <button key={l} onClick={()=>setAutomation(i)} style={{padding:'2px 8px',borderRadius:4,fontSize:'0.58rem',fontWeight:700,border:'none',cursor:'pointer',background:automation===i?`${autColor}`:'transparent',color:automation===i?'#fff':'#6b7a94',fontFamily:'Inter,sans-serif',transition:'all .15s'}}>{l}</button>
+                <button key={l} onClick={()=>{
+                  setAutomation(i);
+                  fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({automation:String(i)})}).catch(()=>{});
+                }} style={{padding:'2px 8px',borderRadius:4,fontSize:'0.58rem',fontWeight:700,border:'none',cursor:'pointer',background:automation===i?`${autColor}`:'transparent',color:automation===i?'#fff':'#6b7a94',fontFamily:'Inter,sans-serif',transition:'all .15s'}}>{l}</button>
               ))}
             </div>
             ) : (
