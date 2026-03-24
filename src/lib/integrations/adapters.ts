@@ -559,33 +559,69 @@ export const taegis: IntegrationAdapter = {
     });
     const tokenData = await tokenRes.json();
     const token = tokenData.access_token;
-    // Taegis GraphQL - minimal query using confirmed working fields
-    const query = `query { alertsServiceSearch(in: { limit: 100, offset: 0, cql_query: "severity >= HIGH AND status != SUPPRESSED" }) { alerts { id title message severity status created_at resolution_reason sensor_types } } }`;
+    // Taegis GraphQL - using official documented schema
+    // Ref: https://docs.taegis.secureworks.com/apis/using_alerts_api/
     const graphqlHost = region === 'us1' || !region
       ? 'api.ctpx.secureworks.com'
       : `api.${region}.taegis.secureworks.com`;
+    const query = `query alertsServiceSearch($in: SearchRequestInput) {
+      alertsServiceSearch(in: $in) {
+        reason
+        status
+        alerts {
+          total_results
+          list {
+            id
+            status
+            resolution_reason
+            metadata {
+              title
+              severity
+              confidence
+              description
+              created_at { seconds }
+            }
+          }
+        }
+      }
+    }`;
+    const variables = {
+      in: {
+        limit: 100,
+        offset: 0,
+        cql_query: "FROM alert WHERE severity >= 0.6 AND status = 'OPEN' EARLIEST=-7d",
+      }
+    };
     const res = await fetch(`https://${graphqlHost}/graphql`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query }),
+      body: JSON.stringify({ query, variables }),
     });
-    if (!res.ok) throw new Error(`Taegis GraphQL error: HTTP ${res.status}`);
+    if (!res.ok) {
+      const errText = await res.text().catch(()=>'');
+      throw new Error(`Taegis GraphQL error: HTTP ${res.status} ${errText.slice(0,200)}`);
+    }
     const data = await res.json();
     if (data.errors) throw new Error(`Taegis query error: ${data.errors[0]?.message}`);
-    return (data.data?.alertsServiceSearch?.alerts || []).map((a: any): NormalisedAlert => ({
-      id: safeId('taegis', a.id),
-      source: 'Taegis XDR',
-      sourceId: a.id,
-      title: a.title || a.message || 'Taegis alert',
-      severity: normSev(a.severity),
-      device: 'Unknown',
-      time: a.created_at || new Date().toISOString(),
-      rawTime: new Date(a.created_at || Date.now()).getTime(),
-      description: a.message || a.title,
-      verdict: a.status === 'FALSE_POSITIVE' ? 'FP' : 'Pending',
-      confidence: 70,
-      tags: ['taegis', 'xdr', a.status].filter(Boolean),
-      raw: a,
-    }));
+    const alertList = data.data?.alertsServiceSearch?.alerts?.list || [];
+    return alertList.map((a: any): NormalisedAlert => {
+      const meta = a.metadata || {};
+      const createdMs = meta.created_at?.seconds ? meta.created_at.seconds * 1000 : Date.now();
+      return {
+        id: safeId('taegis', a.id),
+        source: 'Taegis XDR',
+        sourceId: a.id,
+        title: meta.title || meta.description || 'Taegis alert',
+        severity: normSev(meta.severity),
+        device: 'Unknown',
+        time: new Date(createdMs).toISOString(),
+        rawTime: createdMs,
+        description: meta.description || meta.title,
+        verdict: a.status === 'FALSE_POSITIVE' || a.resolution_reason === 'FALSE_POSITIVE' ? 'FP' : 'Pending',
+        confidence: meta.confidence ? Math.round(meta.confidence * 100) : 70,
+        tags: ['taegis', 'xdr', a.status].filter(Boolean),
+        raw: a,
+      };
+    });
   },
 };
