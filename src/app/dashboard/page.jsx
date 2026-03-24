@@ -728,7 +728,19 @@ export default function DashboardPage() {
     'client-gov': DEMO_INCIDENTS.slice(0,1).map(i=>({...i, id:'INC-GOV-01', title:'[Gov] '+i.title})),
   };
 
-  const tools = DEMO_TOOLS;
+  // Merge DEMO_TOOLS with connectedTools so the overview reflects real connections
+  // Any tool in connectedTools is active; DEMO_TOOLS provides the base list + demo-active tools
+  const tools = ALL_TOOLS.map(t => {
+    const isConnected = !!connectedTools[t.id];
+    const demo = DEMO_TOOLS.find(d=>d.id===t.id);
+    return {
+      id: t.id,
+      name: t.name,
+      configured: isConnected || (demo?.configured || false),
+      active: isConnected || (demo?.active || false),
+      alertCount: demo?.alertCount,
+    };
+  }).filter(t => t.active || DEMO_TOOLS.find(d=>d.id===t.id));
   const rawAlerts = TENANT_ALERTS[currentTenant] || DEMO_ALERTS;
   // When a tool is connected, suppress demo alerts from that source
   // (real alerts from the API would replace them)
