@@ -749,7 +749,7 @@ export default function DashboardPage() {
       fetch('/api/integrations/sync', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({integrations, since: Date.now() - 7*24*60*60*1000}),
+        body: JSON.stringify({integrations: integrations.map(i=>({id:i.id})), since: Date.now() - 7*24*60*60*1000}),
       })
       .then(r=>r.json())
       .then(d=>{
@@ -965,9 +965,18 @@ export default function DashboardPage() {
           </button>
         ))}
         <div style={{marginTop:'auto',display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
-          {isAdmin && <button onClick={()=>setActiveTab('admin')} title='Admin Portal' style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem',border:'none',cursor:'pointer',background:activeTab==='admin'?'#f0a03018':'transparent'}}>🔧</button>}
-          <a href='/guide' title='User Guide' style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem'}}>📖</a>
-          <a href='/settings' title='Settings' style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem'}}>⚙️</a>
+          {isAdmin && (
+            <button onClick={()=>setActiveTab('admin')} title='Admin Portal'
+              style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',
+                borderRadius:8,fontSize:'0.85rem',border:`1px solid ${activeTab==='admin'?'#f0a03040':'transparent'}`,
+                cursor:'pointer',background:activeTab==='admin'?'#f0a03018':'transparent',
+                transition:'all .15s',position:'relative'}}>
+              🔧
+              {activeTab!=='admin' && <span style={{position:'absolute',top:3,right:3,width:5,height:5,borderRadius:'50%',background:'#f0a030',boxShadow:'0 0 4px #f0a030'}} />}
+            </button>
+          )}
+          <a href='/guide' title='User Guide' style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem',color:'inherit',textDecoration:'none'}}>📖</a>
+          <a href='/settings' title='Settings' style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem',color:'inherit',textDecoration:'none'}}>⚙️</a>
         </div>
       </div>
 
@@ -992,6 +1001,12 @@ export default function DashboardPage() {
                 {t==='vulns'&&kevVulns.length>0&&<span style={{marginLeft:5,fontSize:'0.48rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f97316',color:'#fff'}}>{kevVulns.length} KEV</span>}
               </button>
             ))}
+            {isAdmin && (
+              <button className={`tab-btn${activeTab==='admin'?' active':''}`} onClick={()=>setActiveTab('admin')}
+                style={{color: activeTab==='admin'?'#f0a030':undefined, background: activeTab==='admin'?'#f0a03018':undefined, borderColor: activeTab==='admin'?'#f0a03030':undefined}}>
+                🔧 Admin
+              </button>
+            )}
           </div>
           <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:10}}>
             <button onClick={toggleTheme} title={theme==='dark'?'Light mode':'Dark mode'} style={{width:32,height:32,borderRadius:8,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.9rem',flexShrink:0}}>{theme==='dark'?'☀️':'🌙'}</button>
