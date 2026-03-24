@@ -19,7 +19,8 @@ type KeyStatus = 'idle' | 'saving' | 'saved' | 'error';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const SEV_COLOR:Record<SevKey,string> = { Critical:'#f0405e', High:'#f97316', Medium:'#f0a030', Low:'#4f8fff' };
-const VERDICT_STYLE:Record<VerdictKey,{c:string,bg:string,label:string}> = {
+type VStyle = {c:string; bg:string; label:string};
+const VERDICT_STYLE:Record<VerdictKey,VStyle> = {
   TP:{c:'#f0405e',bg:'#f0405e12',label:'True Positive'},
   FP:{c:'#22d49a',bg:'#22d49a12',label:'False Positive'},
   SUS:{c:'#f0a030',bg:'#f0a03012',label:'Suspicious'},
@@ -421,7 +422,8 @@ const ALL_TOOLS = [
   {id:'okta',name:'Okta',category:'Identity',desc:'Identity & access management'},
 ];
 
-const CRED_FIELDS: Record<string,{key:string;label:string;secret?:boolean;placeholder?:string}[]> = {
+type CredField = {key:string; label:string; secret?:boolean; placeholder?:string};
+const CRED_FIELDS: Record<string,CredField[]> = {
   crowdstrike:[{key:'client_id',label:'Client ID'},{key:'client_secret',label:'Client Secret',secret:true},{key:'base_url',label:'Base URL (optional)',placeholder:'https://api.crowdstrike.com'}],
   defender:[{key:'tenant_id',label:'Tenant ID',placeholder:'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'},{key:'client_id',label:'Application (Client) ID'},{key:'client_secret',label:'Client Secret',secret:true}],
   sentinelone:[{key:'host',label:'Management URL',placeholder:'https://your-tenant.sentinelone.net'},{key:'api_token',label:'API Token',secret:true}],
