@@ -458,6 +458,7 @@ function ToolsTab({ connected, setConnected }: { connected: ConnectedMap; setCon
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<TestResult | null>(null);
   const [anthropicKey, setAnthropicKey] = useState('');
+  const [keyStatus, setKeyStatus] = useState<KeyStatus>('idle');
   const [aiTestStatus, setAiTestStatus] = useState<AiTestStatus | null>(null);
   const [aiTestLoading, setAiTestLoading] = useState(false);
 
