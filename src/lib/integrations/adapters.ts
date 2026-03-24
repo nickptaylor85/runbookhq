@@ -518,29 +518,33 @@ export const taegis: IntegrationAdapter = {
   ],
   async testConnection(creds) {
     try {
-      const region = creds.region || 'us1';
-      const base = `https://${region}.taegis.secureworks.com`;
-      const tokenRes = await fetch(`${base}/auth/api/v2/auth/token`, {
+      const params = new URLSearchParams({ grant_type: 'client_credentials', client_id: creds.client_id, client_secret: creds.client_secret });
+      const tokenRes = await fetch('https://api.ctpx.secureworks.com/auth/api/v2/auth/token', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ client_id: creds.client_id, client_secret: creds.client_secret }),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params.toString(),
       });
-      if (!tokenRes.ok) throw new Error(`Auth HTTP ${tokenRes.status}`);
+      if (!tokenRes.ok) {
+        const err = await tokenRes.text().catch(()=>'');
+        throw new Error(`Auth HTTP ${tokenRes.status}: ${err.slice(0,100)}`);
+      }
+      const d = await tokenRes.json();
+      if (!d.access_token) throw new Error('No access_token in response');
       return { ok: true, message: 'Connected to Secureworks Taegis' };
-    } catch(e: any) { return { ok: false, message: 'Connection failed', details: e.message }; }
+    } catch(e: any) { return { ok: false, message: 'Connection failed: ' + e.message }; }
   },
   async fetchAlerts(creds, since) {
     const region = creds.region || 'us1';
-    const base = `https://${region}.taegis.secureworks.com`;
-    const tokenRes = await fetch(`${base}/auth/api/v2/auth/token`, {
+    const params = new URLSearchParams({ grant_type: 'client_credentials', client_id: creds.client_id, client_secret: creds.client_secret });
+    const tokenRes = await fetch('https://api.ctpx.secureworks.com/auth/api/v2/auth/token', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ client_id: creds.client_id, client_secret: creds.client_secret }),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString(),
     });
     const tokenData = await tokenRes.json();
     const token = tokenData.access_token;
     const query = `query { alertsServiceSearch(in: { limit: 100, offset: 0, cql_query: "severity >= 3 AND status != SUPPRESSED" }) { alerts { id title message severity status entities { type entities { ... on AssetEndpoint { hostname } } } } } }`;
-    const res = await fetch(`${base}/graphql`, {
+    const res = await fetch(`https://${region}.taegis.secureworks.com/graphql`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ query }),
