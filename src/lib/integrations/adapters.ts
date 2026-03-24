@@ -559,9 +559,8 @@ export const taegis: IntegrationAdapter = {
     });
     const tokenData = await tokenRes.json();
     const token = tokenData.access_token;
-    const query = `query { alertsServiceSearch(in: { limit: 100, offset: 0, cql_query: "severity >= 3 AND status != SUPPRESSED" }) { alerts { id title message severity status created_at confidence_score entities { type entities { ... on AssetEndpoint { hostname ip_addresses } } } } } }`;
-    // Correct GraphQL endpoint per region:
-    // us1 → api.ctpx.secureworks.com, eu1/us2 → api.{region}.taegis.secureworks.com
+    // Taegis GraphQL - minimal query using confirmed working fields
+    const query = `query { alertsServiceSearch(in: { limit: 100, offset: 0, cql_query: "severity >= HIGH AND status != SUPPRESSED" }) { alerts { id title message severity status created_at resolution_reason sensor_types } } }`;
     const graphqlHost = region === 'us1' || !region
       ? 'api.ctpx.secureworks.com'
       : `api.${region}.taegis.secureworks.com`;
@@ -579,12 +578,12 @@ export const taegis: IntegrationAdapter = {
       sourceId: a.id,
       title: a.title || a.message || 'Taegis alert',
       severity: normSev(a.severity),
-      device: a.entities?.[0]?.entities?.[0]?.hostname || 'Unknown',
+      device: 'Unknown',
       time: a.created_at || new Date().toISOString(),
       rawTime: new Date(a.created_at || Date.now()).getTime(),
       description: a.message || a.title,
       verdict: a.status === 'FALSE_POSITIVE' ? 'FP' : 'Pending',
-      confidence: a.confidence_score ? Math.round(a.confidence_score * 100) : 70,
+      confidence: 70,
       tags: ['taegis', 'xdr', a.status].filter(Boolean),
       raw: a,
     }));
