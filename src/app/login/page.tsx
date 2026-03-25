@@ -15,7 +15,7 @@ const BTN: React.CSSProperties = {
   fontFamily: 'Inter,sans-serif', transition: 'background .15s',
 };
 
-export default function LoginPage() {
+function LoginPageInner() {
   const router = useRouter();
   const params = useSearchParams();
 
@@ -239,5 +239,18 @@ export default function LoginPage() {
     <p style={{ marginTop:16, textAlign:'center', fontSize:'0.72rem', color:'#3a4050' }}>
       Don&apos;t have an account? <a href="/signup" style={{ color:'#4f8fff', textDecoration:'none', fontWeight:600 }}>Sign up free</a>
     </p>
+  );
+}
+
+import { Suspense } from 'react';
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight:'100vh', background:'#050508', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter,sans-serif', color:'#6b7a94', fontSize:'0.88rem' }}>
+        Loading…
+      </div>
+    }>
+      <LoginPageInner />
+    </Suspense>
   );
 }
