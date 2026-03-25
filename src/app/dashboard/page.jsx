@@ -180,10 +180,10 @@ function RemediationOutput({ text }) {
     if (!trimmed) { if (!inCode) continue; }
 
     // Detect code block start: line ending in { or contains | where or | search or | stats
-    const endsWithOp = ['{','}',';','|'].some(c=>trimmed.endsWith(c)); const isCodeLine = endsWithOp || /^(DeviceProcess|DeviceNetwork|Security|Identity|Cloud|Mailbox|source=|index=)/.test(trimmed) || (inCode && trimmed.length > 0);
-    const isQueryLabel = /^(KQL QUERY|SPLUNK QUERY|SENTINEL|DEFENDER|MICROSOFT|SOURCE=)/i.test(trimmed);
-    const isMajorHeading = /^[A-Z][A-Z\s\-:\/]+$/.test(trimmed) && trimmed.length > 8 && trimmed.length < 80 && !isCodeLine;
-    const isSubHeading = /^(KQL QUERY \d+:|SPLUNK QUERY FOR |MICROSOFT |DETECTION |REMEDIATION |COMPENSATING |COMMON |HOW ATTACKERS)/i.test(trimmed);
+    const endsWithOp = ['{','}',';','|'].some(c=>trimmed.endsWith(c)); const isCodeLine = endsWithOp || ['DeviceProcess','DeviceNetwork','Security','Identity','Cloud','Mailbox','source=','index='].some(p=>trimmed.startsWith(p)) || (inCode && trimmed.length > 0);
+    const isQueryLabel = ['KQL QUERY','SPLUNK QUERY','SENTINEL','DEFENDER','MICROSOFT','SOURCE='].some(p=>trimmed.toUpperCase().startsWith(p));
+    const isMajorHeading = trimmed === trimmed.toUpperCase() && trimmed.length > 8 && trimmed.length < 80 && !isCodeLine && (trimmed[0] >= 'A' && trimmed[0] <= 'Z');
+    const isSubHeading = ['KQL QUERY','SPLUNK QUERY FOR','MICROSOFT','DETECTION','REMEDIATION','COMPENSATING','COMMON','HOW ATTACKERS'].some(p=>trimmed.toUpperCase().startsWith(p));
 
     if (isSubHeading || isQueryLabel) {
       if (inCode && codeBuffer.length) { blocks.push({ type:'code', content:codeBuffer.join('\n'), id:('code-' + (++codeId)) }); codeBuffer = []; inCode = false; }
@@ -712,8 +712,8 @@ function SalesDashboard() {
     community:{ name:'Community',mrr:0,    label:'Free',     color:'#6b7a94' },
   };
 
-  const mrrGap = mrrTarget ? Math.max(0, parseInt(mrrTarget.replace(/[^0-9]/g,'')) - CURRENT.mrr) : 0;
-  const arrGap = arrTarget ? Math.max(0, parseInt(arrTarget.replace(/[^0-9]/g,'')) - CURRENT.arr) : 0;
+  const mrrGap = mrrTarget ? Math.max(0, parseInt(mrrTarget.split('').filter(c=>c>='0'&&c<='9').join('')) - CURRENT.mrr) : 0;
+  const arrGap = arrTarget ? Math.max(0, parseInt(arrTarget.split('').filter(c=>c>='0'&&c<='9').join('')) - CURRENT.arr) : 0;
   const effectiveGap = mrrGap || (arrGap ? Math.ceil(arrGap/12) : 0);
 
   // Calculate how many of each plan type needed to fill the gap
@@ -2736,7 +2736,7 @@ Severity: ${alert.severity}`;
                         {item.mitre && (
                           <div style={{marginTop:10,display:'flex',alignItems:'center',gap:8}}>
                             <span style={{fontSize:'0.6rem',color:'var(--wt-dim)'}}>MITRE ATT&CK:</span>
-                            <a href={`https://attack.mitre.org/techniques/${item.mitre.replace('.','/')}/`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.66rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:'#7c6aff',textDecoration:'none',padding:'2px 8px',border:'1px solid #7c6aff25',borderRadius:3,background:'#7c6aff10'}}>{item.mitre} →</a>
+                            <a href={`https://attack.mitre.org/techniques/${item.mitre.split('.').join('/')}/`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.66rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:'#7c6aff',textDecoration:'none',padding:'2px 8px',border:'1px solid #7c6aff25',borderRadius:3,background:'#7c6aff10'}}>{item.mitre} →</a>
                           </div>
                         )}
                         {item.iocs && item.iocs.length>0 && (
@@ -2794,7 +2794,7 @@ Severity: ${alert.severity}`;
                         {item.mitre && (
                           <div style={{marginTop:10,display:'flex',alignItems:'center',gap:8}}>
                             <span style={{fontSize:'0.6rem',color:'var(--wt-dim)'}}>MITRE ATT&CK:</span>
-                            <a href={`https://attack.mitre.org/techniques/${item.mitre.replace('.','/')}/`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.66rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:'#7c6aff',textDecoration:'none',padding:'2px 8px',border:'1px solid #7c6aff25',borderRadius:3,background:'#7c6aff10'}}>{item.mitre} →</a>
+                            <a href={`https://attack.mitre.org/techniques/${item.mitre.split('.').join('/')}/`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.66rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:'#7c6aff',textDecoration:'none',padding:'2px 8px',border:'1px solid #7c6aff25',borderRadius:3,background:'#7c6aff10'}}>{item.mitre} →</a>
                           </div>
                         )}
                         {item.iocs && item.iocs.length>0 && (
