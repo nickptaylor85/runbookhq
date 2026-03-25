@@ -1629,6 +1629,39 @@ export default function DashboardPage() {
       setCustomIntel(null);
     }
   },[demoMode]);
+
+  // Live triage: when an alert is expanded in live mode, fetch AI triage if not cached
+  useEffect(()=>{
+    if (demoMode) return;
+    expandedAlerts.forEach(alertId => {
+      if (aiTriageCache[alertId]) return; // already cached or loading
+      const alert = alerts.find(a => a.id === alertId);
+      if (!alert) return;
+      setAiTriageCache(prev => ({...prev, [alertId]: {loading: true, result: null}}));
+      const prompt = `Triage this security alert in under 100 words. Verdict (True Positive/False Positive/Suspicious), confidence %, and key reasoning.
+
+Alert: ${alert.title}
+Source: ${alert.source}
+Device: ${alert.device || 'Unknown'}
+Severity: ${alert.severity}`;
+      fetch('/api/copilot', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({prompt}),
+      })
+      .then(r => r.json())
+      .then(d => {
+        setAiTriageCache(prev => ({...prev, [alertId]: {
+          loading: false,
+          result: d.ok ? {reasoning: d.response, verdict: 'Pending', confidence: 0} : null,
+          error: d.ok ? null : (d.error || d.message),
+        }}));
+      })
+      .catch(() => {
+        setAiTriageCache(prev => ({...prev, [alertId]: {loading: false, result: null, error: 'Failed'}}));
+      });
+    });
+  }, [expandedAlerts, demoMode]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [userRole, setUserRole] = useState(null); // null=owner, 'tech_admin', 'viewer', 'sales'
   const [sessionLoaded, setSessionLoaded] = useState(false);
@@ -2355,7 +2388,7 @@ export default function DashboardPage() {
                                 )}
                               </div>
                             )}
-                            {!demoMode && !aiTriageCache[alert.id] && (()=>{ runLiveTriage(alert); return null; })()}
+
                             {!demoMode && (aiTriageCache[alert.id]?.loading || !aiTriageCache[alert.id]) && (
                               <div style={{padding:'10px 0',fontSize:'0.72rem',color:'var(--wt-muted)',display:'flex',alignItems:'center',gap:8}}>
                                 <span style={{width:10,height:10,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>
