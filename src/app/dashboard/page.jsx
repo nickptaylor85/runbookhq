@@ -2431,32 +2431,31 @@ export default function DashboardPage() {
                   })}
 
                   {/* ── Pagination ── */}
-                  {totalPages > 1 && (
+                  {alertTotalPages > 1 && (
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 4px',marginTop:4}}>
                       <span style={{fontSize:'0.7rem',color:'var(--wt-muted)'}}>
-                        Showing {page*PAGE_SIZE+1}–{Math.min((page+1)*PAGE_SIZE,filtered.length)} of {filtered.length} alerts
+                        Showing {alertPageClamped*ALERT_PAGE_SIZE+1}–{Math.min((alertPageClamped+1)*ALERT_PAGE_SIZE,alertsSorted.length)} of {alertsSorted.length} alerts
                       </span>
                       <div style={{display:'flex',gap:4}}>
-                        <button disabled={page===0} onClick={()=>setAlertPage(page-1)}
-                          style={{padding:'4px 12px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:page===0?'var(--wt-dim)':'var(--wt-text)',fontSize:'0.72rem',cursor:page===0?'not-allowed':'pointer',fontFamily:'Inter,sans-serif'}}>
+                        <button disabled={alertPageClamped===0} onClick={()=>setAlertPage(alertPageClamped-1)}
+                          style={{padding:'4px 12px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:alertPageClamped===0?'var(--wt-dim)':'var(--wt-text)',fontSize:'0.72rem',cursor:alertPageClamped===0?'not-allowed':'pointer',fontFamily:'Inter,sans-serif'}}>
                           ← Prev
                         </button>
-                        {Array.from({length:Math.min(totalPages,5)},(_,i)=>{
-                          const p = totalPages<=5 ? i : Math.max(0,Math.min(page-2,totalPages-5))+i;
+                        {Array.from({length:Math.min(alertTotalPages,5)},(_,i)=>{
+                          const p = alertTotalPages<=5 ? i : Math.max(0,Math.min(alertPageClamped-2,alertTotalPages-5))+i;
                           return <button key={p} onClick={()=>setAlertPage(p)}
-                            style={{padding:'4px 10px',borderRadius:6,border:`1px solid ${p===page?'#4f8fff':'var(--wt-border2)'}`,background:p===page?'#4f8fff15':'var(--wt-card2)',color:p===page?'#4f8fff':'var(--wt-text)',fontSize:'0.72rem',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:p===page?700:400}}>
+                            style={{padding:'4px 10px',borderRadius:6,border:`1px solid ${p===alertPageClamped?'#4f8fff':'var(--wt-border2)'}`,background:p===alertPageClamped?'#4f8fff15':'var(--wt-card2)',color:p===alertPageClamped?'#4f8fff':'var(--wt-text)',fontSize:'0.72rem',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:p===alertPageClamped?700:400}}>
                             {p+1}
                           </button>;
                         })}
-                        <button disabled={page>=totalPages-1} onClick={()=>setAlertPage(page+1)}
-                          style={{padding:'4px 12px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:page>=totalPages-1?'var(--wt-dim)':'var(--wt-text)',fontSize:'0.72rem',cursor:page>=totalPages-1?'not-allowed':'pointer',fontFamily:'Inter,sans-serif'}}>
+                        <button disabled={alertPageClamped>=alertTotalPages-1} onClick={()=>setAlertPage(alertPageClamped+1)}
+                          style={{padding:'4px 12px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:alertPageClamped>=alertTotalPages-1?'var(--wt-dim)':'var(--wt-text)',fontSize:'0.72rem',cursor:alertPageClamped>=alertTotalPages-1?'not-allowed':'pointer',fontFamily:'Inter,sans-serif'}}>
                           Next →
                         </button>
                       </div>
                     </div>
                   )}
-                </>);
-              })()}
+              </div>
             </div>
           )}
           {activeTab==='coverage' && (
