@@ -22,20 +22,10 @@ const MAX_PROMPT_LENGTH = 4000;
 
 export async function POST(req: NextRequest) {
   try {
-    // Rate limit: 20 AI requests per user per minute
     const userId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
-    // BYOK: Community tier cannot access AI features
-  const userTier = req.headers.get('x-user-tier') || 'community';
-  const hasBYOK = !!(process.env.WATCHTOWER_API_KEY); // platform key counts as BYOK for owner
-  // In production, check tenant's own Anthropic key exists in Redis
-  // For now, allow if platform key exists (dev/owner) or tenant is not community
-  const isOwner = req.headers.get('x-is-admin') === 'true';
-  // Community: read-only AI triage only (no co-pilot)
-  const prompt = await req.clone().json().then((b:any) => b.prompt || '').catch(()=>'');
-  if (userTier === 'community' && !isOwner && prompt.length > 200) {
-    return NextResponse.json({ error: 'AI Co-Pilot requires Team plan or higher. Upgrade to access this feature.' }, { status: 403 });
-  }
-  const rl = await checkRateLimit(`copilot:${userId}`, 20, 60);
+    const isOwner = req.headers.get('x-is-admin') === 'true';
+
+    const rl = await checkRateLimit(`copilot:${userId}`, 20, 60);
     if (!rl.ok) {
       return NextResponse.json({ 
         ok: false, message: `Rate limit exceeded. ${rl.remaining} requests remaining. Resets in ${rl.reset}s.` 
@@ -43,8 +33,6 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json() as { prompt?: unknown; messages?: unknown };
-    
-    // Input validation
     if (!body.prompt && !body.messages) {
       return NextResponse.json({ ok: false, message: 'prompt or messages required' }, { status: 400 });
     }
@@ -54,7 +42,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, message: 'Prompt too long (max 4000 chars)' }, { status: 400 });
     }
 
-    // Get tenant from middleware-injected header
+    // BYOK enforcement: Community users limited to short triage prompts (≤200 chars)
+    const userTier = req.headers.get('x-user-tier') || 'community';
+    if (userTier === 'community' && !isOwner && prompt && prompt.length > 200) {
+      return NextResponse.json({ error: 'AI Co-Pilot requires Team plan or higher.' }, { status: 403 });
+    }
+
     const tenantId = req.headers.get('x-tenant-id') || 
       (await cookies()).get('wt_tenant')?.value || 'global';
     
@@ -83,7 +76,6 @@ export async function POST(req: NextRequest) {
     });
 
     if (!resp.ok) {
-      const err = await resp.text();
       return NextResponse.json({ ok: false, message: `AI error: ${resp.status}` }, { status: 502 });
     }
 
