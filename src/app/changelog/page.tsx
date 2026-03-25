@@ -1,0 +1,310 @@
+'use client';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
+const VERSIONS = [
+  {
+    version: 'v74.9.11',
+    date: '2026-03-25',
+    tag: 'Alerts',
+    tagColor: '#4f8fff',
+    summary: 'Complete alerts tab overhaul — all missing features built',
+    changes: [
+      { type: 'feat', text: 'Sort alerts by time (newest/oldest), severity, or source A–Z' },
+      { type: 'feat', text: 'Create Incident from any alert — single-click or bulk-select multiple alerts into one correlated incident' },
+      { type: 'feat', text: 'Export filtered alerts to CSV (ID, title, severity, source, device, time, verdict, confidence, MITRE, notes)' },
+      { type: 'feat', text: 'Analyst Notes — inline per-alert note-taking with add/edit/delete and 📝 badge on collapsed cards' },
+      { type: 'feat', text: 'Pagination — 10 alerts per page with windowed page buttons and "X–Y of Z" count' },
+      { type: 'fix', text: 'Alert verdict/acknowledge changes now persist via alertOverrides state pattern' },
+      { type: 'fix', text: 'Manually created incidents appear immediately in Incidents tab' },
+    ],
+  },
+  {
+    version: 'v74.9.9 – v74.9.10',
+    date: '2026-03-25',
+    tag: 'Auth & Payments',
+    tagColor: '#22d49a',
+    summary: 'Full signup/login flows, MFA steps, working Stripe checkout',
+    changes: [
+      { type: 'feat', text: 'Login page rebuilt: MFA TOTP challenge step, invite token acceptance, forgot password, reset-confirm all in one page' },
+      { type: 'feat', text: 'Signup page: plan selector (Community/Team/Business/MSSP), real account creation, auto-Stripe checkout for paid plans' },
+      { type: 'feat', text: '/api/auth/register implemented — creates user in Redis with hashed password, validates uniqueness' },
+      { type: 'feat', text: 'Stripe checkout now reads price IDs from Redis (Admin → Stripe config) with env var fallback' },
+      { type: 'fix', text: 'useSearchParams() wrapped in Suspense on login page for Next.js 15 compatibility' },
+      { type: 'fix', text: 'Double intel fetch on live mode mount eliminated via hasMountedRef guard' },
+    ],
+  },
+  {
+    version: 'v74.9.8',
+    date: '2026-03-25',
+    tag: 'Threat Intel',
+    tagColor: '#f0405e',
+    summary: 'Live threat intel actually works — date context, proper fallbacks, source URLs',
+    changes: [
+      { type: 'fix', text: 'Empty array treated as truthy caused blank intel — fixed to null-fallback on empty/error responses' },
+      { type: 'fix', text: 'Live intel was mixing in demo items even when fresh data loaded — now shows only AI intel in live mode' },
+      { type: 'feat', text: "Today's date injected into AI prompt so intel feels current not timeless" },
+      { type: 'feat', text: 'Intel items now have real source URLs (NCSC, CISA, ThreatFox etc) — "Read article →" links to actual sources' },
+      { type: 'feat', text: '● LIVE badge on intel header, spinner during refresh, "Add API key" warning when no key configured' },
+      { type: 'feat', text: 'AI prompted to use named threat actors (APT41, Lazarus, BlackCat) and real CVE numbers' },
+    ],
+  },
+  {
+    version: 'v74.9.7',
+    date: '2026-03-25',
+    tag: 'Bug Fixes',
+    tagColor: '#f0a030',
+    summary: 'Seven functional bugs fixed across intel, vulns, Sales AI, and coverage',
+    changes: [
+      { type: 'fix', text: 'Intel articles now link to source URLs — was pointing at Google search for title text' },
+      { type: 'fix', text: 'Intel tab auto-fetches on live mode toggle and mount — was only updating on dropdown change' },
+      { type: 'fix', text: 'Live mode vulns: sync results now split by source — Tenable/Nessus/Qualys/Wiz go to Vulns tab, rest to Alerts' },
+      { type: 'fix', text: 'Sales AI stale closure fixed — useEffect now uses inline fetch, fires correctly on every gap change' },
+      { type: 'feat', text: 'Deploy Agent button added to coverage gap device rows — opens existing modal' },
+      { type: 'feat', text: 'Chase Payment buttons now open pre-filled mailto: with client name and invoice reminder' },
+      { type: 'fix', text: 'getAiAnalysis converted from async/await to promise-based to avoid hook ordering issues' },
+    ],
+  },
+  {
+    version: 'v74.9.4 – v74.9.6',
+    date: '2026-03-25',
+    tag: 'MFA & SAML',
+    tagColor: '#8b6fff',
+    summary: 'Full TOTP/MFA and SAML 2.0 SSO — zero new npm dependencies',
+    changes: [
+      { type: 'feat', text: 'TOTP/MFA — pure Node.js crypto implementation (RFC 6238), no npm deps. Setup in Settings → Account' },
+      { type: 'feat', text: 'TOTP login challenge: password success → MFA step if enabled → session issued' },
+      { type: 'feat', text: 'SAML 2.0 SSO — Admin → SAML tab. Supports Okta, Azure AD, Google Workspace, OneLogin, any SAML 2.0 IdP' },
+      { type: 'feat', text: 'SP Metadata endpoint at /api/auth/saml/metadata for IdP configuration' },
+      { type: 'feat', text: 'Auto-provision new users on first SAML login with configurable default role and domain allowlist' },
+      { type: 'feat', text: 'Attribute mapping (email, displayName, role) configurable per IdP in Admin → SAML panel' },
+      { type: 'fix', text: 'SAML crash on load: currentTenant was used in panel but not passed as prop to AdminPortal' },
+    ],
+  },
+  {
+    version: 'v74.9.0 – v74.9.3',
+    date: '2026-03-24',
+    tag: 'Platform',
+    tagColor: '#22d49a',
+    summary: 'Real user persistence, invite flow, Stripe admin panel, landing page refresh',
+    changes: [
+      { type: 'feat', text: 'User persistence — staff users stored in Redis as AES-256-GCM encrypted JSON with full CRUD' },
+      { type: 'feat', text: 'Real invite flow — generates signed token, sends email via Resend, 48h expiry, invited user sets own password' },
+      { type: 'feat', text: 'Password reset — time-limited token via Redis (1h TTL), email delivery, confirm flow' },
+      { type: 'feat', text: 'Enhanced login — handles owner (env vars), staff (Redis), invite token acceptance in one route' },
+      { type: 'feat', text: 'Stripe Admin panel — configure publishable key, secret key, webhook secret, and all plan price IDs. Keys encrypted in Redis' },
+      { type: 'feat', text: 'Stripe tab in Admin portal with plan status indicators and webhook setup instructions' },
+      { type: 'feat', text: 'Landing page rebuilt — fixed broken CDN logos (now inline coloured badges), 9 features, updated pricing, all sections' },
+      { type: 'fix', text: 'Copilot route: duplicate prompt variable caused webpack build failure' },
+      { type: 'fix', text: 'Sales AI: BYOK gate was 403-ing admin users due to missing x-is-admin header injection' },
+    ],
+  },
+  {
+    version: 'v74.8.26 – v74.8.30',
+    date: '2026-03-23',
+    tag: 'Security Hardening',
+    tagColor: '#f0405e',
+    summary: '0 Critical, 0 High, 0 Medium security findings — full pen test remediation',
+    changes: [
+      { type: 'security', text: 'Auth middleware (src/middleware.ts) — Web Crypto API HMAC session tokens, intercepts all /api/* routes' },
+      { type: 'security', text: 'AES-256-GCM encryption (src/lib/encrypt.ts) — all tool credentials encrypted before Redis write' },
+      { type: 'security', text: 'SSRF protection (src/lib/ssrf.ts) — blocks private IP ranges, per-tool domain allowlists' },
+      { type: 'security', text: 'Rate limiting (src/lib/ratelimit.ts) — Upstash Redis: copilot 20/min, sync 30/min, test 10/min' },
+      { type: 'security', text: 'Credentials GET endpoint — only returns URL/region, all secrets masked as ••••••••' },
+      { type: 'security', text: 'isAdmin loaded from /api/auth/session — HMAC verified, not client-supplied' },
+      { type: 'security', text: 'All 7 /api/admin/* routes have requireAdmin() guard returning 403' },
+      { type: 'security', text: 'Security headers in next.config.js — X-Frame-Options: DENY, X-Content-Type-Options, etc.' },
+      { type: 'security', text: 'BYOK enforcement — Community users blocked from AI Co-Pilot (long prompts >200 chars)' },
+    ],
+  },
+  {
+    version: 'v74.8.16 – v74.8.25',
+    date: '2026-03-22',
+    tag: 'Integrations',
+    tagColor: '#4f8fff',
+    summary: 'All 18 adapters verified and fixed — Taegis XDR, Darktrace HMAC, full demo data coverage',
+    changes: [
+      { type: 'fix', text: 'Taegis XDR auth endpoint corrected: https://api.ctpx.secureworks.com/auth/api/v2/auth/token (form-encoded)' },
+      { type: 'fix', text: 'Taegis GraphQL endpoint and CQL query syntax corrected, response path fixed to data.alertsServiceSearch.alerts.list[]' },
+      { type: 'fix', text: 'Darktrace HMAC-SHA1 signing verified and working via Web Crypto API' },
+      { type: 'fix', text: 'SentinelOne ApiToken header prefix confirmed correct' },
+      { type: 'fix', text: 'QRadar SEC header and Version: 14.0 confirmed correct' },
+      { type: 'feat', text: 'Demo data expanded from 6 to 14 alerts covering all 18 supported tools' },
+      { type: 'feat', text: 'New demo alerts: Taegis (ransomware), Proofpoint (phishing), Okta (OAuth consent), Elastic (Log4Shell), SentinelOne (Cobalt Strike), Carbon Black (Empire C2), Tenable (KEV CVE), QRadar (insider threat)' },
+    ],
+  },
+  {
+    version: 'v74.8.0 – v74.8.15',
+    date: '2026-03-21',
+    tag: 'Core Platform',
+    tagColor: '#8b6fff',
+    summary: 'Initial production build — dashboard, all tabs, MSSP, Sales, Admin portal',
+    changes: [
+      { type: 'feat', text: 'Single-pane dashboard with Overview, Alerts, Coverage, Vulns, Intel, Incidents, Tools tabs' },
+      { type: 'feat', text: '18 security tool integrations: CrowdStrike, Defender, Sentinel, Splunk, SentinelOne, Darktrace, QRadar, Elastic, Tenable, Nessus, Carbon Black, Zscaler, Okta, Proofpoint, Mimecast, Qualys, Wiz, Taegis XDR' },
+      { type: 'feat', text: 'AI triage on every alert — TP/FP/SUS verdict, confidence score, evidence chain, recommended actions' },
+      { type: 'feat', text: 'AI Co-Pilot chat assistant scoped to security operations topics' },
+      { type: 'feat', text: 'MSSP Portfolio tab — per-client posture, revenue, usage. Tenant switching. White-label branding' },
+      { type: 'feat', text: 'Sales Dashboard — MRR/ARR target planner, AI-generated GTM strategy' },
+      { type: 'feat', text: 'Admin Portal — subscribers, users/roles, platform health, broadcast. Invite staff, RBAC roles' },
+      { type: 'feat', text: 'Demo ↔ Live mode toggle — live mode syncs from connected tools every 60 seconds' },
+      { type: 'feat', text: 'Autonomous response automation — 3 levels: Recommend Only, Auto+Notify, Full Auto' },
+      { type: 'feat', text: 'Redis persistence for all settings, credentials, and user data via Upstash' },
+      { type: 'feat', text: 'Coverage gap map with Deploy Agent modal and per-tool filtering' },
+      { type: 'feat', text: 'Vulnerability intelligence with CISA KEV badges, AI remediation queries (Splunk SPL, Sentinel KQL, Defender)' },
+      { type: 'feat', text: 'Incident management with AI attack narratives, MITRE kill chains, timeline views' },
+    ],
+  },
+];
+
+const TAG_TYPES: Record<string, { color: string; label: string }> = {
+  feat: { color: '#4f8fff', label: 'Feature' },
+  fix: { color: '#22d49a', label: 'Fix' },
+  security: { color: '#f0405e', label: 'Security' },
+  perf: { color: '#f0a030', label: 'Performance' },
+};
+
+export default function ChangelogPage() {
+  const router = useRouter();
+  const [authed, setAuthed] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<'all'|'feat'|'fix'|'security'>('all');
+  const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    fetch('/api/auth/session')
+      .then(r => r.json())
+      .then(d => {
+        if (d.isAdmin) { setAuthed(true); }
+        else { router.replace('/dashboard'); }
+        setLoading(false);
+      })
+      .catch(() => { router.replace('/login'); setLoading(false); });
+  }, [router]);
+
+  if (loading) return (
+    <div style={{ minHeight:'100vh', background:'#050508', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter,sans-serif', color:'#6b7a94' }}>
+      Loading…
+    </div>
+  );
+  if (!authed) return null;
+
+  const filtered = VERSIONS.map(v => ({
+    ...v,
+    changes: v.changes.filter(c =>
+      (filter === 'all' || c.type === filter) &&
+      (search === '' || c.text.toLowerCase().includes(search.toLowerCase()) || v.summary.toLowerCase().includes(search.toLowerCase()))
+    ),
+  })).filter(v => v.changes.length > 0);
+
+  const totalFeat = VERSIONS.flatMap(v => v.changes).filter(c => c.type === 'feat').length;
+  const totalFix = VERSIONS.flatMap(v => v.changes).filter(c => c.type === 'fix').length;
+  const totalSec = VERSIONS.flatMap(v => v.changes).filter(c => c.type === 'security').length;
+
+  return (
+    <div style={{ minHeight:'100vh', background:'#050508', color:'#e8ecf4', fontFamily:'Inter,sans-serif' }}>
+      {/* Top bar */}
+      <div style={{ display:'flex', alignItems:'center', padding:'12px 24px', borderBottom:'1px solid #141820', background:'#07090f', gap:12, position:'sticky', top:0, zIndex:50 }}>
+        <a href="/dashboard" style={{ display:'flex', alignItems:'center', gap:8, textDecoration:'none', color:'inherit' }}>
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+            <rect width="26" height="26" rx="7" fill="url(#clg)"/>
+            <path d="M13 4.5L20 8V13.5C20 17 17 20.5 13 22C9 20.5 6 17 6 13.5V8L13 4.5Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" strokeWidth="0.7"/>
+            <path d="M10.5 13L12.5 15L16 11" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+            <defs><linearGradient id="clg" x1="0" y1="0" x2="26" y2="26" gradientUnits="userSpaceOnUse"><stop stopColor="#3b7fff"/><stop offset="1" stopColor="#7c3aff"/></linearGradient></defs>
+          </svg>
+          <span style={{ fontWeight:800, fontSize:'0.9rem' }}>Watchtower</span>
+        </a>
+        <span style={{ color:'#2a3448', margin:'0 2px' }}>/</span>
+        <span style={{ fontSize:'0.82rem', color:'#6b7a94', fontWeight:600 }}>Feature Updates</span>
+        <span style={{ fontSize:'0.6rem', fontWeight:700, padding:'2px 8px', borderRadius:4, background:'#f0405e12', color:'#f0405e', border:'1px solid #f0405e25', marginLeft:4 }}>ADMIN ONLY</span>
+        <a href="/dashboard" style={{ marginLeft:'auto', padding:'6px 14px', background:'transparent', border:'1px solid #1e2536', borderRadius:7, color:'#6b7a94', fontSize:'0.76rem', fontWeight:600, textDecoration:'none' }}>← Dashboard</a>
+      </div>
+
+      <div style={{ maxWidth:900, margin:'0 auto', padding:'32px 24px' }}>
+        {/* Header */}
+        <div style={{ marginBottom:32 }}>
+          <h1 style={{ fontSize:'1.6rem', fontWeight:900, letterSpacing:-1, marginBottom:8 }}>Feature Updates</h1>
+          <p style={{ fontSize:'0.84rem', color:'#6b7a94', marginBottom:24 }}>Every change shipped to Watchtower — features, fixes, and security hardening.</p>
+
+          {/* Stats */}
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10, marginBottom:24 }}>
+            {[
+              { v:`v74.8 – v74.9`, l:'Version range', c:'#4f8fff' },
+              { v:`${totalFeat}`, l:'Features shipped', c:'#4f8fff' },
+              { v:`${totalFix}`, l:'Bugs fixed', c:'#22d49a' },
+              { v:`${totalSec}`, l:'Security items', c:'#f0405e' },
+            ].map(s => (
+              <div key={s.l} style={{ padding:'14px 16px', background:'#0a0d14', border:'1px solid #141820', borderRadius:10 }}>
+                <div style={{ fontSize:'1.5rem', fontWeight:900, fontFamily:'JetBrains Mono,monospace', color:s.c, letterSpacing:-1 }}>{s.v}</div>
+                <div style={{ fontSize:'0.66rem', color:'#6b7a94', marginTop:4 }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Filter + search */}
+          <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' }}>
+            {(['all','feat','fix','security'] as const).map(f => (
+              <button key={f} onClick={() => setFilter(f)}
+                style={{ padding:'5px 14px', borderRadius:6, border:`1px solid ${filter===f?'#4f8fff':'#1e2536'}`, background:filter===f?'#4f8fff15':'transparent', color:filter===f?'#4f8fff':'#6b7a94', fontSize:'0.74rem', fontWeight:filter===f?700:500, cursor:'pointer', fontFamily:'Inter,sans-serif', transition:'all .12s' }}>
+                {f === 'all' ? 'All' : f === 'feat' ? '✦ Features' : f === 'fix' ? '⚡ Fixes' : '🔒 Security'}
+              </button>
+            ))}
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search changes…"
+              style={{ marginLeft:'auto', padding:'6px 12px', borderRadius:7, border:'1px solid #1e2536', background:'#0a0d14', color:'#e8ecf4', fontSize:'0.76rem', fontFamily:'Inter,sans-serif', outline:'none', width:200 }} />
+          </div>
+        </div>
+
+        {/* Timeline */}
+        <div style={{ position:'relative' }}>
+          {/* Vertical line */}
+          <div style={{ position:'absolute', left:15, top:8, bottom:8, width:2, background:'linear-gradient(180deg,#4f8fff40,#8b6fff20)', borderRadius:1 }} />
+
+          {filtered.map((v, vi) => (
+            <div key={v.version} style={{ display:'flex', gap:20, marginBottom:36, position:'relative' }}>
+              {/* Dot */}
+              <div style={{ width:32, height:32, borderRadius:'50%', background:`${v.tagColor}15`, border:`2px solid ${v.tagColor}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, zIndex:1 }}>
+                <div style={{ width:8, height:8, borderRadius:'50%', background:v.tagColor }} />
+              </div>
+
+              {/* Content */}
+              <div style={{ flex:1, paddingTop:4 }}>
+                {/* Version header */}
+                <div style={{ display:'flex', alignItems:'baseline', gap:10, marginBottom:6, flexWrap:'wrap' }}>
+                  <span style={{ fontSize:'1rem', fontWeight:800, fontFamily:'JetBrains Mono,monospace', color:'#e8ecf4' }}>{v.version}</span>
+                  <span style={{ fontSize:'0.62rem', fontWeight:700, padding:'2px 8px', borderRadius:4, background:`${v.tagColor}15`, color:v.tagColor, border:`1px solid ${v.tagColor}25` }}>{v.tag}</span>
+                  <span style={{ fontSize:'0.66rem', color:'#3a4050', marginLeft:'auto' }}>{v.date}</span>
+                </div>
+                <p style={{ fontSize:'0.82rem', color:'#8a9ab0', marginBottom:12, lineHeight:1.5 }}>{v.summary}</p>
+
+                {/* Change list */}
+                <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
+                  {v.changes.map((c, ci) => {
+                    const t = TAG_TYPES[c.type] || TAG_TYPES.feat;
+                    return (
+                      <div key={ci} style={{ display:'flex', gap:10, alignItems:'flex-start', padding:'7px 10px', background:'#0a0d14', borderRadius:8, border:'1px solid #0e1218' }}>
+                        <span style={{ fontSize:'0.58rem', fontWeight:700, padding:'2px 6px', borderRadius:3, background:`${t.color}15`, color:t.color, border:`1px solid ${t.color}20`, flexShrink:0, marginTop:1, letterSpacing:'0.3px' }}>
+                          {c.type === 'feat' ? 'FEAT' : c.type === 'fix' ? 'FIX' : c.type === 'security' ? 'SEC' : 'PERF'}
+                        </span>
+                        <span style={{ fontSize:'0.8rem', color:'#8a9ab0', lineHeight:1.55 }}>{c.text}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {filtered.length === 0 && (
+          <div style={{ textAlign:'center', padding:'48px 0', color:'#3a4050', fontSize:'0.84rem' }}>
+            No changes match your search
+          </div>
+        )}
+
+        <div style={{ marginTop:40, padding:'16px 20px', background:'#0a0d14', border:'1px solid #141820', borderRadius:10, fontSize:'0.72rem', color:'#3a4050', textAlign:'center' }}>
+          Watchtower · RunbookHQ Ltd · v74.9.11 · {new Date().getFullYear()}
+        </div>
+      </div>
+    </div>
+  );
+}

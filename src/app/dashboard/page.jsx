@@ -1045,6 +1045,7 @@ function AdminPortal({ setCurrentTenant, setActiveTab, clientBanner, setClientBa
             <button key={v} onClick={()=>setAdminView(v)} style={{padding:'5px 14px',borderRadius:5,border:'none',background:adminView===v?'#f0a030':'transparent',color:adminView===v?'#fff':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',textTransform:'capitalize'}}>{v}</button>
           ))}
         </div>
+        <a href='/changelog' style={{fontSize:'0.7rem',fontWeight:700,color:'#8b6fff',textDecoration:'none',display:'flex',alignItems:'center',gap:4,padding:'4px 10px',borderRadius:6,border:'1px solid #8b6fff25',background:'#8b6fff0a'}}>📋 Feature updates →</a>
       </div>
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
@@ -1520,6 +1521,18 @@ export default function DashboardPage() {
   const [intelLoading, setIntelLoading] = useState(false);
   const [customIntel, setCustomIntel] = useState(null);
   const [expandedAlerts, setExpandedAlerts] = useState(new Set());
+  // Alerts tab — new features
+  const [alertSearch, setAlertSearch] = useState('');
+  const [alertSevFilter, setAlertSevFilter] = useState('all');
+  const [alertSrcFilter, setAlertSrcFilter] = useState('all');
+  const [alertSort, setAlertSort] = useState('time-desc'); // time-desc, time-asc, sev-desc, sev-asc, src-asc
+  const [alertPage, setAlertPage] = useState(0);
+  const [selectedAlerts, setSelectedAlerts] = useState(new Set());
+  const [alertNotes, setAlertNotes] = useState({}); // {alertId: noteText}
+  const [editingNote, setEditingNote] = useState(null); // alertId being edited
+  const [noteInput, setNoteInput] = useState('');
+  const [createdIncidents, setCreatedIncidents] = useState([]);
+  const [alertOverrides, setAlertOverrides] = useState({}); // {alertId: {verdict, acknowledged, ...}}
   const [deployAgentDevice, setDeployAgentDevice] = useState(null);
   const [incidentStatuses, setIncidentStatuses] = useState({});
   const [deletedIncidents, setDeletedIncidents] = useState(new Set());
@@ -1706,11 +1719,14 @@ export default function DashboardPage() {
   const rawAlerts = demoMode
     ? (TENANT_ALERTS[currentTenant] || DEMO_ALERTS)
     : liveAlerts;
-  const alerts = rawAlerts;
+  const alerts = rawAlerts.map(a => alertOverrides[a.id] ? {...a, ...alertOverrides[a.id]} : a);
   const vulns = demoMode
     ? (TENANT_VULNS[currentTenant] || DEMO_VULNS)
     : liveVulns.length > 0 ? liveVulns : (TENANT_VULNS[currentTenant] || DEMO_VULNS);
-  const incidents = TENANT_INCIDENTS[currentTenant] || DEMO_INCIDENTS;
+  const incidents = [
+    ...createdIncidents,
+    ...(TENANT_INCIDENTS[currentTenant] || DEMO_INCIDENTS).filter(i=>!createdIncidents.find(c=>c.id===i.id))
+  ];
 
   const activeTools = tools.filter(t=>t.active);
   const taegisActive = tools.find(t=>t.id==='taegis')?.active || false;
@@ -1879,6 +1895,9 @@ export default function DashboardPage() {
           </div>
           <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:10}}>
             <button onClick={toggleTheme} title={theme==='dark'?'Light mode':'Dark mode'} style={{width:32,height:32,borderRadius:8,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.9rem',flexShrink:0}}>{theme==='dark'?'☀️':'🌙'}</button>
+              {isAdmin && (
+                <a href="/changelog" title="Feature updates" style={{width:32,height:32,borderRadius:8,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.82rem',textDecoration:'none',flexShrink:0}} title="Feature updates">📋</a>
+              )}
               <button onClick={()=>setDemoMode(d=>{
                 const next=!d;
                 fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});
@@ -2143,242 +2162,307 @@ export default function DashboardPage() {
                   <div style={{fontSize:'0.64rem',color:'#f0a030',marginTop:4}}>⚠ Under pressure — address critical alerts and KEV patches to improve grade</div>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* ═══════════════════════════════ ALERTS ══════════════════════════════════ */}
-          {activeTab==='alerts' && (
+            {activeTab==='alerts' && (
             <div style={{display:'flex',flexDirection:'column',gap:8}}>
-              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
+
+              {/* ── Header row ── */}
+              <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Live Alerts</h2>
                 <span style={{fontSize:'0.62rem',fontWeight:600,padding:'3px 10px',borderRadius:5,background:`${autColor}12`,color:autColor,border:`1px solid ${autColor}20`}}>
-                  {'⚡✦🤖'[automation]} {autLabel} — {automationBannerText}
+                  {'⚡✦🤖'[automation]} {autLabel}
                 </span>
-                <span style={{marginLeft:'auto',fontSize:'0.7rem',color:'var(--wt-muted)'}}>{alerts.length} total · {fpAlerts.length} auto-closed · {tpAlerts.length} escalated</span>
+                <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:8}}>
+                  <span style={{fontSize:'0.7rem',color:'var(--wt-muted)'}}>{alerts.length} total · {fpAlerts.length} auto-closed · {tpAlerts.length} escalated</span>
+                  {/* Export CSV */}
+                  <button onClick={()=>{
+                    const rows = [['ID','Title','Severity','Source','Device','Time','Verdict','Confidence','MITRE','Notes']];
+                    alerts.forEach(a=>rows.push([a.id,`"${a.title}"`,a.severity,a.source,a.device||'',a.time,a.verdict||'',a.confidence||'',a.mitre||'',`"${alertNotes[a.id]||''}"`]));
+                    const csv = rows.map(r=>r.join(',')).join('
+');
+                    const blob = new Blob([csv],{type:'text/csv'});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a'); a.href=url; a.download=`watchtower-alerts-${new Date().toISOString().split('T')[0]}.csv`; a.click(); URL.revokeObjectURL(url);
+                  }} style={{padding:'4px 10px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                    Export CSV ↓
+                  </button>
+                </div>
               </div>
-              {alerts.map(alert=>{
-                const vStyle = VERDICT_STYLE[alert.verdict];
-                const expanded = expandedAlerts.has(alert.id);
-                const aiActed = alert.verdict==='FP'||alert.verdict==='TP';
-                return (
-                  <div key={alert.id} className='alert-card' style={{padding:0,overflow:'hidden'}}>
-                    <div style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',cursor:'pointer'}} onClick={()=>toggleAlertExpand(alert.id)}>
-                      <div style={{width:4,height:36,borderRadius:2,background:SEV_COLOR[alert.severity],flexShrink:0}} />
-                      <div style={{flex:1,minWidth:0}}>
-                        <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:2}}>
-                          <span style={{fontSize:'0.8rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{alert.title}</span>
-                        </div>
-                        <div style={{display:'flex',gap:6,flexWrap:'wrap',alignItems:'center'}}>
-                          <SevBadge sev={alert.severity} />
-                          <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff18'}}>{alert.source}</span>
-                          <span style={{fontSize:'0.52rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{alert.device}</span>
-                          <span style={{fontSize:'0.52rem',color:'var(--wt-dim)'}}>{alert.time}</span>
-                          {alert.mitre && <span style={{fontSize:'0.48rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{alert.mitre}</span>}
-                        </div>
-                      </div>
-                      <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
-                        {aiActed && (
-                          <span style={{fontSize:'0.52rem',fontWeight:700,padding:'2px 7px',borderRadius:4,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff18',display:'flex',alignItems:'center',gap:4}}>
-                            <span style={{width:5,height:5,borderRadius:'50%',background:'#4f8fff',display:'block'}} />AI acted
-                          </span>
-                        )}
-                        <span style={{fontSize:'0.56rem',fontWeight:800,padding:'2px 8px',borderRadius:4,color:vStyle.c,background:vStyle.bg}}>{vStyle.label}</span>
-                        <span style={{fontSize:'0.72rem',color:'var(--wt-dim)'}}>{expanded?'▲':'▼'}</span>
-                      </div>
+
+              {/* ── Filter + Sort bar ── */}
+              <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
+                <input
+                  value={alertSearch} onChange={e=>{setAlertSearch(e.target.value);setAlertPage(0);}}
+                  placeholder="Search alerts…"
+                  style={{padding:'6px 10px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.76rem',fontFamily:'Inter,sans-serif',outline:'none',width:180}}
+                />
+                <select value={alertSevFilter} onChange={e=>{setAlertSevFilter(e.target.value);setAlertPage(0);}}
+                  style={{padding:'6px 10px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.76rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                  <option value='all'>All severities</option>
+                  <option value='Critical'>Critical</option>
+                  <option value='High'>High</option>
+                  <option value='Medium'>Medium</option>
+                  <option value='Low'>Low</option>
+                </select>
+                <select value={alertSrcFilter} onChange={e=>{setAlertSrcFilter(e.target.value);setAlertPage(0);}}
+                  style={{padding:'6px 10px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.76rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                  <option value='all'>All sources</option>
+                  {[...new Set(alerts.map(a=>a.source))].sort().map(s=><option key={s} value={s}>{s}</option>)}
+                </select>
+                <select value={alertSort} onChange={e=>setAlertSort(e.target.value)}
+                  style={{padding:'6px 10px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.76rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                  <option value='time-desc'>Newest first</option>
+                  <option value='time-asc'>Oldest first</option>
+                  <option value='sev-desc'>Severity ↓</option>
+                  <option value='sev-asc'>Severity ↑</option>
+                  <option value='src-asc'>Source A–Z</option>
+                </select>
+                {(alertSearch||alertSevFilter!=='all'||alertSrcFilter!=='all') && (
+                  <button onClick={()=>{setAlertSearch('');setAlertSevFilter('all');setAlertSrcFilter('all');setAlertPage(0);}}
+                    style={{padding:'5px 10px',borderRadius:6,border:'1px solid var(--wt-border)',background:'none',color:'var(--wt-muted)',fontSize:'0.68rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                    Clear ×
+                  </button>
+                )}
+              </div>
+
+              {/* ── Bulk action bar ── */}
+              {selectedAlerts.size > 0 && (
+                <div style={{display:'flex',alignItems:'center',gap:10,padding:'8px 12px',background:'#4f8fff10',border:'1px solid #4f8fff25',borderRadius:8}}>
+                  <span style={{fontSize:'0.76rem',fontWeight:700,color:'#4f8fff'}}>{selectedAlerts.size} selected</span>
+                  <button onClick={()=>{
+                    setAlertOverrides(prev=>{const n={...prev};selectedAlerts.forEach(id=>{n[id]={...(n[id]||{}),verdict:'FP',confidence:99}});return n;});
+                    setSelectedAlerts(new Set());
+                  }} style={{padding:'4px 12px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                    ✓ Mark FP
+                  </button>
+                  <button onClick={()=>{
+                    setAlertOverrides(prev=>{const n={...prev};selectedAlerts.forEach(id=>{n[id]={...(n[id]||{}),verdict:'TP',acknowledged:true}});return n;});
+                    setSelectedAlerts(new Set());
+                  }} style={{padding:'4px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                    ✓ Acknowledge
+                  </button>
+                  <button onClick={()=>{
+                    const sel = alerts.filter(a=>selectedAlerts.has(a.id));
+                    const sevOrder = {Critical:0,High:1,Medium:2,Low:3};
+                    const topSev = sel.sort((a,b)=>(sevOrder[a.severity]||4)-(sevOrder[b.severity]||4))[0];
+                    const newInc = {
+                      id:`INC-${String(Date.now()).slice(-4)}`,
+                      title:`Incident — ${topSev?.title||'Multiple alerts'}`,
+                      severity:topSev?.severity||'High',
+                      status:'Active',
+                      created:new Date().toLocaleString(),
+                      updated:new Date().toLocaleString(),
+                      alertCount:sel.length,
+                      devices:[...new Set(sel.map(a=>a.device).filter(Boolean))],
+                      mitreTactics:[...new Set(sel.map(a=>a.mitre).filter(Boolean))],
+                      aiSummary:`Incident created from ${sel.length} selected alert${sel.length!==1?'s':''}. Alerts: ${sel.map(a=>a.title).join('; ').slice(0,120)}`,
+                      alerts:sel.map(a=>a.id),
+                    };
+                    setCreatedIncidents(prev=>[newInc,...prev]);
+                    setSelectedAlerts(new Set());
+                    setActiveTab('incidents');
+                  }} style={{padding:'4px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                    📋 Create Incident
+                  </button>
+                  <button onClick={()=>setSelectedAlerts(new Set())}
+                    style={{marginLeft:'auto',padding:'4px 10px',borderRadius:6,border:'1px solid var(--wt-border)',background:'none',color:'var(--wt-muted)',fontSize:'0.68rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                    Deselect all
+                  </button>
+                </div>
+              )}
+
+              {/* ── Alert rows ── */}
+              {(()=>{
+                const SEV_ORDER = {Critical:0,High:1,Medium:2,Low:3};
+                let filtered = alerts
+                  .filter(a=>!alertSearch || a.title.toLowerCase().includes(alertSearch.toLowerCase()) || (a.device||'').toLowerCase().includes(alertSearch.toLowerCase()) || (a.source||'').toLowerCase().includes(alertSearch.toLowerCase()))
+                  .filter(a=>alertSevFilter==='all' || a.severity===alertSevFilter)
+                  .filter(a=>alertSrcFilter==='all' || a.source===alertSrcFilter);
+
+                if (alertSort==='time-asc') filtered = [...filtered].reverse();
+                else if (alertSort==='sev-desc') filtered = [...filtered].sort((a,b)=>(SEV_ORDER[a.severity]||4)-(SEV_ORDER[b.severity]||4));
+                else if (alertSort==='sev-asc') filtered = [...filtered].sort((a,b)=>(SEV_ORDER[b.severity]||4)-(SEV_ORDER[a.severity]||4));
+                else if (alertSort==='src-asc') filtered = [...filtered].sort((a,b)=>a.source.localeCompare(b.source));
+
+                const PAGE_SIZE = 10;
+                const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+                const page = Math.min(alertPage, Math.max(0, totalPages-1));
+                const paged = filtered.slice(page*PAGE_SIZE, (page+1)*PAGE_SIZE);
+
+                return (<>
+                  {filtered.length === 0 && (
+                    <div style={{padding:'32px',textAlign:'center',color:'var(--wt-muted)',fontSize:'0.82rem'}}>
+                      No alerts match your filters
                     </div>
-                    {expanded && (()=>{
-                      // AI triage for live alerts
-                      const triage = aiTriageCache[alert.id];
-                      const hasBuiltinAI = !!(alert.aiReasoning);
-                      const isLiveAlert = !hasBuiltinAI;
+                  )}
 
-                      async function runTriage() {
-                        if (triage?.result || triage?.loading) return;
-                        setAiTriageCache(prev=>({...prev,[alert.id]:{loading:true}}));
-                        try {
-                          const prompt = `You are a SOC analyst. Triage this security alert and provide a concise analysis.
+                  {paged.map(alert=>{
+                    const vStyle = VERDICT_STYLE[alert.verdict];
+                    const expanded = expandedAlerts.has(alert.id);
+                    const aiActed = alert.verdict==='FP'||alert.verdict==='TP';
+                    const isSelected = selectedAlerts.has(alert.id);
+                    const hasNote = alertNotes[alert.id];
+                    return (
+                      <div key={alert.id} className='alert-card' style={{padding:0,overflow:'hidden',outline:isSelected?'1px solid #4f8fff':'none'}}>
+                        <div style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',cursor:'pointer'}} onClick={()=>toggleAlertExpand(alert.id)}>
+                          {/* Select checkbox */}
+                          <div onClick={e=>{e.stopPropagation();setSelectedAlerts(prev=>{const n=new Set(prev);n.has(alert.id)?n.delete(alert.id):n.add(alert.id);return n;})}}
+                            style={{width:16,height:16,borderRadius:4,border:`1px solid ${isSelected?'#4f8fff':'var(--wt-border2)'}`,background:isSelected?'#4f8fff':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,cursor:'pointer'}}>
+                            {isSelected && <span style={{color:'#fff',fontSize:'0.55rem',fontWeight:900,lineHeight:1}}>✓</span>}
+                          </div>
+                          <div style={{width:4,height:36,borderRadius:2,background:SEV_COLOR[alert.severity],flexShrink:0}} />
+                          <div style={{flex:1,minWidth:0}}>
+                            <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:2}}>
+                              <span style={{fontSize:'0.8rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{alert.title}</span>
+                              {hasNote && <span style={{fontSize:'0.48rem',color:'#f0a030',background:'#f0a03012',border:'1px solid #f0a03025',padding:'1px 5px',borderRadius:3,flexShrink:0}}>📝 note</span>}
+                            </div>
+                            <div style={{display:'flex',gap:6,flexWrap:'wrap',alignItems:'center'}}>
+                              <SevBadge sev={alert.severity} />
+                              <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff18'}}>{alert.source}</span>
+                              <span style={{fontSize:'0.52rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{alert.device}</span>
+                              <span style={{fontSize:'0.52rem',color:'var(--wt-dim)'}}>{alert.time}</span>
+                              {alert.mitre && <span style={{fontSize:'0.48rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{alert.mitre}</span>}
+                            </div>
+                          </div>
+                          <div style={{display:'flex',alignItems:'center',gap:8,flexShrink:0}}>
+                            {vStyle && <span style={{fontSize:'0.58rem',fontWeight:800,padding:'2px 8px',borderRadius:4,color:vStyle.color,background:vStyle.bg,border:`1px solid ${vStyle.color}30`}}>{alert.verdict}</span>}
+                            {alert.confidence && <span style={{fontSize:'0.52rem',color:'var(--wt-muted)',fontFamily:'JetBrains Mono,monospace'}}>{alert.confidence}%</span>}
+                            {aiActed && <span style={{fontSize:'0.48rem',color:'#22d49a',fontWeight:700}}>AI acted</span>}
+                            <span style={{fontSize:'0.6rem',color:'var(--wt-dim)'}}>{expanded?'▲':'▼'}</span>
+                          </div>
+                        </div>
 
-Alert: ${alert.title}
-Source: ${alert.source}
-Severity: ${alert.severity}
-Device/Host: ${alert.device || 'Unknown'}
-Time: ${alert.time}
-${alert.description ? 'Description: '+alert.description : ''}
-${alert.ip ? 'IP: '+alert.ip : ''}
-${alert.user ? 'User: '+alert.user : ''}
-${alert.mitre ? 'MITRE Technique: '+alert.mitre : ''}
-Confidence: ${alert.confidence || 'N/A'}%
-
-Respond in this exact format:
-VERDICT: [TRUE POSITIVE / FALSE POSITIVE / SUSPICIOUS]
-CONFIDENCE: [0-100]%
-REASONING: [2-3 sentences explaining your verdict]
-EVIDENCE:
-- [key evidence point 1]
-- [key evidence point 2]
-- [key evidence point 3]
-ACTIONS:
-- [recommended action 1]
-- [recommended action 2]
-- [recommended action 3]`;
-
-                          const res = await fetch('/api/copilot', {
-                            method:'POST',
-                            headers:{'Content-Type':'application/json'},
-                            body:JSON.stringify({prompt}),
-                          });
-                          const data = await res.json();
-                          if (data.ok && data.response) {
-                            const text = data.response;
-                            const verdictMatch = text.match(/VERDICT:\s*(.+)/i);
-                            const confMatch = text.match(/CONFIDENCE:\s*(\d+)/i);
-                            const reasonMatch = text.match(/REASONING:\s*([\s\S]+?)(?=EVIDENCE:|ACTIONS:|$)/i);
-                            const evidenceMatch = text.match(/EVIDENCE:\s*([\s\S]+?)(?=ACTIONS:|$)/i);
-                            const actionsMatch = text.match(/ACTIONS:\s*([\s\S]+?)$/i);
-                            const parseList = (s) => s ? s.split('\n').map(l=>l.replace(/^[-*•\d.]\s*/,'')).filter(l=>l.trim().length>3) : [];
-                            setAiTriageCache(prev=>({...prev,[alert.id]:{
-                              loading:false,
-                              result:{
-                                verdict: verdictMatch?.[1]?.trim() || 'SUSPICIOUS',
-                                confidence: confMatch?.[1] ? parseInt(confMatch[1]) : 65,
-                                reasoning: reasonMatch?.[1]?.trim() || text.slice(0,200),
-                                evidence: parseList(evidenceMatch?.[1]),
-                                actions: parseList(actionsMatch?.[1]),
-                                raw: text,
+                        {/* Expanded detail */}
+                        {expanded && (
+                          <div style={{padding:'0 14px 14px 44px',borderTop:'1px solid var(--wt-border)'}}>
+                            {/* AI triage */}
+                            {(()=>{
+                              const cached = aiTriageCache[alert.id];
+                              if (demoMode && alert.aiReasoning) {
+                                return (
+                                  <div style={{marginTop:12}}>
+                                    <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Triage</div>
+                                    <div style={{fontSize:'0.76rem',color:'var(--wt-secondary)',lineHeight:1.7,marginBottom:8}}>{alert.aiReasoning}</div>
+                                    {alert.evidenceChain?.length>0 && (
+                                      <div style={{marginBottom:8}}>
+                                        <div style={{fontSize:'0.58rem',fontWeight:700,color:'var(--wt-muted)',marginBottom:4}}>EVIDENCE CHAIN</div>
+                                        {alert.evidenceChain.map((e,i)=><div key={i} style={{fontSize:'0.72rem',color:'var(--wt-secondary)',padding:'2px 0',display:'flex',gap:6}}><span style={{color:'#4f8fff',flexShrink:0}}>{i+1}.</span>{e}</div>)}
+                                      </div>
+                                    )}
+                                    {alert.aiActions?.length>0 && (
+                                      <div style={{marginBottom:8}}>
+                                        <div style={{fontSize:'0.58rem',fontWeight:700,color:'var(--wt-muted)',marginBottom:4}}>ACTIONS TAKEN</div>
+                                        {alert.aiActions.map((a,i)=><div key={i} style={{fontSize:'0.72rem',color:'#22d49a',display:'flex',gap:6}}><span>✓</span>{a}</div>)}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
                               }
-                            }}));
-                          } else {
-                            setAiTriageCache(prev=>({...prev,[alert.id]:{loading:false,error:data.message||'Triage failed'}}));
-                          }
-                        } catch(e) {
-                          setAiTriageCache(prev=>({...prev,[alert.id]:{loading:false,error:e.message}}));
-                        }
-                      }
+                              if (!demoMode) {
+                                if (!cached) {
+                                  runLiveTriage(alert);
+                                  return <div style={{padding:'10px 0',fontSize:'0.72rem',color:'var(--wt-muted)',display:'flex',alignItems:'center',gap:8}}><span style={{width:10,height:10,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>AI triage running…</div>;
+                                }
+                                if (cached.loading) return <div style={{padding:'10px 0',fontSize:'0.72rem',color:'var(--wt-muted)',display:'flex',alignItems:'center',gap:8}}><span style={{width:10,height:10,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>AI triage running…</div>;
+                                if (cached.result) return (
+                                  <div style={{marginTop:12}}>
+                                    <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Triage</div>
+                                    <div style={{fontSize:'0.76rem',color:'var(--wt-secondary)',lineHeight:1.7}}>{cached.result.reasoning}</div>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })()}
 
-                      // Auto-trigger triage for live alerts when expanded
-                      if (isLiveAlert && !triage) { runTriage(); }
-
-                      const verdictStyle = {
-                        'TRUE POSITIVE': {c:'#f0405e',bg:'#f0405e12',label:'TRUE POSITIVE'},
-                        'FALSE POSITIVE': {c:'#22d49a',bg:'#22d49a12',label:'FALSE POSITIVE'},
-                        'SUSPICIOUS':     {c:'#f0a030',bg:'#f0a03012',label:'SUSPICIOUS'},
-                      }[triage?.result?.verdict?.toUpperCase()] || {c:'#6b7a94',bg:'#6b7a9412',label:'PENDING'};
-
-                      return (
-                      <div style={{padding:'0 14px 14px 14px',borderTop:'1px solid #141820'}}>
-
-                        {/* Live alert AI triage panel */}
-                        {isLiveAlert && (
-                          <div style={{marginTop:12,padding:'12px 14px',background:'linear-gradient(135deg,rgba(79,143,255,0.05),rgba(139,111,255,0.05))',border:'1px solid #4f8fff20',borderRadius:10}}>
-                            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
-                              <span style={{fontSize:'0.6rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px'}}>⚡ AI Triage</span>
-                              {triage?.loading && <span style={{fontSize:'0.62rem',color:'#4f8fff',display:'flex',alignItems:'center',gap:5}}><span style={{width:8,height:8,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>Analysing…</span>}
-                              {triage?.result && <span style={{fontSize:'0.62rem',fontWeight:800,padding:'2px 10px',borderRadius:5,background:verdictStyle.bg,color:verdictStyle.c,border:`1px solid ${verdictStyle.c}25`}}>{verdictStyle.label} · {triage.result.confidence}%</span>}
-                              {triage?.error && <span style={{fontSize:'0.62rem',color:'#f0405e'}}>Triage error — <button onClick={()=>{setAiTriageCache(prev=>({...prev,[alert.id]:undefined}));setTimeout(runTriage,100);}} style={{color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontSize:'0.62rem',fontFamily:'Inter,sans-serif',padding:0}}>retry</button></span>}
-                              {triage?.result && <button onClick={runTriage} style={{marginLeft:'auto',fontSize:'0.58rem',color:'var(--wt-dim)',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',padding:0}}>↻ Re-triage</button>}
-                              {!triage && <button onClick={runTriage} style={{marginLeft:'auto',fontSize:'0.62rem',color:'#4f8fff',background:'#4f8fff10',border:'1px solid #4f8fff25',borderRadius:5,cursor:'pointer',fontFamily:'Inter,sans-serif',padding:'2px 8px'}}>Triage now</button>}
+                            {/* Action buttons row */}
+                            <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:12}}>
+                              <button onClick={()=>setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'FP',confidence:99}}))}
+                                style={{padding:'4px 12px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                                ✓ Mark FP
+                              </button>
+                              <button onClick={()=>setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),acknowledged:true}}))}
+                                style={{padding:'4px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                                Acknowledge
+                              </button>
+                              <button onClick={()=>{
+                                const newInc={id:`INC-${String(Date.now()).slice(-4)}`,title:`Incident — ${alert.title}`,severity:alert.severity,status:'Active',created:new Date().toLocaleString(),updated:new Date().toLocaleString(),alertCount:1,devices:alert.device?[alert.device]:[],mitreTactics:alert.mitre?[alert.mitre]:[],aiSummary:`Incident created from alert: ${alert.title}`,alerts:[alert.id]};
+                                setCreatedIncidents(prev=>[newInc,...prev]);
+                                setActiveTab('incidents');
+                              }} style={{padding:'4px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                                📋 Create Incident
+                              </button>
+                              {alert.runbookSteps?.length>0 && <button onClick={()=>setActiveTab('incidents')} style={{padding:'4px 12px',borderRadius:6,border:'1px solid var(--wt-border)',background:'none',color:'var(--wt-muted)',fontSize:'0.68rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>View Runbook</button>}
                             </div>
 
-                            {triage?.loading && (
-                              <div style={{display:'flex',flexDirection:'column',gap:6}}>
-                                {[90,70,55].map((w,i)=>(
-                                  <div key={i} style={{height:10,borderRadius:4,background:'var(--wt-border)',width:w+'%',animation:'pulse 1.5s ease infinite',animationDelay:i*0.15+'s'}}/>
-                                ))}
-                              </div>
-                            )}
-
-                            {triage?.result && (
-                              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
-                                <div>
-                                  <div style={{fontSize:'0.68rem',color:'var(--wt-secondary)',lineHeight:1.7,marginBottom:8}}>{triage.result.reasoning}</div>
-                                  {triage.result.evidence.length>0 && (
-                                    <>
-                                      <div style={{fontSize:'0.58rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Evidence</div>
-                                      {triage.result.evidence.map((e,i)=>(
-                                        <div key={i} style={{fontSize:'0.68rem',color:'var(--wt-secondary)',padding:'2px 0 2px 12px',position:'relative'}}>
-                                          <span style={{position:'absolute',left:0,top:8,width:5,height:5,borderRadius:'50%',background:'#4f8fff',display:'block'}}/>{e}
-                                        </div>
-                                      ))}
-                                    </>
+                            {/* Alert notes */}
+                            <div style={{marginTop:12}}>
+                              <div style={{fontSize:'0.58rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>Analyst Notes</div>
+                              {editingNote===alert.id ? (
+                                <div style={{display:'flex',flexDirection:'column',gap:6}}>
+                                  <textarea value={noteInput} onChange={e=>setNoteInput(e.target.value)}
+                                    rows={3} placeholder="Add a note, handoff comment, or investigation detail…"
+                                    style={{width:'100%',padding:'8px 10px',background:'var(--wt-card2)',border:'1px solid #4f8fff40',borderRadius:7,color:'var(--wt-text)',fontSize:'0.76rem',fontFamily:'Inter,sans-serif',outline:'none',resize:'vertical',boxSizing:'border-box'}}
+                                  />
+                                  <div style={{display:'flex',gap:6}}>
+                                    <button onClick={()=>{
+                                      if(noteInput.trim()) setAlertNotes(prev=>({...prev,[alert.id]:noteInput.trim()}));
+                                      else { const n={...alertNotes}; delete n[alert.id]; setAlertNotes(n); }
+                                      setEditingNote(null); setNoteInput('');
+                                    }} style={{padding:'4px 12px',borderRadius:6,border:'none',background:'#4f8fff',color:'#fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Save</button>
+                                    <button onClick={()=>{setEditingNote(null);setNoteInput('');}} style={{padding:'4px 10px',borderRadius:6,border:'1px solid var(--wt-border)',background:'none',color:'var(--wt-muted)',fontSize:'0.68rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Cancel</button>
+                                    {alertNotes[alert.id] && <button onClick={()=>{const n={...alertNotes};delete n[alert.id];setAlertNotes(n);setEditingNote(null);setNoteInput('');}} style={{padding:'4px 10px',borderRadius:6,border:'1px solid #f0405e30',background:'none',color:'#f0405e',fontSize:'0.68rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Delete note</button>}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div style={{display:'flex',alignItems:'flex-start',gap:8}}>
+                                  {alertNotes[alert.id] ? (
+                                    <div style={{flex:1,fontSize:'0.76rem',color:'var(--wt-secondary)',lineHeight:1.65,padding:'7px 10px',background:'#f0a03008',border:'1px solid #f0a03020',borderRadius:7,fontStyle:'italic'}}>
+                                      "{alertNotes[alert.id]}"
+                                    </div>
+                                  ) : (
+                                    <span style={{fontSize:'0.72rem',color:'var(--wt-dim)'}}>No notes yet</span>
                                   )}
+                                  <button onClick={()=>{setEditingNote(alert.id);setNoteInput(alertNotes[alert.id]||'');}}
+                                    style={{padding:'3px 9px',borderRadius:5,border:'1px solid var(--wt-border2)',background:'none',color:'var(--wt-muted)',fontSize:'0.64rem',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>
+                                    {alertNotes[alert.id]?'Edit':'+ Add note'}
+                                  </button>
                                 </div>
-                                <div>
-                                  {triage.result.actions.length>0 && (
-                                    <>
-                                      <div style={{fontSize:'0.58rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Recommended Actions</div>
-                                      {triage.result.actions.map((a,i)=>(
-                                        <div key={i} style={{fontSize:'0.68rem',color:'#22d49a',padding:'2px 0',display:'flex',gap:6}}>
-                                          <span style={{fontWeight:700,flexShrink:0,fontSize:'0.58rem',background:'#22d49a15',borderRadius:3,padding:'1px 4px'}}>{i+1}</span><span>{a}</span>
-                                        </div>
-                                      ))}
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Demo alert built-in AI enrichment */}
-                        {hasBuiltinAI && (
-                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginTop:12}}>
-                          <div>
-                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Reasoning</div>
-                            <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65}}>{alert.aiReasoning}</div>
-                            {(alert.evidenceChain||[]).length>0 && (<>
-                              <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6,marginTop:10}}>Evidence Chain</div>
-                              {(alert.evidenceChain||[]).map(e=>(
-                                <div key={e} style={{fontSize:'0.72rem',color:'var(--wt-secondary)',padding:'2px 0 2px 12px',position:'relative'}}>
-                                  <span style={{position:'absolute',left:0,top:9,width:5,height:5,borderRadius:'50%',background:'#4f8fff',display:'block'}}/>{e}
-                                </div>
-                              ))}
-                            </>)}
-                          </div>
-                          <div>
-                            {(alert.aiActions||[]).length>0 && (<>
-                              <div style={{fontSize:'0.6rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Actions Taken</div>
-                              {(alert.aiActions||[]).map(a=>(
-                                <div key={a} style={{fontSize:'0.72rem',color:'#22d49a',padding:'2px 0',display:'flex',gap:6}}><span>✓</span><span>{a}</span></div>
-                              ))}
-                            </>)}
-                            {(alert.runbookSteps||[]).length>0 && (<>
-                              <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6,marginTop:10}}>Runbook Steps</div>
-                              {(alert.runbookSteps||[]).map((s,i)=>(
-                                <div key={s} style={{fontSize:'0.72rem',color:'var(--wt-secondary)',padding:'2px 0',display:'flex',gap:6}}>
-                                  <span style={{color:'#4f8fff',fontWeight:700,flexShrink:0,fontSize:'0.6rem',background:'#4f8fff15',borderRadius:3,padding:'1px 4px'}}>{i+1}</span><span>{s}</span>
-                                </div>
-                              ))}
-                            </>)}
-                            {alert.incidentId && (
-                              <button onClick={()=>{ setActiveTab('incidents'); setSelectedIncident(incidents.find(i=>i.id===alert.incidentId)||null); }} style={{marginTop:10,padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>→ View {alert.incidentId}</button>
-                            )}
-                          </div>
-                        </div>
-                        )}
-
-                        {/* Live alert metadata (shown alongside AI triage) */}
-                        {isLiveAlert && (
-                          <div style={{marginTop:10,display:'flex',gap:12,flexWrap:'wrap',fontSize:'0.64rem',color:'var(--wt-muted)'}}>
-                            <span>Source: <strong style={{color:'var(--wt-text)'}}>{alert.source}</strong></span>
-                            {alert.sourceId && <span style={{fontFamily:'JetBrains Mono,monospace',fontSize:'0.6rem',color:'var(--wt-dim)'}}>ID: {alert.sourceId.slice(0,24)}{alert.sourceId.length>24?'…':''}</span>}
-                            {alert.ip && <span>IP: <span style={{fontFamily:'JetBrains Mono,monospace'}}>{alert.ip}</span></span>}
-                            {alert.user && <span>User: <strong>{alert.user}</strong></span>}
-                            {alert.mitre && <span style={{color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{alert.mitre}</span>}
-                            {(alert.tags||[]).filter(t=>!['taegis','xdr'].includes(t)).map(t=>(
-                              <span key={t} style={{padding:'1px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff18'}}>{t}</span>
-                            ))}
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>
-                      );
-                    })()}
-                  </div>
-                );
-              })}
+                    );
+                  })}
+
+                  {/* ── Pagination ── */}
+                  {totalPages > 1 && (
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 4px',marginTop:4}}>
+                      <span style={{fontSize:'0.7rem',color:'var(--wt-muted)'}}>
+                        Showing {page*PAGE_SIZE+1}–{Math.min((page+1)*PAGE_SIZE,filtered.length)} of {filtered.length} alerts
+                      </span>
+                      <div style={{display:'flex',gap:4}}>
+                        <button disabled={page===0} onClick={()=>setAlertPage(page-1)}
+                          style={{padding:'4px 12px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:page===0?'var(--wt-dim)':'var(--wt-text)',fontSize:'0.72rem',cursor:page===0?'not-allowed':'pointer',fontFamily:'Inter,sans-serif'}}>
+                          ← Prev
+                        </button>
+                        {Array.from({length:Math.min(totalPages,5)},(_,i)=>{
+                          const p = totalPages<=5 ? i : Math.max(0,Math.min(page-2,totalPages-5))+i;
+                          return <button key={p} onClick={()=>setAlertPage(p)}
+                            style={{padding:'4px 10px',borderRadius:6,border:`1px solid ${p===page?'#4f8fff':'var(--wt-border2)'}`,background:p===page?'#4f8fff15':'var(--wt-card2)',color:p===page?'#4f8fff':'var(--wt-text)',fontSize:'0.72rem',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:p===page?700:400}}>
+                            {p+1}
+                          </button>;
+                        })}
+                        <button disabled={page>=totalPages-1} onClick={()=>setAlertPage(page+1)}
+                          style={{padding:'4px 12px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:page>=totalPages-1?'var(--wt-dim)':'var(--wt-text)',fontSize:'0.72rem',cursor:page>=totalPages-1?'not-allowed':'pointer',fontFamily:'Inter,sans-serif'}}>
+                          Next →
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>);
+              })()}
             </div>
           )}
-
-          {/* ═══════════════════════════════ COVERAGE ═══════════════════════════════ */}
           {activeTab==='coverage' && (
             <div style={{display:'flex',flexDirection:'column',gap:14}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
