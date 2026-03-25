@@ -1,5 +1,6 @@
 // @ts-nocheck
 'use client';
+import React from 'react';
 import AlertsTab from './AlertsTab';
 import SalesDashboard from './SalesDashboard';
 import MSSPPortfolio from './MSSPPortfolio';
