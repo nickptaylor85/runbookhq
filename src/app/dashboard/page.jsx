@@ -1743,15 +1743,26 @@ export default function DashboardPage() {
     : `AI acted autonomously on ${actedAlerts.length} alert${actedAlerts.length!==1?'s':''} — ${alerts.filter(a=>a.verdict==='TP'&&a.confidence>=80).length} threats contained, ${alerts.filter(a=>a.verdict==='FP'&&a.confidence>=80).length} FPs suppressed.`;
 
   const intelItems = customIntel || (DEMO_INTEL_BY_INDUSTRY[industry] || DEMO_INTEL_BY_INDUSTRY['default']);
-  const allIntel = [...intelItems, ...DEMO_INTEL_BY_INDUSTRY['default'].filter(i=>!intelItems.find(x=>x.id===i.id))];
+  // In live mode with fresh intel, don't pollute with demo items
+  const allIntel = (customIntel && customIntel.length > 0)
+    ? customIntel
+    : [...intelItems, ...DEMO_INTEL_BY_INDUSTRY['default'].filter(i=>!intelItems.find(x=>x.id===i.id))];
 
   async function fetchIntelForIndustry(ind) {
     setIntelLoading(true);
-    setCustomIntel(null);
+    setCustomIntel(null); // null = use demo data
     try {
       const resp = await fetch('/api/intel/industry', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({industry:ind}) });
-      if (resp.ok) { const d = await resp.json(); setCustomIntel(d.items); }
-    } catch(e) {}
+      const d = await resp.json();
+      // Only use live data if we got a non-empty array — null/empty falls back to demo
+      if (d.ok && Array.isArray(d.items) && d.items.length > 0) {
+        setCustomIntel(d.items);
+      } else {
+        setCustomIntel(null); // fall back to demo
+      }
+    } catch(e) {
+      setCustomIntel(null); // network error — keep demo
+    }
     setIntelLoading(false);
   }
 
@@ -2551,7 +2562,18 @@ ACTIONS:
             <GateWall feature='Threat Intelligence' requiredTier='team' userTier={userTier}>
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
-                <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Threat Intelligence</h2>
+                <h2 style={{fontSize:'0.88rem',fontWeight:700,display:'flex',alignItems:'center',gap:8}}>
+                  Threat Intelligence
+                  {!demoMode && customIntel && customIntel.length > 0 && (
+                    <span style={{fontSize:'0.58rem',fontWeight:700,padding:'2px 7px',borderRadius:4,background:'#22d49a12',color:'#22d49a',border:'1px solid #22d49a25'}}>● LIVE</span>
+                  )}
+                  {!demoMode && intelLoading && (
+                    <span style={{fontSize:'0.58rem',color:'#4f8fff'}}>⟳ Refreshing…</span>
+                  )}
+                  {!demoMode && !intelLoading && !customIntel && (
+                    <span style={{fontSize:'0.58rem',color:'#f0a030'}}>⚠ Add API key for live intel</span>
+                  )}
+                </h2>
                 <div style={{display:'flex',alignItems:'center',gap:6,marginLeft:'auto'}}>
                   <span style={{fontSize:'0.7rem',color:'var(--wt-muted)'}}>Industry:</span>
                   <select value={industry} onChange={e=>{setIndustryPersisted(e.target.value);fetchIntelForIndustry(e.target.value);}} style={{padding:'4px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.76rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
