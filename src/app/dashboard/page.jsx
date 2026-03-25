@@ -972,6 +972,16 @@ function AdminPortal({ setCurrentTenant, setActiveTab, clientBanner, setClientBa
   // Stripe config state
   const [stripeConfig, setStripeConfig] = useState({publishableKey:'',secretKey:'',webhookSecret:'',priceMssp:'',priceBusiness:'',priceTeamPerSeat:''});
   const [stripeSaving, setStripeSaving] = useState(false);
+
+  // SAML config state
+  const [samlConfig, setSamlConfig] = useState({enabled:false,idpEntityId:'',idpSsoUrl:'',idpCert:'',attributeMapping:{email:'email',name:'displayName',role:'role'},defaultRole:'viewer',domains:'',spEntityId:''});
+  const [samlSaving, setSamlSaving] = useState(false);
+  const [samlSaved, setSamlSaved] = useState(false);
+  React.useEffect(()=>{
+    fetch('/api/admin/saml-config').then(r=>r.json()).then(d=>{
+      if(d.ok&&d.configured) setSamlConfig(prev=>({...prev,...d,domains:Array.isArray(d.domains)?d.domains.join(','):d.domains||''}));
+    }).catch(()=>{});
+  },[]);
   const [stripeSaved, setStripeSaved] = useState(false);
   const [stripeLoaded, setStripeLoaded] = useState(false);
   React.useEffect(()=>{
@@ -1001,7 +1011,7 @@ function AdminPortal({ setCurrentTenant, setActiveTab, clientBanner, setClientBa
           <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginTop:3}}>All organisations subscribed to Watchtower · Impersonate any tenant to view their dashboard</div>
         </div>
         <div style={{marginLeft:'auto',display:'flex',gap:4,background:'var(--wt-card2)',borderRadius:7,padding:3}}>
-          {['subscribers','users','platform','stripe','broadcast'].map(v=>(
+          {['subscribers','users','platform','stripe','saml','broadcast'].map(v=>(
             <button key={v} onClick={()=>setAdminView(v)} style={{padding:'5px 14px',borderRadius:5,border:'none',background:adminView===v?'#f0a030':'transparent',color:adminView===v?'#fff':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',textTransform:'capitalize'}}>{v}</button>
           ))}
         </div>
@@ -1316,6 +1326,108 @@ function AdminPortal({ setCurrentTenant, setActiveTab, clientBanner, setClientBa
                 <div style={{fontSize:'0.6rem',color:p.id&&p.id!=='••••••••'?'#22d49a':'#f0405e',fontWeight:600}}>{p.id&&p.id!=='••••••••'?'✓ Price ID set':'⚠ Price ID missing'}</div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {adminView==='saml' && (
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          <div style={{padding:'16px 18px',background:'var(--wt-card)',border:'1px solid #4f8fff20',borderRadius:12}}>
+            <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:4,display:'flex',alignItems:'center',gap:10}}>
+              🔐 SAML SSO Configuration
+              <label style={{display:'flex',alignItems:'center',gap:6,cursor:'pointer',fontSize:'0.72rem',fontWeight:600,color:samlConfig.enabled?'#22d49a':'#6b7a94'}}>
+                <input type='checkbox' checked={samlConfig.enabled} onChange={e=>setSamlConfig(prev=>({...prev,enabled:e.target.checked}))}
+                  style={{cursor:'pointer'}}/>
+                {samlConfig.enabled?'Enabled':'Disabled'}
+              </label>
+            </div>
+            <div style={{fontSize:'0.7rem',color:'var(--wt-muted)',marginBottom:18,lineHeight:1.6}}>
+              Allow staff to sign in via your company's Identity Provider (Okta, Azure AD, Google Workspace, etc.) using SAML 2.0.
+              Users without accounts are auto-provisioned with the default role.
+            </div>
+
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:12}}>
+              {[
+                {key:'idpEntityId', label:'IdP Entity ID', placeholder:'https://your-idp.okta.com/...'},
+                {key:'idpSsoUrl', label:'IdP SSO URL (POST binding)', placeholder:'https://your-idp.okta.com/app/.../sso/saml'},
+                {key:'spEntityId', label:'SP Entity ID (your domain)', placeholder:'https://getwatchtower.io'},
+                {key:'defaultRole', label:'Default role for new SAML users', type:'select'},
+                {key:'domains', label:'Allowed email domains (comma-separated)', placeholder:'yourcompany.com, subsidiary.com'},
+              ].map(field=>(
+                <div key={field.key} style={{gridColumn:field.key==='idpCert'?'1 / -1':undefined}}>
+                  <label style={{display:'block',fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>{field.label}</label>
+                  {field.type==='select'?(
+                    <select value={samlConfig.defaultRole} onChange={e=>setSamlConfig(prev=>({...prev,defaultRole:e.target.value}))}
+                      style={{width:'100%',padding:'8px 11px',background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:7,color:'var(--wt-text)',fontSize:'0.78rem',fontFamily:'Inter,sans-serif',outline:'none',cursor:'pointer'}}>
+                      <option value='tech_admin'>Tech Admin</option>
+                      <option value='sales'>Sales</option>
+                      <option value='viewer'>Viewer</option>
+                    </select>
+                  ):(
+                    <input value={samlConfig[field.key]||''} onChange={e=>setSamlConfig(prev=>({...prev,[field.key]:e.target.value}))}
+                      placeholder={field.placeholder||''}
+                      style={{width:'100%',padding:'8px 11px',background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:7,color:'var(--wt-text)',fontSize:'0.78rem',fontFamily:'JetBrains Mono,monospace',outline:'none',boxSizing:'border-box'}}/>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div style={{marginBottom:12}}>
+              <label style={{display:'block',fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>IdP Certificate (X.509 PEM)</label>
+              <textarea value={samlConfig.idpCert||''} onChange={e=>setSamlConfig(prev=>({...prev,idpCert:e.target.value}))}
+                rows={4} placeholder={'-----BEGIN CERTIFICATE-----
+MIIC...
+-----END CERTIFICATE-----'}
+                style={{width:'100%',padding:'8px 11px',background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:7,color:'var(--wt-text)',fontSize:'0.72rem',fontFamily:'JetBrains Mono,monospace',outline:'none',resize:'vertical',boxSizing:'border-box'}}/>
+            </div>
+
+            <div style={{marginBottom:16,padding:'12px 14px',background:'var(--wt-card2)',borderRadius:8,border:'1px solid var(--wt-border)'}}>
+              <div style={{fontSize:'0.7rem',fontWeight:700,marginBottom:6}}>Attribute Mapping</div>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+                {[['email','Email attribute','email'],['name','Name attribute','displayName'],['role','Role attribute (optional)','role']].map(([key,lbl,ph])=>(
+                  <div key={key}>
+                    <label style={{display:'block',fontSize:'0.6rem',fontWeight:600,color:'var(--wt-dim)',marginBottom:3}}>{lbl}</label>
+                    <input value={(samlConfig.attributeMapping||{})[key]||''} onChange={e=>setSamlConfig(prev=>({...prev,attributeMapping:{...prev.attributeMapping,[key]:e.target.value}}))}
+                      placeholder={ph}
+                      style={{width:'100%',padding:'5px 8px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:5,color:'var(--wt-text)',fontSize:'0.72rem',fontFamily:'JetBrains Mono,monospace',outline:'none',boxSizing:'border-box'}}/>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{display:'flex',gap:10,alignItems:'center',flexWrap:'wrap'}}>
+              <button onClick={async()=>{
+                setSamlSaving(true);setSamlSaved(false);
+                const payload={...samlConfig,domains:samlConfig.domains?samlConfig.domains.split(',').map(d=>d.trim()).filter(Boolean):[]};
+                try{const r=await fetch('/api/admin/saml-config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+                const d=await r.json();if(d.ok){setSamlSaved(true);setTimeout(()=>setSamlSaved(false),3000);}}catch(e){}
+                setSamlSaving(false);
+              }} disabled={samlSaving} style={{padding:'9px 22px',borderRadius:8,border:'none',background:'#4f8fff',color:'#fff',fontSize:'0.78rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',opacity:samlSaving?0.7:1}}>
+                {samlSaving?'Saving…':'Save SAML Config'}
+              </button>
+              {samlSaved&&<span style={{fontSize:'0.72rem',color:'#22d49a',fontWeight:600}}>✓ Saved</span>}
+            </div>
+          </div>
+
+          <div style={{padding:'14px 18px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12}}>
+            <div style={{fontSize:'0.72rem',fontWeight:700,marginBottom:10}}>SP Metadata & Configuration</div>
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              {[
+                {label:'SP Metadata URL', val:'https://getwatchtower.io/api/auth/saml/metadata'},
+                {label:'ACS URL (AssertionConsumerService)', val:'https://getwatchtower.io/api/auth/saml/callback'},
+                {label:'SP Entity ID', val:'https://getwatchtower.io'},
+                {label:'SSO Login URL', val:`https://getwatchtower.io/api/auth/saml?tenant=${currentTenant}`},
+              ].map(item=>(
+                <div key={item.label} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',background:'var(--wt-card2)',borderRadius:7}}>
+                  <span style={{fontSize:'0.62rem',color:'var(--wt-muted)',minWidth:200,fontWeight:600}}>{item.label}</span>
+                  <span style={{flex:1,fontFamily:'JetBrains Mono,monospace',fontSize:'0.66rem',color:'#4f8fff'}}>{item.val}</span>
+                  <button onClick={()=>navigator.clipboard.writeText(item.val)} style={{padding:'3px 8px',borderRadius:5,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.6rem',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Copy</button>
+                </div>
+              ))}
+            </div>
+            <div style={{marginTop:10,fontSize:'0.68rem',color:'var(--wt-muted)',lineHeight:1.7}}>
+              Supported IdPs: <strong style={{color:'var(--wt-text)'}}>Okta · Azure AD / Entra ID · Google Workspace · OneLogin · Ping Identity · JumpCloud · Any SAML 2.0 IdP</strong>
+            </div>
           </div>
         </div>
       )}

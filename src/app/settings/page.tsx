@@ -27,6 +27,90 @@ const INDUSTRIES = [
   'Legal & Professional Services', 'Education', 'Media & Entertainment',
 ];
 
+
+function MfaSetup() {
+  const [mfaStatus, setMfaStatus] = React.useState<{enabled:boolean}|null>(null);
+  const [step, setStep] = React.useState<'idle'|'setup'|'verify'|'disable'>('idle');
+  const [qrUrl, setQrUrl] = React.useState('');
+  const [secret, setSecret] = React.useState('');
+  const [code, setCode] = React.useState('');
+  const [error, setError] = React.useState('');
+  const [success, setSuccess] = React.useState('');
+
+  React.useEffect(() => {
+    fetch('/api/auth/totp').then(r => r.json()).then(d => setMfaStatus(d));
+  }, []);
+
+  async function startSetup() {
+    const res = await fetch('/api/auth/totp', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action: 'setup' }) });
+    const d = await res.json();
+    if (d.ok) { setQrUrl(d.qrUrl); setSecret(d.secret); setStep('setup'); }
+  }
+
+  async function verifyCode() {
+    setError('');
+    const res = await fetch('/api/auth/totp', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action: 'verify', code }) });
+    const d = await res.json();
+    if (d.ok) { setMfaStatus({ enabled: true }); setStep('idle'); setSuccess('MFA enabled! Your account is now protected.'); setTimeout(() => setSuccess(''), 4000); }
+    else setError(d.error || 'Invalid code');
+  }
+
+  async function disableMfa() {
+    setError('');
+    const res = await fetch('/api/auth/totp', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action: 'disable', code }) });
+    const d = await res.json();
+    if (d.ok) { setMfaStatus({ enabled: false }); setStep('idle'); setCode(''); setSuccess('MFA disabled.'); setTimeout(() => setSuccess(''), 3000); }
+    else setError(d.error || 'Invalid code');
+  }
+
+  if (!mfaStatus) return <div style={{ fontSize: '0.74rem', color: '#6b7a94' }}>Loading…</div>;
+
+  return (
+    <div>
+      {success && <div style={{ padding: '8px 12px', background: '#22d49a12', border: '1px solid #22d49a30', borderRadius: 7, fontSize: '0.72rem', color: '#22d49a', marginBottom: 12 }}>{success}</div>}
+      {mfaStatus.enabled && step === 'idle' && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '4px 10px', borderRadius: 5, background: '#22d49a12', color: '#22d49a', border: '1px solid #22d49a25' }}>✓ MFA Enabled</span>
+          <button onClick={() => setStep('disable')} style={{ padding: '6px 14px', background: 'transparent', border: '1px solid #f0405e30', borderRadius: 7, color: '#f0405e', fontSize: '0.72rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>Disable MFA</button>
+        </div>
+      )}
+      {!mfaStatus.enabled && step === 'idle' && (
+        <button onClick={startSetup} style={BTN}>Enable MFA →</button>
+      )}
+      {step === 'setup' && (
+        <div>
+          <div style={{ fontSize: '0.76rem', color: '#e8ecf4', marginBottom: 12, lineHeight: 1.6 }}>
+            1. Scan this QR code with your authenticator app<br/>
+            2. Enter the 6-digit code to verify and activate
+          </div>
+          <img src={qrUrl} alt="MFA QR Code" width={180} height={180} style={{ borderRadius: 8, border: '1px solid #1e2536', display: 'block', marginBottom: 12 }} />
+          <div style={{ fontSize: '0.62rem', color: '#6b7a94', marginBottom: 6 }}>Manual entry key:</div>
+          <div style={{ fontFamily: 'JetBrains Mono,monospace', fontSize: '0.74rem', color: '#4f8fff', background: '#4f8fff12', padding: '6px 10px', borderRadius: 6, marginBottom: 16, letterSpacing: 2 }}>{secret}</div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <input value={code} onChange={e => setCode(e.target.value)} placeholder="Enter 6-digit code" maxLength={6}
+              style={{ ...INPUT, width: 160, fontFamily: 'JetBrains Mono,monospace', fontSize: '1.1rem', letterSpacing: 4, textAlign: 'center' }} />
+            <button onClick={verifyCode} style={BTN}>Verify & Enable</button>
+            <button onClick={() => setStep('idle')} style={{ padding: '9px 16px', background: 'transparent', border: '1px solid #1e2536', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>Cancel</button>
+          </div>
+          {error && <div style={{ color: '#f0405e', fontSize: '0.72rem', marginTop: 8 }}>{error}</div>}
+        </div>
+      )}
+      {step === 'disable' && (
+        <div>
+          <div style={{ fontSize: '0.76rem', color: '#e8ecf4', marginBottom: 12 }}>Enter your current MFA code to disable:</div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <input value={code} onChange={e => setCode(e.target.value)} placeholder="6-digit code" maxLength={6}
+              style={{ ...INPUT, width: 160, fontFamily: 'JetBrains Mono,monospace', fontSize: '1.1rem', letterSpacing: 4, textAlign: 'center' }} />
+            <button onClick={disableMfa} style={{ ...BTN, background: '#f0405e' }}>Disable MFA</button>
+            <button onClick={() => setStep('idle')} style={{ padding: '9px 16px', background: 'transparent', border: '1px solid #1e2536', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>Cancel</button>
+          </div>
+          {error && <div style={{ color: '#f0405e', fontSize: '0.72rem', marginTop: 8 }}>{error}</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -205,9 +289,16 @@ export default function SettingsPage() {
             </div>
 
             <div style={CARD}>
-              <div style={{ fontSize: '0.82rem', fontWeight: 700, marginBottom: 16, color: '#e8ecf4' }}>Security</div>
+              <div style={{ fontSize: '0.82rem', fontWeight: 700, marginBottom: 4, color: '#e8ecf4' }}>Two-Factor Authentication (TOTP)</div>
+              <div style={{ fontSize: '0.72rem', color: '#6b7a94', marginBottom: 16, lineHeight: 1.6 }}>
+                Protect your account with an authenticator app (Google Authenticator, Authy, 1Password etc.)
+              </div>
+              <MfaSetup />
+            </div>
+            <div style={CARD}>
+              <div style={{ fontSize: '0.82rem', fontWeight: 700, marginBottom: 8, color: '#e8ecf4' }}>Password</div>
               <div style={{ fontSize: '0.74rem', color: '#6b7a94', marginBottom: 14 }}>
-                Change your password or manage two-factor authentication.
+                Change your login password.
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <a href="/login" style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #1e2536', borderRadius: 8, color: '#6b7a94', fontSize: '0.76rem', fontWeight: 600, textDecoration: 'none' }}>
