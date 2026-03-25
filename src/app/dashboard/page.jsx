@@ -1375,9 +1375,7 @@ function AdminPortal({ setCurrentTenant, setActiveTab, clientBanner, setClientBa
             <div style={{marginBottom:12}}>
               <label style={{display:'block',fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>IdP Certificate (X.509 PEM)</label>
               <textarea value={samlConfig.idpCert||''} onChange={e=>setSamlConfig(prev=>({...prev,idpCert:e.target.value}))}
-                rows={4} placeholder={'-----BEGIN CERTIFICATE-----
-MIIC...
------END CERTIFICATE-----'}
+                rows={4} placeholder={'-----BEGIN CERTIFICATE-----\nMIIC...\n-----END CERTIFICATE-----'}
                 style={{width:'100%',padding:'8px 11px',background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:7,color:'var(--wt-text)',fontSize:'0.72rem',fontFamily:'JetBrains Mono,monospace',outline:'none',resize:'vertical',boxSizing:'border-box'}}/>
             </div>
 
