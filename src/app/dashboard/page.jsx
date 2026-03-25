@@ -3,6 +3,7 @@ import AlertsTab from './AlertsTab';
 import SalesDashboard from './SalesDashboard';
 import MSSPPortfolio from './MSSPPortfolio';
 import ToolsTab from './ToolsTab';
+import AdminPortal from './AdminPortal';
 import React, { useState, useEffect } from 'react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -733,17 +734,11 @@ Severity: ${alert.severity}`;
             </div>
             )}
             <div style={{display:'flex',alignItems:'center',gap:5,fontSize:'0.7rem',color:'var(--wt-muted)'}}>
-              {demoMode ? (
-                <><span style={{width:6,height:6,borderRadius:'50%',background:'#f0a030',display:'block'}} />{tools.filter(t=>t.active).length} tools (demo)</>
-              ) : syncStatus==='syncing' ? (
-                <><span style={{width:8,height:8,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}} /><span style={{color:'#4f8fff'}}>Syncing…</span></>
-              ) : syncStatus==='error' ? (
-                <><span style={{width:6,height:6,borderRadius:'50%',background:'#f0405e',display:'block'}} /><span style={{color:'#f0405e'}} title={syncError||''}>Sync error</span></>
-              ) : syncStatus==='ok' ? (
-                <><span style={{width:6,height:6,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',display:'block',animation:'pulse 2s ease infinite'}} />{tools.filter(t=>t.active).length} live · {lastSynced}</>
-              ) : (
-                <><span style={{width:6,height:6,borderRadius:'50%',background:'#6b7a94',display:'block'}} />{Object.keys(connectedTools).length} connected</>
-              )}
+              {demoMode && <span style={{display:'inline-flex',alignItems:'center',gap:5}}><span style={{width:6,height:6,borderRadius:'50%',background:'#f0a030',display:'block'}} />{tools.filter(t=>t.active).length} tools (demo)</span>}
+              {!demoMode && syncStatus==='syncing' && <span style={{display:'inline-flex',alignItems:'center',gap:5}}><span style={{width:8,height:8,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}} /><span style={{color:'#4f8fff'}}>Syncing…</span></span>}
+              {!demoMode && syncStatus==='error' && <span style={{display:'inline-flex',alignItems:'center',gap:5}}><span style={{width:6,height:6,borderRadius:'50%',background:'#f0405e',display:'block'}} /><span style={{color:'#f0405e'}} title={syncError||''}>Sync error</span></span>}
+              {!demoMode && syncStatus==='ok' && <span style={{display:'inline-flex',alignItems:'center',gap:5}}><span style={{width:6,height:6,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',display:'block'}} />{Object.keys(connectedTools).length} connected</span>}
+              {!demoMode && syncStatus==='idle' && <span style={{display:'inline-flex',alignItems:'center',gap:5}}><span style={{width:6,height:6,borderRadius:'50%',background:'#6b7a94',display:'block'}} />{Object.keys(connectedTools).length} connected</span>}
             </div>
           </div>
         </div>
@@ -1250,7 +1245,7 @@ Severity: ${alert.severity}`;
                             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
                               <span style={{fontSize:'0.6rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px'}}>🔍 Hunt in your environment</span>
                               <button onClick={e=>{e.stopPropagation();setIocQueryLoading(item.id);fetch('/api/copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:'Generate detection queries to hunt for these IOCs in a corporate environment: '+item.iocs.join(', ')+'. Provide: SPLUNK QUERY (SPL), MICROSOFT SENTINEL KQL, and MICROSOFT DEFENDER ADVANCED HUNTING queries. Each labelled clearly. No markdown, plain text only.'})}).then(r=>r.json()).then(d=>{setIocQueries(prev=>({...prev,[item.id]:d.response||''}));setIocQueryLoading(null);}).catch(()=>setIocQueryLoading(null));}} disabled={iocQueryLoading===item.id} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>
-                                {iocQueryLoading===item.id?<><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid #22d49a',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}/>Generating...</>:<>✦ Generate Hunt Queries</>}
+                                {iocQueryLoading===item.id ? <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid #22d49a',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}/>Generating...</span> : <span>✦ Generate Hunt Queries</span>}
                               </button>
                               {iocQueries[item.id] && <button onClick={e=>{e.stopPropagation();setIocQueries(prev=>{const n={...prev};delete n[item.id];return n;});}} style={{padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-dim)',fontSize:'0.56rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear</button>}
                             </div>
@@ -1308,7 +1303,7 @@ Severity: ${alert.severity}`;
                             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
                               <span style={{fontSize:'0.6rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px'}}>🔍 Hunt in your environment</span>
                               <button onClick={e=>{e.stopPropagation();setIocQueryLoading(item.id);fetch('/api/copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:'Generate detection queries to hunt for these IOCs in a corporate environment: '+item.iocs.join(', ')+'. Provide: SPLUNK QUERY (SPL), MICROSOFT SENTINEL KQL, and MICROSOFT DEFENDER ADVANCED HUNTING queries. Each labelled clearly. No markdown, plain text only.'})}).then(r=>r.json()).then(d=>{setIocQueries(prev=>({...prev,[item.id]:d.response||''}));setIocQueryLoading(null);}).catch(()=>setIocQueryLoading(null));}} disabled={iocQueryLoading===item.id} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>
-                                {iocQueryLoading===item.id?<><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid #22d49a',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}/>Generating...</>:<>✦ Generate Hunt Queries</>}
+                                {iocQueryLoading===item.id ? <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid #22d49a',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}/>Generating...</span> : <span>✦ Generate Hunt Queries</span>}
                               </button>
                               {iocQueries[item.id] && <button onClick={e=>{e.stopPropagation();setIocQueries(prev=>{const n={...prev};delete n[item.id];return n;});}} style={{padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-dim)',fontSize:'0.56rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear</button>}
                             </div>
