@@ -1,22 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { redisGet } from '@/lib/redis';
+import { decrypt } from '@/lib/encrypt';
 
-const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY || '';
-const BASE_URL = process.env.NEXT_PUBLIC_URL || 'https://getwatchtower.io';
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || process.env.NEXT_PUBLIC_URL || 'https://getwatchtower.io';
+const STRIPE_CONFIG_KEY = 'wt:platform:stripe_config';
 
-const PRICE_IDS: Record<string, string> = {
-  team:     process.env.STRIPE_TEAM_PRICE_ID     || '',
-  business: process.env.STRIPE_BUSINESS_PRICE_ID || '',
-  mssp:     process.env.STRIPE_MSSP_PRICE_ID     || '',
-};
+async function getStripeConfig() {
+  try {
+    const raw = await redisGet(STRIPE_CONFIG_KEY);
+    if (raw) return JSON.parse(decrypt(raw));
+  } catch {}
+  // Fallback to env vars
+  return {
+    secretKey: process.env.STRIPE_SECRET_KEY || '',
+    priceMssp: process.env.STRIPE_MSSP_PRICE_ID || '',
+    priceBusiness: process.env.STRIPE_BUSINESS_PRICE_ID || '',
+    priceTeamPerSeat: process.env.STRIPE_TEAM_PRICE_ID || '',
+  };
+}
 
 export async function POST(req: NextRequest) {
   try {
     const { plan, email } = await req.json();
+    const config = await getStripeConfig();
 
-    if (!STRIPE_SECRET) return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 });
+    if (!config.secretKey)
+      return NextResponse.json({ error: 'Stripe not configured — add keys in Admin → Stripe' }, { status: 500 });
 
-    const priceId = PRICE_IDS[plan];
-    if (!priceId) return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
+    const PRICE_MAP: Record<string, string> = {
+      team:     config.priceTeamPerSeat || '',
+      business: config.priceBusiness || '',
+      mssp:     config.priceMssp || '',
+    };
+
+    const priceId = PRICE_MAP[plan];
+    if (!priceId)
+      return NextResponse.json({ error: `Price ID for ${plan} not set — configure in Admin → Stripe` }, { status: 400 });
 
     const params = new URLSearchParams();
     params.append('mode', 'subscription');
@@ -26,29 +45,23 @@ export async function POST(req: NextRequest) {
     params.append('cancel_url', `${BASE_URL}/pricing`);
     params.append('allow_promotion_codes', 'true');
     params.append('billing_address_collection', 'auto');
-    if (email) params.append('customer_email', email);
-
-    // 14-day trial on all paid plans
     params.append('subscription_data[trial_period_days]', '14');
+    if (email) params.append('customer_email', email);
 
     const response = await fetch('https://api.stripe.com/v1/checkout/sessions', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${STRIPE_SECRET}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
+      headers: { 'Authorization': `Bearer ${config.secretKey}`, 'Content-Type': 'application/x-www-form-urlencoded' },
       body: params.toString(),
     });
 
-    const session = await response.json();
-
+    const session = await response.json() as { url?: string; error?: { message?: string } };
     if (!response.ok) {
-      console.error('Stripe error:', session);
+      console.error('Stripe checkout error:', session);
       return NextResponse.json({ error: session.error?.message || 'Stripe error' }, { status: 500 });
     }
 
     return NextResponse.json({ url: session.url });
-  } catch (e) {
+  } catch (e: any) {
     console.error('Checkout error:', e);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }

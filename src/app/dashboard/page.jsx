@@ -1505,10 +1505,6 @@ export default function DashboardPage() {
       .then(d=>{
         if (d.settings?.industry) {
           setIndustry(d.settings.industry);
-          // Auto-fetch live intel on mount with saved industry
-          if (d.settings.demoMode !== 'true') {
-            fetchIntelForIndustry(d.settings.industry);
-          }
         }
         if (d.settings?.demoMode !== undefined) setDemoMode(d.settings.demoMode === 'true');
         if (d.settings?.automation !== undefined) setAutomation(Number(d.settings.automation));
@@ -1610,12 +1606,14 @@ export default function DashboardPage() {
     return () => clearInterval(interval);
   },[demoMode, connectedTools, credentialsLoaded]);
 
-  // When switching to live mode, auto-fetch fresh intel
+  // When switching to live mode, auto-fetch fresh intel (skip on initial mount)
+  const hasMountedRef = React.useRef(false);
   useEffect(()=>{
+    if (!hasMountedRef.current) { hasMountedRef.current = true; return; }
     if (!demoMode) {
       fetchIntelForIndustry(industry);
     } else {
-      setCustomIntel(null); // Clear live intel when switching back to demo
+      setCustomIntel(null);
     }
   },[demoMode]);
   const [isAdmin, setIsAdmin] = useState(false);
