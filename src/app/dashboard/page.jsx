@@ -411,7 +411,7 @@ function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS, isAdmin,
                   <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('alerts');}} style={{padding:'7px 14px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.72rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Alerts</button>
                   <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('incidents');}} style={{padding:'7px 14px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.72rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Incidents</button>
                   <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('vulns');}} style={{padding:'7px 14px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.72rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Vulns</button>
-                  {client.billingStatus==='Overdue' && <button onClick={e=>{e.stopPropagation();window.open(`mailto:accounts@${client.name.toLowerCase().replace(/[^a-z]/g,'')}.com?subject=Outstanding Invoice — ${client.name}&body=Hi,%0A%0AThis is a reminder that your Watchtower subscription invoice is currently outstanding.%0APlease arrange payment at your earliest convenience.%0A%0ARegards,%0AWatchtower Team`,'_blank');}} style={{marginLeft:'auto',padding:'7px 14px',borderRadius:7,border:'1px solid #f97316',background:'#f9731610',color:'#f97316',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Chase Payment</button>}
+                  {client.billingStatus==='Overdue' && <button onClick={e=>{e.stopPropagation();const domain=client.name.toLowerCase().split('').filter(c=>c>='a'&&c<='z').join('');window.open(`mailto:accounts@${domain}.com?subject=Outstanding Invoice — ${client.name}&body=Hi,%0A%0AThis is a reminder that your Watchtower subscription invoice is currently outstanding.%0APlease arrange payment at your earliest convenience.%0A%0ARegards,%0AWatchtower Team`,'_blank');}} style={{marginLeft:'auto',padding:'7px 14px',borderRadius:7,border:'1px solid #f97316',background:'#f9731610',color:'#f97316',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Chase Payment</button>}
                 </div>
               </div>
             )}
@@ -897,7 +897,7 @@ Keep it under 200 words, punchy and actionable.`;
               <input
                 type='text' placeholder='e.g. 10000'
                 value={mrrTarget}
-                onChange={e=>{setMrrTarget(e.target.value.replace(/[^0-9]/g,''));setArrTarget('');setAiAnalysis(null);}}
+                onChange={e=>{setMrrTarget(e.target.value.split('').filter(c=>c>='0'&&c<='9').join(''));setArrTarget('');setAiAnalysis(null);}}
                 style={{width:'100%',padding:'10px 12px 10px 28px',background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:8,color:'var(--wt-text)',fontSize:'1rem',fontFamily:'JetBrains Mono,monospace',fontWeight:700,outline:'none',boxSizing:'border-box'}}
               />
             </div>
@@ -911,7 +911,7 @@ Keep it under 200 words, punchy and actionable.`;
               <input
                 type='text' placeholder='e.g. 120000'
                 value={arrTarget}
-                onChange={e=>{setArrTarget(e.target.value.replace(/[^0-9]/g,''));setMrrTarget('');setAiAnalysis(null);}}
+                onChange={e=>{setArrTarget(e.target.value.split('').filter(c=>c>='0'&&c<='9').join(''));setMrrTarget('');setAiAnalysis(null);}}
                 style={{width:'100%',padding:'10px 12px 10px 28px',background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:8,color:'var(--wt-text)',fontSize:'1rem',fontFamily:'JetBrains Mono,monospace',fontWeight:700,outline:'none',boxSizing:'border-box'}}
               />
             </div>
@@ -1585,8 +1585,8 @@ export default function DashboardPage() {
         if (d.results) {
           const VULN_SOURCES = new Set(['tenable','nessus','qualys','wiz']);
           const allItems = d.results.flatMap(r => r.alerts || []);
-          const vulnItems = allItems.filter(a => VULN_SOURCES.has((a.source||'').toLowerCase().replace(/[^a-z]/g,'')));
-          const alertItems = allItems.filter(a => !VULN_SOURCES.has((a.source||'').toLowerCase().replace(/[^a-z]/g,'')));
+          const vulnItems = allItems.filter(a => VULN_SOURCES.has((a.source||'').toLowerCase().split('').filter(c=>c>='a'&&c<='z').join('')));
+          const alertItems = allItems.filter(a => !VULN_SOURCES.has((a.source||'').toLowerCase().split('').filter(c=>c>='a'&&c<='z').join('')));
           setLiveAlerts(alertItems);
           if (vulnItems.length > 0) {
             setLiveVulns(vulnItems.map(v => ({
