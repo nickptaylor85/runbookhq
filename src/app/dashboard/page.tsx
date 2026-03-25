@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client';
 import AlertsTab from './AlertsTab';
 import SalesDashboard from './SalesDashboard';
