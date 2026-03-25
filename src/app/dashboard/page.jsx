@@ -2177,8 +2177,7 @@ export default function DashboardPage() {
                   <button onClick={()=>{
                     const rows = [['ID','Title','Severity','Source','Device','Time','Verdict','Confidence','MITRE','Notes']];
                     alerts.forEach(a=>rows.push([a.id,`"${a.title}"`,a.severity,a.source,a.device||'',a.time,a.verdict||'',a.confidence||'',a.mitre||'',`"${alertNotes[a.id]||''}"`]));
-                    const csv = rows.map(r=>r.join(',')).join('
-');
+                    const csv = rows.map(r=>r.join(',')).join('\n');
                     const blob = new Blob([csv],{type:'text/csv'});
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a'); a.href=url; a.download=`watchtower-alerts-${new Date().toISOString().split('T')[0]}.csv`; a.click(); URL.revokeObjectURL(url);
