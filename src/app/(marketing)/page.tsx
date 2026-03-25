@@ -6,39 +6,39 @@ const ALERTS = [
   { sev:'high', title:'C2 beacon → 185.220.101.42', verdict:'TP', conf:94, action:'Blocked IP, notified SOC', time:'09:16' },
   { sev:'med', title:'Scheduled task persistence — SRV-APP02', verdict:'SUS', conf:67, action:'Flagged for analyst review', time:'09:22' },
   { sev:'low', title:'Windows Update triggered PowerShell', verdict:'FP', conf:99, action:'Auto-closed, suppressed', time:'09:31' },
-  { sev:'med', title:'Anomalous VPN login — new geo', verdict:'SUS', conf:72, action:'MFA challenge sent', time:'09:38' },
 ];
 
+// Inline SVG tool icons — no external dependency, always renders
 const TOOLS = [
-  { name:'CrowdStrike',  slug:'crowdstrike',         color:'#f0405e' },
-  { name:'Defender',     slug:'microsoftdefender',   color:'#00a4ef' },
-  { name:'Taegis XDR',   slug:'secureworks',         color:'#e8172c' },
-  { name:'Tenable',      slug:'tenable',             color:'#00b3e3' },
-  { name:'SentinelOne',  slug:'sentinelone',         color:'#8c2be2' },
-  { name:'Splunk',       slug:'splunk',              color:'#65a637' },
-  { name:'Sentinel',     slug:'microsoftazure',      color:'#0078d4' },
-  { name:'Darktrace',    slug:'darktrace',           color:'#00a3e0' },
-  { name:'Zscaler',      slug:'zscaler',             color:'#00aae7' },
-  { name:'Proofpoint',   slug:'proofpoint',          color:'#007dba' },
-  { name:'Wiz',          slug:'wiz',                 color:'#00bfa5' },
-  { name:'QRadar',       slug:'ibm',                 color:'#006699' },
-  { name:'Elastic',      slug:'elastic',             color:'#00bfb3' },
-  { name:'Okta',         slug:'okta',                color:'#007dc1' },
-  { name:'CyberArk',     slug:'cyberark',            color:'#ef3b2d' },
-  { name:'Nessus',       slug:'tenable',             color:'#00b3e3' },
+  { name:'CrowdStrike',  color:'#f0405e', abbr:'CS' },
+  { name:'Defender',     color:'#00a4ef', abbr:'DF' },
+  { name:'Taegis XDR',   color:'#e8172c', abbr:'TX' },
+  { name:'Tenable',      color:'#00b3e3', abbr:'TN' },
+  { name:'SentinelOne',  color:'#8c2be2', abbr:'S1' },
+  { name:'Splunk',       color:'#65a637', abbr:'SP' },
+  { name:'Sentinel',     color:'#0078d4', abbr:'MS' },
+  { name:'Darktrace',    color:'#6b4fbd', abbr:'DT' },
+  { name:'Zscaler',      color:'#00aae7', abbr:'ZS' },
+  { name:'Elastic',      color:'#00bfb3', abbr:'EL' },
+  { name:'QRadar',       color:'#006699', abbr:'QR' },
+  { name:'Okta',         color:'#007dc1', abbr:'OK' },
+  { name:'CrowdStrike',  color:'#f0405e', abbr:'CS' },
+  { name:'Proofpoint',   color:'#007dba', abbr:'PP' },
+  { name:'Nessus',       color:'#00b3e3', abbr:'NS' },
+  { name:'Wiz',          color:'#10b981', abbr:'WZ' },
 ];
 
 const FEATURES = [
-  { icon:'⚡', title:'AI Triage in 3.2s', body:'Every alert assessed, scored, and actioned before your analyst opens Slack. TP, FP, or Suspicious — with a full evidence chain and confidence score.' },
+  { icon:'⚡', title:'AI Triage in 3.2s', body:'Every alert assessed, scored, and actioned before your analyst opens Slack. TP, FP, or Suspicious — full evidence chain and confidence score.' },
   { icon:'🛡', title:'Estate Visibility', body:'Devices, coverage gaps, missing agents — mapped in real time. Know exactly where you are blind before an attacker finds it first.' },
-  { icon:'🔍', title:'AI Remediation Queries', body:'Top CVEs ranked by severity. One click generates production-ready Splunk SPL, Sentinel KQL, and Defender hunting queries — tailored to your stack.' },
-  { icon:'🌐', title:'IOC Hunt Queries', body:'Industry threat feeds with one-click AI query generation. Hunt for specific IOCs across Splunk, Sentinel, and Defender from a single button.' },
+  { icon:'🔍', title:'AI Remediation Queries', body:'Top CVEs ranked by severity. One click generates production-ready Splunk SPL, Sentinel KQL, and Defender hunting queries.' },
+  { icon:'🌐', title:'IOC Hunt Queries', body:'Industry threat feeds with one-click AI query generation. Hunt for specific IOCs across Splunk, Sentinel, and Defender instantly.' },
   { icon:'🤖', title:'Autonomous Response', body:'Isolate a host, block an IP, disable a compromised account — automatically, in seconds. Full audit trail and one-click revert.' },
-  { icon:'📊', title:'MSSP Portfolio View', body:'Manage multiple clients from one pane. Per-client posture, alerts, revenue, and usage stats. White-label ready.' },
+  { icon:'📊', title:'MSSP Portfolio View', body:'Manage multiple clients from one pane. Per-client posture, alerts, revenue, and usage. White-label ready with your branding.' },
+  { icon:'👥', title:'Role-Based Access', body:'Owner, Tech Admin, Sales, Viewer — granular roles for your whole team. Invite staff, set permissions, track last-seen per user.' },
+  { icon:'📈', title:'Sales Dashboard', body:'Set MRR/ARR targets, get AI-generated go-to-market strategy. Exactly which plan mix to sell to hit your revenue goal.' },
+  { icon:'🔐', title:'BYOK — Per-Client Keys', body:'Each client\'s AI calls run under their own Anthropic key. Complete data isolation. No shared AI context across tenants.' },
 ];
-
-const STATS_BEFORE = ['400+ alerts/day','6 separate consoles','3.5h avg triage time','80% false positives'];
-const STATS_AFTER = ['<60 alerts need attention','1 screen','3.2s AI triage','85% auto-resolved'];
 
 const TESTIMONIALS = [
   { quote:'The AI triage alone saved us 30+ hours a week. We went from drowning in alerts to actually doing security work.', name:'Sarah R.', role:'CISO, Healthcare SaaS', init:'SR', color:'#4f8fff' },
@@ -46,279 +46,246 @@ const TESTIMONIALS = [
   { quote:'Junior analysts now triage alerts that used to require a senior. The AI explains its reasoning — it\'s like having a mentor on every alert.', name:'James C.', role:'SOC Manager, Financial Services', init:'JC', color:'#8b6fff' },
 ];
 
-function LiveDashPreview() {
-  const [visibleAlerts, setVisibleAlerts] = useState<number[]>([]);
-  const [aiTyping, setAiTyping] = useState(false);
-  const [aiText, setAiText] = useState('');
-  const fullText = 'AI Shift Brief: Processed 23 alerts overnight. Auto-closed 18 FPs. Escalated 3 TPs to incidents. 2 critical alerts need immediate attention.';
+const PLANS = [
+  { name:'Community', price:'£0', period:'forever', color:'#6b7a94', features:['2 tool integrations','AI alert triage (read-only)','1 seat','Community support'] },
+  { name:'Team', price:'£49', period:'/seat/mo', color:'#4f8fff', badge:'Popular', features:['Unlimited integrations','Full AI Co-Pilot','Automation (Full Auto)','BYOK required','From 3 seats'] },
+  { name:'Business', price:'£199', period:'/mo', color:'#22d49a', features:['Everything in Team','10 seats included','PDF reports & API','RBAC — full roles','Compliance mapping'] },
+  { name:'MSSP', price:'£799', period:'/mo', color:'#8b6fff', badge:'Best value', features:['Everything in Business','Unlimited clients (+£79/client)','White-label branding','Per-client BYOK','Portfolio dashboard','Sales dashboard & AI GTM'] },
+];
 
-  useEffect(() => {
-    let alertIdx = 0;
-    const addAlert = () => {
-      if (alertIdx < ALERTS.length) {
-        setVisibleAlerts(prev => [...prev, alertIdx]);
-        alertIdx++;
-        setTimeout(addAlert, 900);
-      }
-    };
-    const t = setTimeout(() => { setAiTyping(true); addAlert(); }, 600);
-    return () => clearTimeout(t);
-  }, []);
-
-  useEffect(() => {
-    if (!aiTyping) return;
-    let i = 0;
-    const interval = setInterval(() => {
-      setAiText(fullText.slice(0, i));
-      i++;
-      if (i > fullText.length) clearInterval(interval);
-    }, 18);
-    return () => clearInterval(interval);
-  }, [aiTyping]);
-
-  const sevColor: Record<string,string> = { crit:'#f0405e', high:'#f97316', med:'#f0a030', low:'#4f8fff' };
-  const verdictStyle: Record<string,{color:string,bg:string}> = {
-    TP: { color:'#f0405e', bg:'#f0405e12' },
-    FP: { color:'#22d49a', bg:'#22d49a12' },
-    SUS: { color:'#f0a030', bg:'#f0a03012' },
-  };
-
+function ToolChip({ name, color, abbr }: { name: string; color: string; abbr: string }) {
   return (
-    <div style={{ background:'#070a12', border:'1px solid #1e2a3a', borderRadius:14, overflow:'hidden', fontFamily:'Inter,sans-serif', maxWidth:860, margin:'0 auto' }}>
-      <div style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 14px', background:'#0a0d18', borderBottom:'1px solid #1a2030' }}>
-        <div style={{ display:'flex', gap:5 }}>
-          {['#f0405e80','#f0a03080','#22c99280'].map((c,i) => <span key={i} style={{ width:9,height:9,borderRadius:'50%',background:c,display:'block' }} />)}
-        </div>
-        <span style={{ flex:1, textAlign:'center', fontSize:'0.6rem', color:'#3a4a60', fontFamily:'JetBrains Mono,monospace', background:'#060810', padding:'3px 12px', borderRadius:4 }}>getwatchtower.io/dashboard</span>
-        <span style={{ fontSize:'0.58rem', color:'#22c992', display:'flex', alignItems:'center', gap:4 }}><span style={{ width:5,height:5,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',display:'block' }} />LIVE</span>
-      </div>
-      <div style={{ display:'flex', minHeight:320 }}>
-        <div style={{ width:44, background:'#08090f', borderRight:'1px solid #121820', padding:'10px 0', display:'flex', flexDirection:'column', alignItems:'center', gap:6 }}>
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" style={{marginBottom:8,flexShrink:0}}>
-              <rect width="28" height="28" rx="7" fill="url(#pg)"/>
-              <path d="M14 5.5L22 9V15.5C22 19.5 18.5 23 14 24.5C9.5 23 6 19.5 6 15.5V9L14 5.5Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" strokeWidth="0.7"/>
-              <path d="M11.5 14.5L13.5 16.5L17.5 12" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-              <defs><linearGradient id="pg" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse"><stop stopColor="#3b7fff"/><stop offset="1" stopColor="#7c3aff"/></linearGradient></defs>
-            </svg>
-          {['📊','🔔','🛡','🔍','🌐','📋'].map((ic,i) => <div key={i} style={{ width:30,height:30,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:6,fontSize:'0.7rem',background:i===0?'#4f8fff18':'transparent' }}>{ic}</div>)}
-        </div>
-        <div style={{ flex:1, padding:'12px 16px' }}>
-          <div style={{ fontSize:'0.62rem', color:'#8a9ab0', padding:'7px 10px', background:'linear-gradient(135deg,rgba(79,143,255,0.05),rgba(34,201,146,0.05))', border:'1px solid #4f8fff18', borderRadius:8, marginBottom:10, display:'flex', alignItems:'flex-start', gap:6, minHeight:32 }}>
-            <span style={{ width:6,height:6,borderRadius:'50%',background:'#4f8fff',boxShadow:'0 0 8px #4f8fff',flexShrink:0,marginTop:2 }} />
-            <span>{aiText}<span style={{ opacity: aiText.length < fullText.length ? 1 : 0, borderRight:'2px solid #4f8fff', marginLeft:1 }}> </span></span>
-          </div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6, marginBottom:10 }}>
-            {[{val:'B+',label:'Posture',color:'#22d49a'},{val:'18',label:'Auto-Closed',color:'#4f8fff'},{val:'2',label:'Critical',color:'#f0405e'},{val:'33h',label:'Time Saved',color:'#22d49a'}].map(s => (
-              <div key={s.label} style={{ textAlign:'center', padding:'8px 4px', background:'#09091a', border:'1px solid #141c28', borderRadius:8 }}>
-                <div style={{ fontSize:'1.1rem', fontWeight:900, fontFamily:'JetBrains Mono,monospace', color:s.color, letterSpacing:-1 }}>{s.val}</div>
-                <div style={{ fontSize:'0.45rem', color:'#3a4a60', textTransform:'uppercase', letterSpacing:'0.4px', fontWeight:700 }}>{s.label}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
-            {ALERTS.map((a,i) => visibleAlerts.includes(i) ? (
-              <div key={i} style={{ display:'flex', alignItems:'center', gap:7, padding:'5px 8px', background:'#09091a', border:'1px solid #141c28', borderRadius:6, fontSize:'0.6rem', animation:'slideIn 0.35s ease' }}>
-                <span style={{ width:4,height:16,borderRadius:2,background:sevColor[a.sev],flexShrink:0 }} />
-                <span style={{ flex:1, color:'#8a9ab0', fontWeight:500, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{a.time} — {a.title}</span>
-                <span style={{ fontSize:'0.48rem', fontWeight:800, padding:'1px 5px', borderRadius:3, color:verdictStyle[a.verdict].color, background:verdictStyle[a.verdict].bg, flexShrink:0 }}>{a.verdict} {a.conf}%</span>
-                <span style={{ fontSize:'0.44rem', color:'#3a4a60', flexShrink:0, maxWidth:120, textAlign:'right' }}>{a.action}</span>
-              </div>
-            ) : null)}
-          </div>
-        </div>
-      </div>
-      <style>{`@keyframes slideIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}`}</style>
-    </div>
+    <span style={{
+      display:'inline-flex', alignItems:'center', gap:7,
+      padding:'6px 12px', background:'#0a0d14', border:'1px solid #1a2030',
+      borderRadius:20, fontSize:'0.72rem', color:'#8a9ab0', fontWeight:600,
+      transition:'all .15s', cursor:'default',
+    }}
+    onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor=color+'40';(e.currentTarget as HTMLElement).style.color='#e8ecf4';}}
+    onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor='#1a2030';(e.currentTarget as HTMLElement).style.color='#8a9ab0';}}>
+      <span style={{
+        width:16, height:16, borderRadius:4, flexShrink:0,
+        background:`linear-gradient(135deg,${color}cc,${color}55)`,
+        display:'flex', alignItems:'center', justifyContent:'center',
+        fontSize:'0.42rem', fontWeight:900, color:'#fff', letterSpacing:0,
+      }}>{abbr}</span>
+      {name}
+    </span>
   );
 }
 
 function ROICalculator() {
   const [analysts, setAnalysts] = useState(3);
   const [alertsPerDay, setAlertsPerDay] = useState(200);
-  const [minPerAlert, setMinPerAlert] = useState(8);
-  const fpRate = 0.72;
-  const aiReduction = 0.85;
-  const hourlyRate = 50;
-
-  const fpAlertsPerDay = Math.round(alertsPerDay * fpRate);
-  const rawHoursWastedPerDay = fpAlertsPerDay * (minPerAlert / 60);
-  // Cap at analyst capacity (analysts × 8h working day)
-  const analystCapacityHours = analysts * 8;
-  const hoursWastedPerDay = Math.min(rawHoursWastedPerDay, analystCapacityHours);
-  const wasted = Math.round(hoursWastedPerDay * hourlyRate * 260);
-  const saved = Math.round(wasted * aiReduction);
-  const cost = analysts <= 3 ? 49 * 3 * 12 : analysts <= 10 ? 199 * 12 : 799 * 12;
-  const roi = Math.min(Math.round(((saved - cost) / cost) * 100), 9999);
-  const overCapacity = rawHoursWastedPerDay > analystCapacityHours;
-  const dailySaving = saved / 260;
-  const paybackDays = dailySaving > 0 ? Math.max(1, Math.round(cost / dailySaving)) : 0;
-
+  const hoursSaved = Math.round(alertsPerDay * 0.72 * 0.05 * 22 * analysts);
+  const moneySaved = Math.round(hoursSaved * 65);
   return (
-    <div style={{ background:'#0a0d14', border:'1px solid #1e2536', borderRadius:16, padding:'28px 32px', maxWidth:640, margin:'0 auto' }}>
-      <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:6 }}>ROI CALCULATOR</div>
-      <h3 style={{ fontSize:'1.3rem', fontWeight:800, letterSpacing:-1, marginBottom:20 }}>What is alert fatigue actually costing you?</h3>
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:16 }}>
-        {[
-          { label:'Analysts in your SOC', val:analysts, set:setAnalysts, min:1, max:20 },
-          { label:'Alerts per day (team total)', val:alertsPerDay, set:setAlertsPerDay, min:10, max:2000, step:10 },
-        ].map(s => (
-          <div key={s.label}>
-            <div style={{ fontSize:'0.72rem', color:'#6b7a94', marginBottom:6 }}>{s.label}</div>
-            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-              <input type='range' min={s.min} max={s.max} step={s.step||1} value={s.val} onChange={e => s.set(Number(e.target.value))} style={{ flex:1, accentColor:'#4f8fff' }} />
-              <span style={{ fontSize:'1rem', fontWeight:800, fontFamily:'JetBrains Mono,monospace', minWidth:40, textAlign:'right' }}>{s.val}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div style={{ marginBottom:20 }}>
-        <div style={{ fontSize:'0.72rem', color:'#6b7a94', marginBottom:6 }}>Minutes to investigate each alert</div>
-        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <input type='range' min={3} max={30} step={1} value={minPerAlert} onChange={e => setMinPerAlert(Number(e.target.value))} style={{ flex:1, accentColor:'#4f8fff' }} />
-          <span style={{ fontSize:'1rem', fontWeight:800, fontFamily:'JetBrains Mono,monospace', minWidth:40, textAlign:'right' }}>{minPerAlert}m</span>
+    <div style={{ maxWidth:640, margin:'0 auto', background:'#0a0d14', border:'1px solid #1a2030', borderRadius:16, padding:'28px 32px' }}>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:24, marginBottom:24 }}>
+        <div>
+          <label style={{ display:'block', fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1px', marginBottom:8 }}>Analysts on your team</label>
+          <input type='range' min={1} max={20} value={analysts} onChange={e=>setAnalysts(Number(e.target.value))} style={{ width:'100%', accentColor:'#4f8fff' }} />
+          <span style={{ fontSize:'1.2rem', fontWeight:800, fontFamily:'JetBrains Mono,monospace', color:'#e8ecf4' }}>{analysts}</span>
+        </div>
+        <div>
+          <label style={{ display:'block', fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1px', marginBottom:8 }}>Alerts per day</label>
+          <input type='range' min={50} max={2000} step={50} value={alertsPerDay} onChange={e=>setAlertsPerDay(Number(e.target.value))} style={{ width:'100%', accentColor:'#4f8fff' }} />
+          <span style={{ fontSize:'1.2rem', fontWeight:800, fontFamily:'JetBrains Mono,monospace', color:'#e8ecf4' }}>{alertsPerDay}</span>
         </div>
       </div>
-      <div style={{ padding:'10px 14px', background:'#050508', borderRadius:8, marginBottom:16, fontSize:'0.68rem', color:'#4a5568', lineHeight:1.8 }}>
-        {fpAlertsPerDay} FP alerts/day × {minPerAlert} min × £{hourlyRate}/hr × 260 days
-        = <strong style={{ color:'#f0405e' }}>£{wasted.toLocaleString()}/year</strong> wasted on noise
-        {overCapacity && <span style={{ display:'block', color:'#f0a030', marginTop:4 }}>⚠ Alert volume exceeds analyst capacity — team is missing alerts</span>}
-      </div>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
         {[
-          { label:'Wasted annually on FPs', val:`£${(wasted/1000).toFixed(0)}k`, color:'#f0405e' },
-          { label:'Watchtower saves you', val:`£${(saved/1000).toFixed(0)}k`, color:'#22d49a' },
-          { label:'Pays for itself in', val:`${paybackDays}d`, color:'#4f8fff' },
+          { label:'Analyst hours saved/mo', val:`${hoursSaved.toLocaleString()}h`, color:'#4f8fff' },
+          { label:'Estimated cost saving/mo', val:`£${moneySaved.toLocaleString()}`, color:'#22d49a' },
         ].map(s => (
-          <div key={s.label} style={{ textAlign:'center', padding:'14px 8px', background:'#050508', border:'1px solid #141820', borderRadius:10 }}>
-            <div style={{ fontSize:'1.6rem', fontWeight:900, fontFamily:'JetBrains Mono,monospace', color:s.color, letterSpacing:-2 }}>{s.val}</div>
-            <div style={{ fontSize:'0.6rem', color:'#4a5568', lineHeight:1.4, marginTop:2 }}>{s.label}</div>
+          <div key={s.label} style={{ padding:'18px 20px', background:'#070a12', border:`1px solid ${s.color}20`, borderRadius:12 }}>
+            <div style={{ fontSize:'2rem', fontWeight:900, fontFamily:'JetBrains Mono,monospace', color:s.color, letterSpacing:-2 }}>{s.val}</div>
+            <div style={{ fontSize:'0.66rem', color:'#6b7a94', marginTop:4 }}>{s.label}</div>
           </div>
         ))}
       </div>
-      <p style={{ fontSize:'0.68rem', color:'#3a4050', marginTop:10, textAlign:'center' }}>Based on £{hourlyRate}/hr blended SOC analyst cost (incl. overhead) · {Math.round(fpRate*100)}% industry avg FP rate · {Math.round(aiReduction*100)}% Watchtower noise reduction</p>
+    </div>
+  );
+}
+
+function LiveDashPreview() {
+  const [visibleAlerts, setVisibleAlerts] = useState<number[]>([]);
+  const [aiText, setAiText] = useState('');
+  const fullText = 'AI Shift Brief: Processed 23 alerts overnight. Auto-closed 18 FPs. Escalated 3 TPs to incidents. 2 critical alerts need immediate attention.';
+  useEffect(() => {
+    let i = 0;
+    const addAlert = () => { if(i<ALERTS.length){setVisibleAlerts(p=>[...p,i]);i++;setTimeout(addAlert,800);} };
+    const t = setTimeout(()=>addAlert(), 400);
+    return ()=>clearTimeout(t);
+  },[]);
+  useEffect(()=>{
+    let i=0;const iv=setInterval(()=>{setAiText(fullText.slice(0,i));i++;if(i>fullText.length)clearInterval(iv);},16);
+    return()=>clearInterval(iv);
+  },[]);
+  const sevColor: Record<string,string> = { crit:'#f0405e', high:'#f97316', med:'#f0a030', low:'#4f8fff' };
+  const vStyle: Record<string,{c:string;bg:string}> = { TP:{c:'#f0405e',bg:'#f0405e12'}, FP:{c:'#22d49a',bg:'#22d49a12'}, SUS:{c:'#f0a030',bg:'#f0a03012'} };
+  return (
+    <div style={{ background:'#070a12', border:'1px solid #1e2a3a', borderRadius:14, overflow:'hidden', fontFamily:'Inter,sans-serif', maxWidth:860, margin:'0 auto', boxShadow:'0 40px 80px rgba(0,0,0,0.6)' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 14px', background:'#0a0d18', borderBottom:'1px solid #1a2030' }}>
+        <div style={{ display:'flex', gap:5 }}>
+          {['#f0405e80','#f0a03080','#22c99280'].map((c,i)=><span key={i} style={{width:9,height:9,borderRadius:'50%',background:c,display:'block'}}/>)}
+        </div>
+        <span style={{ flex:1, textAlign:'center', fontSize:'0.6rem', color:'#3a4a60', fontFamily:'JetBrains Mono,monospace', background:'#060810', padding:'3px 12px', borderRadius:4 }}>getwatchtower.io/dashboard</span>
+        <span style={{ fontSize:'0.58rem', color:'#22c992', display:'flex', alignItems:'center', gap:4 }}><span style={{width:5,height:5,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',display:'block'}}/>LIVE</span>
+      </div>
+      <div style={{ display:'flex', minHeight:300 }}>
+        <div style={{ width:44, background:'#08090f', borderRight:'1px solid #121820', padding:'10px 0', display:'flex', flexDirection:'column', alignItems:'center', gap:6 }}>
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" style={{marginBottom:8}}>
+            <rect width="28" height="28" rx="7" fill="url(#pg2)"/>
+            <path d="M14 5.5L22 9V15.5C22 19.5 18.5 23 14 24.5C9.5 23 6 19.5 6 15.5V9L14 5.5Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" strokeWidth="0.7"/>
+            <path d="M11.5 14.5L13.5 16.5L17.5 12" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+            <defs><linearGradient id="pg2" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse"><stop stopColor="#3b7fff"/><stop offset="1" stopColor="#7c3aff"/></linearGradient></defs>
+          </svg>
+          {['📊','🔔','🛡','🔍','🌐','📋','📈'].map((ic,i)=><div key={i} style={{width:30,height:30,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:6,fontSize:'0.7rem',background:i===0?'#4f8fff18':'transparent'}}>{ic}</div>)}
+        </div>
+        <div style={{ flex:1, padding:'12px 16px' }}>
+          <div style={{ fontSize:'0.62rem', color:'#8a9ab0', padding:'7px 10px', background:'linear-gradient(135deg,rgba(79,143,255,0.05),rgba(34,201,146,0.05))', border:'1px solid #4f8fff18', borderRadius:8, marginBottom:10, display:'flex', alignItems:'flex-start', gap:6, minHeight:32 }}>
+            <span style={{width:6,height:6,borderRadius:'50%',background:'#4f8fff',boxShadow:'0 0 8px #4f8fff',flexShrink:0,marginTop:2}}/>
+            <span style={{fontSize:'0.6rem'}}>{aiText}<span style={{opacity:aiText.length<fullText.length?1:0,borderRight:'2px solid #4f8fff',marginLeft:1}}> </span></span>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6, marginBottom:10 }}>
+            {[{l:'Posture',v:'74%',c:'#f0a030'},{l:'Critical',v:'3',c:'#f0405e'},{l:'Coverage',v:'94%',c:'#22d49a'},{l:'Auto-closed',v:'18',c:'#4f8fff'}].map(s=>(
+              <div key={s.l} style={{padding:'8px',background:'#0a0d14',borderRadius:8,textAlign:'center'}}>
+                <div style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.c,letterSpacing:-1}}>{s.v}</div>
+                <div style={{fontSize:'0.5rem',color:'#4a5568',marginTop:2}}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
+            {ALERTS.map((a,i)=>(
+              <div key={i} style={{display:visibleAlerts.includes(i)?'flex':'none',alignItems:'center',gap:8,padding:'6px 8px',background:'#0a0d14',borderRadius:8,border:'1px solid #141820',animation:'slideIn 0.3s ease'}}>
+                <div style={{width:3,height:24,borderRadius:2,background:sevColor[a.sev],flexShrink:0}}/>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:'0.68rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.title}</div>
+                  <div style={{fontSize:'0.54rem',color:'#6b7a94',marginTop:1}}>{a.action}</div>
+                </div>
+                <span style={{fontSize:'0.5rem',fontWeight:800,padding:'2px 6px',borderRadius:3,color:vStyle[a.verdict]?.c,background:vStyle[a.verdict]?.bg,flexShrink:0}}>{a.verdict}</span>
+                <span style={{fontSize:'0.5rem',color:'#3a4a60',flexShrink:0,fontFamily:'JetBrains Mono,monospace'}}>{a.time}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
 export default function LandingPage() {
+  const toolsRef = useRef<HTMLElement>(null);
   const [toolsVisible, setToolsVisible] = useState(false);
-  const toolsRef = useRef<HTMLDivElement>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [annualBilling, setAnnualBilling] = useState(false);
 
-  useEffect(() => {
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setToolsVisible(true); }, { threshold:0.1 });
-    if (toolsRef.current) obs.observe(toolsRef.current);
-    return () => obs.disconnect();
-  }, []);
+  useEffect(()=>{
+    const obs = new IntersectionObserver(([e])=>{if(e.isIntersecting)setToolsVisible(true);},{threshold:0.2});
+    if(toolsRef.current) obs.observe(toolsRef.current);
+    return ()=>obs.disconnect();
+  },[]);
+
+  const CSS = `
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#050508;color:#e8ecf4;font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    @keyframes slideIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    @keyframes glow{0%,100%{box-shadow:0 0 20px rgba(79,143,255,0.3)}50%{box-shadow:0 0 40px rgba(79,143,255,0.6)}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+    .nav-link{color:#6b7a94;text-decoration:none;font-size:0.82rem;font-weight:500;transition:color .15s}
+    .nav-link:hover{color:#e8ecf4}
+    .btn-primary{padding:11px 24px;background:#4f8fff;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:0.85rem;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;font-family:inherit}
+    .btn-primary:hover{background:#6b9fff;transform:translateY(-1px);box-shadow:0 8px 24px rgba(79,143,255,0.35)}
+    .btn-outline{padding:10px 22px;background:transparent;color:#e8ecf4;border:1px solid #2a3448;border-radius:9px;font-weight:600;font-size:0.85rem;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;font-family:inherit}
+    .btn-outline:hover{border-color:#4f8fff;color:#4f8fff}
+    .section{max-width:1200px;margin:0 auto}
+    @media(max-width:768px){.feat-grid{grid-template-columns:1fr!important}.plan-grid{grid-template-columns:1fr!important}.hero-btns{flex-direction:column}}
+  `;
 
   return (
-    <div style={{ background:'#050508', color:'#e8ecf4', fontFamily:'Inter,sans-serif', minHeight:'100vh', overflowX:'hidden' }}>
-      <style>{`
-        *{margin:0;padding:0;box-sizing:border-box}
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
-        body{background:#050508;color:#e8ecf4;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
-        a{text-decoration:none;color:inherit}
-        .ld-btn{display:inline-block;padding:12px 28px;background:#4f8fff;color:#fff;border-radius:10px;font-weight:700;font-size:0.88rem;transition:all .2s;border:none;cursor:pointer;font-family:Inter,sans-serif}
-        .ld-btn:hover{background:#3d7de6;transform:translateY(-2px);box-shadow:0 8px 28px rgba(79,143,255,0.35)}
-        .ld-btn-ghost{display:inline-block;padding:12px 28px;background:transparent;color:#a0adc4;border-radius:10px;font-weight:600;font-size:0.88rem;border:1px solid #1e2536;transition:all .2s;cursor:pointer;font-family:Inter,sans-serif}
-        .ld-btn-ghost:hover{border-color:#4f8fff;color:#4f8fff}
-        .grid-bg{position:fixed;inset:0;background:linear-gradient(rgba(79,143,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(79,143,255,0.015) 1px,transparent 1px);background-size:64px 64px;pointer-events:none;z-index:0}
-        .section{position:relative;z-index:1}
-        @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
-        @keyframes glow{0%,100%{box-shadow:0 0 30px rgba(79,143,255,0.1)}50%{box-shadow:0 0 60px rgba(79,143,255,0.2)}}
-        @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.85)}}
-        .anim-hero{animation:fadeUp 0.9s ease both}
-        .tool-chip{font-size:0.72rem;font-weight:600;color:#6b7a94;padding:8px 14px;border:1px solid #141820;border-radius:10px;background:#0a0d14;transition:all 0.2s;cursor:default;display:flex;align-items:center;gap:7px}
-        .tool-chip:hover{border-color:#4f8fff40;color:#a0adc4;background:#4f8fff08}
-        @media(max-width:900px){.hero-h1{font-size:2.6rem!important}.ai-grid{grid-template-columns:1fr!important}.feat-grid{grid-template-columns:1fr 1fr!important}.price-grid{grid-template-columns:1fr 1fr!important}.test-grid{grid-template-columns:1fr!important}}
-        @media(max-width:600px){.hero-h1{font-size:2rem!important}.feat-grid{grid-template-columns:1fr!important}.price-grid{grid-template-columns:1fr!important}.before-after{flex-direction:column!important}.nav-links a:not(.nav-cta){display:none}}
-      `}</style>
-      <div className='grid-bg' />
+    <main style={{ background:'#050508', color:'#e8ecf4', minHeight:'100vh', fontFamily:'Inter,system-ui,sans-serif' }}>
+      <style dangerouslySetInnerHTML={{__html:CSS}}/>
 
       {/* NAV */}
-      <nav className='section' style={{ display:'flex', alignItems:'center', padding:'14px 28px', position:'sticky', top:0, zIndex:50, background:'rgba(5,5,8,0.85)', backdropFilter:'blur(18px)', borderBottom:'1px solid #ffffff06' }}>
-        <a href='/' style={{ display:'flex', alignItems:'center', gap:8, fontWeight:800, fontSize:'0.98rem' }}>
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" style={{flexShrink:0}}>
-            <rect width="28" height="28" rx="7" fill="url(#ng)"/>
-            <path d="M14 5.5L22 9V15.5C22 19.5 18.5 23 14 24.5C9.5 23 6 19.5 6 15.5V9L14 5.5Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" strokeWidth="0.7"/>
-            <path d="M11.5 14.5L13.5 16.5L17.5 12" stroke="white" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-            <defs><linearGradient id="ng" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse"><stop stopColor="#3b7fff"/><stop offset="1" stopColor="#7c3aff"/></linearGradient></defs>
-          </svg>
-          Watchtower
-        </a>
-        <div className='nav-links' style={{ display:'flex', alignItems:'center', gap:2, marginLeft:'auto' }}>
-          <a href='/demo' style={{ color:'#6b7a94', fontSize:'0.8rem', fontWeight:500, padding:'7px 14px', borderRadius:8, transition:'color .2s' }}>Demo</a>
-          <a href='/#features' style={{ color:'#6b7a94', fontSize:'0.8rem', fontWeight:500, padding:'7px 14px', borderRadius:8, transition:'color .2s' }}>Features</a>
-          <a href='/pricing' style={{ color:'#6b7a94', fontSize:'0.8rem', fontWeight:500, padding:'7px 14px', borderRadius:8, transition:'color .2s' }}>Pricing</a>
-          <a href='/login' style={{ color:'#6b7a94', fontSize:'0.8rem', fontWeight:500, padding:'7px 14px', borderRadius:8, transition:'color .2s' }}>Sign In</a>
-          <a href='/signup' className='nav-cta ld-btn' style={{ marginLeft:6, padding:'8px 18px', fontSize:'0.82rem' }}>Start Free →</a>
+      <nav style={{ position:'sticky', top:0, zIndex:100, background:'rgba(5,5,8,0.9)', backdropFilter:'blur(16px)', borderBottom:'1px solid #0e1218', padding:'0 24px' }}>
+        <div style={{ maxWidth:1100, margin:'0 auto', display:'flex', alignItems:'center', height:58, gap:32 }}>
+          <a href='/' style={{ display:'flex', alignItems:'center', gap:9, textDecoration:'none', color:'inherit', flexShrink:0 }}>
+            <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+              <rect width="30" height="30" rx="8" fill="url(#navg)"/>
+              <path d="M15 6L23 10V16C23 20 19.5 23.5 15 25C10.5 23.5 7 20 7 16V10L15 6Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" strokeWidth="0.8"/>
+              <path d="M12.5 15.5L14.5 17.5L18.5 13" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <defs><linearGradient id="navg" x1="0" y1="0" x2="30" y2="30" gradientUnits="userSpaceOnUse"><stop stopColor="#3b7fff"/><stop offset="1" stopColor="#7c3aff"/></linearGradient></defs>
+            </svg>
+            <span style={{ fontWeight:800, fontSize:'1rem', letterSpacing:-0.3 }}>Watchtower</span>
+          </a>
+          <div style={{ display:'flex', gap:24, marginLeft:16 }}>
+            {[['Features','#features'],['Pricing','#pricing'],['Integrations','#integrations'],['MSSP','#mssp']].map(([label,href])=>(
+              <a key={label} href={href} className='nav-link'>{label}</a>
+            ))}
+          </div>
+          <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:10 }}>
+            <a href='/login' className='btn-outline' style={{padding:'7px 16px',fontSize:'0.78rem'}}>Sign in</a>
+            <a href='/login' className='btn-primary' style={{padding:'8px 18px',fontSize:'0.78rem'}}>Get started free →</a>
+          </div>
         </div>
       </nav>
 
       {/* HERO */}
-      <section className='section anim-hero' style={{ textAlign:'center', padding:'96px 24px 60px', maxWidth:780, margin:'0 auto' }}>
-        <div style={{ position:'absolute', top:-100, left:'50%', transform:'translateX(-50%)', width:600, height:600, background:'radial-gradient(circle,rgba(79,143,255,0.07) 0%,transparent 65%)', pointerEvents:'none' }} />
-        <div style={{ display:'inline-block', padding:'4px 16px', border:'1px solid #4f8fff25', borderRadius:20, fontSize:'0.7rem', fontWeight:700, color:'#4f8fff', marginBottom:24, letterSpacing:'0.5px' }}>
-          <span style={{ width:6,height:6,borderRadius:'50%',background:'#4f8fff',boxShadow:'0 0 8px #4f8fff',display:'inline-block',marginRight:6,animation:'pulse-dot 2s ease infinite',verticalAlign:'middle' }} />
-          AI-Powered SOC — Single Pane of Glass for Your Entire Stack
-        </div>
-        <h1 className='hero-h1' style={{ fontSize:'4.4rem', fontWeight:900, letterSpacing:-3, lineHeight:1.03, marginBottom:22 }}>
-          Your SOC team just got<br /><span style={{ background:'linear-gradient(135deg,#4f8fff 0%,#22d49a 100%)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent', backgroundClip:'text' }}>a 10x multiplier.</span>
-        </h1>
-        <p style={{ fontSize:'1.08rem', color:'#6b7a94', lineHeight:1.8, maxWidth:540, margin:'0 auto 32px' }}>
-          Watchtower connects Taegis, Tenable, CrowdStrike, Splunk and 15+ tools into one AI-powered dashboard. Triage every alert in 3.2 seconds. Hunt IOCs with one click. Respond automatically. Your analysts arrive to a clean queue.
-        </p>
-        <div style={{ display:'flex', gap:10, justifyContent:'center', marginBottom:52 }}>
-          <a href='/demo' className='ld-btn' style={{ fontSize:'0.95rem', padding:'13px 30px' }}>Watch Live Demo →</a>
-          <a href='/signup' className='ld-btn-ghost' style={{ fontSize:'0.95rem', padding:'13px 30px' }}>Start Free Trial</a>
-        </div>
-        <div style={{ display:'flex', gap:32, justifyContent:'center', alignItems:'center' }}>
-          {[{val:'85%',label:'noise eliminated'},{val:'3.2s',label:'triage per alert'},{val:'18+',label:'integrations'},{val:'£0',label:'to start'}].map((s,i,arr) => (
-            <span key={s.label} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:2 }}>
-              <strong style={{ fontSize:'1.9rem', fontWeight:800, fontFamily:'JetBrains Mono,monospace', letterSpacing:-1 }}>{s.val}</strong>
-              <span style={{ fontSize:'0.68rem', color:'#4a5568', fontWeight:500 }}>{s.label}</span>
-              {i < arr.length-1 && <span style={{ display:'none' }} />}
-            </span>
-          )).reduce((acc: React.ReactNode[], el, i) => i === 0 ? [el] : [...acc, <span key={`sep-${i}`} style={{ width:1, height:38, background:'#1a1e2a' }} />, el], [])}
+      <section style={{ padding:'80px 24px 60px', textAlign:'center', position:'relative', overflow:'hidden' }}>
+        <div style={{ position:'absolute', inset:0, background:'radial-gradient(ellipse 80% 50% at 50% -10%,rgba(79,143,255,0.12),transparent)', pointerEvents:'none' }}/>
+        <div style={{ position:'absolute', top:'20%', left:'10%', width:300, height:300, borderRadius:'50%', background:'rgba(139,111,255,0.04)', filter:'blur(80px)', pointerEvents:'none' }}/>
+        <div style={{ maxWidth:800, margin:'0 auto', position:'relative' }}>
+          <div style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'5px 14px', background:'#4f8fff12', border:'1px solid #4f8fff25', borderRadius:20, fontSize:'0.7rem', color:'#4f8fff', fontWeight:600, marginBottom:24 }}>
+            <span style={{width:6,height:6,borderRadius:'50%',background:'#4f8fff',boxShadow:'0 0 8px #4f8fff',display:'block',animation:'pulse 2s ease infinite'}}/>
+            AI-powered SOC · Multi-tenant · Enterprise-ready
+          </div>
+          <h1 style={{ fontSize:'clamp(2.2rem,5vw,3.6rem)', fontWeight:900, lineHeight:1.08, letterSpacing:-2.5, marginBottom:20 }}>
+            Your entire SOC.<br/>
+            <span style={{ background:'linear-gradient(135deg,#4f8fff,#8b6fff)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>One screen.</span>
+          </h1>
+          <p style={{ fontSize:'clamp(0.95rem,2vw,1.15rem)', color:'#6b7a94', lineHeight:1.75, marginBottom:32, maxWidth:580, margin:'0 auto 32px' }}>
+            AI triage in 3.2 seconds. Live integrations with CrowdStrike, Splunk, Taegis, Tenable and 12 more.
+            Role-based access for your whole team. Built for MSSPs and enterprise SOCs.
+          </p>
+          <div className='hero-btns' style={{ display:'flex', justifyContent:'center', gap:12, flexWrap:'wrap' }}>
+            <a href='/login' className='btn-primary' style={{fontSize:'0.9rem',padding:'13px 28px'}}>Start free — no card needed →</a>
+            <a href='#features' className='btn-outline' style={{fontSize:'0.9rem',padding:'13px 24px'}}>See features</a>
+          </div>
+          <div style={{ marginTop:16, fontSize:'0.72rem', color:'#3a4a60' }}>Community plan free forever · Team from £49/seat/mo</div>
         </div>
       </section>
 
       {/* LIVE DASHBOARD PREVIEW */}
-      <section className='section' style={{ padding:'0 24px 80px', maxWidth:900, margin:'0 auto' }}>
-        <div style={{ position:'relative' }}>
-          <div style={{ position:'absolute', inset:-20, background:'radial-gradient(ellipse,rgba(79,143,255,0.04) 0%,transparent 70%)', pointerEvents:'none' }} />
-          <LiveDashPreview />
-        </div>
-        <p style={{ textAlign:'center', fontSize:'0.72rem', color:'#3a4050', marginTop:12 }}>
-          ↑ This is the actual product, processing real alerts with AI — not a mockup
-        </p>
+      <section style={{ padding:'0 24px 60px' }}>
+        <LiveDashPreview />
       </section>
 
       {/* BEFORE / AFTER */}
-      <section className='section' style={{ padding:'60px 24px', background:'#070a12', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
-        <div style={{ maxWidth:900, margin:'0 auto' }}>
-          <div style={{ textAlign:'center', marginBottom:40 }}>
-            <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>THE TRANSFORMATION</div>
-            <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:-1.5 }}>Monday morning. Before and after.</h2>
+      <section style={{ padding:'60px 24px', background:'#070a12', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
+        <div style={{ maxWidth:860, margin:'0 auto' }}>
+          <div style={{ textAlign:'center', marginBottom:36 }}>
+            <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#f0405e', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>THE PROBLEM</div>
+            <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:-1.5 }}>What your SOC looks like today vs with Watchtower</h2>
           </div>
-          <div className='before-after' style={{ display:'flex', gap:16, alignItems:'stretch' }}>
-            <div style={{ flex:1, padding:'24px', background:'#0a0608', border:'1px solid #2a1020', borderRadius:14 }}>
-              <div style={{ fontSize:'0.72rem', fontWeight:700, color:'#f0405e', textTransform:'uppercase', letterSpacing:1, marginBottom:16 }}>😩 Without Watchtower</div>
-              {STATS_BEFORE.map(s => (
-                <div key={s} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 0', borderBottom:'1px solid #1a0810' }}>
-                  <span style={{ fontSize:'0.9rem' }}>❌</span>
-                  <span style={{ fontSize:'0.82rem', color:'#7a6068' }}>{s}</span>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr auto 1fr', gap:24, alignItems:'center' }}>
+            <div style={{ padding:24, background:'#0a0d14', border:'1px solid #f0405e18', borderRadius:14 }}>
+              <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#f0405e', textTransform:'uppercase', letterSpacing:'1px', marginBottom:14 }}>Before Watchtower</div>
+              {['400+ alerts/day, all need human review','6 separate tool consoles open','3.5 hour average triage time','80% are false positives eating analyst time','Junior analysts bottlenecked on senior review'].map(s=>(
+                <div key={s} style={{display:'flex',gap:8,marginBottom:8,alignItems:'flex-start'}}>
+                  <span style={{color:'#f0405e',flexShrink:0,marginTop:1}}>✗</span>
+                  <span style={{fontSize:'0.78rem',color:'#6b7a94',lineHeight:1.5}}>{s}</span>
                 </div>
               ))}
             </div>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'center', padding:'0 12px', flexShrink:0 }}>
-              <span style={{ fontSize:'1.5rem', color:'#4f8fff' }}>→</span>
-            </div>
-            <div style={{ flex:1, padding:'24px', background:'#040a08', border:'1px solid #0d2a18', borderRadius:14 }}>
-              <div style={{ fontSize:'0.72rem', fontWeight:700, color:'#22d49a', textTransform:'uppercase', letterSpacing:1, marginBottom:16 }}>🚀 With Watchtower</div>
-              {STATS_AFTER.map(s => (
-                <div key={s} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 0', borderBottom:'1px solid #081810' }}>
-                  <span style={{ fontSize:'0.9rem' }}>✅</span>
-                  <span style={{ fontSize:'0.82rem', color:'#608a78' }}>{s}</span>
+            <div style={{ fontSize:'1.5rem', color:'#3a4050' }}>→</div>
+            <div style={{ padding:24, background:'#0a0d14', border:'1px solid #22d49a18', borderRadius:14 }}>
+              <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#22d49a', textTransform:'uppercase', letterSpacing:'1px', marginBottom:14 }}>With Watchtower</div>
+              {['<60 alerts actually need attention','1 screen for everything','3.2s AI triage with evidence chain','85% auto-resolved with full audit trail','Juniors work at senior level with AI guidance'].map(s=>(
+                <div key={s} style={{display:'flex',gap:8,marginBottom:8,alignItems:'flex-start'}}>
+                  <span style={{color:'#22d49a',flexShrink:0,marginTop:1}}>✓</span>
+                  <span style={{fontSize:'0.78rem',color:'#8a9ab0',lineHeight:1.5}}>{s}</span>
                 </div>
               ))}
             </div>
@@ -326,83 +293,41 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* AI ENGINE */}
-      <section className='section' style={{ padding:'80px 24px', maxWidth:1100, margin:'0 auto' }}>
-        <div className='ai-grid' style={{ display:'grid', gridTemplateColumns:'1fr 380px', gap:56, alignItems:'center' }}>
-          <div>
-            <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:12 }}>THE AI ENGINE</div>
-            <h2 style={{ fontSize:'2.3rem', fontWeight:800, letterSpacing:-1.5, lineHeight:1.15, marginBottom:18 }}>Better than your best analyst.<br />Faster than all of them combined.</h2>
-            <p style={{ fontSize:'0.92rem', color:'#6b7a94', lineHeight:1.85, marginBottom:32 }}>
-              Every alert is enriched with device history, user context, and cross-alert correlation. The AI returns a verdict — True Positive, False Positive, or Suspicious — with a confidence score, full evidence chain, and recommended actions. False positives above 95% confidence are auto-closed. Critical threats auto-escalate with full runbooks.
-            </p>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12 }}>
-              {[{val:'98%',label:'accuracy on credential access alerts'},{val:'42 min',label:'saved per incident vs manual triage'},{val:'24/7',label:'autonomous triage while you sleep'}].map(s => (
-                <div key={s.label} style={{ padding:'14px 12px', background:'#0a0d14', border:'1px solid #141820', borderRadius:12, textAlign:'center' }}>
-                  <div style={{ fontSize:'1.4rem', fontWeight:800, fontFamily:'JetBrains Mono,monospace', color:'#4f8fff', letterSpacing:-1, marginBottom:4 }}>{s.val}</div>
-                  <div style={{ fontSize:'0.62rem', color:'#4a5568', lineHeight:1.4 }}>{s.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div style={{ background:'#0a0d14', border:'1px solid #141820', borderRadius:16, padding:22, position:'relative', overflow:'hidden', animation:'glow 4s ease infinite' }}>
-            <div style={{ position:'absolute', top:0, left:0, right:0, height:2, background:'linear-gradient(90deg,#4f8fff,#8b6fff)' }} />
-            <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4a5568', display:'flex', alignItems:'center', gap:6, marginBottom:12 }}>
-              <span style={{ width:7,height:7,borderRadius:'50%',background:'#4f8fff',boxShadow:'0 0 8px #4f8fff',display:'block' }} />
-              AI Triage — Live Result
-            </div>
-            <div style={{ fontSize:'0.9rem', fontWeight:700, marginBottom:10 }}>LSASS memory access on domain controller</div>
-            <div style={{ fontSize:'0.82rem', fontWeight:800, color:'#f0405e', padding:'6px 12px', background:'#f0405e0a', border:'1px solid #f0405e18', borderRadius:8, marginBottom:16, display:'inline-block' }}>TRUE POSITIVE — 98% confidence</div>
-            <div style={{ fontSize:'0.55rem', fontWeight:700, color:'#4a5568', textTransform:'uppercase', letterSpacing:1, marginBottom:6 }}>Evidence Chain</div>
-            {['Domain controller targeted — highest-value asset','Service account used laterally across 3 hosts','T1003.001 — credential dumping, high-fidelity detection','No scheduled maintenance window active'].map(e => (
-              <div key={e} style={{ fontSize:'0.74rem', color:'#a0adc4', padding:'3px 0 3px 14px', position:'relative' }}>
-                <span style={{ position:'absolute', left:0, top:10, width:5, height:5, borderRadius:'50%', background:'#4f8fff', display:'block' }} />
-                {e}
-              </div>
-            ))}
-            <div style={{ fontSize:'0.55rem', fontWeight:700, color:'#4a5568', textTransform:'uppercase', letterSpacing:1, marginTop:14, marginBottom:6 }}>Auto-Actions Taken</div>
-            {['✓ Incident INC-0847 created and assigned','✓ admin_svc account disabled (1-click revert)','✓ SOC Slack channel notified','✓ 5-step runbook generated'].map((a,i) => (
-              <div key={a} style={{ fontSize:'0.74rem', color:'#22d49a', padding:'2px 0', animation:`slideIn 0.4s ease ${i*0.1}s both` }}>{a}</div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ROI CALCULATOR */}
-      <section className='section' style={{ padding:'60px 24px', background:'#070a12', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
-        <div style={{ textAlign:'center', marginBottom:36 }}>
-          <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>BY THE NUMBERS</div>
-          <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:-1.5 }}>Calculate your savings</h2>
-        </div>
+      {/* ROI */}
+      <section style={{ padding:'60px 24px', textAlign:'center' }}>
+        <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>BY THE NUMBERS</div>
+        <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:-1.5, marginBottom:32 }}>Calculate your savings</h2>
         <ROICalculator />
       </section>
 
       {/* INTEGRATIONS */}
-      <section className='section' ref={toolsRef} style={{ padding:'70px 24px', textAlign:'center' }}>
+      <section id='integrations' ref={toolsRef as React.RefObject<HTMLElement>} style={{ padding:'60px 24px', textAlign:'center', background:'#070a12', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
         <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>INTEGRATIONS</div>
         <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:-1.5, marginBottom:10 }}>Connects to everything you run</h2>
         <p style={{ color:'#6b7a94', fontSize:'0.88rem', marginBottom:32 }}>No rip-and-replace. Plugs into your existing stack in minutes, not months.</p>
-        <div style={{ display:'flex', flexWrap:'wrap', justifyContent:'center', gap:8, maxWidth:780, margin:'0 auto' }}>
-          {TOOLS.map((t,i) => (
-            <span key={t.name} className='tool-chip' style={{ opacity: toolsVisible ? 1 : 0, transform: toolsVisible ? 'none' : 'translateY(8px)', transition:`all 0.4s ease ${i*0.04}s` }}>
-              <img src={`https://cdn.simpleicons.org/${t.slug}/${t.color.replace('#','')}`} alt={t.name} width={15} height={15} style={{flexShrink:0,opacity:0.85}} onError={(e)=>{(e.target as HTMLImageElement).style.display='none';}} />
-              {t.name}
+        <div style={{ display:'flex', flexWrap:'wrap', justifyContent:'center', gap:8, maxWidth:820, margin:'0 auto' }}>
+          {TOOLS.map((t,i)=>(
+            <span key={t.name+i} style={{ opacity:toolsVisible?1:0, transform:toolsVisible?'none':'translateY(8px)', transition:`all 0.4s ease ${i*0.04}s` }}>
+              <ToolChip name={t.name} color={t.color} abbr={t.abbr}/>
             </span>
           ))}
-          <span className='tool-chip' style={{ opacity: toolsVisible ? 1 : 0, transition:'all 0.4s ease 0.7s', borderStyle:'dashed', borderColor:'#4f8fff40', color:'#4f8fff' }}>+ your tool →</span>
+          <span style={{ opacity:toolsVisible?1:0, transition:'all 0.4s ease 0.7s', display:'inline-flex', alignItems:'center', padding:'6px 14px', background:'transparent', border:'1px dashed #4f8fff40', borderRadius:20, fontSize:'0.72rem', color:'#4f8fff', fontWeight:600 }}>
+            + your tool →
+          </span>
         </div>
       </section>
 
       {/* FEATURES */}
-      <section id='features' className='section' style={{ padding:'60px 24px', maxWidth:980, margin:'0 auto' }}>
-        <div style={{ textAlign:'center', marginBottom:40 }}>
+      <section id='features' style={{ padding:'70px 24px', maxWidth:1100, margin:'0 auto' }}>
+        <div style={{ textAlign:'center', marginBottom:44 }}>
           <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>PLATFORM</div>
           <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:-1.5 }}>One screen for your entire SOC</h2>
         </div>
         <div className='feat-grid' style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12 }}>
-          {FEATURES.map(f => (
-            <div key={f.title} style={{ padding:22, background:'#0a0d14', border:'1px solid #141820', borderRadius:14, transition:'all .2s', cursor:'default' }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor='#4f8fff25'; (e.currentTarget as HTMLElement).style.transform='translateY(-3px)'; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor='#141820'; (e.currentTarget as HTMLElement).style.transform='none'; }}>
+          {FEATURES.map(f=>(
+            <div key={f.title} style={{ padding:22, background:'#0a0d14', border:'1px solid #141820', borderRadius:14, transition:'all .2s' }}
+              onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor='#4f8fff25';(e.currentTarget as HTMLElement).style.transform='translateY(-3px)';(e.currentTarget as HTMLElement).style.boxShadow='0 12px 32px rgba(79,143,255,0.08)';}}
+              onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor='#141820';(e.currentTarget as HTMLElement).style.transform='none';(e.currentTarget as HTMLElement).style.boxShadow='none';}}>
               <div style={{ fontSize:'1.5rem', marginBottom:10 }}>{f.icon}</div>
               <h3 style={{ fontSize:'0.9rem', fontWeight:700, marginBottom:6 }}>{f.title}</h3>
               <p style={{ fontSize:'0.76rem', color:'#6b7a94', lineHeight:1.7 }}>{f.body}</p>
@@ -411,102 +336,117 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* MSSP */}
-      <section className='section' style={{ padding:'60px 24px', maxWidth:720, margin:'0 auto' }}>
+      {/* MSSP SECTION */}
+      <section id='mssp' style={{ padding:'60px 24px', maxWidth:860, margin:'0 auto' }}>
         <div style={{ padding:36, background:'linear-gradient(145deg,#0a0d14,#0d1018)', border:'1px solid #8b6fff18', borderRadius:18, position:'relative', overflow:'hidden' }}>
-          <div style={{ position:'absolute', top:0, left:0, right:0, height:2, background:'linear-gradient(90deg,#8b6fff,#4f8fff)' }} />
+          <div style={{ position:'absolute', top:0, left:0, right:0, height:2, background:'linear-gradient(90deg,#8b6fff,#4f8fff)' }}/>
+          <div style={{ position:'absolute', bottom:-60, right:-60, width:200, height:200, borderRadius:'50%', background:'rgba(139,111,255,0.06)', filter:'blur(40px)', pointerEvents:'none' }}/>
           <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#8b6fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>FOR MSSPs</div>
           <h2 style={{ fontSize:'1.7rem', fontWeight:800, letterSpacing:-1, marginBottom:10 }}>Manage 50 clients from one console</h2>
-          <p style={{ fontSize:'0.9rem', color:'#6b7a94', lineHeight:1.75, marginBottom:20 }}>Client health at a glance. Cross-client threat correlation. Per-client BYOK keys — each client's AI calls stay isolated under their own Anthropic account. White-label — your brand, zero Watchtower branding.</p>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:24 }}>
-            {[['🔴🟡🟢','Client health RAG — instant portfolio view'],['🔗','Cross-client IOC correlation'],['📊','Automated weekly branded reports'],['🎨','Full white-label, your brand only']].map(([icon,text]) => (
-              <div key={String(text)} style={{ display:'flex', alignItems:'center', gap:10, fontSize:'0.8rem', color:'#a0adc4', padding:'10px 12px', background:'#050508', borderRadius:8, border:'1px solid #141820' }}>
-                <span style={{ fontSize:'1rem', flexShrink:0 }}>{icon}</span>{text}
+          <p style={{ fontSize:'0.9rem', color:'#6b7a94', lineHeight:1.75, marginBottom:24 }}>Client health at a glance. Cross-client threat correlation. Per-client BYOK keys — each client's AI calls stay isolated under their own Anthropic account. White-label — your brand, zero Watchtower branding.</p>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:10, marginBottom:24 }}>
+            {[
+              { icon:'📊', title:'Portfolio Dashboard', body:'Every client on one screen. Drill into any tenant in one click. Posture, alerts, incidents, coverage.' },
+              { icon:'📈', title:'Sales Dashboard + AI GTM', body:'Set your MRR/ARR targets. AI generates the exact customer mix and go-to-market strategy to get there.' },
+              { icon:'🔐', title:'Per-client BYOK isolation', body:'Each client gets their own Anthropic key. Zero cross-contamination of AI context between tenants.' },
+              { icon:'🏷', title:'Full white-label', body:'Your logo, your domain, your brand. Clients see your product — not Watchtower.' },
+            ].map(f=>(
+              <div key={f.title} style={{ padding:'14px 16px', background:'rgba(139,111,255,0.06)', border:'1px solid #8b6fff18', borderRadius:10 }}>
+                <div style={{ fontSize:'1rem', marginBottom:6 }}>{f.icon}</div>
+                <div style={{ fontSize:'0.78rem', fontWeight:700, marginBottom:4 }}>{f.title}</div>
+                <div style={{ fontSize:'0.72rem', color:'#6b7a94', lineHeight:1.6 }}>{f.body}</div>
               </div>
             ))}
           </div>
-          <a href='/pricing' className='ld-btn'>See MSSP pricing →</a>
+          <a href='/login' className='btn-primary' style={{ background:'#8b6fff' }}>Start MSSP trial →</a>
         </div>
       </section>
 
       {/* TESTIMONIALS */}
-      <section className='section' style={{ padding:'60px 24px', maxWidth:980, margin:'0 auto' }}>
-        <div style={{ textAlign:'center', marginBottom:36 }}>
-          <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:-1.5 }}>What security teams say</h2>
-        </div>
-        <div className='test-grid' style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
-          {TESTIMONIALS.map(t => (
-            <div key={t.name} style={{ padding:22, background:'#0a0d14', border:'1px solid #141820', borderRadius:14, display:'flex', flexDirection:'column' }}>
-              <div style={{ fontSize:'1.2rem', color:'#f0a030', marginBottom:10 }}>★★★★★</div>
-              <p style={{ fontSize:'0.82rem', color:'#a0adc4', lineHeight:1.75, marginBottom:16, flex:1, fontStyle:'italic' }}>"{t.quote}"</p>
-              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                <div style={{ width:36,height:36,borderRadius:'50%',background:`linear-gradient(135deg,${t.color},#8b6fff)`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.62rem',color:'#fff',fontWeight:800,flexShrink:0 }}>{t.init}</div>
-                <div>
-                  <div style={{ fontSize:'0.78rem', fontWeight:700, color:'#e8ecf4' }}>{t.name}</div>
-                  <div style={{ fontSize:'0.65rem', color:'#4a5568' }}>{t.role}</div>
+      <section style={{ padding:'60px 24px', background:'#070a12', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
+        <div style={{ maxWidth:980, margin:'0 auto' }}>
+          <div style={{ textAlign:'center', marginBottom:36 }}>
+            <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>TESTIMONIALS</div>
+            <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:-1.5 }}>Trusted by security teams</h2>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
+            {TESTIMONIALS.map(t=>(
+              <div key={t.name} style={{ padding:24, background:'#0a0d14', border:'1px solid #141820', borderRadius:14 }}>
+                <p style={{ fontSize:'0.84rem', color:'#8a9ab0', lineHeight:1.8, marginBottom:20, fontStyle:'italic' }}>"{t.quote}"</p>
+                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                  <div style={{ width:36, height:36, borderRadius:'50%', background:`linear-gradient(135deg,${t.color}33,${t.color}15)`, border:`1px solid ${t.color}30`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.7rem', fontWeight:800, color:t.color }}>{t.init}</div>
+                  <div>
+                    <div style={{ fontSize:'0.78rem', fontWeight:700 }}>{t.name}</div>
+                    <div style={{ fontSize:'0.62rem', color:'#4a5568' }}>{t.role}</div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
       {/* PRICING */}
-      <section className='section' style={{ padding:'60px 24px', maxWidth:1000, margin:'0 auto' }}>
-        <div style={{ textAlign:'center', marginBottom:36 }}>
-          <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>PRICING</div>
-          <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:-1.5 }}>Start free. Scale when ready.</h2>
-          <p style={{ color:'#6b7a94', fontSize:'0.88rem', marginTop:8 }}>14-day free trial on all paid plans. No credit card required.</p>
-        </div>
-        <div className='price-grid' style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:10 }}>
-          {[
-            { name:'Community', price:'£0', per:'Free forever', feats:'2 tools · AI triage (view) · Alerts · 1 seat', cta:'Get Started', href:'/signup', style:{} },
-            { name:'Team', price:'£49', per:'/seat/mo — min 3 seats', feats:'Unlimited tools · AI Co-Pilot · Auto-triage · Response actions · Threat intel · BYOK key', cta:'Start Free Trial →', href:'/signup?plan=team', pop:true, style:{} },
-            { name:'Business', price:'£199', per:'/mo — 10 seats', feats:'Everything in Team · PDF reports · API access · RBAC · Compliance · BYOK key', cta:'Start Free Trial', href:'/signup?plan=business', style:{} },
-            { name:'MSSP', price:'£799', per:'/mo — 5 clients +£79/client', feats:'Everything in Business · Portfolio view · Cross-client correlation · Auto reports · White-label · Per-client BYOK', cta:'Start Free Trial', href:'/signup?plan=mssp', style:{} },
-          ].map(p => (
-            <div key={p.name} style={{ padding:22, background:'#0a0d14', border:`1px solid ${p.pop ? '#4f8fff35' : '#141820'}`, borderRadius:14, display:'flex', flexDirection:'column', position:'relative', ...p.style }}>
-              {p.pop && <div style={{ position:'absolute', top:0, left:0, right:0, textAlign:'center', fontSize:'0.52rem', fontWeight:700, color:'#fff', background:'#4f8fff', padding:'3px 0', borderRadius:'14px 14px 0 0' }}>MOST POPULAR</div>}
-              <div style={{ fontWeight:700, fontSize:'0.9rem', marginBottom:4, marginTop: p.pop ? 14 : 0 }}>{p.name}</div>
-              <div style={{ fontSize:'2rem', fontWeight:900, fontFamily:'JetBrains Mono,monospace', letterSpacing:-2, marginBottom:2 }}>{p.price}</div>
-              <div style={{ fontSize:'0.65rem', color:'#4a5568', marginBottom:14 }}>{p.per}</div>
-              <div style={{ fontSize:'0.72rem', color:'#6b7a94', lineHeight:1.85, flex:1, marginBottom:18 }}>{p.feats}</div>
-              <a href={p.href} className={p.pop ? 'ld-btn' : 'ld-btn-ghost'} style={{ textAlign:'center', display:'block', padding:'10px 0' }}>{p.cta}</a>
+      <section id='pricing' style={{ padding:'70px 24px', textAlign:'center' }}>
+        <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>PRICING</div>
+        <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:-1.5, marginBottom:8 }}>Simple, transparent pricing</h2>
+        <p style={{ color:'#6b7a94', fontSize:'0.88rem', marginBottom:32 }}>Start free. Upgrade as you grow. No hidden fees.</p>
+        <div className='plan-grid' style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, maxWidth:1060, margin:'0 auto' }}>
+          {PLANS.map(p=>(
+            <div key={p.name} style={{ padding:24, background:'#0a0d14', border:`1px solid ${p.name==='Business'?p.color+'30':'#141820'}`, borderRadius:16, position:'relative', display:'flex', flexDirection:'column', gap:4, transition:'all .2s' }}
+              onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.transform='translateY(-4px)';(e.currentTarget as HTMLElement).style.boxShadow=`0 20px 48px ${p.color}18`;}}
+              onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.transform='none';(e.currentTarget as HTMLElement).style.boxShadow='none';}}>
+              {p.badge && <div style={{ position:'absolute', top:-10, left:'50%', transform:'translateX(-50%)', padding:'3px 12px', background:p.color, borderRadius:20, fontSize:'0.6rem', fontWeight:800, color:'#fff', whiteSpace:'nowrap' }}>{p.badge}</div>}
+              <div style={{ fontSize:'0.64rem', fontWeight:700, color:p.color, textTransform:'uppercase', letterSpacing:'1px', marginBottom:6 }}>{p.name}</div>
+              <div style={{ display:'flex', alignItems:'baseline', gap:3, marginBottom:4 }}>
+                <span style={{ fontSize:'2rem', fontWeight:900, letterSpacing:-2, fontFamily:'JetBrains Mono,monospace', color:'#e8ecf4' }}>{p.price}</span>
+                <span style={{ fontSize:'0.72rem', color:'#4a5568' }}>{p.period}</span>
+              </div>
+              <div style={{ height:1, background:'#141820', margin:'12px 0' }}/>
+              <div style={{ flex:1, display:'flex', flexDirection:'column', gap:7 }}>
+                {p.features.map(f=>(
+                  <div key={f} style={{ display:'flex', gap:7, alignItems:'flex-start' }}>
+                    <span style={{ color:p.color, fontSize:'0.75rem', flexShrink:0, marginTop:1 }}>✓</span>
+                    <span style={{ fontSize:'0.75rem', color:'#8a9ab0', lineHeight:1.4 }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+              <a href='/login' style={{ display:'block', marginTop:20, padding:'10px 0', background:p.name==='Business'?p.color:'transparent', border:`1px solid ${p.color}${p.name==='Business'?'':'50'}`, borderRadius:9, color:p.name==='Business'?'#fff':p.color, fontSize:'0.78rem', fontWeight:700, textDecoration:'none', textAlign:'center', transition:'all .15s' }}
+                onMouseEnter={e=>{if(p.name!=='Business'){(e.currentTarget as HTMLElement).style.background=p.color+'20';}}}
+                onMouseLeave={e=>{if(p.name!=='Business'){(e.currentTarget as HTMLElement).style.background='transparent';}}}>
+                {p.name==='Community'?'Start for free':'Get started →'}
+              </a>
             </div>
           ))}
         </div>
-        <div style={{ textAlign:'center', marginTop:16 }}>
-          <a href='/pricing' style={{ color:'#4f8fff', fontSize:'0.82rem', fontWeight:600 }}>View full pricing with add-ons →</a>
-        </div>
       </section>
 
-      {/* FINAL CTA */}
-      <section className='section' style={{ textAlign:'center', padding:'80px 24px', maxWidth:620, margin:'0 auto' }}>
-        <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:14 }}>READY?</div>
-        <h2 style={{ fontSize:'2.4rem', fontWeight:800, letterSpacing:-1.5, marginBottom:12 }}>Your threat won't wait.<br />Neither should you.</h2>
-        <p style={{ color:'#6b7a94', fontSize:'0.95rem', marginBottom:28, lineHeight:1.75 }}>14-day free trial. No Watchtower credit card. Bring your own Anthropic key — AI costs go direct to your account.</p>
-        <a href='/signup' className='ld-btn' style={{ fontSize:'1.05rem', padding:'14px 40px' }}>Start Free Trial →</a>
-        <p style={{ fontSize:'0.7rem', color:'#3a4050', marginTop:14 }}>Setup takes 12 minutes · No agents required to start · Cancel anytime</p>
+      {/* CTA */}
+      <section style={{ padding:'70px 24px', textAlign:'center', background:'#070a12', borderTop:'1px solid #0e1218' }}>
+        <div style={{ maxWidth:580, margin:'0 auto' }}>
+          <h2 style={{ fontSize:'2.2rem', fontWeight:900, letterSpacing:-2, marginBottom:14, lineHeight:1.1 }}>Your SOC deserves better than 6 tabs.</h2>
+          <p style={{ fontSize:'0.95rem', color:'#6b7a94', lineHeight:1.75, marginBottom:32 }}>Start for free today. Connect your first tool in under 5 minutes.</p>
+          <a href='/login' className='btn-primary' style={{ fontSize:'1rem', padding:'14px 36px' }}>Get started free →</a>
+          <div style={{ marginTop:14, fontSize:'0.72rem', color:'#3a4a60' }}>No credit card · Community plan free forever · Team from £49/seat/mo</div>
+        </div>
       </section>
 
       {/* FOOTER */}
-      <footer className='section' style={{ borderTop:'1px solid #141820', padding:'20px 28px' }}>
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', maxWidth:1100, margin:'0 auto' }}>
-          <a href='/' style={{ display:'flex', alignItems:'center', gap:7, fontWeight:800, fontSize:'0.9rem' }}>
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" style={{flexShrink:0}}>
-              <rect width="22" height="22" rx="6" fill="url(#fg)"/>
-              <path d="M11 4L17.5 7V12.5C17.5 15.5 14.8 18 11 19C7.2 18 4.5 15.5 4.5 12.5V7L11 4Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" strokeWidth="0.6"/>
-              <path d="M9 11.5L10.5 13L13.5 10" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-              <defs><linearGradient id="fg" x1="0" y1="0" x2="22" y2="22" gradientUnits="userSpaceOnUse"><stop stopColor="#3b7fff"/><stop offset="1" stopColor="#7c3aff"/></linearGradient></defs>
-            </svg>
-            Watchtower
-          </a>
-          <div style={{ display:'flex', gap:18 }}>
-            {['Demo','Pricing','Sign In','Contact'].map(l => <a key={l} href={l === 'Contact' ? 'mailto:hello@getwatchtower.io' : l === 'Sign In' ? '/login' : `/${l.toLowerCase()}`} style={{ color:'#4a5568', fontSize:'0.76rem', transition:'color .2s' }}>{l}</a>)}
-          </div>
+      <footer style={{ padding:'32px 24px', borderTop:'1px solid #0e1218', display:'flex', justifyContent:'space-between', alignItems:'center', maxWidth:1100, margin:'0 auto', flexWrap:'wrap', gap:12 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            <rect width="22" height="22" rx="6" fill="url(#fg)"/>
+            <path d="M11 4L17.5 7V11.5C17.5 14.5 14.8 17.5 11 18.5C7.2 17.5 4.5 14.5 4.5 11.5V7L11 4Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" strokeWidth="0.8"/>
+            <path d="M9.5 11.5L11 13L13.5 10" stroke="white" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+            <defs><linearGradient id="fg" x1="0" y1="0" x2="22" y2="22" gradientUnits="userSpaceOnUse"><stop stopColor="#3b7fff"/><stop offset="1" stopColor="#7c3aff"/></linearGradient></defs>
+          </svg>
+          <span style={{ fontWeight:700, fontSize:'0.88rem' }}>Watchtower</span>
+          <span style={{ color:'#2a3448', marginLeft:8, fontSize:'0.72rem' }}>© 2026 RunbookHQ Ltd</span>
         </div>
-        <div style={{ textAlign:'center', fontSize:'0.64rem', color:'#1e2536', padding:'12px 0' }}>© 2026 Watchtower. All rights reserved.</div>
+        <div style={{ display:'flex', gap:20 }}>
+          {['Privacy','Terms','Security','Docs'].map(l=><a key={l} href='#' style={{color:'#4a5568',fontSize:'0.76rem',textDecoration:'none'}} onMouseEnter={e=>{(e.target as HTMLElement).style.color='#8a9ab0';}} onMouseLeave={e=>{(e.target as HTMLElement).style.color='#4a5568';}}>{l}</a>)}
+        </div>
       </footer>
-    </div>
+    </main>
   );
 }

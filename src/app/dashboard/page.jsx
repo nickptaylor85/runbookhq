@@ -961,6 +961,18 @@ function AdminPortal({ setCurrentTenant, setActiveTab, clientBanner, setClientBa
   const [inviteStatus, setInviteStatus] = useState(null); // null | 'sending' | 'sent' | 'error'
   const [editingUser, setEditingUser] = useState(null);
 
+  // Stripe config state
+  const [stripeConfig, setStripeConfig] = useState({publishableKey:'',secretKey:'',webhookSecret:'',priceMssp:'',priceBusiness:'',priceTeamPerSeat:''});
+  const [stripeSaving, setStripeSaving] = useState(false);
+  const [stripeSaved, setStripeSaved] = useState(false);
+  const [stripeLoaded, setStripeLoaded] = useState(false);
+  React.useEffect(()=>{
+    fetch('/api/admin/stripe-config').then(r=>r.json()).then(d=>{
+      if (d.ok && d.configured) setStripeConfig(prev=>({...prev,...d}));
+      setStripeLoaded(true);
+    }).catch(()=>setStripeLoaded(true));
+  },[]);
+
   const activeSubs = WTC_SUBSCRIBERS.filter(s=>s.status!=='Churned');
   const totalMRR = WTC_SUBSCRIBERS.reduce((s,c)=>s+c.mrr,0);
   const overdueRevenue = WTC_SUBSCRIBERS.filter(s=>s.billing==='Overdue').reduce((s,c)=>s+c.mrr,0);
@@ -981,7 +993,7 @@ function AdminPortal({ setCurrentTenant, setActiveTab, clientBanner, setClientBa
           <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginTop:3}}>All organisations subscribed to Watchtower · Impersonate any tenant to view their dashboard</div>
         </div>
         <div style={{marginLeft:'auto',display:'flex',gap:4,background:'var(--wt-card2)',borderRadius:7,padding:3}}>
-          {['subscribers','users','platform','broadcast'].map(v=>(
+          {['subscribers','users','platform','stripe','broadcast'].map(v=>(
             <button key={v} onClick={()=>setAdminView(v)} style={{padding:'5px 14px',borderRadius:5,border:'none',background:adminView===v?'#f0a030':'transparent',color:adminView===v?'#fff':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',textTransform:'capitalize'}}>{v}</button>
           ))}
         </div>
@@ -1218,6 +1230,85 @@ function AdminPortal({ setCurrentTenant, setActiveTab, clientBanner, setClientBa
               <div style={{fontSize:'0.58rem',color:s.color,marginTop:2,opacity:0.8}}>{s.sub}</div>
             </div>
           ))}
+        </div>
+      )}
+
+      {adminView==='stripe' && (
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          <div style={{padding:'16px 18px',background:'var(--wt-card)',border:'1px solid #8b6fff20',borderRadius:12}}>
+            <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:4,display:'flex',alignItems:'center',gap:8}}>
+              💳 Stripe Configuration
+              {stripeConfig.publishableKey && stripeConfig.publishableKey !== '••••••••' && <span style={{fontSize:'0.58rem',color:'#22d49a',background:'#22d49a12',padding:'2px 7px',borderRadius:4,border:'1px solid #22d49a25'}}>✓ Configured</span>}
+            </div>
+            <div style={{fontSize:'0.7rem',color:'var(--wt-muted)',marginBottom:18,lineHeight:1.6}}>
+              Connect your Stripe account to enable subscription payments. Keys are encrypted at rest.
+              <a href='https://dashboard.stripe.com/apikeys' target='_blank' rel='noopener' style={{color:'#4f8fff',marginLeft:6}}>Get your keys →</a>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+              {[
+                {key:'publishableKey', label:'Publishable Key', placeholder:'pk_live_...', hint:'Safe to use in browser'},
+                {key:'secretKey', label:'Secret Key', placeholder:'sk_live_...', hint:'Never share — server only', secret:true},
+                {key:'webhookSecret', label:'Webhook Secret', placeholder:'whsec_...', hint:'From Stripe webhook settings', secret:true},
+                {key:'priceMssp', label:'MSSP Price ID', placeholder:'price_...', hint:'Monthly MSSP plan price ID'},
+                {key:'priceBusiness', label:'Business Price ID', placeholder:'price_...', hint:'Monthly Business plan price ID'},
+                {key:'priceTeamPerSeat', label:'Team Per-Seat Price ID', placeholder:'price_...', hint:'Per-seat Team plan price ID'},
+              ].map(field=>(
+                <div key={field.key}>
+                  <label style={{display:'block',fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>{field.label}</label>
+                  <input
+                    type={field.secret ? 'password' : 'text'}
+                    value={stripeConfig[field.key] || ''}
+                    onChange={e=>setStripeConfig(prev=>({...prev,[field.key]:e.target.value}))}
+                    placeholder={field.placeholder}
+                    style={{width:'100%',padding:'8px 11px',background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:7,color:'var(--wt-text)',fontSize:'0.78rem',fontFamily:'JetBrains Mono,monospace',outline:'none',boxSizing:'border-box'}}
+                  />
+                  <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:3}}>{field.hint}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{marginTop:16,display:'flex',gap:10,alignItems:'center'}}>
+              <button
+                onClick={async()=>{
+                  setStripeSaving(true); setStripeSaved(false);
+                  try {
+                    const res = await fetch('/api/admin/stripe-config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(stripeConfig)});
+                    const d = await res.json();
+                    if (d.ok) { setStripeSaved(true); setTimeout(()=>setStripeSaved(false),3000); }
+                  } catch(e) {}
+                  setStripeSaving(false);
+                }}
+                disabled={stripeSaving}
+                style={{padding:'9px 22px',borderRadius:8,border:'none',background:'#8b6fff',color:'#fff',fontSize:'0.78rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',opacity:stripeSaving?0.7:1}}>
+                {stripeSaving?'Saving…':'Save Stripe Config'}
+              </button>
+              {stripeSaved && <span style={{fontSize:'0.72rem',color:'#22d49a',fontWeight:600}}>✓ Saved and encrypted</span>}
+            </div>
+          </div>
+
+          <div style={{padding:'14px 18px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12}}>
+            <div style={{fontSize:'0.72rem',fontWeight:700,marginBottom:10}}>Webhook endpoint to configure in Stripe</div>
+            <div style={{padding:'10px 12px',background:'var(--wt-card2)',borderRadius:7,fontFamily:'JetBrains Mono,monospace',fontSize:'0.72rem',color:'#4f8fff',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <span>https://getwatchtower.io/api/stripe/webhook</span>
+              <button onClick={()=>navigator.clipboard.writeText('https://getwatchtower.io/api/stripe/webhook')} style={{padding:'3px 8px',borderRadius:5,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.6rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Copy</button>
+            </div>
+            <div style={{fontSize:'0.66rem',color:'var(--wt-muted)',marginTop:8,lineHeight:1.6}}>
+              Events to enable: <strong style={{color:'var(--wt-text)'}}>checkout.session.completed, customer.subscription.updated, customer.subscription.deleted, invoice.payment_failed</strong>
+            </div>
+          </div>
+
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+            {[
+              {plan:'MSSP', price:'£799+/mo', id:stripeConfig.priceMssp, color:'#8b6fff'},
+              {plan:'Business', price:'£199/mo', id:stripeConfig.priceBusiness, color:'#22d49a'},
+              {plan:'Team', price:'£49/seat', id:stripeConfig.priceTeamPerSeat, color:'#4f8fff'},
+            ].map(p=>(
+              <div key={p.plan} style={{padding:'12px 14px',background:'var(--wt-card)',border:`1px solid ${p.color}20`,borderRadius:10}}>
+                <div style={{fontSize:'0.7rem',fontWeight:700,color:p.color,marginBottom:2}}>{p.plan}</div>
+                <div style={{fontSize:'0.84rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',marginBottom:6}}>{p.price}</div>
+                <div style={{fontSize:'0.6rem',color:p.id&&p.id!=='••••••••'?'#22d49a':'#f0405e',fontWeight:600}}>{p.id&&p.id!=='••••••••'?'✓ Price ID set':'⚠ Price ID missing'}</div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
