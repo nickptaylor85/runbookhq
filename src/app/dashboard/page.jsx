@@ -2337,43 +2337,37 @@ export default function DashboardPage() {
                         {expanded && (
                           <div style={{padding:'0 14px 14px 44px',borderTop:'1px solid var(--wt-border)'}}>
                             {/* AI triage */}
-                            
-                              const cached = aiTriageCache[alert.id];
-                              if (demoMode && alert.aiReasoning) {
-                                return (
-                                  <div style={{marginTop:12}}>
-                                    <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Triage</div>
-                                    <div style={{fontSize:'0.76rem',color:'var(--wt-secondary)',lineHeight:1.7,marginBottom:8}}>{alert.aiReasoning}</div>
-                                    {alert.evidenceChain?.length>0 && (
-                                      <div style={{marginBottom:8}}>
-                                        <div style={{fontSize:'0.58rem',fontWeight:700,color:'var(--wt-muted)',marginBottom:4}}>EVIDENCE CHAIN</div>
-                                        {alert.evidenceChain.map((e,i)=><div key={i} style={{fontSize:'0.72rem',color:'var(--wt-secondary)',padding:'2px 0',display:'flex',gap:6}}><span style={{color:'#4f8fff',flexShrink:0}}>{i+1}.</span>{e}</div>)}
-                                      </div>
-                                    )}
-                                    {alert.aiActions?.length>0 && (
-                                      <div style={{marginBottom:8}}>
-                                        <div style={{fontSize:'0.58rem',fontWeight:700,color:'var(--wt-muted)',marginBottom:4}}>ACTIONS TAKEN</div>
-                                        {alert.aiActions.map((a,i)=><div key={i} style={{fontSize:'0.72rem',color:'#22d49a',display:'flex',gap:6}}><span>✓</span>{a}</div>)}
-                                      </div>
-                                    )}
+                            {demoMode && alert.aiReasoning && (
+                              <div style={{marginTop:12}}>
+                                <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Triage</div>
+                                <div style={{fontSize:'0.76rem',color:'var(--wt-secondary)',lineHeight:1.7,marginBottom:8}}>{alert.aiReasoning}</div>
+                                {alert.evidenceChain?.length>0 && (
+                                  <div style={{marginBottom:8}}>
+                                    <div style={{fontSize:'0.58rem',fontWeight:700,color:'var(--wt-muted)',marginBottom:4}}>EVIDENCE CHAIN</div>
+                                    {alert.evidenceChain.map((e,i)=><div key={i} style={{fontSize:'0.72rem',color:'var(--wt-secondary)',padding:'2px 0',display:'flex',gap:6}}><span style={{color:'#4f8fff',flexShrink:0}}>{i+1}.</span>{e}</div>)}
                                   </div>
-                                );
-                              }
-                              if (!demoMode) {
-                                if (!cached) {
-                                  runLiveTriage(alert);
-                                  return <div style={{padding:'10px 0',fontSize:'0.72rem',color:'var(--wt-muted)',display:'flex',alignItems:'center',gap:8}}><span style={{width:10,height:10,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>AI triage running…</div>;
-                                }
-                                if (cached.loading) return <div style={{padding:'10px 0',fontSize:'0.72rem',color:'var(--wt-muted)',display:'flex',alignItems:'center',gap:8}}><span style={{width:10,height:10,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>AI triage running…</div>;
-                                if (cached.result) return (
-                                  <div style={{marginTop:12}}>
-                                    <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Triage</div>
-                                    <div style={{fontSize:'0.76rem',color:'var(--wt-secondary)',lineHeight:1.7}}>{cached.result.reasoning}</div>
+                                )}
+                                {alert.aiActions?.length>0 && (
+                                  <div style={{marginBottom:8}}>
+                                    <div style={{fontSize:'0.58rem',fontWeight:700,color:'var(--wt-muted)',marginBottom:4}}>ACTIONS TAKEN</div>
+                                    {alert.aiActions.map((a,i)=><div key={i} style={{fontSize:'0.72rem',color:'#22d49a',display:'flex',gap:6}}><span>✓</span>{a}</div>)}
                                   </div>
-                                );
-                              }
-                              return null;
-                           </div>
+                                )}
+                              </div>
+                            )}
+                            {!demoMode && !aiTriageCache[alert.id] && (()=>{ runLiveTriage(alert); return null; })()}
+                            {!demoMode && (aiTriageCache[alert.id]?.loading || !aiTriageCache[alert.id]) && (
+                              <div style={{padding:'10px 0',fontSize:'0.72rem',color:'var(--wt-muted)',display:'flex',alignItems:'center',gap:8}}>
+                                <span style={{width:10,height:10,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>
+                                AI triage running…
+                              </div>
+                            )}
+                            {!demoMode && aiTriageCache[alert.id]?.result && (
+                              <div style={{marginTop:12}}>
+                                <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Triage</div>
+                                <div style={{fontSize:'0.76rem',color:'var(--wt-secondary)',lineHeight:1.7}}>{aiTriageCache[alert.id].result.reasoning}</div>
+                              </div>
+                            )}
 
                             {/* Action buttons row */}
                             <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:12}}>
