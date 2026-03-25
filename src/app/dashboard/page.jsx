@@ -83,13 +83,13 @@ const DEMO_INCIDENTS = [
 
 const DEMO_INTEL_BY_INDUSTRY = {
   'Financial Services':[
-    {id:'i1',title:'TA505 Targeting UK Banks — Cobalt Strike Deployment',summary:'TA505 (Clop ransomware affiliate) observed targeting UK financial institutions with spear-phishing campaigns delivering Cobalt Strike beacons via fake SWIFT notification emails. 3 UK banks confirmed compromised in the last 14 days.',severity:'Critical',source:'NCSC & ThreatFox',time:'2h ago',iocs:['185.220.101.42','hxxps://swift-notification[.]com','cobalt-cs-payload-2024.exe'],mitre:'T1566.001',industrySpecific:true},
-    {id:'i2',title:'QakBot Resurgence — Banking Trojans via PDF Lures',summary:'QakBot (QBot) back in circulation after law enforcement takedown. New infrastructure and updated PDF lure themed around invoice disputes. Financial sector primary target. High evasion capability — bypasses standard email security.',severity:'High',source:'CISA KEV',time:'6h ago',iocs:['invoice-dispute-2024.pdf','hxxp://qakbot-new[.]ru'],mitre:'T1566.001',industrySpecific:true},
-    {id:'i3',title:'SWIFT Customer Security Programme — Audit Deadline',summary:'SWIFT CSP mandatory controls attestation deadline approaching. Ensure your SWIFT connector environments comply with CSP 2024 requirements, particularly around multi-factor authentication and anomaly detection integration.',severity:'Medium',source:'SWIFT ISAC',time:'1d ago',industrySpecific:true},
+    {id:'i1',title:'TA505 Targeting UK Banks — Cobalt Strike Deployment',summary:'TA505 (Clop ransomware affiliate) observed targeting UK financial institutions with spear-phishing campaigns delivering Cobalt Strike beacons via fake SWIFT notification emails. 3 UK banks confirmed compromised in the last 14 days.',severity:'Critical',source:'NCSC & ThreatFox',time:'2h ago',iocs:['185.220.101.42','hxxps://swift-notification[.]com','cobalt-cs-payload-2024.exe'],mitre:'T1566.001',industrySpecific:true,url:'https://www.ncsc.gov.uk/threats'},
+    {id:'i2',title:'QakBot Resurgence — Banking Trojans via PDF Lures',summary:'QakBot (QBot) back in circulation after law enforcement takedown. New infrastructure and updated PDF lure themed around invoice disputes. Financial sector primary target. High evasion capability — bypasses standard email security.',severity:'High',source:'CISA KEV',time:'6h ago',iocs:['invoice-dispute-2024.pdf','hxxp://qakbot-new[.]ru'],mitre:'T1566.001',industrySpecific:true,url:'https://www.cisa.gov/known-exploited-vulnerabilities-catalog'},
+    {id:'i3',title:'SWIFT Customer Security Programme — Audit Deadline',summary:'SWIFT CSP mandatory controls attestation deadline approaching. Ensure your SWIFT connector environments comply with CSP 2024 requirements, particularly around multi-factor authentication and anomaly detection integration.',severity:'Medium',source:'SWIFT ISAC',time:'1d ago',industrySpecific:true,url:'https://www.swift.com/our-solutions/compliance-and-shared-services/financial-crime-cyber-security'},
   ],
   'Healthcare':[
-    {id:'i4',title:'Rhysida Ransomware Targeting NHS Trusts',summary:'Rhysida ransomware group actively targeting NHS Trusts and healthcare providers. Gain access via phishing, move laterally to clinical systems, and exfiltrate patient data before encryption. 4 NHS Trusts hit in last 30 days.',severity:'Critical',source:'NCSC Health Alert',time:'4h ago',iocs:['rhysida-ransom.onion','185.181.60.92','health-tender-2024.exe'],mitre:'T1486',industrySpecific:true},
-    {id:'i5',title:'DICOM Vulnerability — Medical Imaging Systems Exposed',summary:'Multiple DICOM-compliant medical imaging systems found to have patient data exposed on the internet without authentication. Check for internet-exposed DICOM servers on port 104. Over 1,000 UK systems found exposed in recent scan.',severity:'High',source:'Cynerio Research',time:'1d ago',industrySpecific:true},
+    {id:'i4',title:'Rhysida Ransomware Targeting NHS Trusts',summary:'Rhysida ransomware group actively targeting NHS Trusts and healthcare providers. Gain access via phishing, move laterally to clinical systems, and exfiltrate patient data before encryption. 4 NHS Trusts hit in last 30 days.',severity:'Critical',source:'NCSC Health Alert',time:'4h ago',iocs:['rhysida-ransom.onion','185.181.60.92','health-tender-2024.exe'],mitre:'T1486',industrySpecific:true,url:'https://www.ncsc.gov.uk/sector/healthcare'},
+    {id:'i5',title:'DICOM Vulnerability — Medical Imaging Systems Exposed',summary:'Multiple DICOM-compliant medical imaging systems found to have patient data exposed on the internet without authentication. Check for internet-exposed DICOM servers on port 104. Over 1,000 UK systems found exposed in recent scan.',severity:'High',source:'Cynerio Research',time:'1d ago',industrySpecific:true,url:'https://cynerio.com/blog'},
   ],
   'default':[
     {id:'def1',title:'CISA KEV Update — 3 New Actively Exploited CVEs',summary:'CISA added CVE-2024-21413 (Outlook), CVE-2024-3400 (PAN-OS), and CVE-2024-27198 (TeamCity) to Known Exploited Vulnerabilities catalog. All three being actively exploited in the wild. Patch deadline: 72 hours.',severity:'Critical',source:'CISA KEV',time:'3h ago',iocs:[],mitre:'',industrySpecific:false},
@@ -411,7 +411,7 @@ function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS, isAdmin,
                   <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('alerts');}} style={{padding:'7px 14px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.72rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Alerts</button>
                   <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('incidents');}} style={{padding:'7px 14px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.72rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Incidents</button>
                   <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('vulns');}} style={{padding:'7px 14px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.72rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Vulns</button>
-                  {client.billingStatus==='Overdue' && <button style={{marginLeft:'auto',padding:'7px 14px',borderRadius:7,border:'1px solid #f97316',background:'#f9731610',color:'#f97316',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Chase Payment</button>}
+                  {client.billingStatus==='Overdue' && <button onClick={e=>{e.stopPropagation();window.open(`mailto:accounts@${client.name.toLowerCase().replace(/[^a-z]/g,'')}.com?subject=Outstanding Invoice — ${client.name}&body=Hi,%0A%0AThis is a reminder that your Watchtower subscription invoice is currently outstanding.%0APlease arrange payment at your earliest convenience.%0A%0ARegards,%0AWatchtower Team`,'_blank');}} style={{marginLeft:'auto',padding:'7px 14px',borderRadius:7,border:'1px solid #f97316',background:'#f9731610',color:'#f97316',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Chase Payment</button>}
                 </div>
               </div>
             )}
@@ -727,56 +727,86 @@ function SalesDashboard() {
       color:'#f0a030', note:'Balance of velocity + value' },
   ] : [];
 
-  async function getAiAnalysis() {
+  function getAiAnalysis() {
     if (!effectiveGap || analysisLoading) return;
     setAnalysisLoading(true);
     setAiAnalysis(null);
-    try {
-      const prompt = `You are a SaaS sales strategist for Watchtower, a cybersecurity SOC platform.
+    const mrrVal = mrrTarget ? parseInt(mrrTarget) : Math.ceil(arrGap/12) + CURRENT.mrr;
+    const prompt = `You are a SaaS sales strategist for Watchtower, a cybersecurity SOC platform.
 
-Current metrics:
-- MRR: £${CURRENT.mrr}/mo
-- ARR: £${CURRENT.arr}/yr
-- Customers: ${CURRENT.customers.mssp} MSSP, ${CURRENT.customers.business} Business, ${CURRENT.customers.team} Team
-- MRR growth last 3 months: £${CURRENT.growth.jan} → £${CURRENT.growth.feb} → £${CURRENT.growth.mar}
-- Churn this month: ${CURRENT.churn}
-- New customers this month: ${CURRENT.newThisMonth}
-- Leads in pipeline: ${CURRENT.pipeline}
+Current MRR: £${CURRENT.mrr}/mo · ARR: £${CURRENT.arr}/yr
+Customers: ${CURRENT.customers.mssp} MSSP, ${CURRENT.customers.business} Business, ${CURRENT.customers.team} Team
+MoM growth: £${CURRENT.growth.jan} → £${CURRENT.growth.feb} → £${CURRENT.growth.mar}
+Target MRR: £${mrrVal}/mo · Gap to close: £${effectiveGap}/mo
 
-Target: £${mrrTarget || Math.ceil(arrGap/12)+CURRENT.mrr}/mo MRR (gap: £${effectiveGap}/mo)
-
-Plans:
-- MSSP: £799/mo base + £79/client (target: MSSPs managing multiple clients)
-- Business: £199/mo for 10 seats (target: mid-market security teams)
-- Team: £49/seat/mo min 3 seats (target: SMB/startup with 3-15 analysts)
-- Community: Free (conversion funnel)
+Plans: MSSP £799/mo+£79/client | Business £199/mo | Team £49/seat
 
 Provide a concise go-to-market strategy to close the gap. Include:
-1. IDEAL CUSTOMER PROFILE: Who to target (industry, company size, pain points)
-2. CHANNELS: Top 3 acquisition channels for this target
-3. CONVERSION: Key tactics to accelerate conversion
-4. TIMELINE: Realistic timeline to hit the target
+1. IDEAL CUSTOMER PROFILE: Who to target (industry, size, pain points)
+2. CHANNELS: Top 3 acquisition channels
+3. CONVERSION: Key tactics to accelerate close
+4. TIMELINE: Realistic timeline to hit target
 Keep it under 200 words, punchy and actionable.`;
 
-      const res = await fetch('/api/copilot', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({prompt}),
-      });
-      const data = await res.json();
-      setAiAnalysis(data.ok ? data.response : (data.error || data.message || 'Could not generate analysis. Check your Anthropic API key in Tools.'));
-    } catch(e) { setAiAnalysis('Error generating analysis.'); }
-    setAnalysisLoading(false);
+    fetch('/api/copilot', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({prompt}),
+    })
+    .then(r=>r.json())
+    .then(d=>{
+      setAiAnalysis(d.ok ? d.response : (d.error || d.message || 'Could not generate analysis. Check your Anthropic API key in Tools.'));
+      setAnalysisLoading(false);
+    })
+    .catch(e=>{ setAiAnalysis('Error: ' + e.message); setAnalysisLoading(false); });
   }
 
-  // Auto-run analysis when target is set
+  // Auto-run analysis when target is set (debounced 800ms)
   const prevGapRef = React.useRef(0);
   React.useEffect(()=>{
     if (effectiveGap > 0 && effectiveGap !== prevGapRef.current) {
       prevGapRef.current = effectiveGap;
-      const t = setTimeout(getAiAnalysis, 800);
+      setAiAnalysis(null);
+      setAnalysisLoading(false);
+      const t = setTimeout(()=>{
+        // Inline call to avoid stale closure — reads current state at call time
+        if (!effectiveGap) return;
+        setAnalysisLoading(true);
+        setAiAnalysis(null);
+        const mrrVal = mrrTarget ? parseInt(mrrTarget) : Math.ceil(arrTarget ? parseInt(arrTarget)/12 : 0);
+        const gap = Math.max(0, mrrVal - 2814);
+        const prompt = `You are a SaaS sales strategist for Watchtower, a cybersecurity SOC platform.
+
+Current MRR: £2,814/mo · ARR: £33,768/yr
+Customers: 2 MSSP, 3 Business, 2 Team
+MoM growth: £1,890 → £2,200 → £2,814
+Target MRR: £${mrrVal}/mo · Gap to close: £${gap}/mo
+
+Plans: MSSP £799/mo+£79/client | Business £199/mo | Team £49/seat
+
+Provide a concise go-to-market strategy to close the gap. Include:
+1. IDEAL CUSTOMER PROFILE: Who to target (industry, size, pain points)
+2. CHANNELS: Top 3 acquisition channels
+3. CONVERSION: Key tactics to accelerate close
+4. TIMELINE: Realistic timeline to hit target
+Keep it under 200 words, punchy and actionable.`;
+
+        fetch('/api/copilot', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({prompt}),
+        })
+        .then(r=>r.json())
+        .then(d=>{
+          setAiAnalysis(d.ok ? d.response : (d.error || d.message || 'Could not generate analysis. Check your Anthropic API key in Tools.'));
+          setAnalysisLoading(false);
+        })
+        .catch(e=>{
+          setAiAnalysis('Error: ' + e.message);
+          setAnalysisLoading(false);
+        });
+      }, 800);
       return () => clearTimeout(t);
     }
-  }, [effectiveGap]);
+  }, [effectiveGap, mrrTarget, arrTarget]);
 
   const mrrGrowth = CURRENT.growth;
   const months = ['Jan','Feb','Mar'];
@@ -1065,7 +1095,7 @@ function AdminPortal({ setCurrentTenant, setActiveTab, clientBanner, setClientBa
               <div style={{display:'flex',gap:4,justifyContent:'flex-end'}}>
                 {sub.status!=='Churned' && <button onClick={()=>{setCurrentTenant(sub.id);setActiveTab('overview');}} style={{padding:'4px 8px',borderRadius:5,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Impersonate →</button>}
                 <button onClick={()=>setAdminBannerInput(`[${sub.name}] `)} style={{padding:'4px 7px',borderRadius:5,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.58rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📢</button>
-                {sub.billing==='Overdue' && <button style={{padding:'4px 7px',borderRadius:5,border:'1px solid #f97316',background:'#f9731610',color:'#f97316',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>£ Chase</button>}
+                {sub.billing==='Overdue' && <button onClick={()=>window.open(`mailto:billing@example.com?subject=Overdue Invoice — ${sub.name}&body=Hi,%0A%0AYour Watchtower subscription payment is overdue. Please settle at your earliest convenience.`,'_blank')} style={{padding:'4px 7px',borderRadius:5,border:'1px solid #f97316',background:'#f9731610',color:'#f97316',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>£ Chase</button>}
               </div>
             </div>
           ))}
@@ -1473,7 +1503,13 @@ export default function DashboardPage() {
     fetch('/api/settings/user')
       .then(r=>r.json())
       .then(d=>{
-        if (d.settings?.industry) setIndustry(d.settings.industry);
+        if (d.settings?.industry) {
+          setIndustry(d.settings.industry);
+          // Auto-fetch live intel on mount with saved industry
+          if (d.settings.demoMode !== 'true') {
+            fetchIntelForIndustry(d.settings.industry);
+          }
+        }
         if (d.settings?.demoMode !== undefined) setDemoMode(d.settings.demoMode === 'true');
         if (d.settings?.automation !== undefined) setAutomation(Number(d.settings.automation));
         if (d.settings?.userTier) setUserTier(d.settings.userTier);
@@ -1505,6 +1541,7 @@ export default function DashboardPage() {
   const [connectedTools, setConnectedTools] = useState({});
   const [credentialsLoaded, setCredentialsLoaded] = useState(false);
   const [liveAlerts, setLiveAlerts] = useState([]);
+  const [liveVulns, setLiveVulns] = useState([]);
   const [aiTriageCache, setAiTriageCache] = useState({}); // alertId → {loading, result}
   const [syncStatus, setSyncStatus] = useState('idle'); // idle | syncing | ok | error
   const [syncError, setSyncError] = useState(null);
@@ -1537,8 +1574,26 @@ export default function DashboardPage() {
       .then(r=>r.json())
       .then(d=>{
         if (d.results) {
-          const allAlerts = d.results.flatMap(r => r.alerts || []);
-          setLiveAlerts(allAlerts);
+          const VULN_SOURCES = new Set(['tenable','nessus','qualys','wiz']);
+          const allItems = d.results.flatMap(r => r.alerts || []);
+          const vulnItems = allItems.filter(a => VULN_SOURCES.has((a.source||'').toLowerCase().replace(/[^a-z]/g,'')));
+          const alertItems = allItems.filter(a => !VULN_SOURCES.has((a.source||'').toLowerCase().replace(/[^a-z]/g,'')));
+          setLiveAlerts(alertItems);
+          if (vulnItems.length > 0) {
+            setLiveVulns(vulnItems.map(v => ({
+              id: v.id,
+              cve: (v.tags||[]).find(t => t?.startsWith?.('CVE')) || v.sourceId || 'N/A',
+              title: v.title,
+              severity: v.severity,
+              cvss: v.confidence ? (v.confidence / 10).toFixed(1) : 'N/A',
+              kev: (v.tags||[]).includes('kev'),
+              affected: 1,
+              affectedDevices: v.device ? [v.device] : [],
+              description: v.description || v.title,
+              source: v.source,
+              rawTime: v.rawTime,
+            })));
+          }
           // Check for per-tool errors
           const errors = d.results.filter(r=>r.error).map(r=>`${r.toolId}: ${r.error}`);
           if (errors.length > 0) { setSyncError(errors.join(' · ')); setSyncStatus('error'); }
@@ -1554,6 +1609,15 @@ export default function DashboardPage() {
     const interval = setInterval(doSync, 60000);
     return () => clearInterval(interval);
   },[demoMode, connectedTools, credentialsLoaded]);
+
+  // When switching to live mode, auto-fetch fresh intel
+  useEffect(()=>{
+    if (!demoMode) {
+      fetchIntelForIndustry(industry);
+    } else {
+      setCustomIntel(null); // Clear live intel when switching back to demo
+    }
+  },[demoMode]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [userRole, setUserRole] = useState(null); // null=owner, 'tech_admin', 'viewer', 'sales'
   const [sessionLoaded, setSessionLoaded] = useState(false);
@@ -1645,7 +1709,9 @@ export default function DashboardPage() {
     ? (TENANT_ALERTS[currentTenant] || DEMO_ALERTS)
     : liveAlerts;
   const alerts = rawAlerts;
-  const vulns = TENANT_VULNS[currentTenant] || DEMO_VULNS;
+  const vulns = demoMode
+    ? (TENANT_VULNS[currentTenant] || DEMO_VULNS)
+    : liveVulns.length > 0 ? liveVulns : (TENANT_VULNS[currentTenant] || DEMO_VULNS);
   const incidents = TENANT_INCIDENTS[currentTenant] || DEMO_INCIDENTS;
 
   const activeTools = tools.filter(t=>t.active);
@@ -2369,7 +2435,7 @@ ACTIONS:
                           </div>
                           <div style={{fontSize:'0.66rem',color:'var(--wt-muted)'}}>{dev.reason} · Last seen {dev.lastSeen}</div>
                         </div>
-
+                        <button onClick={()=>setDeployAgentDevice(dev)} style={{padding:'5px 12px',borderRadius:7,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Deploy Agent →</button>
                       </div>
                     </div>
                   ))}
@@ -2517,7 +2583,7 @@ ACTIONS:
                             <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{item.time}</span>
                             {item.mitre && <span style={{fontSize:'0.52rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{item.mitre}</span>}
                             {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.58rem',fontWeight:700,color:'#f0a030',background:'#f0a03012',padding:'1px 6px',borderRadius:3,border:'1px solid #f0a03025'}}>{item.iocs.length} IOCs — click to view</span>}
-                            <a href={`https://www.google.com/search?q=${encodeURIComponent(item.title+' threat intelligence')}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.52rem',color:'#4f8fff',textDecoration:'none',padding:'1px 6px',border:'1px solid #4f8fff20',borderRadius:3,background:'#4f8fff0a'}}>Read more →</a>
+                            <a href={item.url || `https://www.ncsc.gov.uk/search?q=${encodeURIComponent(item.title)}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.52rem',color:'#4f8fff',textDecoration:'none',padding:'1px 6px',border:'1px solid #4f8fff20',borderRadius:3,background:'#4f8fff0a'}}>Read article →</a>
                           </div>
                         </div>
                         <span style={{fontSize:'0.7rem',color:'var(--wt-dim)',flexShrink:0}}>{isExpanded?'▲':'▼'}</span>
