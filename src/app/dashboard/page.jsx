@@ -942,7 +942,7 @@ Keep it under 200 words, punchy and actionable.`;
 
 
 // ─── Admin Portal ────────────────────────────────────────────────────────────
-function AdminPortal({ setCurrentTenant, setActiveTab, clientBanner, setClientBanner, adminBannerInput, setAdminBannerInput, userRole, setUserRole }) {
+function AdminPortal({ setCurrentTenant, setActiveTab, clientBanner, setClientBanner, adminBannerInput, setAdminBannerInput, userRole, setUserRole, currentTenant }) {
   const WTC_SUBSCRIBERS = [
     {id:'mssp-cyberguard', name:'CyberGuard Solutions',  type:'MSSP',     plan:'MSSP',     seats:0,  mrr:1115, clients:4,  status:'Active',  posture:84, alerts:36, incidents:7,  coverage:93, joined:'2024-01-10', billing:'Paid'},
     {id:'mssp-secureops',  name:'SecureOps Ltd',         type:'MSSP',     plan:'MSSP',     seats:0,  mrr:957,  clients:2,  status:'Active',  posture:79, alerts:22, incidents:4,  coverage:90, joined:'2024-03-15', billing:'Paid'},
@@ -2736,7 +2736,7 @@ ACTIONS:
           )}
 
           {/* ═══════════════════════════════ ADMIN PORTAL ═══════════════════════════════ */}
-          {activeTab==='admin' && isAdmin && <AdminPortal setCurrentTenant={setCurrentTenant} setActiveTab={setActiveTab} clientBanner={clientBanner} setClientBanner={setClientBanner} adminBannerInput={adminBannerInput} setAdminBannerInput={setAdminBannerInput} userRole={userRole} setUserRole={setUserRole} />}
+          {activeTab==='admin' && isAdmin && <AdminPortal setCurrentTenant={setCurrentTenant} setActiveTab={setActiveTab} clientBanner={clientBanner} setClientBanner={setClientBanner} adminBannerInput={adminBannerInput} setAdminBannerInput={setAdminBannerInput} userRole={userRole} setUserRole={setUserRole} currentTenant={currentTenant} />}
 
           {/* ═══════════════════════════════ MSSP PORTFOLIO ══════════════════════════ */}
           {activeTab==='mssp' && <MSSPPortfolio currentTenant={currentTenant} setCurrentTenant={setCurrentTenant} DEMO_TENANTS={DEMO_TENANTS} isAdmin={isAdmin} setActiveTab={setActiveTab} setAdminBannerInput={setAdminBannerInput} />}
