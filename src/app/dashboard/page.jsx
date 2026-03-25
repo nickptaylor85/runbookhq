@@ -1819,6 +1819,26 @@ export default function DashboardPage() {
   const isViewer = userRole === 'viewer';
   const isTechAdmin = userRole === 'tech_admin' || isAdmin;
 
+
+  // ── Alerts tab: sort/filter/paginate ──────────────────────────────────
+  const ALERT_SEV_ORDER = {Critical:0,High:1,Medium:2,Low:3};
+  const alertsFiltered = alerts
+    .filter(a=>!alertSearch || a.title.toLowerCase().includes(alertSearch.toLowerCase()) || (a.device||'').toLowerCase().includes(alertSearch.toLowerCase()) || (a.source||'').toLowerCase().includes(alertSearch.toLowerCase()))
+    .filter(a=>alertSevFilter==='all' || a.severity===alertSevFilter)
+    .filter(a=>alertSrcFilter==='all' || a.source===alertSrcFilter);
+
+  const alertsSorted = alertSort==='time-asc' ? [...alertsFiltered].reverse()
+    : alertSort==='sev-desc' ? [...alertsFiltered].sort((a,b)=>(ALERT_SEV_ORDER[a.severity]||4)-(ALERT_SEV_ORDER[b.severity]||4))
+    : alertSort==='sev-asc' ? [...alertsFiltered].sort((a,b)=>(ALERT_SEV_ORDER[b.severity]||4)-(ALERT_SEV_ORDER[a.severity]||4))
+    : alertSort==='src-asc' ? [...alertsFiltered].sort((a,b)=>a.source.localeCompare(b.source))
+    : alertsFiltered;
+
+  const ALERT_PAGE_SIZE = 10;
+  const alertTotalPages = Math.ceil(alertsSorted.length / ALERT_PAGE_SIZE);
+  const alertPageClamped = Math.min(alertPage, Math.max(0, alertTotalPages-1));
+  const alertsPaged = alertsSorted.slice(alertPageClamped*ALERT_PAGE_SIZE, (alertPageClamped+1)*ALERT_PAGE_SIZE);
+  // ── End alerts derived vars ────────────────────────────────────────────
+
   return (
     <div className={`wt-root${theme === 'light' ? ' light' : ''}`} style={{display:'flex',minHeight:'100vh',background:'var(--wt-bg)',color:'var(--wt-text)',fontFamily:'Inter,sans-serif'}}>
       <style dangerouslySetInnerHTML={{__html:DASHBOARD_CSS}} />
@@ -2270,31 +2290,14 @@ export default function DashboardPage() {
               )}
 
               {/* ── Alert rows ── */}
-              {(()=>{
-                const SEV_ORDER = {Critical:0,High:1,Medium:2,Low:3};
-                let filtered = alerts
-                  .filter(a=>!alertSearch || a.title.toLowerCase().includes(alertSearch.toLowerCase()) || (a.device||'').toLowerCase().includes(alertSearch.toLowerCase()) || (a.source||'').toLowerCase().includes(alertSearch.toLowerCase()))
-                  .filter(a=>alertSevFilter==='all' || a.severity===alertSevFilter)
-                  .filter(a=>alertSrcFilter==='all' || a.source===alertSrcFilter);
-
-                if (alertSort==='time-asc') filtered = [...filtered].reverse();
-                else if (alertSort==='sev-desc') filtered = [...filtered].sort((a,b)=>(SEV_ORDER[a.severity]||4)-(SEV_ORDER[b.severity]||4));
-                else if (alertSort==='sev-asc') filtered = [...filtered].sort((a,b)=>(SEV_ORDER[b.severity]||4)-(SEV_ORDER[a.severity]||4));
-                else if (alertSort==='src-asc') filtered = [...filtered].sort((a,b)=>a.source.localeCompare(b.source));
-
-                const PAGE_SIZE = 10;
-                const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-                const page = Math.min(alertPage, Math.max(0, totalPages-1));
-                const paged = filtered.slice(page*PAGE_SIZE, (page+1)*PAGE_SIZE);
-
-                return (<>
-                  {filtered.length === 0 && (
+              <div>
+                  {alertsFiltered.length === 0 && (
                     <div style={{padding:'32px',textAlign:'center',color:'var(--wt-muted)',fontSize:'0.82rem'}}>
                       No alerts match your filters
                     </div>
                   )}
 
-                  {paged.map(alert=>{
+                  {alertsPaged.map(alert=>{
                     const vStyle = VERDICT_STYLE[alert.verdict];
                     const expanded = expandedAlerts.has(alert.id);
                     const aiActed = alert.verdict==='FP'||alert.verdict==='TP';
@@ -2334,7 +2337,7 @@ export default function DashboardPage() {
                         {expanded && (
                           <div style={{padding:'0 14px 14px 44px',borderTop:'1px solid var(--wt-border)'}}>
                             {/* AI triage */}
-                            {(()=>{
+                            
                               const cached = aiTriageCache[alert.id];
                               if (demoMode && alert.aiReasoning) {
                                 return (
@@ -2370,7 +2373,7 @@ export default function DashboardPage() {
                                 );
                               }
                               return null;
-                            })()}
+                           </div>
 
                             {/* Action buttons row */}
                             <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:12}}>
