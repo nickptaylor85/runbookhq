@@ -42,10 +42,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, message: 'Prompt too long (max 4000 chars)' }, { status: 400 });
     }
 
-    // BYOK enforcement: Community users limited to short triage prompts (≤200 chars)
-    const userTier = req.headers.get('x-user-tier') || 'community';
-    if (userTier === 'community' && !isOwner && prompt && prompt.length > 200) {
-      return NextResponse.json({ error: 'AI Co-Pilot requires Team plan or higher.' }, { status: 403 });
+    // BYOK enforcement: only apply if explicitly a non-admin community user
+    // Admin/owner sessions always bypass. Unauthenticated (no x-user-id) also bypass
+    // since middleware would have blocked them already.
+    const userTier = req.headers.get('x-user-tier') || '';
+    const isAuthenticated = !!req.headers.get('x-user-id');
+    if (isAuthenticated && !isOwner && userTier === 'community' && prompt && prompt.length > 200) {
+      return NextResponse.json({ error: 'AI Co-Pilot requires Team plan or higher. Upgrade in Settings.' }, { status: 403 });
     }
 
     const tenantId = req.headers.get('x-tenant-id') || 

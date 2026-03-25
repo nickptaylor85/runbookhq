@@ -763,7 +763,7 @@ Keep it under 200 words, punchy and actionable.`;
         body: JSON.stringify({prompt}),
       });
       const data = await res.json();
-      setAiAnalysis(data.ok ? data.response : 'Could not generate analysis.');
+      setAiAnalysis(data.ok ? data.response : (data.error || data.message || 'Could not generate analysis. Check your Anthropic API key in Tools.'));
     } catch(e) { setAiAnalysis('Error generating analysis.'); }
     setAnalysisLoading(false);
   }
