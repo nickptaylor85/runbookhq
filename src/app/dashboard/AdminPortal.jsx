@@ -1,4 +1,3 @@
-// @ts-nocheck
 'use client';
 import React from 'react';
 export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBanner, setClientBanner, adminBannerInput, setAdminBannerInput, userRole, setUserRole, currentTenant }) {
