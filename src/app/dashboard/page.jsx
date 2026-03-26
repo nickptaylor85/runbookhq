@@ -291,7 +291,6 @@ export default function DashboardPage() {
   const [deletedIncidents, setDeletedIncidents] = useState(new Set());
   function deleteIncident(id) { setDeletedIncidents(prev=>new Set([...prev,id])); setSelectedIncident(null); }
   const [incidentNotes, setIncidentNotes] = useState({});
-  const [noteInput, setNoteInput] = useState('');
   const [addingNoteTo, setAddingNoteTo] = useState(null);
   const [gapToolFilter, setGapToolFilter] = useState(null);
   const [expandedIntel, setExpandedIntel] = useState(new Set());
