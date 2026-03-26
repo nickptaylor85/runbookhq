@@ -2,11 +2,10 @@
 import React from 'react';
 
 export default function OverviewTab({
-  setSelectedIncident, incidentStatuses, setModal, activeTab, setActiveTab, alerts, vulns, incidents, tools, activeTools, critAlerts, tpAlerts, fpAlerts, critVulns, kevVulns, coveredPct, totalDevices, gapDevices, SEV_COLOR, VERDICT_STYLE, SevBadge
+  setSelectedIncident, incidentStatuses, setModal, setActiveTab, alerts, vulns, incidents, tools, activeTools, critAlerts, tpAlerts, fpAlerts, critVulns, kevVulns, coveredPct, totalDevices, gapDevices
 }) {
   return (
     <>
-          {activeTab==='overview' && (
             <div style={{display:'flex',flexDirection:'column',gap:16}}>
 
               {/* AI Brief */}
@@ -194,6 +193,7 @@ export default function OverviewTab({
                   <div style={{fontSize:'0.64rem',color:'#f0a030',marginTop:4}}>⚠ Under pressure — address critical alerts and KEV patches to improve grade</div>
                 </div>
               </div>
+</div></div></div></div>
     </>
   );
 }

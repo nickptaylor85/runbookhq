@@ -2,11 +2,10 @@
 import React from 'react';
 
 export default function CoverageTab({
-  setDeployAgentDevice, gapToolFilter, setGapToolFilter, activeTab, activeTools, coveredPct, totalDevices, gapDevices, ALL_TOOLS
+  setDeployAgentDevice, gapToolFilter, setGapToolFilter, activeTools, coveredPct, totalDevices, gapDevices
 }) {
   return (
     <>
-          {activeTab==='coverage' && (
             <div style={{display:'flex',flexDirection:'column',gap:14}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Coverage</h2>
@@ -81,6 +80,7 @@ export default function CoverageTab({
           )}
 
           {/* ═══════════════════════════════ VULNS ══════════════════════════════════ */}
+</div>
     </>
   );
 }

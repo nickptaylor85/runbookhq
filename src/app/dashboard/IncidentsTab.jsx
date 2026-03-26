@@ -2,11 +2,10 @@
 import React from 'react';
 
 export default function IncidentsTab({
-  userTier, selectedIncident, setSelectedIncident, incidentStatuses, setIncidentStatuses, deletedIncidents, incidentNotes, setIncidentNotes, addingNoteTo, setAddingNoteTo, activeTab, noteInput, setNoteInput, alerts, incidents, closeIncident, deleteIncident, GateWall, SevBadge
+  userTier, selectedIncident, setSelectedIncident, incidentStatuses, setIncidentStatuses, deletedIncidents, incidentNotes, setIncidentNotes, addingNoteTo, setAddingNoteTo, activeTab, noteInput, setNoteInput, alerts, incidents, tools, closeIncident, deleteIncident
 }) {
   return (
     <>
-          {activeTab==='incidents' && (
             <GateWall feature='Incident Management' requiredTier='team' userTier={userTier}>
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
@@ -92,6 +91,8 @@ export default function IncidentsTab({
           </GateWall>
           )}
           {/* ═══════════════════════════════ TOOLS ══════════════════════════════════ */}
+          {activeTab==='tools' && (
+</div></div>
     </>
   );
 }

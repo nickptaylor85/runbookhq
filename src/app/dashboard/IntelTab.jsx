@@ -2,11 +2,10 @@
 import React from 'react';
 
 export default function IntelTab({
-  industry, userTier, intelLoading, expandedIntel, iocQueryLoading, setIocQueryLoading, iocQueries, setIocQueries, activeTab, allIntel, INDUSTRIES, toggleIntel, fetchIntelForIndustry, GateWall, SevBadge, RemediationOutput
+  industry, userTier, intelLoading, expandedIntel, iocQueryLoading, setIocQueryLoading, iocQueries, setIocQueries, activeTab, incidents, allIntel, toggleIntel, fetchIntelForIndustry
 }) {
   return (
     <>
-          {activeTab==='intel' && (
             <GateWall feature='Threat Intelligence' requiredTier='team' userTier={userTier}>
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
@@ -170,6 +169,8 @@ export default function IntelTab({
           )}
 
           {/* ═══════════════════════════════ INCIDENTS ══════════════════════════════ */}
+          {activeTab==='incidents' && (
+</span></span></span></span></span>
     </>
   );
 }

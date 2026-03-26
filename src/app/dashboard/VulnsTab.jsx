@@ -2,11 +2,10 @@
 import React from 'react';
 
 export default function VulnsTab({
-  selectedVuln, setSelectedVuln, vulnAiTexts, setVulnAiTexts, vulnAiLoading, activeTab, vulns, kevVulns, DEMO_VULNS, getVulnAiHelp, SevBadge, RemediationOutput
+  selectedVuln, setSelectedVuln, vulnAiTexts, setVulnAiTexts, vulnAiLoading, activeTab, kevVulns, getVulnAiHelp
 }) {
   return (
     <>
-          {activeTab==='vulns' && (
             <div style={{display:'flex',flexDirection:'column',gap:0}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Top 10 Vulnerabilities</h2>
@@ -108,6 +107,8 @@ export default function VulnsTab({
           )}
 
           {/* ═══════════════════════════════ INTEL ══════════════════════════════════ */}
+          {activeTab==='intel' && (
+</span></span></span>
     </>
   );
 }
