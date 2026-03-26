@@ -5,6 +5,27 @@ import React, { useState, useEffect } from 'react';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 // ─── Constants ────────────────────────────────────────────────────────────────
+const ALL_TOOLS = [
+  {id:'crowdstrike',name:'CrowdStrike Falcon',category:'EDR',desc:'Endpoint detection & response'},
+  {id:'defender',name:'Microsoft Defender',category:'EDR',desc:'Defender for Endpoint — Azure AD app required'},
+  {id:'sentinelone',name:'SentinelOne',category:'EDR',desc:'AI-powered endpoint protection'},
+  {id:'carbonblack',name:'Carbon Black',category:'EDR',desc:'Carbon Black Cloud'},
+  {id:'splunk',name:'Splunk SIEM',category:'SIEM',desc:'Splunk Enterprise Security or Cloud'},
+  {id:'sentinel',name:'Microsoft Sentinel',category:'SIEM',desc:'Cloud-native SIEM — Azure AD app required'},
+  {id:'qradar',name:'IBM QRadar',category:'SIEM',desc:'Security intelligence platform'},
+  {id:'elastic',name:'Elastic Security',category:'SIEM',desc:'SIEM built on Elastic Stack'},
+  {id:'darktrace',name:'Darktrace',category:'NDR',desc:'AI network anomaly detection — HMAC auth'},
+  {id:'taegis',name:'Secureworks Taegis',category:'XDR',desc:'Extended detection & response'},
+  {id:'tenable',name:'Tenable.io',category:'Vuln',desc:'Cloud vulnerability management'},
+  {id:'nessus',name:'Nessus',category:'Vuln',desc:'On-premise vulnerability scanner'},
+  {id:'qualys',name:'Qualys',category:'Vuln',desc:'Cloud-based vulnerability management'},
+  {id:'wiz',name:'Wiz',category:'CSPM',desc:'Cloud security posture management'},
+  {id:'proofpoint',name:'Proofpoint',category:'Email',desc:'Email security & threat protection'},
+  {id:'mimecast',name:'Mimecast',category:'Email',desc:'Email security platform'},
+  {id:'zscaler',name:'Zscaler',category:'Network',desc:'Zero trust network access'},
+  {id:'okta',name:'Okta',category:'Identity',desc:'Identity & access management'},
+];
+
 const SEV_COLOR = { Critical:'#f0405e', High:'#f97316', Medium:'#f0a030', Low:'#4f8fff' };
 
 const VERDICT_STYLE = {
