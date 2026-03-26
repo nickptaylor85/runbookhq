@@ -948,7 +948,7 @@ export default function DashboardPage() {
                 createdIncidents={createdIncidents} setCreatedIncidents={setCreatedIncidents}
                 setActiveTab={setActiveTab} userTier={userTier}
               />
-            )}}
+            )}
 
           {/* ═══════════════════════════════ COVERAGE ═══════════════════════════════ */}
           {activeTab==='coverage' && (
