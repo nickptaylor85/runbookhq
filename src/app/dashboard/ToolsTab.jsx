@@ -123,7 +123,7 @@ export default function ToolsTab({ connected, setConnected }) {
   }
 
   function handleSave() {
-    if (!modal || !testResult?.ok) return;
+    if (!modal || Object.keys(formVals).length === 0) return;
     const newCreds = {...formVals};
     setConnected(prev=>({...prev,[modal.id]:newCreds}));
     // Persist to Redis
@@ -242,7 +242,7 @@ export default function ToolsTab({ connected, setConnected }) {
               <button onClick={handleTest} disabled={testing||Object.keys(formVals).length===0} style={{flex:1,padding:'9px 0',borderRadius:8,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.78rem',fontWeight:700,cursor:testing?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',opacity:testing?0.7:1}}>
                 {testing?'Testing…':'Test Connection'}
               </button>
-              <button onClick={handleSave} disabled={!testResult?.ok} style={{flex:1,padding:'9px 0',borderRadius:8,border:'none',background:testResult?.ok?'#4f8fff':'var(--wt-border2)',color:testResult?.ok?'#fff':'#3a4050',fontSize:'0.78rem',fontWeight:700,cursor:testResult?.ok?'pointer':'not-allowed',fontFamily:'Inter,sans-serif'}}>
+              <button onClick={handleSave} disabled={Object.keys(formVals).length===0} style={{flex:1,padding:'9px 0',borderRadius:8,border:'none',background:Object.keys(formVals).length>0?'#4f8fff':'var(--wt-border2)',color:Object.keys(formVals).length>0?'#fff':'#3a4050',fontSize:'0.78rem',fontWeight:700,cursor:Object.keys(formVals).length>0?'pointer':'not-allowed',fontFamily:'Inter,sans-serif'}}>
                 Save & Connect
               </button>
               <button onClick={()=>setModal(null)} style={{padding:'9px 16px',borderRadius:8,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.78rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Cancel</button>

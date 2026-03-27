@@ -786,7 +786,7 @@ export default function DashboardPage() {
 
           {/* ═══════════════════════════════ OVERVIEW ═══════════════════════════════ */}
           {activeTab==='overview' && (
-            <div style={{display:'flex',flexDirection:'column',gap:16}}>
+            <div style={{maxWidth:960,margin:'0 auto',width:'100%',display:'flex',flexDirection:'column',gap:16}}>
 
               {/* AI Brief */}
               <div style={{padding:'12px 16px',background:'linear-gradient(135deg,rgba(79,143,255,0.05),rgba(34,201,146,0.05))',border:'1px solid #4f8fff18',borderRadius:12,display:'flex',alignItems:'flex-start',gap:10}}>
