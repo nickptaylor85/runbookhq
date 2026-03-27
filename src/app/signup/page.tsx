@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 
 const INPUT: React.CSSProperties = {
   width: '100%', padding: '10px 12px', background: '#070a14',
-  border: '1px solid #1e2536', borderRadius: 8, color: '#e8ecf4',
+  border: '1px solid #263044', borderRadius: 8, color: '#e8ecf4',
   fontSize: '0.88rem', fontFamily: 'Inter,sans-serif', outline: 'none', boxSizing: 'border-box',
 };
 
@@ -16,6 +16,7 @@ export default function SignupPage() {
   const [plan, setPlan] = useState<'community'|'team'|'business'|'mssp'>('community');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const PLANS = [
     { id:'community', label:'Community', price:'Free', note:'2 tools, 1 seat' },
@@ -26,6 +27,7 @@ export default function SignupPage() {
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
+    if (!agreedToTerms) { setError('Please accept the Terms of Service and Privacy Policy to continue.'); return; }
     setLoading(true); setError('');
     try {
       // Community plan — create account directly
@@ -77,7 +79,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div style={{ minHeight:'100vh', background:'#050508', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter,sans-serif', color:'#e8ecf4', padding:'24px' }}>
+    <div style={{ minHeight:'100vh', background:'#090d18', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter,sans-serif', color:'#e8ecf4', padding:'24px' }}>
       <div style={{ width:'100%', maxWidth:440 }}>
         <div style={{ textAlign:'center', marginBottom:28 }}>
           <a href="/" style={{ display:'inline-flex', alignItems:'center', gap:8, textDecoration:'none', color:'inherit' }}>
@@ -91,7 +93,7 @@ export default function SignupPage() {
           </a>
         </div>
 
-        <div style={{ background:'#0a0d14', border:'1px solid #1e2536', borderRadius:16, padding:'28px' }}>
+        <div style={{ background:'#131929', border:'1px solid #263044', borderRadius:16, padding:'28px' }}>
           <h1 style={{ fontSize:'1.2rem', fontWeight:800, marginBottom:4 }}>Create your account</h1>
           <p style={{ fontSize:'0.78rem', color:'#6b7a94', marginBottom:24 }}>Start with Community free, or choose a plan</p>
 
@@ -104,7 +106,7 @@ export default function SignupPage() {
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:6 }}>
                 {PLANS.map(p => (
                   <button key={p.id} type="button" onClick={()=>setPlan(p.id as any)}
-                    style={{ padding:'8px 10px', borderRadius:8, border:`1px solid ${plan===p.id?'#4f8fff':'#1e2536'}`,
+                    style={{ padding:'8px 10px', borderRadius:8, border:`1px solid ${plan===p.id?'#4f8fff':'#263044'}`,
                       background: plan===p.id?'#4f8fff15':'transparent', cursor:'pointer', textAlign:'left',
                       color: plan===p.id?'#4f8fff':'#6b7a94', fontFamily:'Inter,sans-serif', transition:'all .15s' }}>
                     <div style={{ fontSize:'0.78rem', fontWeight:700 }}>{p.label}</div>
@@ -122,13 +124,41 @@ export default function SignupPage() {
               <label style={{ display:'block', fontSize:'0.72rem', color:'#6b7a94', fontWeight:600, marginBottom:6 }}>Work email</label>
               <input type="email" value={email} onChange={e=>setEmail(e.target.value)} required placeholder="you@company.com" style={INPUT} />
             </div>
-            <div style={{ marginBottom:20 }}>
+            <div style={{ marginBottom:16 }}>
               <label style={{ display:'block', fontSize:'0.72rem', color:'#6b7a94', fontWeight:600, marginBottom:6 }}>Password (min. 8 characters)</label>
               <input type="password" value={password} onChange={e=>setPassword(e.target.value)} required minLength={8}
                 placeholder="••••••••••" style={{ ...INPUT, fontFamily:'JetBrains Mono,monospace' }} />
+              {password.length > 0 && (() => {
+                const score = password.length < 8 ? 0 : password.length < 12 && !/[!@#$%^&*]/.test(password) ? 1 : password.length >= 12 && /[!@#$%^&*]/.test(password) && /[A-Z]/.test(password) ? 3 : 2;
+                const labels = ['Too short', 'Weak', 'Fair', 'Strong'];
+                const colors = ['#f0405e', '#f0405e', '#f0a030', '#22d49a'];
+                return (
+                  <div style={{ marginTop:6 }}>
+                    <div style={{ display:'flex', gap:3, marginBottom:4 }}>
+                      {[0,1,2].map(i => <div key={i} style={{ flex:1, height:3, borderRadius:2, background: score > i ? colors[score] : '#263044', transition:'background .2s' }} />)}
+                    </div>
+                    <div style={{ fontSize:'0.62rem', color: colors[score], fontWeight:600 }}>{labels[score]}</div>
+                  </div>
+                );
+              })()}
             </div>
 
-            <button type="submit" disabled={loading}
+            {/* T&C checkbox */}
+            <div style={{ marginBottom:20, display:'flex', gap:10, alignItems:'flex-start' }}>
+              <div onClick={()=>setAgreedToTerms(v=>!v)}
+                style={{ width:16, height:16, borderRadius:4, border:`1px solid ${agreedToTerms?'#4f8fff':'#263044'}`, background:agreedToTerms?'#4f8fff':'transparent',
+                  display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0, marginTop:1 }}>
+                {agreedToTerms && <span style={{ color:'#fff', fontSize:'0.6rem', fontWeight:900 }}>✓</span>}
+              </div>
+              <span style={{ fontSize:'0.72rem', color:'#6b7a94', lineHeight:1.5 }}>
+                I agree to the{' '}
+                <a href="/terms" target="_blank" style={{ color:'#4f8fff', textDecoration:'none', fontWeight:600 }}>Terms of Service</a>
+                {' '}and{' '}
+                <a href="/privacy" target="_blank" style={{ color:'#4f8fff', textDecoration:'none', fontWeight:600 }}>Privacy Policy</a>
+              </span>
+            </div>
+
+            <button type="submit" disabled={loading || !agreedToTerms}
               style={{ width:'100%', padding:'11px', border:'none', borderRadius:9, color:'#fff', fontWeight:700,
                 fontSize:'0.9rem', cursor: loading?'not-allowed':'pointer', fontFamily:'Inter,sans-serif',
                 background: loading?'#3a3a5a':'#4f8fff', transition:'background .15s' }}>

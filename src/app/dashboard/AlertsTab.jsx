@@ -133,8 +133,31 @@ export default function AlertsTab({
 
       {/* Empty state */}
       {alertsFiltered.length === 0 && (
-        <div style={{padding:'32px',textAlign:'center',color:'var(--wt-muted)',fontSize:'0.82rem'}}>
-          No alerts match your filters
+        <div style={{padding:'48px 24px',textAlign:'center',color:'var(--wt-muted)'}}>
+          {alerts.length > 0 ? (
+            <div style={{fontSize:'0.84rem'}}>
+              No alerts match your filters.{' '}
+              <button onClick={()=>{if(setAlertSearch)setAlertSearch('');if(setAlertSevFilter)setAlertSevFilter('all');if(setAlertSrcFilter)setAlertSrcFilter('all');}}
+                style={{color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontSize:'0.84rem',textDecoration:'underline'}}>
+                Clear filters
+              </button>
+            </div>
+          ) : demoMode ? (
+            <div style={{fontSize:'0.84rem'}}>No demo alerts loaded.</div>
+          ) : (
+            <div>
+              <div style={{fontSize:'2.2rem',marginBottom:10}}>✓</div>
+              <div style={{fontSize:'0.9rem',fontWeight:700,color:'var(--wt-text)',marginBottom:6}}>No alerts yet</div>
+              <div style={{fontSize:'0.78rem',lineHeight:1.7,maxWidth:280,margin:'0 auto'}}>
+                Watchtower syncs every 60 seconds in live mode.
+                Make sure at least one integration is connected in the{' '}
+                <button onClick={()=>setActiveTab&&setActiveTab('tools')}
+                  style={{color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontSize:'0.78rem',textDecoration:'underline'}}>
+                  Tools tab
+                </button>.
+              </div>
+            </div>
+          )}
         </div>
       )}
 
