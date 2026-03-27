@@ -146,8 +146,9 @@ export default function AlertsTab({
         const isSelected = selectedAlerts.has(alert.id);
         const hasNote = alertNotes[alert.id];
         const cached = aiTriageCache[alert.id];
+        const isAcknowledged = !!(alert.acknowledged);
         return (
-          <div key={alert.id} style={{padding:0,overflow:'hidden',background:'var(--wt-card)',border:`1px solid ${isSelected?'#4f8fff':'var(--wt-border)'}`,borderRadius:10}}>
+          <div key={alert.id} style={{padding:0,overflow:'hidden',background:'var(--wt-card)',border:`1px solid ${isSelected?'#4f8fff':isAcknowledged?'#22d49a28':'var(--wt-border)'}`,borderRadius:10,opacity:isAcknowledged?0.72:1}}>
             {/* Collapsed row */}
             <div style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',cursor:'pointer'}} onClick={()=>toggleAlertExpand(alert.id)}>
               <div onClick={e=>{e.stopPropagation();setSelectedAlerts(prev=>{const n=new Set(prev);n.has(alert.id)?n.delete(alert.id):n.add(alert.id);return n;})}}
@@ -157,8 +158,9 @@ export default function AlertsTab({
               <div style={{width:4,height:36,borderRadius:2,background:SEV_COLOR[alert.severity],flexShrink:0}}/>
               <div style={{flex:1,minWidth:0}}>
                 <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:2}}>
-                  <span style={{fontSize:'0.8rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{alert.title}</span>
+                  <span style={{fontSize:'0.8rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textDecoration:isAcknowledged?'line-through':undefined,color:isAcknowledged?'var(--wt-muted)':undefined}}>{alert.title}</span>
                   {hasNote && <span style={{fontSize:'0.48rem',color:'#f0a030',background:'#f0a03012',border:'1px solid #f0a03025',padding:'1px 5px',borderRadius:3,flexShrink:0}}>note</span>}
+                  {isAcknowledged && <span style={{fontSize:'0.48rem',color:'#22d49a',background:'#22d49a12',border:'1px solid #22d49a25',padding:'1px 5px',borderRadius:3,flexShrink:0,fontWeight:800}}>ACK</span>}
                 </div>
                 <div style={{display:'flex',gap:6,flexWrap:'wrap',alignItems:'center'}}>
                   <SevBadge sev={alert.severity}/>
@@ -224,9 +226,9 @@ export default function AlertsTab({
                     style={{padding:'4px 12px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                     Mark FP
                   </button>
-                  <button onClick={()=>setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),acknowledged:true}}))}
-                    style={{padding:'4px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
-                    Acknowledge
+                  <button onClick={()=>setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),acknowledged:!isAcknowledged}}))}
+                    style={{padding:'4px 12px',borderRadius:6,border:`1px solid ${isAcknowledged?'#22d49a50':'#4f8fff30'}`,background:isAcknowledged?'#22d49a15':'#4f8fff10',color:isAcknowledged?'#22d49a':'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                    {isAcknowledged ? '✓ Acknowledged' : 'Acknowledge'}
                   </button>
                   <button onClick={()=>{
                     const inc={id:'INC-'+String(Date.now()).slice(-4),title:'Incident — '+alert.title,severity:alert.severity,status:'Active',created:new Date().toLocaleString(),updated:new Date().toLocaleString(),alertCount:1,devices:alert.device?[alert.device]:[],mitreTactics:alert.mitre?[alert.mitre]:[],aiSummary:'Incident from: '+alert.title,alerts:[alert.id]};

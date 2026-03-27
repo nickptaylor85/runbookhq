@@ -5,7 +5,7 @@ import React from 'react';
 
 const INPUT: React.CSSProperties = {
   width: '100%', padding: '10px 12px', background: '#070a14',
-  border: '1px solid #1e2536', borderRadius: 8, color: '#e8ecf4',
+  border: '1px solid #263044', borderRadius: 8, color: '#e8ecf4',
   fontSize: '0.88rem', fontFamily: 'Inter,sans-serif', outline: 'none',
   boxSizing: 'border-box',
 };
@@ -133,7 +133,7 @@ function LoginPageInner() {
   );
 
   const container = (title: string, subtitle: string, children: React.ReactNode, footer?: React.ReactNode) => (
-    <div style={{ minHeight:'100vh', background:'#050508', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter,sans-serif', color:'#e8ecf4' }}>
+    <div style={{ minHeight:'100vh', background:'#090d18', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter,sans-serif', color:'#e8ecf4' }}>
       <div style={{ width:'100%', maxWidth:380, padding:'0 24px' }}>
         <div style={{ textAlign:'center', marginBottom:32 }}>
           <a href="/" style={{ display:'inline-flex', alignItems:'center', gap:8, textDecoration:'none', color:'inherit' }}>
@@ -141,7 +141,7 @@ function LoginPageInner() {
             <span style={{ fontWeight:800, fontSize:'1.1rem' }}>Watchtower</span>
           </a>
         </div>
-        <div style={{ background:'#0a0d14', border:'1px solid #1e2536', borderRadius:16, padding:'28px' }}>
+        <div style={{ background:'#131929', border:'1px solid #263044', borderRadius:16, padding:'28px' }}>
           <h1 style={{ fontSize:'1.2rem', fontWeight:800, marginBottom:4 }}>{title}</h1>
           <p style={{ fontSize:'0.78rem', color:'#6b7a94', marginBottom:24 }}>{subtitle}</p>
           {success && <div style={{ marginBottom:16, padding:'8px 12px', background:'#22d49a0a', border:'1px solid #22d49a30', borderRadius:7, fontSize:'0.76rem', color:'#22d49a' }}>{success}</div>}
@@ -246,7 +246,7 @@ import { Suspense } from 'react';
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div style={{ minHeight:'100vh', background:'#050508', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter,sans-serif', color:'#6b7a94', fontSize:'0.88rem' }}>
+      <div style={{ minHeight:'100vh', background:'#090d18', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter,sans-serif', color:'#6b7a94', fontSize:'0.88rem' }}>
         Loading…
       </div>
     }>

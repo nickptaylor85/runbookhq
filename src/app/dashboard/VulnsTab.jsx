@@ -2,11 +2,11 @@
 import React from 'react';
 
 export default function VulnsTab({
-  selectedVuln, setSelectedVuln, vulnAiTexts, setVulnAiTexts, vulnAiLoading, activeTab, kevVulns, getVulnAiHelp
+  selectedVuln, setSelectedVuln, vulnAiTexts, setVulnAiTexts, vulnAiLoading, kevVulns, getVulnAiHelp
 }) {
   return (
-    <>
-            <div style={{display:'flex',flexDirection:'column',gap:0}}>
+    <div>
+      <div style={{display:'flex',flexDirection:'column',gap:0}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Top 10 Vulnerabilities</h2>
                 <span style={{fontSize:'0.62rem',color:'#f0405e',background:'#f0405e12',padding:'2px 8px',borderRadius:4}}>Ranked by severity × prevalence in your estate</span>
@@ -15,7 +15,7 @@ export default function VulnsTab({
               <div style={{display:'flex',flexDirection:'column',gap:6}}>
                 {DEMO_VULNS.map((vuln,rank)=>(
                   <div key={vuln.id}>
-                    <div className='vuln-row' onClick={()=>setSelectedVuln(selectedVuln?.id===vuln.id?null:vuln)} style={{padding:'10px 14px',background:selectedVuln?.id===vuln.id?'#0a0d18':'#09091a',border:`1px solid ${selectedVuln?.id===vuln.id?'#4f8fff30':'var(--wt-border)'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12}}>
+                    <div className='vuln-row' onClick={()=>setSelectedVuln(selectedVuln?.id===vuln.id?null:vuln)} style={{padding:'10px 14px',background:selectedVuln?.id===vuln.id?'#0a0d18':'#0f1526',border:`1px solid ${selectedVuln?.id===vuln.id?'#4f8fff30':'var(--wt-border)'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12}}>
                       <div style={{width:22,height:22,borderRadius:6,background:rank<3?'#f0405e18':'var(--wt-border)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.62rem',fontWeight:900,color:rank<3?'#f0405e':'#6b7a94',flexShrink:0,fontFamily:'JetBrains Mono,monospace'}}>{rank+1}</div>
                       <div style={{flex:1,minWidth:0}}>
                         <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:2}}>
@@ -104,11 +104,6 @@ export default function VulnsTab({
                 ))}
               </div>
             </div>
-          )}
-
-          {/* ═══════════════════════════════ INTEL ══════════════════════════════════ */}
-          {activeTab==='intel' && (
-</span></span></span>
-    </>
+    </div>
   );
 }

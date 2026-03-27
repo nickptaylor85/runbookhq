@@ -31,7 +31,7 @@ const ALL_TOOLS = [
 ];
 
 
-const DASHBOARD_CSS = '*{margin:0;padding:0;box-sizing:border-box}\n        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}\n        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}\n\n        /* ── Dark theme (default) ── */\n        .wt-root {\n          --wt-bg: #050508;\n          --wt-sidebar: #07080f;\n          --wt-card: #09091a;\n          --wt-card2: #0a0d14;\n          --wt-border: #141820;\n          --wt-border2: #1e2536;\n          --wt-text: #e8ecf4;\n          --wt-muted: #6b7a94;\n          --wt-secondary: #8a9ab0;\n          --wt-dim: #3a4050;\n        }\n        /* ── Light theme ── */\n        .wt-root.light {\n          --wt-bg: #f5f6fa;\n          --wt-sidebar: #ffffff;\n          --wt-card: #ffffff;\n          --wt-card2: #f0f2f8;\n          --wt-border: #e2e5ef;\n          --wt-border2: #c8cedd;\n          --wt-text: #0f1117;\n          --wt-muted: #5a6580;\n          --wt-secondary: #4a5568;\n          --wt-dim: #8090a8;\n        }\n\n        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap;color:var(--wt-muted)}\n        .tab-btn.active{background:#4f8fff18;color:#4f8fff}\n        .tab-btn:not(.active) {color:var(--wt-secondary);background:var(--wt-card2)}\n        .row-hover{transition:background .12s}\n        .row-hover:hover{background:var(--wt-card2)!important}\n        .vuln-row:hover{background:var(--wt-card2)!important;cursor:pointer}\n        .alert-card{border-radius:10px;border:1px solid var(--wt-border);background:var(--wt-card);transition:border-color .15s}\n        .alert-card:hover{border-color:#4f8fff28}\n\n        /* ── Mobile layout ── */\n        .wt-sidebar-desktop{display:flex}\n        .wt-bottom-nav{display:none}\n        .wt-topbar-controls-full{display:flex}\n        .wt-topbar-controls-mobile{display:none}\n\n        @media(max-width:640px){\n          /* Hide desktop sidebar, show bottom nav */\n          .wt-sidebar-desktop{display:none!important}\n          .wt-bottom-nav{\n            display:flex;position:fixed;bottom:0;left:0;right:0;z-index:100;\n            background:var(--wt-sidebar);border-top:1px solid var(--wt-border2);\n            padding:6px 0 env(safe-area-inset-bottom,6px);justify-content:space-around;align-items:center;\n          }\n          .wt-bottom-nav button,.wt-bottom-nav a{\n            display:flex;flex-direction:column;align-items:center;gap:2px;\n            background:none;border:none;cursor:pointer;color:var(--wt-muted);\n            font-size:0.42rem;font-weight:700;font-family:Inter,sans-serif;\n            padding:4px 6px;border-radius:6px;text-decoration:none;min-width:44px;\n          }\n          .wt-bottom-nav button.active,.wt-bottom-nav a.active{color:#4f8fff}\n          .wt-bottom-nav .bnav-icon{font-size:1.1rem;line-height:1}\n          /* Main content gets bottom padding for nav */\n          .wt-main{padding-bottom:72px!important}\n          /* Tab bar: hide text tabs on mobile (using bottom nav instead) */\n          .wt-tabbar{display:none!important}\n          /* Top bar: collapse controls */\n          .wt-topbar{padding:6px 12px!important;gap:8px!important}\n          .wt-topbar-controls-full{display:none!important}\n          .wt-topbar-controls-mobile{display:flex!important;gap:6px;align-items:center;margin-left:auto}\n          /* Content padding */\n          .wt-content{padding:10px 10px!important}\n          /* Alert cards */\n          .alert-card{border-radius:8px}\n          /* Grid cols -> single col */\n          .wt-stat-grid{grid-template-columns:1fr 1fr!important}\n          .wt-two-col{grid-template-columns:1fr!important}\n          .wt-three-col{grid-template-columns:1fr!important}\n          .wt-four-col{grid-template-columns:1fr 1fr!important}\n          /* Filter row stack */\n          .wt-filter-row{flex-direction:column!important;gap:6px!important}\n          .wt-filter-row>*{width:100%!important}\n          /* Bulk action bar */\n          .wt-bulk-bar{flex-wrap:wrap!important;gap:6px!important}\n        }\n\n        @media(min-width:641px) and (max-width:900px){\n          .wt-sidebar-desktop{width:42px!important}\n          .wt-content{padding:12px 14px!important}\n          .wt-stat-grid{grid-template-columns:1fr 1fr!important}\n          .wt-four-col{grid-template-columns:1fr 1fr!important}\n          .wt-three-col{grid-template-columns:1fr 1fr!important}\n        }';
+const DASHBOARD_CSS = '*{margin:0;padding:0;box-sizing:border-box}\n        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}\n        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}\n\n        /* ── Dark theme (default) ── */\n        .wt-root {\n          --wt-bg: #090d18;\n          --wt-sidebar: #0c1122;\n          --wt-card: #0f1526;\n          --wt-card2: #131929;\n          --wt-border: #1d2535;\n          --wt-border2: #263044;\n          --wt-text: #e8ecf4;\n          --wt-muted: #7a8aa4;\n          --wt-secondary: #96a6bc;\n          --wt-dim: #4a5568;\n        }\n        /* ── Light theme ── */\n        .wt-root.light {\n          --wt-bg: #f5f6fa;\n          --wt-sidebar: #ffffff;\n          --wt-card: #ffffff;\n          --wt-card2: #f0f2f8;\n          --wt-border: #e2e5ef;\n          --wt-border2: #c8cedd;\n          --wt-text: #0f1117;\n          --wt-muted: #5a6580;\n          --wt-secondary: #4a5568;\n          --wt-dim: #8090a8;\n        }\n\n        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap;color:var(--wt-muted)}\n        .tab-btn.active{background:#4f8fff18;color:#4f8fff}\n        .tab-btn:not(.active) {color:var(--wt-secondary);background:var(--wt-card2)}\n        .row-hover{transition:background .12s}\n        .row-hover:hover{background:var(--wt-card2)!important}\n        .vuln-row:hover{background:var(--wt-card2)!important;cursor:pointer}\n        .alert-card{border-radius:10px;border:1px solid var(--wt-border);background:var(--wt-card);transition:border-color .15s}\n        .alert-card:hover{border-color:#4f8fff28}\n\n        /* ── Mobile layout ── */\n        .wt-sidebar-desktop{display:flex}\n        .wt-bottom-nav{display:none}\n        .wt-topbar-controls-full{display:flex}\n        .wt-topbar-controls-mobile{display:none}\n\n        @media(max-width:640px){\n          /* Hide desktop sidebar, show bottom nav */\n          .wt-sidebar-desktop{display:none!important}\n          .wt-bottom-nav{\n            display:flex;position:fixed;bottom:0;left:0;right:0;z-index:100;\n            background:var(--wt-sidebar);border-top:1px solid var(--wt-border2);\n            padding:6px 0 env(safe-area-inset-bottom,6px);justify-content:space-around;align-items:center;\n          }\n          .wt-bottom-nav button,.wt-bottom-nav a{\n            display:flex;flex-direction:column;align-items:center;gap:2px;\n            background:none;border:none;cursor:pointer;color:var(--wt-muted);\n            font-size:0.42rem;font-weight:700;font-family:Inter,sans-serif;\n            padding:4px 6px;border-radius:6px;text-decoration:none;min-width:44px;\n          }\n          .wt-bottom-nav button.active,.wt-bottom-nav a.active{color:#4f8fff}\n          .wt-bottom-nav .bnav-icon{font-size:1.1rem;line-height:1}\n          /* Main content gets bottom padding for nav */\n          .wt-main{padding-bottom:72px!important}\n          /* Tab bar: hide text tabs on mobile (using bottom nav instead) */\n          .wt-tabbar{display:none!important}\n          /* Top bar: collapse controls */\n          .wt-topbar{padding:6px 12px!important;gap:8px!important}\n          .wt-topbar-controls-full{display:none!important}\n          .wt-topbar-controls-mobile{display:flex!important;gap:6px;align-items:center;margin-left:auto}\n          /* Content padding */\n          .wt-content{padding:10px 10px!important}\n          /* Alert cards */\n          .alert-card{border-radius:8px}\n          /* Grid cols -> single col */\n          .wt-stat-grid{grid-template-columns:1fr 1fr!important}\n          .wt-two-col{grid-template-columns:1fr!important}\n          .wt-three-col{grid-template-columns:1fr!important}\n          .wt-four-col{grid-template-columns:1fr 1fr!important}\n          /* Filter row stack */\n          .wt-filter-row{flex-direction:column!important;gap:6px!important}\n          .wt-filter-row>*{width:100%!important}\n          /* Bulk action bar */\n          .wt-bulk-bar{flex-wrap:wrap!important;gap:6px!important}\n        }\n\n        @media(min-width:641px) and (max-width:900px){\n          .wt-sidebar-desktop{width:42px!important}\n          .wt-content{padding:12px 14px!important}\n          .wt-stat-grid{grid-template-columns:1fr 1fr!important}\n          .wt-four-col{grid-template-columns:1fr 1fr!important}\n          .wt-three-col{grid-template-columns:1fr 1fr!important}\n        }';
 
 const CRED_FIELDS = {
   crowdstrike:[{key:'client_id',label:'Client ID'},{key:'client_secret',label:'Client Secret',secret:true},{key:'base_url',label:'Base URL (optional)',placeholder:'https://api.crowdstrike.com'}],
@@ -57,6 +57,14 @@ const CRED_FIELDS = {
 const CATEGORIES = ['All','EDR','SIEM','NDR','XDR','Vuln','CSPM','Email','Network','Identity'];
 
 const SEV_COLOR = { Critical:'#f0405e', High:'#f97316', Medium:'#f0a030', Low:'#4f8fff' };
+const POSTURE_TREND = [61,65,68,71,70,73,74]; // 7-day history
+const DEMO_GAP_DEVICES_BASE = [
+  {id:'d1',name:'laptop-CFO01',os:'Windows 11',missing:['CrowdStrike Falcon','Tenable.io'],lastSeenDays:0},
+  {id:'d2',name:'laptop-SALES03',os:'Windows 10',missing:['Tenable.io'],lastSeenDays:1},
+  {id:'d3',name:'WS-HR01',os:'Windows 11',missing:['CrowdStrike Falcon','Darktrace'],lastSeenDays:2},
+  {id:'d4',name:'SRV-LEGACY01',os:'Windows Server 2012',missing:['CrowdStrike Falcon','Splunk SIEM','Tenable.io'],lastSeenDays:8},
+  {id:'d5',name:'tablet-OPS02',os:'Android',missing:['Microsoft Defender'],lastSeenDays:4},
+];
 
 const VERDICT_STYLE = {
   TP:{c:'#f0405e',bg:'#f0405e12',label:'True Positive'},
@@ -164,7 +172,7 @@ function Modal({title,onClose,children}) {
   return (
     <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={onClose}>
       <div style={{background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:16,maxWidth:700,width:'100%',maxHeight:'85vh',overflow:'auto',position:'relative'}} onClick={e=>e.stopPropagation()}>
-        <div style={{display:'flex',alignItems:'center',padding:'16px 20px',borderBottom:'1px solid #141820',position:'sticky',top:0,background:'var(--wt-card2)',zIndex:10}}>
+        <div style={{display:'flex',alignItems:'center',padding:'16px 20px',borderBottom:'1px solid #1d2535',position:'sticky',top:0,background:'var(--wt-card2)',zIndex:10}}>
           <span style={{fontWeight:700,fontSize:'0.92rem'}}>{title}</span>
           <button onClick={onClose} style={{marginLeft:'auto',background:'none',border:'none',color:'var(--wt-muted)',cursor:'pointer',fontSize:'1.2rem',lineHeight:1}}>×</button>
         </div>
@@ -178,7 +186,7 @@ function Modal({title,onClose,children}) {
 
 function StatCard({val,label,sub,color,onClick}) {
   return (
-    <div onClick={onClick} style={{padding:'14px 12px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:10,textAlign:'center',cursor:onClick?'pointer':'default',transition:'border-color .15s'}}
+    <div onClick={onClick} style={{padding:'14px 12px',background:'var(--wt-card)',border:'1px solid #1d2535',borderRadius:10,textAlign:'center',cursor:onClick?'pointer':'default',transition:'border-color .15s'}}
       onMouseEnter={e=>{ if(onClick)(e.currentTarget).style.borderColor='#4f8fff40'; }}
       onMouseLeave={e=>{ (e.currentTarget).style.borderColor='var(--wt-border)'; }}>
       <div style={{fontSize:'1.5rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color,letterSpacing:-1}}>{val}</div>
@@ -330,6 +338,8 @@ export default function DashboardPage() {
   const [editingNote, setEditingNote] = useState(null);
   const [createdIncidents, setCreatedIncidents] = useState([]);
   const [alertOverrides, setAlertOverrides] = useState({});
+  const [alertSnoozes, setAlertSnoozes] = useState({}); // {alertId: snoozedUntil ms}
+  const [showShortcuts, setShowShortcuts] = useState(false); // keyboard shortcut overlay
   const [deployAgentDevice, setDeployAgentDevice] = useState(null);
   const [incidentStatuses, setIncidentStatuses] = useState({});
   const [deletedIncidents, setDeletedIncidents] = useState(new Set());
@@ -464,6 +474,44 @@ export default function DashboardPage() {
     if (saved === 'light') setTheme('light');
   },[]);
 
+
+  // Keyboard shortcuts: G+key to navigate tabs, ? for help
+  useEffect(()=>{
+    let lastKey=''; let lastTime=0;
+    const handler=(e)=>{
+      if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT') return;
+      if(e.key==='?'){setShowShortcuts(s=>!s);return;}
+      if(e.key==='Escape'){setShowShortcuts(false);return;}
+      const now=Date.now();
+      if(e.key.toLowerCase()==='g'){lastKey='g';lastTime=now;return;}
+      if(lastKey==='g'&&(now-lastTime)<1500){
+        const map={o:'overview',a:'alerts',c:'coverage',v:'vulns',i:'intel',n:'incidents',t:'tools',s:'sales'};
+        if(map[e.key.toLowerCase()]){setActiveTab(map[e.key.toLowerCase()]);}
+        lastKey='';return;
+      }
+      lastKey='';
+    };
+    window.addEventListener('keydown',handler);
+    return()=>window.removeEventListener('keydown',handler);
+  },[]);
+
+  // Slack notifications: send webhook on new critical alerts
+  const lastNotifiedRef = React.useRef(new Set());
+  useEffect(()=>{
+    if(demoMode) return;
+    critAlerts.forEach(a=>{
+      if(lastNotifiedRef.current.has(a.id)) return;
+      lastNotifiedRef.current.add(a.id);
+      fetch('/api/settings/user').then(r=>r.json()).then(d=>{
+        const webhook=d.settings?.slack_webhook;
+        if(!webhook) return;
+        fetch('/api/slack-webhook',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({webhook,alert:{title:a.title,severity:a.severity,source:a.source,device:a.device,verdict:a.verdict,confidence:a.confidence}})
+        }).catch(()=>{});
+      }).catch(()=>{});
+    });
+  },[critAlerts,demoMode]);
+
   // Live triage: trigger AI triage when alert expanded in live mode
   useEffect(()=>{
     if (demoMode) return;
@@ -540,7 +588,7 @@ export default function DashboardPage() {
   const taegisActive = tools.find(t=>t.id==='taegis')?.active || false;
   const darktrace = tools.find(t=>t.id==='darktrace');
   const totalDevices = 247;
-  const gapDevices = DEMO_GAP_DEVICES;
+  const gapDevices = DEMO_GAP_DEVICES_BASE;
   const coveredPct = Math.round(((totalDevices - gapDevices.length) / totalDevices) * 100);
   const critAlerts = alerts.filter(a=>a.severity==='Critical');
   const tpAlerts = alerts.filter(a=>a.verdict==='TP');
@@ -618,7 +666,9 @@ export default function DashboardPage() {
 
   // ── Alerts tab: derived sort/filter/page vars ──────────────────────────────
   const ALERT_SEV_ORDER = {Critical:0,High:1,Medium:2,Low:3};
+  const now_ts = Date.now();
   const alertsFiltered = alerts
+    .filter(a=>!(alertSnoozes[a.id] && alertSnoozes[a.id] > now_ts))
     .filter(a=>!alertSearch || a.title.toLowerCase().includes(alertSearch.toLowerCase()) || (a.device||'').toLowerCase().includes(alertSearch.toLowerCase()) || (a.source||'').toLowerCase().includes(alertSearch.toLowerCase()))
     .filter(a=>alertSevFilter==='all' || a.severity===alertSevFilter)
     .filter(a=>alertSrcFilter==='all' || a.source===alertSrcFilter);
@@ -638,7 +688,7 @@ export default function DashboardPage() {
       <style dangerouslySetInnerHTML={{__html:DASHBOARD_CSS}} />
 
       {/* SIDEBAR — desktop only */}
-      <div className="wt-sidebar-desktop" style={{width:48,background:'var(--wt-sidebar)',borderRight:'1px solid #141820',flexDirection:'column',alignItems:'center',padding:'10px 0',gap:4,flexShrink:0}}>
+      <div className="wt-sidebar-desktop" style={{width:48,background:'var(--wt-sidebar)',borderRight:'1px solid #1d2535',flexDirection:'column',alignItems:'center',padding:'10px 0',gap:4,flexShrink:0}}>
         <div style={{width:34,height:34,marginBottom:10,display:'flex',alignItems:'center',justifyContent:'center'}}>
           <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
             <rect width="34" height="34" rx="9" fill="url(#wg)"/>
@@ -681,7 +731,7 @@ export default function DashboardPage() {
         )}
 
         {/* TOP BAR */}
-        <div className="wt-topbar" style={{display:'flex',alignItems:'center',padding:'8px 18px',borderBottom:'1px solid #141820',gap:12,background:'var(--wt-sidebar)',flexShrink:0,flexWrap:'wrap'}}>
+        <div className="wt-topbar" style={{display:'flex',alignItems:'center',padding:'8px 18px',borderBottom:'1px solid #1d2535',gap:12,background:'var(--wt-sidebar)',flexShrink:0,flexWrap:'wrap'}}>
           <div className="wt-tabbar" style={{display:'flex',gap:2,flexWrap:'wrap'}}>
             {TABS.filter(t=>{
               if (t==='mssp') return userTier==='mssp';
@@ -729,7 +779,7 @@ export default function DashboardPage() {
                 </select>
               )}
             {canUse('team') ? (
-            <div style={{display:'flex',alignItems:'center',gap:6,padding:'4px 10px',borderRadius:7,background:'var(--wt-card2)',border:'1px solid #141820'}}>
+            <div style={{display:'flex',alignItems:'center',gap:6,padding:'4px 10px',borderRadius:7,background:'var(--wt-card2)',border:'1px solid #1d2535'}}>
               <span style={{fontSize:'0.62rem',color:'var(--wt-muted)'}}>Automation:</span>
               {(['Recommend','Auto+Notify','Full Auto']).map((l,i)=>(
                 <button key={l} onClick={()=>{
@@ -750,6 +800,13 @@ export default function DashboardPage() {
               {!demoMode && syncStatus==='error' && <span style={{display:'inline-flex',alignItems:'center',gap:5}}><span style={{width:6,height:6,borderRadius:'50%',background:'#f0405e',display:'block'}} /><span style={{color:'#f0405e'}} title={syncError||''}>Sync error</span></span>}
               {!demoMode && syncStatus==='ok' && <span style={{display:'inline-flex',alignItems:'center',gap:5}}><span style={{width:6,height:6,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',display:'block'}} />{tools.filter(t=>t.active).length} live · {lastSynced}</span>}
               {!demoMode && syncStatus==='idle' && <span style={{display:'inline-flex',alignItems:'center',gap:5}}><span style={{width:6,height:6,borderRadius:'50%',background:'#6b7a94',display:'block'}} />{Object.keys(connectedTools).length} connected</span>}
+              {canUse('business') && <button onClick={()=>{
+                const w=window.open('','_blank');
+                const d=new Date().toLocaleDateString('en-GB');
+                const rows=alerts.slice(0,10).map(a=>`<tr><td>${a.time}</td><td>${a.severity}</td><td>${a.title}</td><td>${a.verdict}</td><td>${a.confidence||'—'}%</td></tr>`).join('');
+                w.document.write(`<!DOCTYPE html><html><head><title>Watchtower Security Report — ${d}</title><style>body{font-family:Inter,sans-serif;padding:40px;color:#111}h1{color:#3b7fff;font-size:1.6rem;margin-bottom:4px}table{width:100%;border-collapse:collapse;margin-top:16px}th{background:#f0f2f8;padding:8px 12px;text-align:left;font-size:0.75rem;font-weight:700}td{padding:8px 12px;border-bottom:1px solid #e2e5ef;font-size:0.78rem}@media print{body{padding:20px}}</style></head><body><h1>Security Report</h1><p style="color:#6b7a94;font-size:0.85rem">Generated ${d} by Watchtower · ${posture}/100 posture score · ${coveredPct}% estate covered</p><h3 style="margin-top:24px;font-size:0.9rem">Recent Alerts (Top 10)</h3><table><tr><th>Time</th><th>Severity</th><th>Title</th><th>Verdict</th><th>Confidence</th></tr>${rows}</table><h3 style="margin-top:24px;font-size:0.9rem">Posture Summary</h3><ul><li>${critAlerts.length} critical alerts require attention</li><li>${kevVulns.length} KEV-listed vulnerabilities outstanding</li><li>${gapDevices.length} devices with coverage gaps</li><li>${fpAlerts.length} false positives auto-closed</li></ul></body></html>`);
+                w.document.close();setTimeout(()=>w.print(),300);
+              }} title='Download PDF Report' style={{padding:'4px 10px',borderRadius:7,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>📄 Report</button>}
             </div>
           </div>
           {/* Mobile controls — theme + demo toggle only */}
@@ -804,7 +861,7 @@ export default function DashboardPage() {
                 <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:10}}>
 
                   {/* Devices + Gaps */}
-                  <div onClick={()=>setModal({type:'gaps'})} style={{padding:16,background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
+                  <div onClick={()=>setModal({type:'gaps'})} style={{padding:16,background:'var(--wt-card)',border:'1px solid #1d2535',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
                     onMouseEnter={e=>(e.currentTarget).style.borderColor='#4f8fff40'}
                     onMouseLeave={e=>(e.currentTarget).style.borderColor='var(--wt-border)'}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
@@ -824,7 +881,7 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Tool Status */}
-                  <div onClick={()=>setModal({type:'tools'})} style={{padding:16,background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
+                  <div onClick={()=>setModal({type:'tools'})} style={{padding:16,background:'var(--wt-card)',border:'1px solid #1d2535',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
                     onMouseEnter={e=>(e.currentTarget).style.borderColor='#4f8fff40'}
                     onMouseLeave={e=>(e.currentTarget).style.borderColor='var(--wt-border)'}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
@@ -845,7 +902,7 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Alert Sources */}
-                  <div onClick={()=>setModal({type:'alerts-ingested'})} style={{padding:16,background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
+                  <div onClick={()=>setModal({type:'alerts-ingested'})} style={{padding:16,background:'var(--wt-card)',border:'1px solid #1d2535',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
                     onMouseEnter={e=>(e.currentTarget).style.borderColor='#4f8fff40'}
                     onMouseLeave={e=>(e.currentTarget).style.borderColor='var(--wt-border)'}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
@@ -854,7 +911,7 @@ export default function DashboardPage() {
                         <div style={{fontSize:'2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',letterSpacing:-2,color:'#4f8fff'}}>{alerts.length}</div>
                       </div>
                       <div style={{textAlign:'right'}}>
-                        <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',marginBottom:2}}>{critAlerts.length} critical</div>
+                        <div onClick={e=>{e.stopPropagation();setAlertSevFilter('Critical');setActiveTab('alerts');}} style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',marginBottom:2,cursor:'pointer',textDecoration:'underline dotted'}}>{critAlerts.length} critical ↗</div>
                         <div style={{fontSize:'0.52rem',color:'var(--wt-dim)'}}>Click for AI detail →</div>
                       </div>
                     </div>
@@ -869,7 +926,7 @@ export default function DashboardPage() {
                   </div>
 
                   {/* Vulns / SLA */}
-                  <div onClick={()=>setActiveTab('vulns')} style={{padding:16,background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
+                  <div onClick={()=>setActiveTab('vulns')} style={{padding:16,background:'var(--wt-card)',border:'1px solid #1d2535',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
                     onMouseEnter={e=>(e.currentTarget).style.borderColor='#4f8fff40'}
                     onMouseLeave={e=>(e.currentTarget).style.borderColor='var(--wt-border)'}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:10}}>
@@ -897,7 +954,7 @@ export default function DashboardPage() {
               {/* Recent Activity Row */}
               <div className="wt-two-col" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
                 {/* Recent Alerts */}
-                <div style={{padding:'14px 16px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12}}>
+                <div style={{padding:'14px 16px',background:'var(--wt-card)',border:'1px solid #1d2535',borderRadius:12}}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
                     <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1px',flex:1}}>Recent Alerts</div>
                     <button onClick={()=>setActiveTab('alerts')} style={{fontSize:'0.58rem',color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:600}}>View all →</button>
@@ -914,7 +971,7 @@ export default function DashboardPage() {
                   ))}
                 </div>
                 {/* Active Incidents */}
-                <div style={{padding:'14px 16px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12}}>
+                <div style={{padding:'14px 16px',background:'var(--wt-card)',border:'1px solid #1d2535',borderRadius:12}}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
                     <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',flex:1}}>Active Incidents</div>
                     <button onClick={()=>setActiveTab('incidents')} style={{fontSize:'0.58rem',color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:600}}>View all →</button>
@@ -937,7 +994,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Top Active Threats */}
-              <div style={{padding:'14px 16px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12}}>
+              <div style={{padding:'14px 16px',background:'var(--wt-card)',border:'1px solid #1d2535',borderRadius:12}}>
                 <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
                   <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'1px',flex:1}}>🔥 Top Threats Right Now</div>
                   <button onClick={()=>setActiveTab('intel')} style={{fontSize:'0.58rem',color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:600}}>View intel →</button>
@@ -958,7 +1015,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Posture */}
-              <div style={{display:'flex',alignItems:'center',gap:12,padding:16,background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12}}>
+              <div style={{display:'flex',alignItems:'center',gap:12,padding:16,background:'var(--wt-card)',border:'1px solid #1d2535',borderRadius:12}}>
                 <div style={{position:'relative',width:64,height:64,flexShrink:0}}>
                   <svg viewBox='0 0 100 100' style={{width:'100%',height:'100%'}}>
                     <circle cx={50} cy={50} r={42} fill='none' stroke='var(--wt-border)' strokeWidth={8} />
@@ -967,10 +1024,26 @@ export default function DashboardPage() {
                   <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-60%)',fontSize:'1.2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:postureColor}}>{posture}</div>
                   <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,45%)',fontSize:'0.6rem',fontWeight:800,color:postureColor}}>C+</div>
                 </div>
-                <div>
+                <div style={{flex:1}}>
                   <div style={{fontSize:'0.82rem',fontWeight:700,marginBottom:3}}>Security Posture</div>
                   <div style={{fontSize:'0.74rem',color:'var(--wt-muted)',lineHeight:1.6}}>{critAlerts.length} critical alerts active · {kevVulns.length} KEV patches outstanding · {gapDevices.length} devices uncovered</div>
                   <div style={{fontSize:'0.64rem',color:'#f0a030',marginTop:4}}>⚠ Under pressure — address critical alerts and KEV patches to improve grade</div>
+                  {/* 7-day sparkline */}
+                  <div style={{marginTop:8}}>
+                    <div style={{fontSize:'0.52rem',color:'var(--wt-dim)',marginBottom:3}}>7-DAY TREND</div>
+                    <svg width='100%' height='28' viewBox='0 0 140 28' style={{overflow:'visible'}}>
+                      <polyline
+                        points={POSTURE_TREND.map((v,i)=>`${i*(140/6)},${28-((v-55)/25)*24}`).join(' ')}
+                        fill='none' stroke={postureColor} strokeWidth='1.5' strokeLinecap='round' strokeLinejoin='round'
+                      />
+                      {POSTURE_TREND.map((v,i)=>(
+                        <circle key={i} cx={i*(140/6)} cy={28-((v-55)/25)*24} r={i===6?3:1.5} fill={postureColor} />
+                      ))}
+                    </svg>
+                    <div style={{display:'flex',justifyContent:'space-between',fontSize:'0.48rem',color:'var(--wt-dim)',marginTop:1}}>
+                      <span>-6d</span><span>today</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1050,7 +1123,9 @@ export default function DashboardPage() {
                       <button onClick={()=>setGapToolFilter(null)} style={{padding:'3px 8px',borderRadius:5,border:'1px solid var(--wt-border)',background:'none',color:'var(--wt-muted)',fontSize:'0.6rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear ×</button>
                     </div>
                   )}
-                  {(gapToolFilter ? gapDevices.filter(d=>d.missing.some(m=>ALL_TOOLS.find(t=>t.id===gapToolFilter)?.name && m.includes(ALL_TOOLS.find(t=>t.id===gapToolFilter).name.split(' ')[0]))) : gapDevices).map(dev=>(
+                  {(gapToolFilter ? gapDevices.filter(d=>d.missing.some(m=>ALL_TOOLS.find(t=>t.id===gapToolFilter)?.name && m.includes(ALL_TOOLS.find(t=>t.id===gapToolFilter).name.split(' ')[0]))) : gapDevices).map(dev=>{
+                    const heatColor = dev.lastSeenDays>7?'#f0405e':dev.lastSeenDays>3?'#f0a030':dev.lastSeenDays>1?'#f0c030':'#22d49a';
+                    const heatLabel = dev.lastSeenDays>7?'Stale >7d':dev.lastSeenDays>3?`${dev.lastSeenDays}d ago`:dev.lastSeenDays>1?`${dev.lastSeenDays}d ago`:'Recent'; return (
                     <div key={dev.hostname} style={{padding:'12px 14px',background:'var(--wt-card)',border:'1px solid #f0405e18',borderRadius:10}}>
                       <div style={{display:'flex',alignItems:'flex-start',gap:10}}>
                         <div style={{flex:1}}>
@@ -1070,7 +1145,7 @@ export default function DashboardPage() {
                         <button onClick={()=>setDeployAgentDevice(dev)} style={{padding:'5px 12px',borderRadius:7,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Deploy Agent →</button>
                       </div>
                     </div>
-                  ))}
+                  );})}
                 </div>
               </div>
             </div>
@@ -1372,7 +1447,7 @@ export default function DashboardPage() {
                       <span style={{fontSize:'0.7rem',color:'var(--wt-dim)',flexShrink:0}}>{isSel?'▲':'▼'}</span>
                     </div>
                     {isSel && (
-                      <div style={{borderTop:'1px solid #141820',padding:'14px 16px'}}>
+                      <div style={{borderTop:'1px solid #1d2535',padding:'14px 16px'}}>
                         <GateWall feature='AI Attack Narrative' requiredTier='team' userTier={userTier}>
               <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,padding:'10px',background:'linear-gradient(135deg,rgba(79,143,255,0.04),rgba(34,201,146,0.04))',border:'1px solid #4f8fff15',borderRadius:8,marginBottom:12}}>
                           <span style={{fontSize:'0.6rem',fontWeight:700,color:'#4f8fff',display:'block',marginBottom:4}}>AI ATTACK NARRATIVE</span>
@@ -1403,6 +1478,7 @@ export default function DashboardPage() {
                           <button onClick={()=>setIncidentStatuses(prev=>({...prev,[inc.id]:'Escalated'}))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0a03030',background:'#f0a03008',color:'#f0a030',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>⬆ Escalate</button>
                           <button onClick={()=>closeIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✓ Close</button>
                           <button onClick={()=>deleteIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0405e25',background:'#f0405e0a',color:'#f0405e',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🗑 Delete</button>
+                          {inc.alerts&&inc.alerts.length>0&&<button onClick={()=>{setAlertSevFilter('all');setAlertSearch('');inc.alerts.forEach(id=>setExpandedAlerts(prev=>{const n=new Set(prev);n.add(id);return n;}));setActiveTab('alerts');}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff08',color:'#4f8fff',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🔗 View source alerts</button>}
                         </div>
                         {addingNoteTo===inc.id && (
                           <div style={{marginTop:8,display:'flex',gap:6}}>
@@ -1458,7 +1534,7 @@ export default function DashboardPage() {
             {title:'3. Manual install — macOS/Linux',desc:'Run the curl command on the target device via SSH or terminal.',btn:'Copy curl command',color:'#22d49a'},
             {title:'4. Group Policy / MDM',desc:'Deploy at scale via GPO (Windows) or MDM profile (macOS). Recommended for 10+ devices.',btn:'Download GPO template',color:'#8b6fff'},
           ].map(opt=>(
-            <div key={opt.title} style={{padding:'12px 14px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:10,marginBottom:8}}>
+            <div key={opt.title} style={{padding:'12px 14px',background:'var(--wt-card)',border:'1px solid #1d2535',borderRadius:10,marginBottom:8}}>
               <div style={{fontSize:'0.76rem',fontWeight:700,marginBottom:4}}>{opt.title}</div>
               <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginBottom:8,lineHeight:1.5}}>{opt.desc}</div>
               <button style={{padding:'5px 14px',borderRadius:6,border:`1px solid ${opt.color}30`,background:`${opt.color}12`,color:opt.color,fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{opt.btn}</button>
@@ -1477,7 +1553,7 @@ export default function DashboardPage() {
             ⚠ These devices have no agent coverage — they are invisible to your security tools and represent active risk.
           </div>
           {gapDevices.map(dev=>(
-            <div key={dev.hostname} style={{padding:'12px 0',borderBottom:'1px solid #141820'}}>
+            <div key={dev.hostname} style={{padding:'12px 0',borderBottom:'1px solid #1d2535'}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontSize:'0.82rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace'}}>{dev.hostname}</span>
                 <span style={{fontSize:'0.6rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{dev.ip}</span>
@@ -1500,7 +1576,7 @@ export default function DashboardPage() {
       {modal?.type==='tools' && (
         <Modal title='Tool Status' onClose={()=>setModal(null)}>
           {tools.map(tool=>(
-            <div key={tool.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:'1px solid #141820'}}>
+            <div key={tool.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:'1px solid #1d2535'}}>
               <div style={{width:8,height:8,borderRadius:'50%',background:tool.active?'#22c992':'#f0405e',boxShadow:tool.active?'0 0 6px #22c992':'none',flexShrink:0}} />
               <span style={{flex:1,fontSize:'0.82rem',fontWeight:600}}>{tool.name}</span>
               <span style={{fontSize:'0.7rem',color:tool.active?'#22d49a':'#f0405e',fontWeight:700}}>{tool.active?'Connected':'Not configured'}</span>
@@ -1516,14 +1592,14 @@ export default function DashboardPage() {
         <Modal title={`Alert Ingestion — What AI Did`} onClose={()=>setModal(null)}>
           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:16}}>
             {[{val:alerts.length,label:'Ingested',c:'#4f8fff'},{val:fpAlerts.length,label:'Auto-Closed FPs',c:'#22d49a'},{val:tpAlerts.length,label:'Escalated TPs',c:'#f0405e'}].map(s=>(
-              <div key={s.label} style={{textAlign:'center',padding:'10px',background:'var(--wt-bg)',borderRadius:8,border:'1px solid #141820'}}>
+              <div key={s.label} style={{textAlign:'center',padding:'10px',background:'var(--wt-bg)',borderRadius:8,border:'1px solid #1d2535'}}>
                 <div style={{fontSize:'1.6rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.c,letterSpacing:-1}}>{s.val}</div>
                 <div style={{fontSize:'0.6rem',color:'var(--wt-dim)'}}>{s.label}</div>
               </div>
             ))}
           </div>
           {alerts.map(a=>(
-            <div key={a.id} style={{padding:'10px 0',borderBottom:'1px solid #141820'}}>
+            <div key={a.id} style={{padding:'10px 0',borderBottom:'1px solid #1d2535'}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:2}}>
                 <span style={{width:4,height:16,borderRadius:2,background:SEV_COLOR[a.severity],flexShrink:0}} />
                 <span style={{fontSize:'0.78rem',fontWeight:600,flex:1}}>{a.title}</span>

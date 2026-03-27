@@ -57,7 +57,7 @@ function ToolChip({ name, color, abbr }: { name: string; color: string; abbr: st
   return (
     <span style={{
       display:'inline-flex', alignItems:'center', gap:7,
-      padding:'6px 12px', background:'#0a0d14', border:'1px solid #1a2030',
+      padding:'6px 12px', background:'#131929', border:'1px solid #1a2030',
       borderRadius:20, fontSize:'0.72rem', color:'#8a9ab0', fontWeight:600,
       transition:'all .15s', cursor:'default',
     }}
@@ -80,7 +80,7 @@ function ROICalculator() {
   const hoursSaved = Math.round(alertsPerDay * 0.72 * 0.05 * 22 * analysts);
   const moneySaved = Math.round(hoursSaved * 65);
   return (
-    <div style={{ maxWidth:640, margin:'0 auto', background:'#0a0d14', border:'1px solid #1a2030', borderRadius:16, padding:'28px 32px' }}>
+    <div style={{ maxWidth:640, margin:'0 auto', background:'#131929', border:'1px solid #1a2030', borderRadius:16, padding:'28px 32px' }}>
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:24, marginBottom:24 }}>
         <div>
           <label style={{ display:'block', fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1px', marginBottom:8 }}>Analysts on your team</label>
@@ -98,7 +98,7 @@ function ROICalculator() {
           { label:'Analyst hours saved/mo', val:`${hoursSaved.toLocaleString()}h`, color:'#4f8fff' },
           { label:'Estimated cost saving/mo', val:`£${moneySaved.toLocaleString()}`, color:'#22d49a' },
         ].map(s => (
-          <div key={s.label} style={{ padding:'18px 20px', background:'#070a12', border:`1px solid ${s.color}20`, borderRadius:12 }}>
+          <div key={s.label} style={{ padding:'18px 20px', background:'#0c1020', border:`1px solid ${s.color}20`, borderRadius:12 }}>
             <div style={{ fontSize:'2rem', fontWeight:900, fontFamily:'JetBrains Mono,monospace', color:s.color, letterSpacing:-2 }}>{s.val}</div>
             <div style={{ fontSize:'0.66rem', color:'#6b7a94', marginTop:4 }}>{s.label}</div>
           </div>
@@ -125,7 +125,7 @@ function LiveDashPreview() {
   const sevColor: Record<string,string> = { crit:'#f0405e', high:'#f97316', med:'#f0a030', low:'#4f8fff' };
   const vStyle: Record<string,{c:string;bg:string}> = { TP:{c:'#f0405e',bg:'#f0405e12'}, FP:{c:'#22d49a',bg:'#22d49a12'}, SUS:{c:'#f0a030',bg:'#f0a03012'} };
   return (
-    <div style={{ background:'#070a12', border:'1px solid #1e2a3a', borderRadius:14, overflow:'hidden', fontFamily:'Inter,sans-serif', maxWidth:860, margin:'0 auto', boxShadow:'0 40px 80px rgba(0,0,0,0.6)' }}>
+    <div style={{ background:'#0c1020', border:'1px solid #1e2a3a', borderRadius:14, overflow:'hidden', fontFamily:'Inter,sans-serif', maxWidth:860, margin:'0 auto', boxShadow:'0 40px 80px rgba(0,0,0,0.6)' }}>
       <div style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 14px', background:'#0a0d18', borderBottom:'1px solid #1a2030' }}>
         <div style={{ display:'flex', gap:5 }}>
           {['#f0405e80','#f0a03080','#22c99280'].map((c,i)=><span key={i} style={{width:9,height:9,borderRadius:'50%',background:c,display:'block'}}/>)}
@@ -150,7 +150,7 @@ function LiveDashPreview() {
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6, marginBottom:10 }}>
             {[{l:'Posture',v:'74%',c:'#f0a030'},{l:'Critical',v:'3',c:'#f0405e'},{l:'Coverage',v:'94%',c:'#22d49a'},{l:'Auto-closed',v:'18',c:'#4f8fff'}].map(s=>(
-              <div key={s.l} style={{padding:'8px',background:'#0a0d14',borderRadius:8,textAlign:'center'}}>
+              <div key={s.l} style={{padding:'8px',background:'#131929',borderRadius:8,textAlign:'center'}}>
                 <div style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.c,letterSpacing:-1}}>{s.v}</div>
                 <div style={{fontSize:'0.5rem',color:'#4a5568',marginTop:2}}>{s.l}</div>
               </div>
@@ -158,7 +158,7 @@ function LiveDashPreview() {
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
             {ALERTS.map((a,i)=>(
-              <div key={i} style={{display:visibleAlerts.includes(i)?'flex':'none',alignItems:'center',gap:8,padding:'6px 8px',background:'#0a0d14',borderRadius:8,border:'1px solid #141820',animation:'slideIn 0.3s ease'}}>
+              <div key={i} style={{display:visibleAlerts.includes(i)?'flex':'none',alignItems:'center',gap:8,padding:'6px 8px',background:'#131929',borderRadius:8,border:'1px solid #1d2535',animation:'slideIn 0.3s ease'}}>
                 <div style={{width:3,height:24,borderRadius:2,background:sevColor[a.sev],flexShrink:0}}/>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontSize:'0.68rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.title}</div>
@@ -189,7 +189,7 @@ export default function LandingPage() {
 
   const CSS = `
     *{margin:0;padding:0;box-sizing:border-box}
-    body{background:#050508;color:#e8ecf4;font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+    body{background:#090d18;color:#e8ecf4;font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
     @keyframes slideIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
     @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
     @keyframes glow{0%,100%{box-shadow:0 0 20px rgba(79,143,255,0.3)}50%{box-shadow:0 0 40px rgba(79,143,255,0.6)}}
@@ -205,7 +205,7 @@ export default function LandingPage() {
   `;
 
   return (
-    <main style={{ background:'#050508', color:'#e8ecf4', minHeight:'100vh', fontFamily:'Inter,system-ui,sans-serif' }}>
+    <main style={{ background:'#090d18', color:'#e8ecf4', minHeight:'100vh', fontFamily:'Inter,system-ui,sans-serif' }}>
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
 
       {/* NAV */}
@@ -263,14 +263,14 @@ export default function LandingPage() {
       </section>
 
       {/* BEFORE / AFTER */}
-      <section style={{ padding:'60px 24px', background:'#070a12', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
+      <section style={{ padding:'60px 24px', background:'#0c1020', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
         <div style={{ maxWidth:860, margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:36 }}>
             <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#f0405e', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>THE PROBLEM</div>
             <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:-1.5 }}>What your SOC looks like today vs with Watchtower</h2>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr auto 1fr', gap:24, alignItems:'center' }}>
-            <div style={{ padding:24, background:'#0a0d14', border:'1px solid #f0405e18', borderRadius:14 }}>
+            <div style={{ padding:24, background:'#131929', border:'1px solid #f0405e18', borderRadius:14 }}>
               <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#f0405e', textTransform:'uppercase', letterSpacing:'1px', marginBottom:14 }}>Before Watchtower</div>
               {['400+ alerts/day, all need human review','6 separate tool consoles open','3.5 hour average triage time','80% are false positives eating analyst time','Junior analysts bottlenecked on senior review'].map(s=>(
                 <div key={s} style={{display:'flex',gap:8,marginBottom:8,alignItems:'flex-start'}}>
@@ -280,7 +280,7 @@ export default function LandingPage() {
               ))}
             </div>
             <div style={{ fontSize:'1.5rem', color:'#3a4050' }}>→</div>
-            <div style={{ padding:24, background:'#0a0d14', border:'1px solid #22d49a18', borderRadius:14 }}>
+            <div style={{ padding:24, background:'#131929', border:'1px solid #22d49a18', borderRadius:14 }}>
               <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#22d49a', textTransform:'uppercase', letterSpacing:'1px', marginBottom:14 }}>With Watchtower</div>
               {['<60 alerts actually need attention','1 screen for everything','3.2s AI triage with evidence chain','85% auto-resolved with full audit trail','Juniors work at senior level with AI guidance'].map(s=>(
                 <div key={s} style={{display:'flex',gap:8,marginBottom:8,alignItems:'flex-start'}}>
@@ -301,7 +301,7 @@ export default function LandingPage() {
       </section>
 
       {/* INTEGRATIONS */}
-      <section id='integrations' ref={toolsRef as React.RefObject<HTMLElement>} style={{ padding:'60px 24px', textAlign:'center', background:'#070a12', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
+      <section id='integrations' ref={toolsRef as React.RefObject<HTMLElement>} style={{ padding:'60px 24px', textAlign:'center', background:'#0c1020', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
         <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>INTEGRATIONS</div>
         <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:-1.5, marginBottom:10 }}>Connects to everything you run</h2>
         <p style={{ color:'#6b7a94', fontSize:'0.88rem', marginBottom:32 }}>No rip-and-replace. Plugs into your existing stack in minutes, not months.</p>
@@ -325,9 +325,9 @@ export default function LandingPage() {
         </div>
         <div className='feat-grid' style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12 }}>
           {FEATURES.map(f=>(
-            <div key={f.title} style={{ padding:22, background:'#0a0d14', border:'1px solid #141820', borderRadius:14, transition:'all .2s' }}
+            <div key={f.title} style={{ padding:22, background:'#131929', border:'1px solid #1d2535', borderRadius:14, transition:'all .2s' }}
               onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor='#4f8fff25';(e.currentTarget as HTMLElement).style.transform='translateY(-3px)';(e.currentTarget as HTMLElement).style.boxShadow='0 12px 32px rgba(79,143,255,0.08)';}}
-              onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor='#141820';(e.currentTarget as HTMLElement).style.transform='none';(e.currentTarget as HTMLElement).style.boxShadow='none';}}>
+              onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor='#1d2535';(e.currentTarget as HTMLElement).style.transform='none';(e.currentTarget as HTMLElement).style.boxShadow='none';}}>
               <div style={{ fontSize:'1.5rem', marginBottom:10 }}>{f.icon}</div>
               <h3 style={{ fontSize:'0.9rem', fontWeight:700, marginBottom:6 }}>{f.title}</h3>
               <p style={{ fontSize:'0.76rem', color:'#6b7a94', lineHeight:1.7 }}>{f.body}</p>
@@ -338,7 +338,7 @@ export default function LandingPage() {
 
       {/* MSSP SECTION */}
       <section id='mssp' style={{ padding:'60px 24px', maxWidth:860, margin:'0 auto' }}>
-        <div style={{ padding:36, background:'linear-gradient(145deg,#0a0d14,#0d1018)', border:'1px solid #8b6fff18', borderRadius:18, position:'relative', overflow:'hidden' }}>
+        <div style={{ padding:36, background:'linear-gradient(145deg,#131929,#0d1018)', border:'1px solid #8b6fff18', borderRadius:18, position:'relative', overflow:'hidden' }}>
           <div style={{ position:'absolute', top:0, left:0, right:0, height:2, background:'linear-gradient(90deg,#8b6fff,#4f8fff)' }}/>
           <div style={{ position:'absolute', bottom:-60, right:-60, width:200, height:200, borderRadius:'50%', background:'rgba(139,111,255,0.06)', filter:'blur(40px)', pointerEvents:'none' }}/>
           <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#8b6fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>FOR MSSPs</div>
@@ -363,7 +363,7 @@ export default function LandingPage() {
       </section>
 
       {/* TESTIMONIALS */}
-      <section style={{ padding:'60px 24px', background:'#070a12', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
+      <section style={{ padding:'60px 24px', background:'#0c1020', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
         <div style={{ maxWidth:980, margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:36 }}>
             <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>TESTIMONIALS</div>
@@ -371,7 +371,7 @@ export default function LandingPage() {
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
             {TESTIMONIALS.map(t=>(
-              <div key={t.name} style={{ padding:24, background:'#0a0d14', border:'1px solid #141820', borderRadius:14 }}>
+              <div key={t.name} style={{ padding:24, background:'#131929', border:'1px solid #1d2535', borderRadius:14 }}>
                 <p style={{ fontSize:'0.84rem', color:'#8a9ab0', lineHeight:1.8, marginBottom:20, fontStyle:'italic' }}>"{t.quote}"</p>
                 <div style={{ display:'flex', alignItems:'center', gap:10 }}>
                   <div style={{ width:36, height:36, borderRadius:'50%', background:`linear-gradient(135deg,${t.color}33,${t.color}15)`, border:`1px solid ${t.color}30`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.7rem', fontWeight:800, color:t.color }}>{t.init}</div>
@@ -393,7 +393,7 @@ export default function LandingPage() {
         <p style={{ color:'#6b7a94', fontSize:'0.88rem', marginBottom:32 }}>Start free. Upgrade as you grow. No hidden fees.</p>
         <div className='plan-grid' style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, maxWidth:1060, margin:'0 auto' }}>
           {PLANS.map(p=>(
-            <div key={p.name} style={{ padding:24, background:'#0a0d14', border:`1px solid ${p.name==='Business'?p.color+'30':'#141820'}`, borderRadius:16, position:'relative', display:'flex', flexDirection:'column', gap:4, transition:'all .2s' }}
+            <div key={p.name} style={{ padding:24, background:'#131929', border:`1px solid ${p.name==='Business'?p.color+'30':'#1d2535'}`, borderRadius:16, position:'relative', display:'flex', flexDirection:'column', gap:4, transition:'all .2s' }}
               onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.transform='translateY(-4px)';(e.currentTarget as HTMLElement).style.boxShadow=`0 20px 48px ${p.color}18`;}}
               onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.transform='none';(e.currentTarget as HTMLElement).style.boxShadow='none';}}>
               {p.badge && <div style={{ position:'absolute', top:-10, left:'50%', transform:'translateX(-50%)', padding:'3px 12px', background:p.color, borderRadius:20, fontSize:'0.6rem', fontWeight:800, color:'#fff', whiteSpace:'nowrap' }}>{p.badge}</div>}
@@ -402,7 +402,7 @@ export default function LandingPage() {
                 <span style={{ fontSize:'2rem', fontWeight:900, letterSpacing:-2, fontFamily:'JetBrains Mono,monospace', color:'#e8ecf4' }}>{p.price}</span>
                 <span style={{ fontSize:'0.72rem', color:'#4a5568' }}>{p.period}</span>
               </div>
-              <div style={{ height:1, background:'#141820', margin:'12px 0' }}/>
+              <div style={{ height:1, background:'#1d2535', margin:'12px 0' }}/>
               <div style={{ flex:1, display:'flex', flexDirection:'column', gap:7 }}>
                 {p.features.map(f=>(
                   <div key={f} style={{ display:'flex', gap:7, alignItems:'flex-start' }}>
@@ -422,7 +422,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section style={{ padding:'70px 24px', textAlign:'center', background:'#070a12', borderTop:'1px solid #0e1218' }}>
+      <section style={{ padding:'70px 24px', textAlign:'center', background:'#0c1020', borderTop:'1px solid #0e1218' }}>
         <div style={{ maxWidth:580, margin:'0 auto' }}>
           <h2 style={{ fontSize:'2.2rem', fontWeight:900, letterSpacing:-2, marginBottom:14, lineHeight:1.1 }}>Your SOC deserves better than 6 tabs.</h2>
           <p style={{ fontSize:'0.95rem', color:'#6b7a94', lineHeight:1.75, marginBottom:32 }}>Start for free today. Connect your first tool in under 5 minutes.</p>

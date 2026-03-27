@@ -2,11 +2,11 @@
 import React from 'react';
 
 export default function IncidentsTab({
-  userTier, selectedIncident, setSelectedIncident, incidentStatuses, setIncidentStatuses, deletedIncidents, incidentNotes, setIncidentNotes, addingNoteTo, setAddingNoteTo, activeTab, noteInput, setNoteInput, alerts, incidents, tools, closeIncident, deleteIncident
+  userTier, selectedIncident, setSelectedIncident, incidentStatuses, setIncidentStatuses, deletedIncidents, incidentNotes, setIncidentNotes, addingNoteTo, setAddingNoteTo, noteInput, setNoteInput, alerts, incidents, closeIncident, deleteIncident
 }) {
   return (
-    <>
-            <GateWall feature='Incident Management' requiredTier='team' userTier={userTier}>
+    <div>
+      <GateWall feature='Incident Management' requiredTier='team' userTier={userTier}>
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Incidents</h2>
@@ -34,7 +34,7 @@ export default function IncidentsTab({
                       <span style={{fontSize:'0.7rem',color:'var(--wt-dim)',flexShrink:0}}>{isSel?'▲':'▼'}</span>
                     </div>
                     {isSel && (
-                      <div style={{borderTop:'1px solid #141820',padding:'14px 16px'}}>
+                      <div style={{borderTop:'1px solid #1d2535',padding:'14px 16px'}}>
                         <GateWall feature='AI Attack Narrative' requiredTier='team' userTier={userTier}>
               <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,padding:'10px',background:'linear-gradient(135deg,rgba(79,143,255,0.04),rgba(34,201,146,0.04))',border:'1px solid #4f8fff15',borderRadius:8,marginBottom:12}}>
                           <span style={{fontSize:'0.6rem',fontWeight:700,color:'#4f8fff',display:'block',marginBottom:4}}>AI ATTACK NARRATIVE</span>
@@ -89,10 +89,6 @@ export default function IncidentsTab({
               })}
             </div>
           </GateWall>
-          )}
-          {/* ═══════════════════════════════ TOOLS ══════════════════════════════════ */}
-          {activeTab==='tools' && (
-</div></div>
-    </>
+    </div>
   );
 }

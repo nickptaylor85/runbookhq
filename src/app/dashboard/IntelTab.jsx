@@ -2,11 +2,11 @@
 import React from 'react';
 
 export default function IntelTab({
-  industry, userTier, intelLoading, expandedIntel, iocQueryLoading, setIocQueryLoading, iocQueries, setIocQueries, activeTab, incidents, allIntel, toggleIntel, fetchIntelForIndustry
+  industry, userTier, intelLoading, expandedIntel, iocQueryLoading, setIocQueryLoading, iocQueries, setIocQueries, allIntel, toggleIntel, fetchIntelForIndustry
 }) {
   return (
-    <>
-            <GateWall feature='Threat Intelligence' requiredTier='team' userTier={userTier}>
+    <div>
+      <GateWall feature='Threat Intelligence' requiredTier='team' userTier={userTier}>
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Threat Intelligence</h2>
@@ -62,7 +62,7 @@ export default function IntelTab({
                         {item.mitre && (
                           <div style={{marginTop:10,display:'flex',alignItems:'center',gap:8}}>
                             <span style={{fontSize:'0.6rem',color:'var(--wt-dim)'}}>MITRE ATT&CK:</span>
-                            <a href={`https://attack.mitre.org/techniques/${item.mitre.split('.').join('/')}/`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.66rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:'#7c6aff',textDecoration:'none',padding:'2px 8px',border:'1px solid #7c6aff25',borderRadius:3,background:'#7c6aff10'}}>{item.mitre} →</a>
+                            <a href={`https://attack.mitre.org/techniques/${item.mitre.replace('.','/')}/`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.66rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:'#7c6aff',textDecoration:'none',padding:'2px 8px',border:'1px solid #7c6aff25',borderRadius:3,background:'#7c6aff10'}}>{item.mitre} →</a>
                           </div>
                         )}
                         {item.iocs && item.iocs.length>0 && (
@@ -70,7 +70,7 @@ export default function IntelTab({
                             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
                               <span style={{fontSize:'0.6rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px'}}>🔍 Hunt in your environment</span>
                               <button onClick={e=>{e.stopPropagation();setIocQueryLoading(item.id);fetch('/api/copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:'Generate detection queries to hunt for these IOCs in a corporate environment: '+item.iocs.join(', ')+'. Provide: SPLUNK QUERY (SPL), MICROSOFT SENTINEL KQL, and MICROSOFT DEFENDER ADVANCED HUNTING queries. Each labelled clearly. No markdown, plain text only.'})}).then(r=>r.json()).then(d=>{setIocQueries(prev=>({...prev,[item.id]:d.response||''}));setIocQueryLoading(null);}).catch(()=>setIocQueryLoading(null));}} disabled={iocQueryLoading===item.id} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>
-                                {iocQueryLoading===item.id ? <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid #22d49a',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}/>Generating...</span> : <span>✦ Generate Hunt Queries</span>}
+                                {iocQueryLoading===item.id?<span style={{display:'inline-flex',alignItems:'center',gap:5}}><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid #22d49a',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}/>Generating...</span>:<span>✦ Generate Hunt Queries</span>}
                               </button>
                               {iocQueries[item.id] && <button onClick={e=>{e.stopPropagation();setIocQueries(prev=>{const n={...prev};delete n[item.id];return n;});}} style={{padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-dim)',fontSize:'0.56rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear</button>}
                             </div>
@@ -120,7 +120,7 @@ export default function IntelTab({
                         {item.mitre && (
                           <div style={{marginTop:10,display:'flex',alignItems:'center',gap:8}}>
                             <span style={{fontSize:'0.6rem',color:'var(--wt-dim)'}}>MITRE ATT&CK:</span>
-                            <a href={`https://attack.mitre.org/techniques/${item.mitre.split('.').join('/')}/`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.66rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:'#7c6aff',textDecoration:'none',padding:'2px 8px',border:'1px solid #7c6aff25',borderRadius:3,background:'#7c6aff10'}}>{item.mitre} →</a>
+                            <a href={`https://attack.mitre.org/techniques/${item.mitre.replace('.','/')}/`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.66rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:'#7c6aff',textDecoration:'none',padding:'2px 8px',border:'1px solid #7c6aff25',borderRadius:3,background:'#7c6aff10'}}>{item.mitre} →</a>
                           </div>
                         )}
                         {item.iocs && item.iocs.length>0 && (
@@ -128,7 +128,7 @@ export default function IntelTab({
                             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
                               <span style={{fontSize:'0.6rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px'}}>🔍 Hunt in your environment</span>
                               <button onClick={e=>{e.stopPropagation();setIocQueryLoading(item.id);fetch('/api/copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:'Generate detection queries to hunt for these IOCs in a corporate environment: '+item.iocs.join(', ')+'. Provide: SPLUNK QUERY (SPL), MICROSOFT SENTINEL KQL, and MICROSOFT DEFENDER ADVANCED HUNTING queries. Each labelled clearly. No markdown, plain text only.'})}).then(r=>r.json()).then(d=>{setIocQueries(prev=>({...prev,[item.id]:d.response||''}));setIocQueryLoading(null);}).catch(()=>setIocQueryLoading(null));}} disabled={iocQueryLoading===item.id} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>
-                                {iocQueryLoading===item.id ? <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid #22d49a',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}/>Generating...</span> : <span>✦ Generate Hunt Queries</span>}
+                                {iocQueryLoading===item.id?<span style={{display:'inline-flex',alignItems:'center',gap:5}}><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid #22d49a',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}/>Generating...</span>:<span>✦ Generate Hunt Queries</span>}
                               </button>
                               {iocQueries[item.id] && <button onClick={e=>{e.stopPropagation();setIocQueries(prev=>{const n={...prev};delete n[item.id];return n;});}} style={{padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-dim)',fontSize:'0.56rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear</button>}
                             </div>
@@ -166,11 +166,6 @@ export default function IntelTab({
               )}
             </div>
           </GateWall>
-          )}
-
-          {/* ═══════════════════════════════ INCIDENTS ══════════════════════════════ */}
-          {activeTab==='incidents' && (
-</span></span></span></span></span>
-    </>
+    </div>
   );
 }

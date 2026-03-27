@@ -5,8 +5,8 @@ export default function CoverageTab({
   setDeployAgentDevice, gapToolFilter, setGapToolFilter, activeTools, coveredPct, totalDevices, gapDevices
 }) {
   return (
-    <>
-            <div style={{display:'flex',flexDirection:'column',gap:14}}>
+    <div>
+      <div style={{display:'flex',flexDirection:'column',gap:14}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Coverage</h2>
                 <span style={{fontSize:'0.62rem',color:coveredPct>=90?'#22d49a':'#f0a030',background:coveredPct>=90?'#22d49a12':'#f0a03012',padding:'2px 8px',borderRadius:4}}>{coveredPct}% estate covered</span>
@@ -21,7 +21,7 @@ export default function CoverageTab({
                     const gapCount = Math.round(totalDevices*(1-pct/100));
                     const pctColor = pct>=95?'#22d49a':pct>=85?'#f0a030':'#f0405e';
                     return (
-                      <div key={tool.id} onClick={()=>setGapToolFilter(gapToolFilter===tool.id?null:tool.id)} style={{padding:'10px 14px',background:gapToolFilter===tool.id?'var(--wt-card2)':'var(--wt-card)',border:`1px solid ${gapToolFilter===tool.id?'#4f8fff40':'#141820'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12,cursor:'pointer'}}>
+                      <div key={tool.id} onClick={()=>setGapToolFilter(gapToolFilter===tool.id?null:tool.id)} style={{padding:'10px 14px',background:gapToolFilter===tool.id?'var(--wt-card2)':'var(--wt-card)',border:`1px solid ${gapToolFilter===tool.id?'#4f8fff40':'#1d2535'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12,cursor:'pointer'}}>
                         <div style={{width:110,fontSize:'0.76rem',fontWeight:600,flexShrink:0}}>{tool.name}</div>
                         <div style={{flex:1,height:8,background:'var(--wt-border)',borderRadius:4,overflow:'hidden'}}>
                           <div style={{height:'100%',background:`linear-gradient(90deg,${pctColor},${pctColor}aa)`,borderRadius:4,width:`${pct}%`,transition:'width 1s'}} />
@@ -77,10 +77,6 @@ export default function CoverageTab({
                 </div>
               </div>
             </div>
-          )}
-
-          {/* ═══════════════════════════════ VULNS ══════════════════════════════════ */}
-</div>
-    </>
+    </div>
   );
 }

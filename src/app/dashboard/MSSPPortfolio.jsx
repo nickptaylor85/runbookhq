@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS, isAdmin, setActiveTab, setAdminBannerInput }) {
   const [portfolioView, setPortfolioView] = React.useState('security');
   const [selectedClient, setSelectedClient] = React.useState(null);

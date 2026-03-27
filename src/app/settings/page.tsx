@@ -2,17 +2,17 @@
 import React, { useState, useEffect } from 'react';
 
 const NAV_STYLE: React.CSSProperties = {
-  minHeight: '100vh', background: '#050508', color: '#e8ecf4',
+  minHeight: '100vh', background: '#090d18', color: '#e8ecf4',
   fontFamily: 'Inter,sans-serif', display: 'flex', flexDirection: 'column',
 };
 const CARD: React.CSSProperties = {
-  background: '#0a0d14', border: '1px solid #1e2536', borderRadius: 12, padding: '20px 22px', marginBottom: 14,
+  background: '#131929', border: '1px solid #263044', borderRadius: 12, padding: '20px 22px', marginBottom: 14,
 };
 const LABEL: React.CSSProperties = {
   display: 'block', fontSize: '0.72rem', color: '#6b7a94', fontWeight: 600, marginBottom: 6,
 };
 const INPUT: React.CSSProperties = {
-  width: '100%', padding: '9px 12px', background: '#070a14', border: '1px solid #1e2536',
+  width: '100%', padding: '9px 12px', background: '#070a14', border: '1px solid #263044',
   borderRadius: 8, color: '#e8ecf4', fontSize: '0.84rem', fontFamily: 'Inter,sans-serif',
   outline: 'none', boxSizing: 'border-box',
 };
@@ -83,14 +83,14 @@ function MfaSetup() {
             1. Scan this QR code with your authenticator app<br/>
             2. Enter the 6-digit code to verify and activate
           </div>
-          <img src={qrUrl} alt="MFA QR Code" width={180} height={180} style={{ borderRadius: 8, border: '1px solid #1e2536', display: 'block', marginBottom: 12 }} />
+          <img src={qrUrl} alt="MFA QR Code" width={180} height={180} style={{ borderRadius: 8, border: '1px solid #263044', display: 'block', marginBottom: 12 }} />
           <div style={{ fontSize: '0.62rem', color: '#6b7a94', marginBottom: 6 }}>Manual entry key:</div>
           <div style={{ fontFamily: 'JetBrains Mono,monospace', fontSize: '0.74rem', color: '#4f8fff', background: '#4f8fff12', padding: '6px 10px', borderRadius: 6, marginBottom: 16, letterSpacing: 2 }}>{secret}</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             <input value={code} onChange={e => setCode(e.target.value)} placeholder="Enter 6-digit code" maxLength={6}
               style={{ ...INPUT, width: 160, fontFamily: 'JetBrains Mono,monospace', fontSize: '1.1rem', letterSpacing: 4, textAlign: 'center' }} />
             <button onClick={verifyCode} style={BTN}>Verify & Enable</button>
-            <button onClick={() => setStep('idle')} style={{ padding: '9px 16px', background: 'transparent', border: '1px solid #1e2536', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>Cancel</button>
+            <button onClick={() => setStep('idle')} style={{ padding: '9px 16px', background: 'transparent', border: '1px solid #263044', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>Cancel</button>
           </div>
           {error && <div style={{ color: '#f0405e', fontSize: '0.72rem', marginTop: 8 }}>{error}</div>}
         </div>
@@ -102,7 +102,7 @@ function MfaSetup() {
             <input value={code} onChange={e => setCode(e.target.value)} placeholder="6-digit code" maxLength={6}
               style={{ ...INPUT, width: 160, fontFamily: 'JetBrains Mono,monospace', fontSize: '1.1rem', letterSpacing: 4, textAlign: 'center' }} />
             <button onClick={disableMfa} style={{ ...BTN, background: '#f0405e' }}>Disable MFA</button>
-            <button onClick={() => setStep('idle')} style={{ padding: '9px 16px', background: 'transparent', border: '1px solid #1e2536', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>Cancel</button>
+            <button onClick={() => setStep('idle')} style={{ padding: '9px 16px', background: 'transparent', border: '1px solid #263044', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>Cancel</button>
           </div>
           {error && <div style={{ color: '#f0405e', fontSize: '0.72rem', marginTop: 8 }}>{error}</div>}
         </div>
@@ -218,7 +218,7 @@ export default function SettingsPage() {
   return (
     <div style={NAV_STYLE}>
       {/* Top nav */}
-      <div style={{ display: 'flex', alignItems: 'center', padding: '14px 24px', borderBottom: '1px solid #141820', background: '#07090f', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '14px 24px', borderBottom: '1px solid #1d2535', background: '#0c1122', gap: 12 }}>
         <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', color: 'inherit' }}>
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none" style={{ flexShrink: 0 }}>
             <rect width="28" height="28" rx="7" fill="url(#sg)"/>
@@ -232,7 +232,7 @@ export default function SettingsPage() {
         <span style={{ fontSize: '0.86rem', color: '#6b7a94', fontWeight: 600 }}>Settings</span>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
           {saved && <span style={{ fontSize: '0.72rem', color: '#22d49a', fontWeight: 600, padding: '5px 10px', background: '#22d49a10', borderRadius: 6, border: '1px solid #22d49a30' }}>✓ Saved</span>}
-          <a href="/dashboard" style={{ padding: '7px 16px', background: 'transparent', border: '1px solid #1e2536', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none' }}>← Dashboard</a>
+          <a href="/dashboard" style={{ padding: '7px 16px', background: 'transparent', border: '1px solid #263044', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none' }}>← Dashboard</a>
         </div>
       </div>
 
@@ -240,7 +240,7 @@ export default function SettingsPage() {
         <h1 style={{ fontSize: '1.4rem', fontWeight: 900, letterSpacing: -0.5, marginBottom: 24 }}>Settings</h1>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: 2, marginBottom: 24, background: '#0a0d14', borderRadius: 10, padding: 4, border: '1px solid #1e2536', width: 'fit-content' }}>
+        <div style={{ display: 'flex', gap: 2, marginBottom: 24, background: '#131929', borderRadius: 10, padding: 4, border: '1px solid #263044', width: 'fit-content' }}>
           {tabs.map(t => (
             <button key={t.id} onClick={() => setActiveTab(t.id)}
               style={{ padding: '7px 18px', borderRadius: 7, border: 'none', fontFamily: 'Inter,sans-serif',
@@ -263,7 +263,7 @@ export default function SettingsPage() {
                 <div style={{ display: 'flex', gap: 8 }}>
                   {['dark', 'light'].map(t => (
                     <button key={t} onClick={() => saveSettings({ theme: t })}
-                      style={{ padding: '8px 20px', borderRadius: 8, border: `1px solid ${settings.theme === t || (!settings.theme && t === 'dark') ? '#4f8fff' : '#1e2536'}`,
+                      style={{ padding: '8px 20px', borderRadius: 8, border: `1px solid ${settings.theme === t || (!settings.theme && t === 'dark') ? '#4f8fff' : '#263044'}`,
                         background: settings.theme === t || (!settings.theme && t === 'dark') ? '#4f8fff15' : 'transparent',
                         color: settings.theme === t || (!settings.theme && t === 'dark') ? '#4f8fff' : '#6b7a94',
                         fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'Inter,sans-serif',
@@ -295,7 +295,7 @@ export default function SettingsPage() {
                   {[['true', '● DEMO', '#f0a030'], ['false', '● LIVE', '#22d49a']].map(([val, label, col]) => (
                     <button key={val} onClick={() => saveSettings({ demoMode: val })}
                       style={{ padding: '8px 20px', borderRadius: 8,
-                        border: `1px solid ${settings.demoMode === val || (!settings.demoMode && val === 'true') ? col + '50' : '#1e2536'}`,
+                        border: `1px solid ${settings.demoMode === val || (!settings.demoMode && val === 'true') ? col + '50' : '#263044'}`,
                         background: settings.demoMode === val || (!settings.demoMode && val === 'true') ? col + '15' : 'transparent',
                         color: settings.demoMode === val || (!settings.demoMode && val === 'true') ? col : '#6b7a94',
                         fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
@@ -310,7 +310,7 @@ export default function SettingsPage() {
                   {[['0', 'Recommend Only', '#6b7a94'], ['1', 'Auto + Notify', '#f0a030'], ['2', 'Full Auto', '#22d49a']].map(([val, label, col]) => (
                     <button key={val} onClick={() => saveSettings({ automation: val })}
                       style={{ padding: '8px 14px', borderRadius: 8,
-                        border: `1px solid ${settings.automation === val ? col + '50' : '#1e2536'}`,
+                        border: `1px solid ${settings.automation === val ? col + '50' : '#263044'}`,
                         background: settings.automation === val ? col + '15' : 'transparent',
                         color: settings.automation === val ? col : '#6b7a94',
                         fontWeight: 600, fontSize: '0.72rem', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
@@ -336,7 +336,7 @@ export default function SettingsPage() {
           <div>
             <div style={CARD}>
               <div style={{ fontSize: '0.82rem', fontWeight: 700, marginBottom: 16, color: '#e8ecf4' }}>Plan & Billing</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#070a14', borderRadius: 9, border: '1px solid #1e2536', marginBottom: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#070a14', borderRadius: 9, border: '1px solid #263044', marginBottom: 14 }}>
                 <div style={{ width: 36, height: 36, borderRadius: 9, background: '#8b6fff15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>🛡</div>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '0.86rem', textTransform: 'capitalize' }}>
@@ -365,7 +365,7 @@ export default function SettingsPage() {
                 Change your login password.
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                <a href="/login" style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #1e2536', borderRadius: 8, color: '#6b7a94', fontSize: '0.76rem', fontWeight: 600, textDecoration: 'none' }}>
+                <a href="/login" style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #263044', borderRadius: 8, color: '#6b7a94', fontSize: '0.76rem', fontWeight: 600, textDecoration: 'none' }}>
                   Change Password
                 </a>
               </div>
@@ -395,11 +395,11 @@ export default function SettingsPage() {
               { label: 'Weekly digest', key: 'notify_digest', default: 'false' },
               { label: 'Sync errors', key: 'notify_sync_errors', default: 'true' },
             ].map(item => (
-              <div key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #141820' }}>
+              <div key={item.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #1d2535' }}>
                 <span style={{ fontSize: '0.8rem' }}>{item.label}</span>
                 <button onClick={() => saveSettings({ [item.key]: settings[item.key] === 'false' ? 'true' : 'false' })}
                   style={{ width: 42, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', fontFamily: 'Inter,sans-serif',
-                    background: (settings[item.key] ?? item.default) === 'true' ? '#22d49a' : '#1e2536',
+                    background: (settings[item.key] ?? item.default) === 'true' ? '#22d49a' : '#263044',
                     position: 'relative', transition: 'background .2s' }}>
                   <span style={{ position: 'absolute', top: 3, width: 18, height: 18, borderRadius: '50%', background: '#fff',
                     transition: 'left .2s', left: (settings[item.key] ?? item.default) === 'true' ? 21 : 3 }} />

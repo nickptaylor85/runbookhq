@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 export default function SalesDashboard() {
   const [mrrTarget, setMrrTarget] = useState('');
   const [arrTarget, setArrTarget] = useState('');
