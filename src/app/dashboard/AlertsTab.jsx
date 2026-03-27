@@ -64,10 +64,10 @@ export default function AlertsTab({
       </div>
 
       {/* Filters */}
-      <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
+      <div className="wt-filter-row" style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
         <input value={alertSearch} onChange={e=>{setAlertSearch(e.target.value);setAlertPage(0);}}
           placeholder="Search alerts…"
-          style={{padding:'6px 10px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.76rem',fontFamily:'Inter,sans-serif',outline:'none',width:180}}/>
+          style={{padding:'6px 10px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.76rem',fontFamily:'Inter,sans-serif',outline:'none',width:180,flex:'1 1 140px'}}/>
         <select value={alertSevFilter} onChange={e=>{setAlertSevFilter(e.target.value);setAlertPage(0);}}
           style={{padding:'6px 10px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.76rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
           <option value='all'>All severities</option>
@@ -99,7 +99,7 @@ export default function AlertsTab({
 
       {/* Bulk action bar */}
       {selectedAlerts.size > 0 && (
-        <div style={{display:'flex',alignItems:'center',gap:10,padding:'8px 12px',background:'#4f8fff10',border:'1px solid #4f8fff25',borderRadius:8}}>
+        <div className="wt-bulk-bar" style={{display:'flex',alignItems:'center',gap:10,padding:'8px 12px',background:'#4f8fff10',border:'1px solid #4f8fff25',borderRadius:8}}>
           <span style={{fontSize:'0.76rem',fontWeight:700,color:'#4f8fff'}}>{selectedAlerts.size} selected</span>
           <button onClick={()=>{
             setAlertOverrides(prev=>{const n={...prev};[...selectedAlerts].forEach(id=>{n[id]={...(n[id]||{}),verdict:'FP',confidence:99}});return n;});

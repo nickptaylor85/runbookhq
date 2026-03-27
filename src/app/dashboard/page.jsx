@@ -31,7 +31,7 @@ const ALL_TOOLS = [
 ];
 
 
-const DASHBOARD_CSS = '*{margin:0;padding:0;box-sizing:border-box}\n        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}\n        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}\n\n        /* ── Dark theme (default) ── */\n        .wt-root {\n          --wt-bg: #050508;\n          --wt-sidebar: #07080f;\n          --wt-card: #09091a;\n          --wt-card2: #0a0d14;\n          --wt-border: #141820;\n          --wt-border2: #1e2536;\n          --wt-text: #e8ecf4;\n          --wt-muted: #6b7a94;\n          --wt-secondary: #8a9ab0;\n          --wt-dim: #3a4050;\n        }\n        /* ── Light theme ── */\n        .wt-root.light {\n          --wt-bg: #f5f6fa;\n          --wt-sidebar: #ffffff;\n          --wt-card: #ffffff;\n          --wt-card2: #f0f2f8;\n          --wt-border: #e2e5ef;\n          --wt-border2: #c8cedd;\n          --wt-text: #0f1117;\n          --wt-muted: #5a6580;\n          --wt-secondary: #4a5568;\n          --wt-dim: #8090a8;\n        }\n\n        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap;color:var(--wt-muted)}\n        .tab-btn.active{background:#4f8fff18;color:#4f8fff}\n        .tab-btn:not(.active) {color:var(--wt-secondary);background:var(--wt-card2)}\n        .row-hover{transition:background .12s}\n        .row-hover:hover{background:var(--wt-card2)!important}\n        .vuln-row:hover{background:var(--wt-card2)!important;cursor:pointer}\n        .alert-card{border-radius:10px;border:1px solid var(--wt-border);background:var(--wt-card);transition:border-color .15s}\n        .alert-card:hover{border-color:#4f8fff28}';
+const DASHBOARD_CSS = '*{margin:0;padding:0;box-sizing:border-box}\n        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}\n        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}\n\n        /* ── Dark theme (default) ── */\n        .wt-root {\n          --wt-bg: #050508;\n          --wt-sidebar: #07080f;\n          --wt-card: #09091a;\n          --wt-card2: #0a0d14;\n          --wt-border: #141820;\n          --wt-border2: #1e2536;\n          --wt-text: #e8ecf4;\n          --wt-muted: #6b7a94;\n          --wt-secondary: #8a9ab0;\n          --wt-dim: #3a4050;\n        }\n        /* ── Light theme ── */\n        .wt-root.light {\n          --wt-bg: #f5f6fa;\n          --wt-sidebar: #ffffff;\n          --wt-card: #ffffff;\n          --wt-card2: #f0f2f8;\n          --wt-border: #e2e5ef;\n          --wt-border2: #c8cedd;\n          --wt-text: #0f1117;\n          --wt-muted: #5a6580;\n          --wt-secondary: #4a5568;\n          --wt-dim: #8090a8;\n        }\n\n        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap;color:var(--wt-muted)}\n        .tab-btn.active{background:#4f8fff18;color:#4f8fff}\n        .tab-btn:not(.active) {color:var(--wt-secondary);background:var(--wt-card2)}\n        .row-hover{transition:background .12s}\n        .row-hover:hover{background:var(--wt-card2)!important}\n        .vuln-row:hover{background:var(--wt-card2)!important;cursor:pointer}\n        .alert-card{border-radius:10px;border:1px solid var(--wt-border);background:var(--wt-card);transition:border-color .15s}\n        .alert-card:hover{border-color:#4f8fff28}\n\n        /* ── Mobile layout ── */\n        .wt-sidebar-desktop{display:flex}\n        .wt-bottom-nav{display:none}\n        .wt-topbar-controls-full{display:flex}\n        .wt-topbar-controls-mobile{display:none}\n\n        @media(max-width:640px){\n          /* Hide desktop sidebar, show bottom nav */\n          .wt-sidebar-desktop{display:none!important}\n          .wt-bottom-nav{\n            display:flex;position:fixed;bottom:0;left:0;right:0;z-index:100;\n            background:var(--wt-sidebar);border-top:1px solid var(--wt-border2);\n            padding:6px 0 env(safe-area-inset-bottom,6px);justify-content:space-around;align-items:center;\n          }\n          .wt-bottom-nav button,.wt-bottom-nav a{\n            display:flex;flex-direction:column;align-items:center;gap:2px;\n            background:none;border:none;cursor:pointer;color:var(--wt-muted);\n            font-size:0.42rem;font-weight:700;font-family:Inter,sans-serif;\n            padding:4px 6px;border-radius:6px;text-decoration:none;min-width:44px;\n          }\n          .wt-bottom-nav button.active,.wt-bottom-nav a.active{color:#4f8fff}\n          .wt-bottom-nav .bnav-icon{font-size:1.1rem;line-height:1}\n          /* Main content gets bottom padding for nav */\n          .wt-main{padding-bottom:72px!important}\n          /* Tab bar: hide text tabs on mobile (using bottom nav instead) */\n          .wt-tabbar{display:none!important}\n          /* Top bar: collapse controls */\n          .wt-topbar{padding:6px 12px!important;gap:8px!important}\n          .wt-topbar-controls-full{display:none!important}\n          .wt-topbar-controls-mobile{display:flex!important;gap:6px;align-items:center;margin-left:auto}\n          /* Content padding */\n          .wt-content{padding:10px 10px!important}\n          /* Alert cards */\n          .alert-card{border-radius:8px}\n          /* Grid cols -> single col */\n          .wt-stat-grid{grid-template-columns:1fr 1fr!important}\n          .wt-two-col{grid-template-columns:1fr!important}\n          .wt-three-col{grid-template-columns:1fr!important}\n          .wt-four-col{grid-template-columns:1fr 1fr!important}\n          /* Filter row stack */\n          .wt-filter-row{flex-direction:column!important;gap:6px!important}\n          .wt-filter-row>*{width:100%!important}\n          /* Bulk action bar */\n          .wt-bulk-bar{flex-wrap:wrap!important;gap:6px!important}\n        }\n\n        @media(min-width:641px) and (max-width:900px){\n          .wt-sidebar-desktop{width:42px!important}\n          .wt-content{padding:12px 14px!important}\n          .wt-stat-grid{grid-template-columns:1fr 1fr!important}\n          .wt-four-col{grid-template-columns:1fr 1fr!important}\n          .wt-three-col{grid-template-columns:1fr 1fr!important}\n        }';
 
 const CRED_FIELDS = {
   crowdstrike:[{key:'client_id',label:'Client ID'},{key:'client_secret',label:'Client Secret',secret:true},{key:'base_url',label:'Base URL (optional)',placeholder:'https://api.crowdstrike.com'}],
@@ -530,7 +530,7 @@ export default function DashboardPage() {
   const rawAlerts = demoMode
     ? (TENANT_ALERTS[currentTenant] || DEMO_ALERTS)
     : liveAlerts;
-  const alerts = rawAlerts;
+  const alerts = rawAlerts.map(a => alertOverrides[a.id] ? {...a, ...alertOverrides[a.id]} : a);
   const vulns = demoMode
     ? (TENANT_VULNS[currentTenant] || DEMO_VULNS)
     : liveVulns.length > 0 ? liveVulns : (TENANT_VULNS[currentTenant] || DEMO_VULNS);
@@ -637,8 +637,8 @@ export default function DashboardPage() {
     <div className={`wt-root${theme === 'light' ? ' light' : ''}`} style={{display:'flex',minHeight:'100vh',background:'var(--wt-bg)',color:'var(--wt-text)',fontFamily:'Inter,sans-serif'}}>
       <style dangerouslySetInnerHTML={{__html:DASHBOARD_CSS}} />
 
-      {/* SIDEBAR */}
-      <div style={{width:48,background:'var(--wt-sidebar)',borderRight:'1px solid #141820',display:'flex',flexDirection:'column',alignItems:'center',padding:'10px 0',gap:4,flexShrink:0}}>
+      {/* SIDEBAR — desktop only */}
+      <div className="wt-sidebar-desktop" style={{width:48,background:'var(--wt-sidebar)',borderRight:'1px solid #141820',flexDirection:'column',alignItems:'center',padding:'10px 0',gap:4,flexShrink:0}}>
         <div style={{width:34,height:34,marginBottom:10,display:'flex',alignItems:'center',justifyContent:'center'}}>
           <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
             <rect width="34" height="34" rx="9" fill="url(#wg)"/>
@@ -681,8 +681,8 @@ export default function DashboardPage() {
         )}
 
         {/* TOP BAR */}
-        <div style={{display:'flex',alignItems:'center',padding:'8px 18px',borderBottom:'1px solid #141820',gap:12,background:'var(--wt-sidebar)',flexShrink:0,flexWrap:'wrap'}}>
-          <div style={{display:'flex',gap:2,flexWrap:'wrap'}}>
+        <div className="wt-topbar" style={{display:'flex',alignItems:'center',padding:'8px 18px',borderBottom:'1px solid #141820',gap:12,background:'var(--wt-sidebar)',flexShrink:0,flexWrap:'wrap'}}>
+          <div className="wt-tabbar" style={{display:'flex',gap:2,flexWrap:'wrap'}}>
             {TABS.filter(t=>{
               if (t==='mssp') return userTier==='mssp';
               if (isViewer) return ['overview','alerts','coverage','vulns','intel','incidents'].includes(t);
@@ -707,7 +707,8 @@ export default function DashboardPage() {
               </button>
             )}
           </div>
-          <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:10}}>
+          {/* Desktop controls */}
+          <div className="wt-topbar-controls-full" style={{marginLeft:'auto',alignItems:'center',gap:10}}>
             <button onClick={toggleTheme} title={theme==='dark'?'Light mode':'Dark mode'} style={{width:32,height:32,borderRadius:8,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.9rem',flexShrink:0}}>{theme==='dark'?'☀️':'🌙'}</button>
               <button onClick={()=>setDemoMode(d=>{
                 const next=!d;
@@ -751,10 +752,15 @@ export default function DashboardPage() {
               {!demoMode && syncStatus==='idle' && <span style={{display:'inline-flex',alignItems:'center',gap:5}}><span style={{width:6,height:6,borderRadius:'50%',background:'#6b7a94',display:'block'}} />{Object.keys(connectedTools).length} connected</span>}
             </div>
           </div>
+          {/* Mobile controls — theme + demo toggle only */}
+          <div className="wt-topbar-controls-mobile" style={{marginLeft:'auto',alignItems:'center',gap:6}}>
+            <button onClick={toggleTheme} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem'}}>{theme==='dark'?'☀️':'🌙'}</button>
+            <button onClick={()=>setDemoMode(d=>!d)} style={{padding:'4px 8px',borderRadius:6,border:`1px solid ${demoMode?'#f0a03030':'#22d49a30'}`,background:demoMode?'#f0a03010':'#22d49a10',color:demoMode?'#f0a030':'#22d49a',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{demoMode?'DEMO':'LIVE'}</button>
+          </div>
         </div>
 
         {/* CONTENT */}
-        <div style={{flex:1,overflow:'auto',padding:'16px 18px',background:'var(--wt-bg)'}}>
+        <div className="wt-content wt-main" style={{flex:1,overflow:'auto',padding:'16px 18px',background:'var(--wt-bg)'}}>
 
           {/* LIVE MODE — no data yet banner */}
           {!demoMode && liveAlerts.length === 0 && Object.keys(connectedTools).length > 0 && (
@@ -1528,6 +1534,16 @@ export default function DashboardPage() {
           ))}
         </Modal>
       )}
+
+      {/* MOBILE BOTTOM NAV */}
+      <nav className="wt-bottom-nav">
+        {[{t:'overview',i:'📊',l:'Overview'},{t:'alerts',i:'🔔',l:'Alerts'},{t:'coverage',i:'🛡',l:'Coverage'},{t:'vulns',i:'🔍',l:'Vulns'},{t:'intel',i:'🌐',l:'Intel'},{t:'incidents',i:'📋',l:'Cases'},{t:'tools',i:'🔌',l:'Tools'}].map(({t,i,l})=>(
+          <button key={t} className={activeTab===t?'active':''} onClick={()=>setActiveTab(t)}>
+            <span className="bnav-icon">{i}</span>{l}
+            {t==='alerts'&&critAlerts.length>0&&<span style={{position:'absolute',marginTop:-18,marginLeft:10,width:7,height:7,borderRadius:'50%',background:'#f0405e',display:'block'}} />}
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }
