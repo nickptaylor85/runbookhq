@@ -895,7 +895,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Recent Activity Row */}
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+              <div className="wt-two-col" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
                 {/* Recent Alerts */}
                 <div style={{padding:'14px 16px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12}}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
