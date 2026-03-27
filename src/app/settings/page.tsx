@@ -111,6 +111,73 @@ function MfaSetup() {
   );
 }
 
+
+function ApiKeyManager() {
+  const [key, setKey] = React.useState('');
+  const [status, setStatus] = React.useState<'idle'|'loading'|'saved'|'error'>('idle');
+  const [hasKey, setHasKey] = React.useState<boolean|null>(null);
+  const [msg, setMsg] = React.useState('');
+
+  React.useEffect(() => {
+    fetch('/api/settings/anthropic-key')
+      .then(r => r.json())
+      .then((d: { hasKey?: boolean }) => setHasKey(d.hasKey ?? false))
+      .catch(() => setHasKey(false));
+  }, []);
+
+  async function saveKey() {
+    if (!key.startsWith('sk-ant-')) {
+      setMsg('Key must start with sk-ant-'); setStatus('error'); return;
+    }
+    setStatus('loading');
+    const res = await fetch('/api/settings/anthropic-key', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key }),
+    }).then(r => r.json()) as { ok?: boolean; message?: string };
+    if (res.ok) { setHasKey(true); setKey(''); setStatus('saved'); setMsg('Key saved'); setTimeout(() => { setStatus('idle'); setMsg(''); }, 3000); }
+    else { setStatus('error'); setMsg(res.message || 'Failed to save'); }
+  }
+
+  async function removeKey() {
+    if (!confirm('Remove your Anthropic API key? AI features will be disabled.')) return;
+    setStatus('loading');
+    await fetch('/api/settings/anthropic-key', { method: 'DELETE' });
+    setHasKey(false); setStatus('idle'); setMsg('');
+  }
+
+  return (
+    <div>
+      {hasKey ? (
+        <div style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', background:'#22d49a0a', border:'1px solid #22d49a25', borderRadius:9, marginBottom:12 }}>
+          <span style={{ fontSize:'0.72rem', color:'#22d49a', fontWeight:700 }}>✓ API key configured</span>
+          <span style={{ fontSize:'0.68rem', color:'#3a4050', fontFamily:'JetBrains Mono,monospace' }}>sk-ant-••••••••••••</span>
+          <button onClick={removeKey} style={{ marginLeft:'auto', padding:'4px 10px', background:'none', border:'1px solid #f0405e30', borderRadius:6, color:'#f0405e', fontSize:'0.68rem', cursor:'pointer', fontFamily:'Inter,sans-serif' }}>Remove</button>
+        </div>
+      ) : (
+        <div style={{ fontSize:'0.72rem', color:'#f0a030', marginBottom:10, padding:'8px 12px', background:'#f0a03008', border:'1px solid #f0a03020', borderRadius:8 }}>
+          ⚠ No API key — AI features are disabled. Add your Anthropic key below.
+        </div>
+      )}
+      <div style={{ display:'flex', gap:8 }}>
+        <input
+          type="password" value={key} onChange={e => setKey(e.target.value)}
+          placeholder="sk-ant-api03-..."
+          style={{ ...INPUT, flex:1 }}
+          onKeyDown={e => e.key === 'Enter' && saveKey()}
+        />
+        <button onClick={saveKey} disabled={status === 'loading' || !key}
+          style={{ ...BTN, opacity: (!key || status === 'loading') ? 0.5 : 1, cursor: (!key || status === 'loading') ? 'not-allowed' : 'pointer', whiteSpace:'nowrap' }}>
+          {status === 'loading' ? 'Saving…' : 'Save Key'}
+        </button>
+      </div>
+      {msg && <div style={{ fontSize:'0.68rem', marginTop:6, color: status === 'error' ? '#f0405e' : '#22d49a' }}>{msg}</div>}
+      <p style={{ fontSize:'0.66rem', color:'#3a4050', marginTop:8, lineHeight:1.5 }}>
+        Get your key at <a href="https://console.anthropic.com" target="_blank" rel="noreferrer" style={{ color:'#4f8fff' }}>console.anthropic.com</a>. Your key is never returned to the browser after saving.
+      </p>
+    </div>
+  );
+}
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -256,13 +323,10 @@ export default function SettingsPage() {
 
             <div style={CARD}>
               <div style={{ fontSize: '0.82rem', fontWeight: 700, marginBottom: 8, color: '#e8ecf4' }}>AI Configuration</div>
-              <p style={{ fontSize: '0.74rem', color: '#6b7a94', marginBottom: 14, lineHeight: 1.6 }}>
-                Manage your Anthropic API key for AI triage, Co-Pilot, and remediation queries. Your key is encrypted at rest.
+              <p style={{ fontSize: '0.74rem', color: '#6b7a94', marginBottom: 16, lineHeight: 1.6 }}>
+                Your Anthropic API key powers AI triage, the Co-Pilot, and all remediation query generation. Encrypted at rest with AES-256-GCM.
               </p>
-              <a href="/dashboard" onClick={e => { e.preventDefault(); sessionStorage.setItem('wt_open_tab', 'tools'); window.location.href = '/dashboard'; }}
-                style={{ ...BTN, textDecoration: 'none', display: 'inline-block' }}>
-                Manage API Key → Tools Tab
-              </a>
+              <ApiKeyManager />
             </div>
           </div>
         )}

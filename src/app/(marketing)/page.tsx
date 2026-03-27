@@ -109,7 +109,7 @@ function ROICalculator() {
 }
 
 function LiveDashPreview() {
-  const [visibleAlerts, setVisibleAlerts] = useState<number[]>([]);
+  const [visibleAlerts, setVisibleAlerts] = useState<number[]>([0]);
   const [aiText, setAiText] = useState('');
   const fullText = 'AI Shift Brief: Processed 23 alerts overnight. Auto-closed 18 FPs. Escalated 3 TPs to incidents. 2 critical alerts need immediate attention.';
   useEffect(() => {
@@ -227,7 +227,7 @@ export default function LandingPage() {
           </div>
           <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:10 }}>
             <a href='/login' className='btn-outline' style={{padding:'7px 16px',fontSize:'0.78rem'}}>Sign in</a>
-            <a href='/login' className='btn-primary' style={{padding:'8px 18px',fontSize:'0.78rem'}}>Get started free →</a>
+            <a href='/signup' className='btn-primary' style={{padding:'8px 18px',fontSize:'0.78rem'}}>Get started free →</a>
           </div>
         </div>
       </nav>
@@ -250,7 +250,7 @@ export default function LandingPage() {
             Role-based access for your whole team. Built for MSSPs and enterprise SOCs.
           </p>
           <div className='hero-btns' style={{ display:'flex', justifyContent:'center', gap:12, flexWrap:'wrap' }}>
-            <a href='/login' className='btn-primary' style={{fontSize:'0.9rem',padding:'13px 28px'}}>Start free — no card needed →</a>
+            <a href='/signup' className='btn-primary' style={{fontSize:'0.9rem',padding:'13px 28px'}}>Start free — no card needed →</a>
             <a href='#features' className='btn-outline' style={{fontSize:'0.9rem',padding:'13px 24px'}}>See features</a>
           </div>
           <div style={{ marginTop:16, fontSize:'0.72rem', color:'#3a4a60' }}>Community plan free forever · Team from £49/seat/mo</div>
@@ -358,7 +358,7 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
-          <a href='/login' className='btn-primary' style={{ background:'#8b6fff' }}>Start MSSP trial →</a>
+          <a href='/signup?plan=mssp' className='btn-primary' style={{ background:'#8b6fff' }}>Start MSSP trial →</a>
         </div>
       </section>
 
@@ -426,7 +426,7 @@ export default function LandingPage() {
         <div style={{ maxWidth:580, margin:'0 auto' }}>
           <h2 style={{ fontSize:'2.2rem', fontWeight:900, letterSpacing:-2, marginBottom:14, lineHeight:1.1 }}>Your SOC deserves better than 6 tabs.</h2>
           <p style={{ fontSize:'0.95rem', color:'#6b7a94', lineHeight:1.75, marginBottom:32 }}>Start for free today. Connect your first tool in under 5 minutes.</p>
-          <a href='/login' className='btn-primary' style={{ fontSize:'1rem', padding:'14px 36px' }}>Get started free →</a>
+          <a href='/signup' className='btn-primary' style={{ fontSize:'1rem', padding:'14px 36px' }}>Get started free →</a>
           <div style={{ marginTop:14, fontSize:'0.72rem', color:'#3a4a60' }}>No credit card · Community plan free forever · Team from £49/seat/mo</div>
         </div>
       </section>
@@ -444,7 +444,7 @@ export default function LandingPage() {
           <span style={{ color:'#2a3448', marginLeft:8, fontSize:'0.72rem' }}>© 2026 RunbookHQ Ltd</span>
         </div>
         <div style={{ display:'flex', gap:20 }}>
-          {['Privacy','Terms','Security','Docs'].map(l=><a key={l} href='#' style={{color:'#4a5568',fontSize:'0.76rem',textDecoration:'none'}} onMouseEnter={e=>{(e.target as HTMLElement).style.color='#8a9ab0';}} onMouseLeave={e=>{(e.target as HTMLElement).style.color='#4a5568';}}>{l}</a>)}
+          {[{l:'Privacy',h:'/privacy'},{l:'Terms',h:'/terms'},{l:'Security',h:'/security'},{l:'Docs',h:'/docs'}].map(({l,h})=><a key={l} href={h} style={{color:'#4a5568',fontSize:'0.76rem',textDecoration:'none'}} onMouseEnter={e=>{(e.target as HTMLElement).style.color='#8a9ab0';}} onMouseLeave={e=>{(e.target as HTMLElement).style.color='#4a5568';}}>{l}</a>)}
         </div>
       </footer>
     </main>
