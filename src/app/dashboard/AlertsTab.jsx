@@ -226,6 +226,12 @@ export default function AlertsTab({
                     style={{padding:'4px 12px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                     Mark FP
                   </button>
+                  {setAlertSnoozes && <button onClick={()=>{
+                    const dur=2*60*60*1000; // 2h
+                    setAlertSnoozes(prev=>prev[alert.id]&&prev[alert.id]>Date.now()?{...prev,[alert.id]:undefined}:{...prev,[alert.id]:Date.now()+dur});
+                  }} style={{padding:'4px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                    {alertSnoozes&&alertSnoozes[alert.id]&&alertSnoozes[alert.id]>Date.now()?'Snoozed 💤':'Snooze 2h'}
+                  </button>}
                   <button onClick={()=>setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),acknowledged:!isAcknowledged}}))}
                     style={{padding:'4px 12px',borderRadius:6,border:`1px solid ${isAcknowledged?'#22d49a50':'#4f8fff30'}`,background:isAcknowledged?'#22d49a15':'#4f8fff10',color:isAcknowledged?'#22d49a':'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                     {isAcknowledged ? '✓ Acknowledged' : 'Acknowledge'}

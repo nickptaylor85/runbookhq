@@ -22,7 +22,6 @@ const TOOLS = [
   { name:'Elastic',      color:'#00bfb3', abbr:'EL' },
   { name:'QRadar',       color:'#006699', abbr:'QR' },
   { name:'Okta',         color:'#007dc1', abbr:'OK' },
-  { name:'CrowdStrike',  color:'#f0405e', abbr:'CS' },
   { name:'Proofpoint',   color:'#007dba', abbr:'PP' },
   { name:'Nessus',       color:'#00b3e3', abbr:'NS' },
   { name:'Wiz',          color:'#10b981', abbr:'WZ' },

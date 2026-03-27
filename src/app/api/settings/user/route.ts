@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { redisHSet, redisHGetAll, KEYS } from '@/lib/redis';
 
 const ALLOWED_SETTINGS = new Set([
-  'industry', 'demoMode', 'automation', 'userTier', 'clientBanner', 'theme'
+  'industry', 'demoMode', 'automation', 'userTier', 'clientBanner', 'theme', 'slack_webhook', 'notif_critical', 'notif_incidents', 'notif_digest', 'notif_sync'
 ]);
 
 function getTenantId(req: NextRequest): string {

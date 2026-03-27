@@ -1064,6 +1064,7 @@ export default function DashboardPage() {
                 alertOverrides={alertOverrides} setAlertOverrides={setAlertOverrides}
                 aiTriageCache={aiTriageCache}
                 createdIncidents={createdIncidents} setCreatedIncidents={setCreatedIncidents}
+                alertSnoozes={alertSnoozes} setAlertSnoozes={setAlertSnoozes}
                 setActiveTab={setActiveTab} userTier={userTier}
               />
             )}
@@ -1157,7 +1158,7 @@ export default function DashboardPage() {
               <div style={{display:'flex',flexDirection:'column',gap:6}}>
                 {DEMO_VULNS.map((vuln,rank)=>(
                   <div key={vuln.id}>
-                    <div className='vuln-row' onClick={()=>setSelectedVuln(selectedVuln?.id===vuln.id?null:vuln)} style={{padding:'10px 14px',background:selectedVuln?.id===vuln.id?'#0a0d18':'#09091a',border:`1px solid ${selectedVuln?.id===vuln.id?'#4f8fff30':'var(--wt-border)'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12}}>
+                    <div className='vuln-row' onClick={()=>setSelectedVuln(selectedVuln?.id===vuln.id?null:vuln)} style={{padding:'10px 14px',background:selectedVuln?.id===vuln.id?'#0a0d18':'#0f1526',border:`1px solid ${selectedVuln?.id===vuln.id?'#4f8fff30':'var(--wt-border)'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12}}>
                       <div style={{width:22,height:22,borderRadius:6,background:rank<3?'#f0405e18':'var(--wt-border)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.62rem',fontWeight:900,color:rank<3?'#f0405e':'#6b7a94',flexShrink:0,fontFamily:'JetBrains Mono,monospace'}}>{rank+1}</div>
                       <div style={{flex:1,minWidth:0}}>
                         <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:2}}>
@@ -1604,6 +1605,26 @@ export default function DashboardPage() {
             </div>
           ))}
         </Modal>
+      )}
+
+      {/* KEYBOARD SHORTCUT HELP */}
+      {showShortcuts && (
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={()=>setShowShortcuts(false)}>
+          <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border2)',borderRadius:16,padding:28,maxWidth:420,width:'100%'}} onClick={e=>e.stopPropagation()}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
+              <span style={{fontSize:'0.88rem',fontWeight:800}}>⌨ Keyboard Shortcuts</span>
+              <button onClick={()=>setShowShortcuts(false)} style={{background:'none',border:'none',color:'var(--wt-muted)',fontSize:'1.2rem',cursor:'pointer',lineHeight:1}}>×</button>
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'auto 1fr',gap:'8px 16px',fontSize:'0.78rem'}}>
+              {[['G then O','Overview'],['G then A','Alerts'],['G then C','Coverage'],['G then V','Vulnerabilities'],['G then I','Intel'],['G then N','Incidents'],['G then T','Tools'],['G then S','Sales'],['?','Toggle this help'],['Esc','Close overlay']].map(([k,v])=>(
+                <React.Fragment key={k}>
+                  <kbd style={{background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:5,padding:'2px 8px',fontFamily:'JetBrains Mono,monospace',fontSize:'0.7rem',color:'var(--wt-secondary)',whiteSpace:'nowrap'}}>{k}</kbd>
+                  <span style={{color:'var(--wt-muted)',alignSelf:'center'}}>{v}</span>
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* MOBILE BOTTOM NAV */}
