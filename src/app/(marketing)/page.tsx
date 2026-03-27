@@ -37,9 +37,9 @@ const FEATURES = [
   { icon:'👥', title:'Role-Based Access', body:'Owner, Tech Admin, Sales, Viewer — granular roles for your whole team. Invite staff, set permissions, track last-seen per user.' },
   { icon:'📈', title:'Sales Dashboard', body:'Set MRR/ARR targets, get AI-generated go-to-market strategy. Exactly which plan mix to sell to hit your revenue goal.' },
   { icon:'🔐', title:'BYOK — Per-Client Keys', body:'Each client\'s AI calls run under their own Anthropic key. Complete data isolation. No shared AI context across tenants.' },
-  { icon:'\u2756', title:'AI Co-Pilot', body:'Chat with a security-scoped AI in the dashboard. Explain MITRE techniques, generate detection queries, summarise incidents without leaving the SOC view.' },
-  { icon:'\U0001f6e1', title:'Compliance Mapping', body:'Active alerts and vulnerabilities automatically mapped to ISO 27001, Cyber Essentials, and NIST CSF. Framework score cards with gap analysis.' },
-  { icon:'\U0001f4cb', title:'Shift Handover', body:'One-click handover brief covering alerts triaged, incidents open, posture score, and top threats. Paste into Slack or Teams at shift end.' },
+  { icon:'✦', title:'AI Co-Pilot', body:'Chat with a security-scoped AI in the dashboard. Explain MITRE techniques, generate detection queries, summarise incidents without leaving the SOC view.' },
+  { icon:'🛡', title:'Compliance Mapping', body:'Active alerts and vulnerabilities automatically mapped to ISO 27001, Cyber Essentials, and NIST CSF. Framework score cards with gap analysis.' },
+  { icon:'📋', title:'Shift Handover', body:'One-click handover brief covering alerts triaged, incidents open, posture score, and top threats. Paste into Slack or Teams at shift end.' },
 ];
 
 const TESTIMONIALS = [
