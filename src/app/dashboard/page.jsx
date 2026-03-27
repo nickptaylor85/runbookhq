@@ -334,6 +334,13 @@ export default function DashboardPage() {
   const [alertOverrides, setAlertOverrides] = useState({});
   const [alertSnoozes, setAlertSnoozes] = useState({}); // {alertId: snoozedUntil ms}
   const [showShortcuts, setShowShortcuts] = useState(false); // keyboard shortcut overlay
+  // Co-Pilot
+  const [showCopilot, setShowCopilot] = useState(false);
+  const [copilotMessages, setCopilotMessages] = useState([]);
+  const [copilotInput, setCopilotInput] = useState('');
+  const [copilotLoading, setCopilotLoading] = useState(false);
+  // SLA ticker
+  const [slaTick, setSlaTick] = useState(0);
   const [deployAgentDevice, setDeployAgentDevice] = useState(null);
   const [incidentStatuses, setIncidentStatuses] = useState({});
   const [deletedIncidents, setDeletedIncidents] = useState(new Set());
@@ -479,7 +486,7 @@ export default function DashboardPage() {
       const now=Date.now();
       if(e.key.toLowerCase()==='g'){lastKey='g';lastTime=now;return;}
       if(lastKey==='g'&&(now-lastTime)<1500){
-        const map={o:'overview',a:'alerts',c:'coverage',v:'vulns',i:'intel',n:'incidents',t:'tools',s:'sales'};
+        const map={o:'overview',a:'alerts',c:'coverage',v:'vulns',i:'intel',n:'incidents',t:'tools',s:'sales',x:'compliance'};
         if(map[e.key.toLowerCase()]){setActiveTab(map[e.key.toLowerCase()]);}
         lastKey='';return;
       }
@@ -571,6 +578,12 @@ export default function DashboardPage() {
   const tpAlerts = alerts.filter(a=>a.verdict==='TP');
   const fpAlerts = alerts.filter(a=>a.verdict==='FP');
 
+  // SLA ticker — update every 60s to refresh countdown badges
+  useEffect(()=>{
+    const iv = setInterval(()=>setSlaTick(t=>t+1), 60000);
+    return ()=>clearInterval(iv);
+  },[]);
+
   // Slack notifications — must be after critAlerts is defined
   const lastNotifiedRef = React.useRef(new Set());
   useEffect(()=>{
@@ -649,11 +662,28 @@ export default function DashboardPage() {
     setSelectedIncident(null);
   }
 
+  async function sendCopilotMessage(msg) {
+    if (!msg.trim() || copilotLoading) return;
+    const userMsg = {role:'user',text:msg.trim(),ts:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})};
+    setCopilotMessages(prev=>[...prev,userMsg]);
+    setCopilotInput('');
+    setCopilotLoading(true);
+    try {
+      const res = await fetch('/api/copilot',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({prompt:msg.trim()})});
+      const d = await res.json();
+      setCopilotMessages(prev=>[...prev,{role:'assistant',text:d.response||'Sorry, no response.',ts:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}]);
+    } catch {
+      setCopilotMessages(prev=>[...prev,{role:'assistant',text:'Connection error — check your API key in Settings.',ts:''}]);
+    }
+    setCopilotLoading(false);
+  }
+
   function toggleAlertExpand(id) {
     setExpandedAlerts(prev => { const n = new Set(prev); n.has(id)?n.delete(id):n.add(id); return n; });
   }
 
-  const TABS = ['overview','alerts','coverage','vulns','intel','incidents','tools','mssp'];
+  const TABS = ['overview','alerts','coverage','vulns','intel','incidents','tools','compliance','mssp'];
   const isSales = userRole === 'sales' || isAdmin;
   const isViewer = userRole === 'viewer';
   const isTechAdmin = userRole === 'tech_admin' || isAdmin;
@@ -708,6 +738,11 @@ export default function DashboardPage() {
               {activeTab!=='admin' && <span style={{position:'absolute',top:3,right:3,width:5,height:5,borderRadius:'50%',background:'#f0a030',boxShadow:'0 0 4px #f0a030'}} />}
             </button>
           )}
+          <button onClick={()=>setShowCopilot(s=>!s)} title='AI Co-Pilot'
+            style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem',border:`1px solid ${showCopilot?'#4f8fff40':'transparent'}`,background:showCopilot?'#4f8fff18':'transparent',cursor:'pointer',position:'relative'}}>
+            ✦
+            {canUse('team')&&<span style={{position:'absolute',top:2,right:2,width:5,height:5,borderRadius:'50%',background:'#22d49a',boxShadow:'0 0 4px #22d49a'}} />}
+          </button>
           <a href='/guide' title='User Guide' style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem',color:'inherit',textDecoration:'none'}}>📖</a>
           <a href='/settings' title='Settings' style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem',color:'inherit',textDecoration:'none'}}>⚙️</a>
         </div>
@@ -729,11 +764,12 @@ export default function DashboardPage() {
           <div className="wt-tabbar" style={{display:'flex',gap:2,flexWrap:'wrap'}}>
             {TABS.filter(t=>{
               if (t==='mssp') return userTier==='mssp';
+              if (t==='compliance') return canUse('business');
               if (isViewer) return ['overview','alerts','coverage','vulns','intel','incidents'].includes(t);
               return true;
             }).map(t=>(
               <button key={t} className={`tab-btn${activeTab===t?' active':''}`} onClick={()=>setActiveTab(t)}>
-                {t==='mssp'?'Portfolio':t.charAt(0).toUpperCase()+t.slice(1)}
+                {t==='mssp'?'Portfolio':t==='compliance'?'🛡 Compliance':t.charAt(0).toUpperCase()+t.slice(1)}
                 {t==='alerts'&&critAlerts.length>0&&<span style={{marginLeft:5,fontSize:'0.48rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f0405e',color:'#fff'}}>{critAlerts.length}</span>}
                 {t==='vulns'&&kevVulns.length>0&&<span style={{marginLeft:5,fontSize:'0.48rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f97316',color:'#fff'}}>{kevVulns.length} KEV</span>}
               </button>
@@ -794,6 +830,24 @@ export default function DashboardPage() {
               {!demoMode && syncStatus==='error' && <span style={{display:'inline-flex',alignItems:'center',gap:5}}><span style={{width:6,height:6,borderRadius:'50%',background:'#f0405e',display:'block'}} /><span style={{color:'#f0405e'}} title={syncError||''}>Sync error</span></span>}
               {!demoMode && syncStatus==='ok' && <span style={{display:'inline-flex',alignItems:'center',gap:5}}><span style={{width:6,height:6,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',display:'block'}} />{tools.filter(t=>t.active).length} live · {lastSynced}</span>}
               {!demoMode && syncStatus==='idle' && <span style={{display:'inline-flex',alignItems:'center',gap:5}}><span style={{width:6,height:6,borderRadius:'50%',background:'#6b7a94',display:'block'}} />{Object.keys(connectedTools).length} connected</span>}
+              {canUse('team') && <button onClick={async()=>{
+                const d=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+                const summary=`SHIFT HANDOVER — ${d}
+
+Alerts processed: ${alerts.length} | Auto-closed FPs: ${fpAlerts.length} | TPs escalated: ${tpAlerts.length}
+Critical outstanding: ${critAlerts.length} | KEV patches due: ${kevVulns.length}
+Posture: ${posture}/100 (${posture>=80?'Good':posture>=60?'Under pressure':'Critical'})
+
+Open incidents: ${incidents.filter(i=>(incidentStatuses[i.id]||i.status)!=='Closed').map(i=>i.id+' '+i.title).join(', ')||'None'}
+
+Coverage gaps: ${gapDevices.length} devices missing agents
+Top threat: CVE-2024-21413 (Outlook NTLM — CISA KEV)
+
+Generated by Watchtower`;
+                const w=window.open('','_blank');
+                w.document.write('<pre style="font-family:monospace;padding:32px;max-width:700px;line-height:1.8;white-space:pre-wrap">'+summary+'</pre>');
+                w.document.close();
+              }} title='Shift Handover Report' style={{padding:'4px 10px',borderRadius:7,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>📋 Handover</button>}
               {canUse('business') && <button onClick={()=>{
                 const w=window.open('','_blank');
                 const d=new Date().toLocaleDateString('en-GB');
@@ -943,6 +997,24 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* Noise Reduction Stats */}
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}} className='wt-three-col'>
+                {[
+                  {label:'Noise Reduced',value:`${fpAlerts.length}`,sub:'false positives auto-closed',color:'#22d49a',icon:'🎯'},
+                  {label:'Time Saved',value:`~${fpAlerts.length*12}min`,sub:'analyst hours recovered',color:'#4f8fff',icon:'⏱'},
+                  {label:'Auto-Acted',value:`${actedAlerts.length}`,sub:`at ${['0','auto+notify','full auto'][automation]} level`,color:autColor,icon:'⚡'},
+                ].map(s=>(
+                  <div key={s.label} style={{padding:'12px 14px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:10,display:'flex',alignItems:'center',gap:10}}>
+                    <span style={{fontSize:'1.4rem',lineHeight:1,flexShrink:0}}>{s.icon}</span>
+                    <div style={{minWidth:0}}>
+                      <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:2}}>{s.label}</div>
+                      <div style={{fontSize:'1.3rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-1}}>{s.value}</div>
+                      <div style={{fontSize:'0.58rem',color:'var(--wt-dim)',marginTop:1}}>{s.sub}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               {/* Recent Activity Row */}
@@ -1432,6 +1504,19 @@ export default function DashboardPage() {
                           <span style={{fontSize:'0.62rem',fontWeight:800,color:'#4f8fff',fontFamily:'JetBrains Mono,monospace'}}>{inc.id}</span>
                           <span style={{fontSize:'0.52rem',fontWeight:700,padding:'2px 7px',borderRadius:3,background:`${statusColor}15`,color:statusColor,border:`1px solid ${statusColor}25`}}>{incStatus.toUpperCase()}</span>
                           <SevBadge sev={inc.severity} />
+                          {(()=>{
+                            void slaTick;
+                            const slaMin={Critical:60,High:240,Medium:1440,Low:4320}[inc.severity]||1440;
+                            const parts=inc.created.split(' ');
+                            const [datePart,timePart]=parts.length===2?parts:['2026-03-27',parts[0]];
+                            const created=new Date(datePart+'T'+timePart+':00');
+                            const elapsed=Math.floor((Date.now()-created.getTime())/60000);
+                            const remaining=slaMin-elapsed;
+                            const pct=Math.min(100,Math.max(0,(elapsed/slaMin)*100));
+                            const color=remaining<0?'#f0405e':pct>75?'#f97316':pct>50?'#f0a030':'#22d49a';
+                            const label=remaining<0?`SLA BREACHED ${Math.abs(Math.floor(remaining/60))}h ago`:remaining<60?`${remaining}m left`:`${Math.floor(remaining/60)}h ${remaining%60}m left`;
+                            return <span style={{fontSize:'0.48rem',fontWeight:800,padding:'1px 6px',borderRadius:3,background:`${color}15`,color,border:`1px solid ${color}25`,flexShrink:0}}>{label}</span>;
+                          })()}
                         </div>
                         <div style={{fontSize:'0.84rem',fontWeight:700,marginBottom:4}}>{inc.title}</div>
                         <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
@@ -1499,6 +1584,109 @@ export default function DashboardPage() {
               })}
             </div>
           </GateWall>
+          )}
+          {/* ═══════════════════════════════ COMPLIANCE ═══════════════════════════════ */}
+          {activeTab==='compliance' && (
+            <GateWall feature='Compliance Mapping' requiredTier='business' userTier={userTier}>
+            <div style={{display:'flex',flexDirection:'column',gap:16,maxWidth:960,margin:'0 auto',width:'100%'}}>
+              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4,flexWrap:'wrap'}}>
+                <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Compliance Mapping</h2>
+                <span style={{fontSize:'0.62rem',color:'#4f8fff',background:'#4f8fff12',padding:'2px 8px',borderRadius:4}}>MITRE ATT&amp;CK → ISO 27001 · Cyber Essentials · NIST CSF</span>
+              </div>
+
+              {/* Active technique coverage */}
+              <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,overflow:'hidden'}}>
+                <div style={{padding:'12px 16px',borderBottom:'1px solid var(--wt-border)',display:'flex',alignItems:'center',gap:8}}>
+                  <span style={{fontSize:'0.7rem',fontWeight:800,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1px'}}>Active Threats by Framework</span>
+                  <span style={{fontSize:'0.62rem',color:'var(--wt-muted)',marginLeft:'auto'}}>{alerts.filter(a=>a.mitre).length} alerts with MITRE mapping</span>
+                </div>
+                <div style={{overflowX:'auto'}}>
+                  <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.74rem'}}>
+                    <thead>
+                      <tr style={{background:'var(--wt-card2)'}}>
+                        {['MITRE Technique','Alert','Severity','ISO 27001','Cyber Essentials','NIST CSF'].map(h=>(
+                          <th key={h} style={{padding:'8px 14px',textAlign:'left',fontWeight:700,fontSize:'0.62rem',color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',whiteSpace:'nowrap',borderBottom:'1px solid var(--wt-border)'}}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {alerts.filter(a=>a.mitre).slice(0,12).map(a=>{
+                        const mitreMap={
+                          'T1003.001':{iso:'A.8.3 / A.8.5',ce:'Malware protection',nist:'DE.CM-1 / RS.AN-1'},
+                          'T1071.001':{iso:'A.8.20 / A.8.23',ce:'Network firewalls',nist:'DE.CM-1 / PR.PT-4'},
+                          'T1053.005':{iso:'A.8.8 / A.8.9',ce:'Secure configuration',nist:'DE.CM-3 / PR.IP-1'},
+                          'T1059.001':{iso:'A.8.19 / A.8.9',ce:'Malware protection',nist:'PR.PT-3 / DE.CM-1'},
+                          'T1078':{iso:'A.8.5 / A.9.2',ce:'Access control',nist:'PR.AC-1 / DE.CM-3'},
+                          'T1567.002':{iso:'A.8.24 / A.6.8',ce:'Network firewalls',nist:'PR.DS-5 / DE.CM-1'},
+                          'T1486':{iso:'A.8.7 / A.8.13',ce:'Malware protection',nist:'PR.IP-4 / RS.MI-1'},
+                          'T1566.001':{iso:'A.8.23 / A.6.8',ce:'Malware protection',nist:'PR.AT-1 / DE.CM-1'},
+                          'T1528':{iso:'A.8.2 / A.9.2',ce:'Access control',nist:'PR.AC-4 / DE.CM-7'},
+                          'T1190':{iso:'A.8.8 / A.8.20',ce:'Patch management',nist:'PR.IP-12 / DE.CM-8'},
+                          'T1055.002':{iso:'A.8.19 / A.8.16',ce:'Malware protection',nist:'DE.CM-4 / RS.AN-1'},
+                        };
+                        const m=mitreMap[a.mitre]||{iso:'A.8 / A.9',ce:'Access control',nist:'DE.CM-1'};
+                        const sevColor=SEV_COLOR[a.severity];
+                        return (
+                          <tr key={a.id} className='row-hover' style={{borderBottom:'1px solid var(--wt-border)'}}>
+                            <td style={{padding:'8px 14px',fontFamily:'JetBrains Mono,monospace',fontSize:'0.68rem',color:'#7c6aff',whiteSpace:'nowrap'}}>{a.mitre}</td>
+                            <td style={{padding:'8px 14px',maxWidth:240,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.title}</td>
+                            <td style={{padding:'8px 14px'}}><span style={{fontSize:'0.56rem',fontWeight:800,padding:'1px 6px',borderRadius:3,background:`${sevColor}15`,color:sevColor}}>{a.severity}</span></td>
+                            <td style={{padding:'8px 14px',color:'var(--wt-secondary)',fontFamily:'JetBrains Mono,monospace',fontSize:'0.64rem',whiteSpace:'nowrap'}}>{m.iso}</td>
+                            <td style={{padding:'8px 14px',color:'var(--wt-secondary)',fontSize:'0.68rem',whiteSpace:'nowrap'}}>{m.ce}</td>
+                            <td style={{padding:'8px 14px',color:'var(--wt-secondary)',fontFamily:'JetBrains Mono,monospace',fontSize:'0.64rem',whiteSpace:'nowrap'}}>{m.nist}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Posture by framework */}
+              <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
+                {[
+                  {name:'ISO 27001',score:74,gaps:['A.8.8 Patch management','A.8.3 Config mgmt','A.17.1 Business continuity'],color:'#4f8fff'},
+                  {name:'Cyber Essentials',score:81,gaps:['Patch management','Network firewalls — gaps in VLAN isolation','MFA not enforced on all VPN users'],color:'#22d49a'},
+                  {name:'NIST CSF',score:69,gaps:['DE.CM-4 Malware detection coverage','PR.IP-12 Vuln management process','RS.CO-3 Escalation path documentation'],color:'#8b6fff'},
+                ].map(fw=>(
+                  <div key={fw.name} style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px'}}>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+                      <span style={{fontSize:'0.8rem',fontWeight:800}}>{fw.name}</span>
+                      <span style={{fontSize:'1.2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:fw.color}}>{fw.score}<span style={{fontSize:'0.6rem',fontWeight:600,color:'var(--wt-muted)'}}>%</span></span>
+                    </div>
+                    <div style={{height:4,background:'var(--wt-border)',borderRadius:2,marginBottom:12}}>
+                      <div style={{height:'100%',width:`${fw.score}%`,background:fw.color,borderRadius:2,transition:'width 1s'}} />
+                    </div>
+                    <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',marginBottom:6}}>Gaps to address</div>
+                    {fw.gaps.map(g=>(
+                      <div key={g} style={{display:'flex',gap:6,marginBottom:4,alignItems:'flex-start'}}>
+                        <span style={{color:'#f0405e',fontSize:'0.6rem',flexShrink:0,marginTop:2}}>✗</span>
+                        <span style={{fontSize:'0.72rem',color:'var(--wt-secondary)',lineHeight:1.5}}>{g}</span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+
+              {/* Vuln CVE → framework mapping */}
+              <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px'}}>
+                <div style={{fontSize:'0.7rem',fontWeight:800,color:'#f0a030',textTransform:'uppercase',letterSpacing:'1px',marginBottom:12}}>KEV Vulnerabilities — Compliance Impact</div>
+                <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                  {vulns.filter(v=>v.kev).slice(0,5).map(v=>(
+                    <div key={v.id} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',background:'var(--wt-card2)',borderRadius:8,flexWrap:'wrap'}}>
+                      <span style={{fontSize:'0.68rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:'#f0405e',flexShrink:0}}>{v.cve}</span>
+                      <span style={{fontSize:'0.72rem',flex:1,minWidth:160}}>{v.title}</span>
+                      <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                        <span style={{fontSize:'0.58rem',padding:'2px 7px',borderRadius:4,background:'#4f8fff14',color:'#4f8fff',border:'1px solid #4f8fff25'}}>ISO A.8.8</span>
+                        <span style={{fontSize:'0.58rem',padding:'2px 7px',borderRadius:4,background:'#22d49a14',color:'#22d49a',border:'1px solid #22d49a25'}}>CE: Patching</span>
+                        <span style={{fontSize:'0.58rem',padding:'2px 7px',borderRadius:4,background:'#8b6fff14',color:'#8b6fff',border:'1px solid #8b6fff25'}}>NIST PR.IP-12</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            </GateWall>
           )}
           {/* ═══════════════════════════════ TOOLS ══════════════════════════════════ */}
           {activeTab==='tools' && (
@@ -1605,6 +1793,77 @@ export default function DashboardPage() {
             </div>
           ))}
         </Modal>
+      )}
+
+      {/* ═══════════════════ CO-PILOT PANEL ═══════════════════ */}
+      {showCopilot && (
+        <div style={{position:'fixed',top:0,right:0,bottom:0,width:380,maxWidth:'100vw',zIndex:200,display:'flex',flexDirection:'column',background:'var(--wt-sidebar)',borderLeft:'1px solid var(--wt-border2)',boxShadow:'-8px 0 32px rgba(0,0,0,0.4)'}}>
+          {/* Header */}
+          <div style={{display:'flex',alignItems:'center',gap:10,padding:'14px 16px',borderBottom:'1px solid var(--wt-border)',flexShrink:0}}>
+            <span style={{fontSize:'1rem',lineHeight:1}}>✦</span>
+            <span style={{fontWeight:800,fontSize:'0.9rem',flex:1}}>AI Co-Pilot</span>
+            <span style={{fontSize:'0.56rem',fontWeight:800,padding:'2px 7px',borderRadius:4,background:'#4f8fff18',color:'#4f8fff',border:'1px solid #4f8fff30'}}>TEAM+</span>
+            <button onClick={()=>setShowCopilot(false)} style={{background:'none',border:'none',color:'var(--wt-muted)',fontSize:'1.3rem',cursor:'pointer',lineHeight:1,padding:'0 4px'}}>×</button>
+          </div>
+          {!canUse('team') ? (
+            <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:32,textAlign:'center',gap:12}}>
+              <div style={{fontSize:'2rem'}}>🔒</div>
+              <div style={{fontWeight:700,fontSize:'0.9rem'}}>Team plan required</div>
+              <div style={{fontSize:'0.78rem',color:'var(--wt-muted)',lineHeight:1.6}}>AI Co-Pilot is available on Team plan and above. Ask security questions, generate detection queries, and get instant threat analysis.</div>
+              <a href='/pricing' style={{padding:'8px 20px',background:'#4f8fff',color:'#fff',borderRadius:8,fontSize:'0.78rem',fontWeight:700,textDecoration:'none',marginTop:8}}>Upgrade to Team</a>
+            </div>
+          ) : (
+            <>
+              {/* Message thread */}
+              <div style={{flex:1,overflowY:'auto',padding:'14px 16px',display:'flex',flexDirection:'column',gap:10}}>
+                {copilotMessages.length===0 && (
+                  <div style={{display:'flex',flexDirection:'column',gap:8,marginTop:8}}>
+                    <div style={{fontSize:'0.7rem',color:'var(--wt-dim)',fontWeight:600,textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>Suggested prompts</div>
+                    {['Explain MITRE T1003.001 and how to detect it','Generate a Splunk query to hunt for lateral movement','What's the risk of CVE-2024-21413?','Summarise current incident INC-0847'].map(p=>(
+                      <button key={p} onClick={()=>sendCopilotMessage(p)}
+                        style={{padding:'8px 12px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:8,color:'var(--wt-secondary)',fontSize:'0.74rem',textAlign:'left',cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'border-color .15s',lineHeight:1.4}}
+                        onMouseEnter={e=>e.currentTarget.style.borderColor='#4f8fff40'}
+                        onMouseLeave={e=>e.currentTarget.style.borderColor='var(--wt-border)'}
+                      >{p}</button>
+                    ))}
+                  </div>
+                )}
+                {copilotMessages.map((msg,i)=>(
+                  <div key={i} style={{display:'flex',flexDirection:'column',alignItems:msg.role==='user'?'flex-end':'flex-start',gap:3}}>
+                    <div style={{maxWidth:'88%',padding:'9px 13px',borderRadius:msg.role==='user'?'12px 12px 4px 12px':'12px 12px 12px 4px',background:msg.role==='user'?'#4f8fff':'var(--wt-card)',border:msg.role==='user'?'none':'1px solid var(--wt-border)',fontSize:'0.78rem',color:msg.role==='user'?'#fff':'var(--wt-text)',lineHeight:1.65,whiteSpace:'pre-wrap',wordBreak:'break-word'}}>
+                      {msg.role==='assistant' && <span style={{fontSize:'0.58rem',fontWeight:700,color:'#4f8fff',display:'block',marginBottom:4}}>✦ WATCHTOWER AI</span>}
+                      {msg.text}
+                    </div>
+                    {msg.ts && <span style={{fontSize:'0.55rem',color:'var(--wt-dim)',padding:'0 4px'}}>{msg.ts}</span>}
+                  </div>
+                ))}
+                {copilotLoading && (
+                  <div style={{display:'flex',alignItems:'flex-start',gap:8}}>
+                    <div style={{padding:'9px 13px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:'12px 12px 12px 4px',display:'flex',gap:5,alignItems:'center'}}>
+                      {[0,1,2].map(i=><span key={i} style={{width:6,height:6,borderRadius:'50%',background:'#4f8fff',display:'inline-block',animation:'pulse 1.2s ease infinite',animationDelay:`${i*0.2}s`}} />)}
+                    </div>
+                  </div>
+                )}
+              </div>
+              {/* Input bar */}
+              <div style={{padding:'12px 16px',borderTop:'1px solid var(--wt-border)',flexShrink:0,display:'flex',gap:8,alignItems:'flex-end'}}>
+                <textarea
+                  value={copilotInput}
+                  onChange={e=>setCopilotInput(e.target.value)}
+                  onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendCopilotMessage(copilotInput);}}}
+                  placeholder='Ask a security question… (Enter to send)'
+                  rows={2}
+                  style={{flex:1,resize:'none',padding:'8px 12px',borderRadius:8,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.78rem',fontFamily:'Inter,sans-serif',outline:'none',lineHeight:1.5}}
+                />
+                <button
+                  onClick={()=>sendCopilotMessage(copilotInput)}
+                  disabled={!copilotInput.trim()||copilotLoading}
+                  style={{padding:'8px 14px',borderRadius:8,background:copilotInput.trim()&&!copilotLoading?'#4f8fff':'var(--wt-card)',border:'1px solid var(--wt-border2)',color:copilotInput.trim()&&!copilotLoading?'#fff':'var(--wt-dim)',fontSize:'0.78rem',fontWeight:700,cursor:copilotInput.trim()&&!copilotLoading?'pointer':'default',fontFamily:'Inter,sans-serif',flexShrink:0,transition:'all .15s',alignSelf:'flex-end'}}
+                >↑</button>
+              </div>
+            </>
+          )}
+        </div>
       )}
 
       {/* KEYBOARD SHORTCUT HELP */}
