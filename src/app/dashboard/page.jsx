@@ -1,6 +1,10 @@
 'use client';
 import AlertsTab from './AlertsTab';
 import React, { useState, useEffect } from 'react';
+import MSSPPortfolio from './MSSPPortfolio';
+import ToolsTab from './ToolsTab';
+import SalesDashboard from './SalesDashboard';
+import AdminPortal from './AdminPortal';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -341,10 +345,6 @@ function RemediationOutput({ text }) {
 
 // ─── MSSP Portfolio Component ────────────────────────────────────────────────
 
-import MSSPPortfolio from './MSSPPortfolio';
-import ToolsTab from './ToolsTab';
-import SalesDashboard from './SalesDashboard';
-import AdminPortal from './AdminPortal';
 
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
