@@ -58,13 +58,7 @@ const CATEGORIES = ['All','EDR','SIEM','NDR','XDR','Vuln','CSPM','Email','Networ
 
 const SEV_COLOR = { Critical:'#f0405e', High:'#f97316', Medium:'#f0a030', Low:'#4f8fff' };
 const POSTURE_TREND = [61,65,68,71,70,73,74]; // 7-day history
-const DEMO_GAP_DEVICES_BASE = [
-  {id:'d1',name:'laptop-CFO01',os:'Windows 11',missing:['CrowdStrike Falcon','Tenable.io'],lastSeenDays:0},
-  {id:'d2',name:'laptop-SALES03',os:'Windows 10',missing:['Tenable.io'],lastSeenDays:1},
-  {id:'d3',name:'WS-HR01',os:'Windows 11',missing:['CrowdStrike Falcon','Darktrace'],lastSeenDays:2},
-  {id:'d4',name:'SRV-LEGACY01',os:'Windows Server 2012',missing:['CrowdStrike Falcon','Splunk SIEM','Tenable.io'],lastSeenDays:8},
-  {id:'d5',name:'tablet-OPS02',os:'Android',missing:['Microsoft Defender'],lastSeenDays:4},
-];
+
 
 const VERDICT_STYLE = {
   TP:{c:'#f0405e',bg:'#f0405e12',label:'True Positive'},
@@ -89,11 +83,11 @@ const DEMO_TOOLS = [
 ];
 
 const DEMO_GAP_DEVICES = [
-  {hostname:'SRV-LEGACY01',ip:'10.0.4.22',os:'Windows Server 2008',missing:['CrowdStrike Falcon','Tenable.io'],reason:'Legacy OS — agent incompatible',lastSeen:'2h ago'},
-  {hostname:'laptop-MKTG07',ip:'10.0.2.87',os:'Windows 11',missing:['CrowdStrike Falcon'],reason:'User-initiated uninstall',lastSeen:'15m ago'},
-  {hostname:'SRV-NAS01',ip:'10.0.3.15',os:'FreeNAS',missing:['CrowdStrike Falcon','Tenable.io','Splunk SIEM'],reason:'NAS device — no agent support',lastSeen:'5m ago'},
-  {hostname:'KIOSK-LOBBY',ip:'10.0.1.200',os:'Windows 10 IoT',missing:['Tenable.io','Microsoft Defender'],reason:'IoT device — restricted access',lastSeen:'1m ago'},
-  {hostname:'laptop-HR03',ip:'10.0.2.44',os:'macOS 13',missing:['CrowdStrike Falcon'],reason:'Pending deployment — ticket open',lastSeen:'30m ago'},
+  {hostname:'SRV-LEGACY01',ip:'10.0.4.22',os:'Windows Server 2008',missing:['CrowdStrike Falcon','Tenable.io'],reason:'Legacy OS — agent incompatible',lastSeen:'2h ago',lastSeenDays:9},
+  {hostname:'laptop-MKTG07',ip:'10.0.2.87',os:'Windows 11',missing:['CrowdStrike Falcon'],reason:'User-initiated uninstall',lastSeen:'15m ago',lastSeenDays:0},
+  {hostname:'SRV-NAS01',ip:'10.0.3.15',os:'FreeNAS',missing:['CrowdStrike Falcon','Tenable.io','Splunk SIEM'],reason:'NAS device — no agent support',lastSeen:'5m ago',lastSeenDays:0},
+  {hostname:'KIOSK-LOBBY',ip:'10.0.1.200',os:'Windows 10 IoT',missing:['Tenable.io','Microsoft Defender'],reason:'IoT device — restricted access',lastSeen:'1m ago',lastSeenDays:5},
+  {hostname:'laptop-HR03',ip:'10.0.2.44',os:'macOS 13',missing:['CrowdStrike Falcon'],reason:'Pending deployment — ticket open',lastSeen:'30m ago',lastSeenDays:2},
 ];
 
 const DEMO_ALERTS = [
@@ -495,23 +489,6 @@ export default function DashboardPage() {
     return()=>window.removeEventListener('keydown',handler);
   },[]);
 
-  // Slack notifications: send webhook on new critical alerts
-  const lastNotifiedRef = React.useRef(new Set());
-  useEffect(()=>{
-    if(demoMode) return;
-    critAlerts.forEach(a=>{
-      if(lastNotifiedRef.current.has(a.id)) return;
-      lastNotifiedRef.current.add(a.id);
-      fetch('/api/settings/user').then(r=>r.json()).then(d=>{
-        const webhook=d.settings?.slack_webhook;
-        if(!webhook) return;
-        fetch('/api/slack-webhook',{method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({webhook,alert:{title:a.title,severity:a.severity,source:a.source,device:a.device,verdict:a.verdict,confidence:a.confidence}})
-        }).catch(()=>{});
-      }).catch(()=>{});
-    });
-  },[critAlerts,demoMode]);
-
   // Live triage: trigger AI triage when alert expanded in live mode
   useEffect(()=>{
     if (demoMode) return;
@@ -588,11 +565,28 @@ export default function DashboardPage() {
   const taegisActive = tools.find(t=>t.id==='taegis')?.active || false;
   const darktrace = tools.find(t=>t.id==='darktrace');
   const totalDevices = 247;
-  const gapDevices = DEMO_GAP_DEVICES_BASE;
+  const gapDevices = DEMO_GAP_DEVICES;
   const coveredPct = Math.round(((totalDevices - gapDevices.length) / totalDevices) * 100);
   const critAlerts = alerts.filter(a=>a.severity==='Critical');
   const tpAlerts = alerts.filter(a=>a.verdict==='TP');
   const fpAlerts = alerts.filter(a=>a.verdict==='FP');
+
+  // Slack notifications — must be after critAlerts is defined
+  const lastNotifiedRef = React.useRef(new Set());
+  useEffect(()=>{
+    if(demoMode) return;
+    critAlerts.forEach(a=>{
+      if(lastNotifiedRef.current.has(a.id)) return;
+      lastNotifiedRef.current.add(a.id);
+      fetch('/api/settings/user').then(r=>r.json()).then(d=>{
+        const webhook=d.settings?.slack_webhook;
+        if(!webhook) return;
+        fetch('/api/slack-webhook',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({webhook,alert:{title:a.title,severity:a.severity,source:a.source,device:a.device,verdict:a.verdict,confidence:a.confidence}})
+        }).catch(()=>{});
+      }).catch(()=>{});
+    });
+  },[critAlerts,demoMode]);
   const critVulns = vulns.filter(v=>v.severity==='Critical');
   const kevVulns = vulns.filter(v=>v.kev);
   const posture = 74;
@@ -1126,13 +1120,14 @@ export default function DashboardPage() {
                   {(gapToolFilter ? gapDevices.filter(d=>d.missing.some(m=>ALL_TOOLS.find(t=>t.id===gapToolFilter)?.name && m.includes(ALL_TOOLS.find(t=>t.id===gapToolFilter).name.split(' ')[0]))) : gapDevices).map(dev=>{
                     const heatColor = dev.lastSeenDays>7?'#f0405e':dev.lastSeenDays>3?'#f0a030':dev.lastSeenDays>1?'#f0c030':'#22d49a';
                     const heatLabel = dev.lastSeenDays>7?'Stale >7d':dev.lastSeenDays>3?`${dev.lastSeenDays}d ago`:dev.lastSeenDays>1?`${dev.lastSeenDays}d ago`:'Recent'; return (
-                    <div key={dev.hostname} style={{padding:'12px 14px',background:'var(--wt-card)',border:'1px solid #f0405e18',borderRadius:10}}>
+                    <div key={dev.hostname} style={{padding:'12px 14px',background:'var(--wt-card)',border:`1px solid ${heatColor}28`,borderLeft:`3px solid ${heatColor}`,borderRadius:10}}>
                       <div style={{display:'flex',alignItems:'flex-start',gap:10}}>
                         <div style={{flex:1}}>
                           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                             <span style={{fontSize:'0.8rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace'}}>{dev.hostname}</span>
                             <span style={{fontSize:'0.6rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{dev.ip}</span>
                             <span style={{fontSize:'0.58rem',color:'var(--wt-muted)'}}>{dev.os}</span>
+                            <span style={{fontSize:'0.46rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:`${heatColor}18`,color:heatColor,border:`1px solid ${heatColor}30`,marginLeft:'auto'}}>{heatLabel}</span>
                           </div>
                           <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:4}}>
                             {dev.missing.map(m=>{
