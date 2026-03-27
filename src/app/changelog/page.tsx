@@ -1,5 +1,124 @@
 'use client';
-import { useState, useEffect } from 'react';
+imp  {
+    version: 'v74.9.52',
+    date: '2026-03-27',
+    tag: 'Fix',
+    tagColor: '#f0405e',
+    summary: 'Fix apostrophe syntax error in Co-Pilot suggested prompts',
+    changes: [
+      { type: 'fix', text: 'Unescaped apostrophe in copilot prompt string caused SWC parse error at build time' },
+    ],
+  },
+  {
+    version: 'v74.9.51',
+    date: '2026-03-27',
+    tag: 'Features',
+    tagColor: '#22d49a',
+    summary: 'AI Co-Pilot panel, SLA countdown, compliance mapping, noise reduction stats, shift handover',
+    changes: [
+      { type: 'feat', text: 'AI Co-Pilot — slide-in chat panel (✦ sidebar button). Message thread, suggested prompts, Enter to send. Team+ gated. Calls /api/copilot with rate limiting.' },
+      { type: 'feat', text: 'SLA countdown on every incident row — Critical=1h, High=4h, Medium=24h, Low=72h. Badge turns orange >75% elapsed, red when breached. Updates every 60s.' },
+      { type: 'feat', text: 'Compliance Mapping tab (Business+) — MITRE ATT&CK → ISO 27001 / Cyber Essentials / NIST CSF table from live alerts. Framework score cards with gap lists. KEV vuln compliance impact panel.' },
+      { type: 'feat', text: 'Noise reduction stats on Overview — FPs auto-closed, analyst time recovered, auto-acted alerts at current automation level.' },
+      { type: 'feat', text: 'Shift Handover button (Team+) — one click generates a formatted plain-text shift brief ready to paste into Slack or Teams.' },
+    ],
+  },
+  {
+    version: 'v74.9.50',
+    date: '2026-03-27',
+    tag: 'Features',
+    tagColor: '#22d49a',
+    summary: 'Slack delivery live, snooze wired, shortcut modal, stripe refresh',
+    changes: [
+      { type: 'feat', text: 'Slack webhook route now delivers real rich attachments — severity colour, verdict emoji, source, device, and link back to dashboard.' },
+      { type: 'feat', text: 'slack_webhook added to ALLOWED_SETTINGS — saves from Settings → Notifications were silently dropped before.' },
+      { type: 'feat', text: 'Alert snooze (2h) now wired end-to-end — button in expanded alert row, state filters from Alerts feed until expiry.' },
+      { type: 'feat', text: 'Keyboard shortcut help modal — press ? anywhere in the dashboard to open.' },
+      { type: 'fix', text: 'Duplicate CrowdStrike entry removed from landing page integrations TOOLS array.' },
+      { type: 'fix', text: 'Stripe success page now refreshes user settings so plan tier updates immediately after payment.' },
+    ],
+  },
+  {
+    version: 'v74.9.49',
+    date: '2026-03-27',
+    tag: 'Fix',
+    tagColor: '#f0405e',
+    summary: 'Fix TDZ crash — dashboard main page broken after v74.9.47',
+    changes: [
+      { type: 'fix', text: 'Slack webhook useEffect referenced critAlerts before its declaration (Temporal Dead Zone). Caused React hydration crash — dashboard loaded but was non-interactive.' },
+      { type: 'fix', text: 'Moved Slack useEffect and lastNotifiedRef to after critAlerts derivation at line 570.' },
+    ],
+  },
+  {
+    version: 'v74.9.48',
+    date: '2026-03-27',
+    tag: 'Fix',
+    tagColor: '#f0405e',
+    summary: 'Fix gap devices field mismatch — coverage and overview broken',
+    changes: [
+      { type: 'fix', text: 'DEMO_GAP_DEVICES_BASE used wrong field names (name/lastSeenDays vs hostname/ip/reason/lastSeen). Deleted it, added lastSeenDays to original DEMO_GAP_DEVICES.' },
+      { type: 'fix', text: 'Coverage heatmap card now shows coloured left-border and heat label badge per device.' },
+    ],
+  },
+  {
+    version: 'v74.9.47',
+    date: '2026-03-27',
+    tag: 'Polish',
+    tagColor: '#8b6fff',
+    summary: 'Lighter navy colour palette + complete user guide rewrite',
+    changes: [
+      { type: 'feat', text: 'Dark theme lifted from near-black void (#050508) to dark navy (#090d18) — matches Linear/Vercel aesthetic. Applied across all 10 dashboard files, landing, settings, login.' },
+      { type: 'feat', text: 'User guide fully rewritten — 11 sections, accordion layout, live search, documents all new features including keyboard shortcuts, snooze, SLA, compliance, PDF report, Slack.' },
+    ],
+  },
+  {
+    version: 'v74.9.46',
+    date: '2026-03-27',
+    tag: 'Fix',
+    tagColor: '#f0405e',
+    summary: 'Nuke stale TSX files shadowing JSX fixes — root cause of blank tabs',
+    changes: [
+      { type: 'fix', text: 'Next.js resolves .tsx before .jsx. 9 stale .tsx files from old monolith split were shadowing all the fixed .jsx files — AdminPortal, SalesDashboard, MSSPPortfolio, ToolsTab, AlertsTab, page were all loading broken old versions.' },
+      { type: 'fix', text: 'Fixed missing hook imports in AdminPortal (useState/useEffect), SalesDashboard (useState/useRef/useEffect), MSSPPortfolio (useState).' },
+      { type: 'fix', text: 'Fixed 2 conditional <> fragments in IntelTab and 1 in pricing page.' },
+    ],
+  },
+  {
+    version: 'v74.9.45',
+    date: '2026-03-27',
+    tag: 'Fix',
+    tagColor: '#f0405e',
+    summary: 'Fix ToolsTab useState import + overview grid max-width',
+    changes: [
+      { type: 'fix', text: 'ToolsTab.jsx useState not in import — save button crash on Tools tab.' },
+      { type: 'fix', text: 'Overview stat grid max-width constrained so cards do not stretch on ultrawide.' },
+    ],
+  },
+  {
+    version: 'v74.9.42',
+    date: '2026-03-27',
+    tag: 'Fix',
+    tagColor: '#f0405e',
+    summary: 'Fix Mark FP bug + full mobile layout',
+    changes: [
+      { type: 'fix', text: 'alertOverrides never applied to displayed alerts — const alerts = rawAlerts bypassed the override merge. Fixed with .map() pattern.' },
+      { type: 'feat', text: 'Full mobile layout — bottom nav bar, collapsed top bar, responsive grids, stacked filter rows, safe area insets.' },
+    ],
+  },
+  {
+    version: 'v74.9.41',
+    date: '2026-03-27',
+    tag: 'Features',
+    tagColor: '#22d49a',
+    summary: 'Dead links fixed, inline API key manager, favicon, legal pages, signup CTAs',
+    changes: [
+      { type: 'feat', text: 'Inline API key manager in Settings — save, test, and delete Anthropic key without leaving the page.' },
+      { type: 'feat', text: 'SVG favicon at /public/favicon.svg — shield-check gradient icon.' },
+      { type: 'feat', text: 'Legal pages built: /privacy, /terms, /security, /docs — all linked from footer.' },
+      { type: 'fix', text: 'All signup CTAs point to /signup (not /login). Footer links no longer 404.' },
+    ],
+  },
+ort { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 const VERSIONS = [

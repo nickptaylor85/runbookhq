@@ -126,7 +126,7 @@ export default function DemoPage() {
   const TOOLS_LIST = ['Proofpoint','CrowdStrike','Taegis XDR','Defender','Darktrace','Sentinel','Splunk','Zscaler'];
 
   return (
-    <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column', background:'#050508', color:'#e6ecf8', fontFamily:'Inter,sans-serif', fontSize:14 }}>
+    <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column', background:'#090d18', color:'#e6ecf8', fontFamily:'Inter,sans-serif', fontSize:14 }}>
       <style>{`
         *{margin:0;padding:0;box-sizing:border-box}
         @keyframes slideIn{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:translateX(0)}}
@@ -239,7 +239,7 @@ export default function DemoPage() {
               <div style={{ fontSize:'0.88rem', fontWeight:800, color:'#22c992', marginBottom:12 }}>🏆 Attack Contained — Full AI Response Summary</div>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6, marginBottom:14 }}>
                 {[{val:steps.length,label:'Alerts Ingested',c:'#4f8fff'},{val:tpCount,label:'True Positives',c:'#f0405e'},{val:fpCount,label:'Auto-Closed FPs',c:'#22d49a'},{val:`${scenario.duration}s`,label:'Total Response',c:'#8b6fff'}].map(s => (
-                  <div key={s.label} style={{ textAlign:'center', padding:'10px 4px', background:'#050508', border:'1px solid #141820', borderRadius:8 }}>
+                  <div key={s.label} style={{ textAlign:'center', padding:'10px 4px', background:'#090d18', border:'1px solid #141820', borderRadius:8 }}>
                     <div style={{ fontSize:'1.4rem', fontWeight:900, fontFamily:'JetBrains Mono,monospace', color:s.c, letterSpacing:-1 }}>{s.val}</div>
                     <div style={{ fontSize:'0.47rem', color:'#50607a', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.4px', marginTop:2 }}>{s.label}</div>
                   </div>
@@ -284,7 +284,7 @@ export default function DemoPage() {
             <div style={{ fontSize:'0.72rem', fontWeight:800, marginBottom:8, color:'#6b7a94' }}>📊 Live Metrics</div>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:4 }}>
               {[{val:steps.length,label:'Alerts',c:'#4f8fff'},{val:steps.filter(s=>s.sev==='CRITICAL').length,label:'Critical',c:'#f0405e'},{val:tpCount,label:'TPs Escalated',c:'#f97316'},{val:fpCount,label:'FPs Closed',c:'#22d49a'}].map(s => (
-                <div key={s.label} style={{ textAlign:'center', padding:'7px 2px', background:'#050508', border:'1px solid #141820', borderRadius:6 }}>
+                <div key={s.label} style={{ textAlign:'center', padding:'7px 2px', background:'#090d18', border:'1px solid #141820', borderRadius:6 }}>
                   <div style={{ fontSize:'1.1rem', fontWeight:900, fontFamily:'JetBrains Mono,monospace', letterSpacing:-1, color:s.c }}>{s.val}</div>
                   <div style={{ fontSize:'0.44rem', color:'#50607a', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.4px' }}>{s.label}</div>
                 </div>
@@ -319,7 +319,7 @@ export default function DemoPage() {
                 <button onClick={() => setSelectedStep(null)} style={{ marginLeft:'auto', background:'none', border:'none', color:'#50607a', cursor:'pointer', fontSize:'0.9rem', lineHeight:1 }}>×</button>
               </div>
               <div style={{ fontSize:'0.8rem', fontWeight:700, lineHeight:1.4, marginBottom:8 }}>{selectedStep.title}</div>
-              <div style={{ fontSize:'0.74rem', fontWeight:800, padding:'5px 10px', borderRadius:6, background:'#050508', border:'1px solid #141820', marginBottom:10, color:VERDICT_COLOR[selectedStep.verdict].c, display:'inline-block' }}>
+              <div style={{ fontSize:'0.74rem', fontWeight:800, padding:'5px 10px', borderRadius:6, background:'#090d18', border:'1px solid #141820', marginBottom:10, color:VERDICT_COLOR[selectedStep.verdict].c, display:'inline-block' }}>
                 {selectedStep.verdict === 'TP' ? 'TRUE POSITIVE' : selectedStep.verdict === 'FP' ? 'FALSE POSITIVE' : 'SUSPICIOUS'} — {selectedStep.conf}%
               </div>
               <div style={{ fontSize:'0.6rem', fontWeight:700, color:'#50607a', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:4 }}>AI Analysis</div>

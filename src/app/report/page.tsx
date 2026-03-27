@@ -20,7 +20,7 @@ export default function Report() {
     }).catch(() => setLoading(false));
   }, []);
   return (
-    <div style={{ minHeight:'100vh', background:'#050508', color:'#e8ecf4',
+    <div style={{ minHeight:'100vh', background:'#090d18', color:'#e8ecf4',
       fontFamily:'Inter,sans-serif', padding:32 }}>
       <div style={{ maxWidth:900, margin:'0 auto' }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between',
