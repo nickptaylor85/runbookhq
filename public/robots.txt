@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /api/
+Disallow: /admin
+
+Sitemap: https://getwatchtower.io/sitemap.xml

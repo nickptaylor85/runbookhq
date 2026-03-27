@@ -151,7 +151,7 @@ function LiveDashPreview() {
             <span style={{fontSize:'0.6rem'}}>{aiText}<span style={{opacity:aiText.length<fullText.length?1:0,borderRight:'2px solid #4f8fff',marginLeft:1}}> </span></span>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6, marginBottom:10 }}>
-            {[{l:'Posture',v:'74%',c:'#f0a030'},{l:'Critical',v:'3',c:'#f0405e'},{l:'Coverage',v:'94%',c:'#22d49a'},{l:'Auto-closed',v:'18',c:'#4f8fff'}].map(s=>(
+            {[{l:'Posture',v:'91%',c:'#22d49a'},{l:'Critical',v:'0',c:'#22d49a'},{l:'Coverage',v:'99%',c:'#22d49a'},{l:'AI Closed',v:'847',c:'#4f8fff'}].map(s=>(
               <div key={s.l} style={{padding:'8px',background:'#131929',borderRadius:8,textAlign:'center'}}>
                 <div style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.c,letterSpacing:-1}}>{s.v}</div>
                 <div style={{fontSize:'0.5rem',color:'#4a5568',marginTop:2}}>{s.l}</div>
@@ -413,7 +413,7 @@ export default function LandingPage() {
                   </div>
                 ))}
               </div>
-              <a href='/login' style={{ display:'block', marginTop:20, padding:'10px 0', background:p.name==='Business'?p.color:'transparent', border:`1px solid ${p.color}${p.name==='Business'?'':'50'}`, borderRadius:9, color:p.name==='Business'?'#fff':p.color, fontSize:'0.78rem', fontWeight:700, textDecoration:'none', textAlign:'center', transition:'all .15s' }}
+              <a href='/signup' style={{ display:'block', marginTop:20, padding:'10px 0', background:p.name==='Business'?p.color:'transparent', border:`1px solid ${p.color}${p.name==='Business'?'':'50'}`, borderRadius:9, color:p.name==='Business'?'#fff':p.color, fontSize:'0.78rem', fontWeight:700, textDecoration:'none', textAlign:'center', transition:'all .15s' }}
                 onMouseEnter={e=>{if(p.name!=='Business'){(e.currentTarget as HTMLElement).style.background=p.color+'20';}}}
                 onMouseLeave={e=>{if(p.name!=='Business'){(e.currentTarget as HTMLElement).style.background='transparent';}}}>
                 {p.name==='Community'?'Start for free':'Get started →'}

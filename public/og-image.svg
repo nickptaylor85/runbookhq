@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#090d18"/>
+      <stop offset="100%" stop-color="#0c1122"/>
+    </linearGradient>
+    <linearGradient id="logo" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3b7fff"/>
+      <stop offset="100%" stop-color="#7c3aff"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="400" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#4f8fff"/>
+      <stop offset="100%" stop-color="#8b6fff"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Subtle grid lines -->
+  <g stroke="#1d2535" stroke-width="1" opacity="0.5">
+    <line x1="0" y1="210" x2="1200" y2="210"/>
+    <line x1="0" y1="420" x2="1200" y2="420"/>
+    <line x1="400" y1="0" x2="400" y2="630"/>
+    <line x1="800" y1="0" x2="800" y2="630"/>
+  </g>
+
+  <!-- Glow orb top-right -->
+  <circle cx="950" cy="80" r="200" fill="rgba(79,143,255,0.06)" filter="url(#glow)"/>
+  <circle cx="250" cy="550" r="150" fill="rgba(139,111,255,0.05)" filter="url(#glow)"/>
+
+  <!-- Top accent line -->
+  <rect x="0" y="0" width="1200" height="3" fill="url(#accent)"/>
+
+  <!-- Logo -->
+  <rect x="80" y="80" width="64" height="64" rx="16" fill="url(#logo)"/>
+  <path d="M112 91L130 99V111C130 119 124 125.5 112 129C100 125.5 94 119 94 111V99L112 91Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2"/>
+  <path d="M106 110L111 115L119 107" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Wordmark -->
+  <text x="162" y="122" font-family="Inter, system-ui, sans-serif" font-size="36" font-weight="800" fill="#e8ecf4" letter-spacing="-1">Watchtower</text>
+
+  <!-- Main headline -->
+  <text x="80" y="240" font-family="Inter, system-ui, sans-serif" font-size="72" font-weight="900" fill="#e8ecf4" letter-spacing="-3">Your entire SOC.</text>
+  <text x="80" y="330" font-family="Inter, system-ui, sans-serif" font-size="72" font-weight="900" fill="url(#accent)" letter-spacing="-3">One screen.</text>
+
+  <!-- Subline -->
+  <text x="80" y="400" font-family="Inter, system-ui, sans-serif" font-size="26" fill="#6b7a94">AI triage in 3.2s · 18 integrations · Built for MSSPs</text>
+
+  <!-- Stat cards -->
+  <g>
+    <!-- Card 1 -->
+    <rect x="80" y="450" width="220" height="110" rx="12" fill="#131929" stroke="#1d2535" stroke-width="1"/>
+    <text x="100" y="490" font-family="Inter, monospace, sans-serif" font-size="40" font-weight="900" fill="#22d49a">91%</text>
+    <text x="100" y="520" font-family="Inter, sans-serif" font-size="15" fill="#4a5568">Posture Score</text>
+    <text x="100" y="545" font-family="Inter, sans-serif" font-size="13" fill="#22d49a">↑ A grade</text>
+
+    <!-- Card 2 -->
+    <rect x="320" y="450" width="220" height="110" rx="12" fill="#131929" stroke="#1d2535" stroke-width="1"/>
+    <text x="340" y="490" font-family="Inter, monospace, sans-serif" font-size="40" font-weight="900" fill="#4f8fff">3.2s</text>
+    <text x="340" y="520" font-family="Inter, sans-serif" font-size="15" fill="#4a5568">AI Triage Time</text>
+    <text x="340" y="545" font-family="Inter, sans-serif" font-size="13" fill="#4f8fff">vs 3.5h manual</text>
+
+    <!-- Card 3 -->
+    <rect x="560" y="450" width="220" height="110" rx="12" fill="#131929" stroke="#1d2535" stroke-width="1"/>
+    <text x="580" y="490" font-family="Inter, monospace, sans-serif" font-size="40" font-weight="900" fill="#f0a030">85%</text>
+    <text x="580" y="520" font-family="Inter, sans-serif" font-size="15" fill="#4a5568">Noise Reduced</text>
+    <text x="580" y="545" font-family="Inter, sans-serif" font-size="13" fill="#f0a030">FPs auto-closed</text>
+
+    <!-- Card 4 -->
+    <rect x="800" y="450" width="220" height="110" rx="12" fill="#131929" stroke="#1d2535" stroke-width="1"/>
+    <text x="820" y="490" font-family="Inter, monospace, sans-serif" font-size="40" font-weight="900" fill="#8b6fff">18</text>
+    <text x="820" y="520" font-family="Inter, sans-serif" font-size="15" fill="#4a5568">Integrations</text>
+    <text x="820" y="545" font-family="Inter, sans-serif" font-size="13" fill="#8b6fff">CrowdStrike + more</text>
+  </g>
+
+  <!-- URL badge -->
+  <rect x="1020" y="82" width="100" height="34" rx="8" fill="rgba(34,212,154,0.12)" stroke="rgba(34,212,154,0.25)" stroke-width="1"/>
+  <text x="1070" y="104" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#22d49a" text-anchor="middle">FREE PLAN</text>
+</svg>

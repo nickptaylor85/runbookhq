@@ -51,8 +51,11 @@ export default function AlertsTab({
         <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:8}}>
           <span style={{fontSize:'0.7rem',color:'var(--wt-muted)'}}>{alerts.length} total · {fpAlerts.length} auto-closed · {tpAlerts.length} escalated</span>
           <button onClick={()=>{
-            const rows = [['ID','Title','Severity','Source','Device','Time','Verdict','Confidence','MITRE','Notes']];
-            alerts.forEach(a=>rows.push([a.id,'"'+a.title+'"',a.severity,a.source,a.device||'',a.time,a.verdict||'',a.confidence||'',a.mitre||'','"'+(alertNotes[a.id]||'')+'"']));
+            const rows = [['ID','Title','Severity','Source','Device','User','IP','Time','Verdict','Confidence','MITRE','FP','Acknowledged','Snoozed','Notes']];
+            alertsFiltered.forEach(a=>{
+              const ov=alertOverrides[a.id]||{};
+              rows.push([a.id,'"'+a.title+'"',a.severity,a.source,a.device||'',a.user||'',a.ip||'',a.time,ov.verdict||a.verdict||'',a.confidence||'',a.mitre||'',ov.fpMarked?'Yes':'No',ov.acknowledged?'Yes':'No',alertSnoozes&&alertSnoozes[a.id]&&alertSnoozes[a.id]>Date.now()?'Yes':'No','"'+(alertNotes[a.id]?alertNotes[a.id].replace(/"/g,"'"):'')+'"']);
+            });
             const csv = rows.map(r=>r.join(',')).join('\n');
             const blob = new Blob([csv],{type:'text/csv'});
             const url = URL.createObjectURL(blob);

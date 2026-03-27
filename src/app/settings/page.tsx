@@ -233,6 +233,7 @@ export default function SettingsPage() {
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
           {saved && <span style={{ fontSize: '0.72rem', color: '#22d49a', fontWeight: 600, padding: '5px 10px', background: '#22d49a10', borderRadius: 6, border: '1px solid #22d49a30' }}>✓ Saved</span>}
           <a href="/dashboard" style={{ padding: '7px 16px', background: 'transparent', border: '1px solid #263044', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none' }}>← Dashboard</a>
+          <a href="/changelog" style={{ padding: '7px 16px', background: 'transparent', border: '1px solid #263044', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none' }}>📝 Changelog</a>
         </div>
       </div>
 
