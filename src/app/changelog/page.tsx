@@ -1,5 +1,9 @@
 'use client';
-imp  {
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
+const VERSIONS = [
+{
     version: 'v74.9.52',
     date: '2026-03-27',
     tag: 'Fix',
@@ -118,10 +122,6 @@ imp  {
       { type: 'fix', text: 'All signup CTAs point to /signup (not /login). Footer links no longer 404.' },
     ],
   },
-ort { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-
-const VERSIONS = [
   {
     version: 'v74.9.11',
     date: '2026-03-25',
