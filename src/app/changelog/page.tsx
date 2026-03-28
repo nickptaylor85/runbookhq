@@ -294,8 +294,8 @@ export default function ChangelogPage() {
     fetch('/api/auth/session')
       .then(r => r.json())
       .then(d => {
-        if (d.isAdmin) { setAuthed(true); }
-        else { router.replace('/dashboard'); }
+        if (d.authenticated || d.isAdmin || d.userId) { setAuthed(true); }
+        else { router.replace('/login'); }
         setLoading(false);
       })
       .catch(() => { router.replace('/login'); setLoading(false); });

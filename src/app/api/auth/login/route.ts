@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       });
       const token = signSession({ userId: user.id, tenantId: 'global', isAdmin: false, email: user.email, role: user.role });
       const res = NextResponse.json({ ok: true, role: user.role });
-      res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 86400, path: '/' });
+      res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 604800, path: '/' });
       return res;
     }
 
