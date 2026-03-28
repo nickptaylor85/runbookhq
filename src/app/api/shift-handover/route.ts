@@ -50,5 +50,3 @@ Return JSON only: { "summary": "2 sentence brief", "openIncidents": ["list key o
     return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
   }
 }
-  return NextResponse.json({"ok": true, "handover": ""});
-}
