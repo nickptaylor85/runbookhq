@@ -525,20 +525,23 @@ export default function DashboardPage() {
   },[]);
 
 
-  // Persist alertOverrides to Redis whenever it changes (debounced 2s)
   // SLA tracking — write acknowledge events when alerts are acknowledged
+  // Use a ref to track logged events so we don't write back to alertOverrides (which would infinite-loop)
+  const slaLoggedRef = React.useRef(new Set());
   React.useEffect(()=>{
     if(demoMode) return;
     Object.entries(alertOverrides).forEach(([alertId, override]) => {
-      if(override && typeof override === 'object' && override.acknowledged && !override.slaAckLogged) {
+      if(override && typeof override === 'object' && override.acknowledged && !slaLoggedRef.current.has(alertId)) {
         const alert = alerts.find(a=>a.id===alertId);
         if(alert?.rawTime) {
+          slaLoggedRef.current.add(alertId);
           fetch('/api/sla',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({alertId,severity:alert.severity,event:'acknowledged',timestamp:Date.now()})}).catch(()=>{});
-          setAlertOverrides(prev=>({...prev,[alertId]:{...(prev[alertId]||{}),slaAckLogged:true}}));
         }
       }
     });
   },[alertOverrides,demoMode]);
+
+  // Persist alertOverrides to Redis whenever it changes (debounced 2s)
 
   const overrideSaveTimer = React.useRef(null);
   useEffect(()=>{
