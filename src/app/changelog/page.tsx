@@ -4,6 +4,20 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.9.103',
+    date: '2026-03-28',
+    tag: 'Fix + Features',
+    tagColor: '#22d49a',
+    summary: 'No demo data in live mode, coverage only vs connected tools, vuln asset CSV, fix doubled commands, tools grouped by type',
+    changes: [
+      { type: 'fix', text: 'Intel: live mode shows zero demo intel. Tenable "In The News" now fetches from /api/intel/tenable-news (AI-generated CVE advisories, 6h cache). Demo mode still shows static demo data.' },
+      { type: 'fix', text: 'Coverage: gap device "missing tools" now derived from actually connected EDR tools (CrowdStrike, Defender, SentinelOne, Carbon Black) — not hardcoded CrowdStrike. If no EDR connected, says "No EDR configured".' },
+      { type: 'feat', text: 'Vulns: affected devices shows count only (large orange number). "⬇ Export Assets CSV" button downloads hostname/CVE/severity/plugin for all affected assets.' },
+      { type: 'fix', text: 'Cases: removed inline cmd display from timeline entries. Commands now appear only in the "AI Commands Executed" panel below — previously showed twice.' },
+      { type: 'feat', text: 'Tools: integrations now grouped by category (EDR, SIEM, XDR, NDR, Vuln, CSPM, Identity, Email, Network) with divider labels. Filter buttons still work across groups.' },
+    ],
+  },
+  {
     version: 'v74.9.102',
     date: '2026-03-28',
     tag: 'Features',

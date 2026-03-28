@@ -243,16 +243,28 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
         )}
       </div>
 
-      <div style={{display:'flex',flexDirection:'column',gap:6}}>
-        {filtered.map(tool=>{
-          const isOn = !!connected[tool.id];
-          const syncResult = toolSyncResults?.[tool.id];
-          const hasError = syncResult?.error;
-          const isRetrying = syncingTool === tool.id;
-          // Derive status: connected but never synced = 'pending', synced ok = 'ok', error = 'error'
-          const syncDot = !isOn ? null : hasError ? '#f0405e' : syncResult ? '#22d49a' : '#f0a030';
-          const syncLabel = !isOn ? null : hasError ? 'Error' : syncResult ? 'OK' : demoMode ? 'Demo' : 'Pending sync';
-          return (
+      <div style={{display:'flex',flexDirection:'column',gap:16}}>
+        {(()=>{
+          const groupOrder = ['EDR','SIEM','XDR','NDR','Vuln','CSPM','Identity','Email','Network'];
+          const groups = groupOrder.map(cat=>({cat,tools:filtered.filter(t=>t.category===cat)})).filter(g=>g.tools.length>0);
+          const uncategorised = filtered.filter(t=>!groupOrder.includes(t.category));
+          if(uncategorised.length) groups.push({cat:'Other',tools:uncategorised});
+          return groups.map(({cat,tools})=>(
+            <div key={cat}>
+              <div style={{fontSize:'0.58rem',fontWeight:800,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'1px',marginBottom:6,paddingLeft:2,display:'flex',alignItems:'center',gap:6}}>
+                <span style={{width:14,height:1,background:'var(--wt-border)',display:'block'}} />
+                {cat}
+                <span style={{width:'100%',height:1,background:'var(--wt-border)',display:'block'}} />
+              </div>
+              <div style={{display:'flex',flexDirection:'column',gap:5}}>
+                {tools.map(tool=>{
+                  const isOn = !!connected[tool.id];
+                  const syncResult = toolSyncResults?.[tool.id];
+                  const hasError = syncResult?.error;
+                  const isRetrying = syncingTool === tool.id;
+                  const syncDot = !isOn ? null : hasError ? '#f0405e' : syncResult ? '#22d49a' : '#f0a030';
+                  const syncLabel = !isOn ? null : hasError ? 'Error' : syncResult ? 'OK' : demoMode ? 'Demo' : 'Pending sync';
+                  return (
             <div key={tool.id} style={{padding:'12px 16px',background:'var(--wt-card)',border:`1px solid ${hasError&&isOn?'#f0405e25':isOn?'#22c99218':'var(--wt-border)'}`,borderRadius:10}}>
               <div style={{display:'flex',alignItems:'center',gap:12}}>
                 <div style={{width:9,height:9,borderRadius:'50%',background:isOn?'#22c992':'#252e42',boxShadow:isOn?'0 0 7px #22c992':'none',flexShrink:0}} />
@@ -318,7 +330,11 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
               )}
             </div>
           );
-        })}
+                })}
+              </div>
+            </div>
+          ));
+        })()}
       </div>
       {modal && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={()=>setModal(null)}>
