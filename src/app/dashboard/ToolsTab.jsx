@@ -229,12 +229,12 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
           <div style={{fontSize:'0.68rem',fontWeight:700,color:'#4f8fff',marginBottom:8}}>Sync Log — last {syncLog.length} events</div>
           <div style={{maxHeight:220,overflowY:'auto',display:'flex',flexDirection:'column',gap:3}}>
             {syncLog.map((entry,i)=>(
-              <div key={i} style={{display:'flex',alignItems:'center',gap:8,padding:'3px 0',borderBottom:'1px solid var(--wt-border)',fontSize:'0.62rem',fontFamily:'JetBrains Mono,monospace'}}>
+              <div key={i} style={{display:'flex',alignItems:'center',gap:8,padding:'4px 6px',borderRadius:4,background:entry.error?'#f0405e06':i%2===0?'var(--wt-card2)':'transparent',fontSize:'0.62rem',fontFamily:'JetBrains Mono,monospace'}}>
                 <span style={{color:'var(--wt-dim)',flexShrink:0,minWidth:55}}>{new Date(entry.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>
-                <span style={{color:'var(--wt-secondary)',fontWeight:700,minWidth:80,flexShrink:0}}>{entry.toolId}</span>
+                <span style={{color:entry.toolId==='tenable'?'#00b3e3':entry.toolId==='taegis'?'#e8172c':'var(--wt-secondary)',fontWeight:700,minWidth:90,flexShrink:0}}>{entry.toolId}</span>
                 {entry.error
-                  ? <span style={{color:'#f0405e',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>✗ {entry.error}</span>
-                  : <span style={{color:'#22d49a',flex:1}}>✓ {entry.count} record{entry.count!==1?'s':''} pulled</span>
+                  ? <span style={{color:'#f0405e',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}} title={entry.error}>✗ {entry.error.slice(0,60)}</span>
+                  : <span style={{color:entry.count>0?'#22d49a':'#f0a030',flex:1}}>{entry.count>0?`✓ ${entry.count} record${entry.count!==1?'s':''}`:'⚠ 0 records — check credentials'}</span>
                 }
               </div>
             ))}

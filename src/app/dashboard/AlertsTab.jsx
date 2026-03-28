@@ -260,8 +260,19 @@ export default function AlertsTab({
                 )}
                 {!demoMode && cached && cached.result && (
                   <div style={{marginTop:12}}>
-                    <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Triage</div>
-                    <div style={{fontSize:'0.76rem',color:'var(--wt-secondary)',lineHeight:1.7}}>{cached.result.reasoning}</div>
+                    <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Triage — Cross-Source Analysis</div>
+                    {/* Sources consulted */}
+                    <div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:8}}>
+                      {[
+                        {src:'Taegis XDR', c:'#f0405e'},
+                        {src:'Tenable Vulns', c:'#00b3e3'},
+                        {src:'NCSC Intel', c:'#22d49a'},
+                        {src:'ThreatFox IOCs', c:'#f0a030'},
+                      ].map(({src,c})=>(
+                        <span key={src} style={{fontSize:'0.56rem',padding:'1px 6px',borderRadius:3,background:`${c}12`,color:c,border:`1px solid ${c}25`,fontWeight:700}}>{src}</span>
+                      ))}
+                    </div>
+                    <div style={{fontSize:'0.76rem',color:'var(--wt-secondary)',lineHeight:1.75,background:'rgba(79,143,255,0.04)',padding:'10px 12px',borderRadius:8,border:'1px solid #4f8fff18'}}>{cached.result.reasoning}</div>
                   </div>
                 )}
 
