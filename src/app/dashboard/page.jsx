@@ -372,6 +372,8 @@ export default function DashboardPage() {
   const [syncStatus, setSyncStatus] = useState('idle'); // idle | syncing | ok | error
   const [syncError, setSyncError] = useState(null);
   const [lastSynced, setLastSynced] = useState(null);
+  const [toolSyncResults, setToolSyncResults] = useState({}); // {toolId: {count, error, syncedAt}}
+  const [syncingTool, setSyncingTool] = useState(null); // toolId currently force-syncing
   const [currentTenant, setCurrentTenant] = useState('global');
   const tenantRef = React.useRef('global');
   const setCurrentTenantWithRef = (t) => { setCurrentTenant(t); tenantRef.current = t; };
@@ -388,53 +390,55 @@ export default function DashboardPage() {
   },[]);
 
   // Sync live data — only after credentials loaded, only in LIVE mode
-  useEffect(()=>{
-    if (!credentialsLoaded || demoMode || Object.keys(connectedTools).length === 0) return;
-    const doSync = () => {
-      setSyncStatus('syncing');
-      setSyncError(null);
-      const integrations = Object.entries(connectedTools).map(([id, credentials]) => ({id, credentials}));
-      fetch('/api/integrations/sync', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({integrations: integrations.map(i=>({id:i.id})), since: Date.now() - 7*24*60*60*1000}),
-      })
-      .then(r=>r.json())
-      .then(d=>{
-        if (d.results) {
-          const VULN_SOURCES = new Set(['tenable','nessus','qualys','wiz']);
-          const allItems = d.results.flatMap(r => r.alerts || []);
-          const vulnItems = allItems.filter(a => VULN_SOURCES.has((a.source||'').toLowerCase().split('').filter(c=>c>='a'&&c<='z').join('')));
-          const alertItems = allItems.filter(a => !VULN_SOURCES.has((a.source||'').toLowerCase().split('').filter(c=>c>='a'&&c<='z').join('')));
+  const doSync = React.useCallback((toolIds) => {
+    if (demoMode || Object.keys(connectedTools).length === 0) return;
+    const ids = toolIds || Object.keys(connectedTools);
+    if (!toolIds) { setSyncStatus('syncing'); setSyncError(null); }
+    else { setSyncingTool(ids[0] || null); }
+    fetch('/api/integrations/sync', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'x-tenant-id': tenantRef.current},
+      body: JSON.stringify({integrations: ids.map(id=>({id})), since: Date.now() - 7*24*60*60*1000}),
+    })
+    .then(r=>r.json())
+    .then(d=>{
+      const now = new Date().toISOString();
+      if (d.results) {
+        // Store per-tool results
+        setToolSyncResults(prev=>{
+          const next = {...prev};
+          d.results.forEach(r=>{ next[r.toolId]={count:r.count||0, error:r.error||null, syncedAt:now}; });
+          return next;
+        });
+        const VULN_SOURCES = new Set(['tenable','nessus','qualys','wiz']);
+        const allItems = d.results.flatMap(r => r.alerts || []);
+        const vulnItems = allItems.filter(a => VULN_SOURCES.has((a.source||'').toLowerCase().replace(/[^a-z]/g,'')));
+        const alertItems = allItems.filter(a => !VULN_SOURCES.has((a.source||'').toLowerCase().replace(/[^a-z]/g,'')));
+        if (!toolIds) {
           setLiveAlerts(alertItems);
-          if (vulnItems.length > 0) {
-            setLiveVulns(vulnItems.map(v => ({
-              id: v.id,
-              cve: (v.tags||[]).find(t => t?.startsWith?.('CVE')) || v.sourceId || 'N/A',
-              title: v.title,
-              severity: v.severity,
-              cvss: v.confidence ? (v.confidence / 10).toFixed(1) : 'N/A',
-              kev: (v.tags||[]).includes('kev'),
-              affected: 1,
-              affectedDevices: v.device ? [v.device] : [],
-              description: v.description || v.title,
-              source: v.source,
-              rawTime: v.rawTime,
-            })));
-          }
-          // Check for per-tool errors
-          const errors = d.results.filter(r=>r.error).map(r=>`${r.toolId}: ${r.error}`);
+          if (vulnItems.length > 0) setLiveVulns(vulnItems.map(v=>({id:v.id,cve:(v.tags||[]).find(t=>t?.startsWith?.('CVE'))||v.sourceId||'N/A',title:v.title,severity:v.severity,cvss:v.confidence?(v.confidence/10).toFixed(1):'N/A',kev:(v.tags||[]).includes('kev'),affected:1,affectedDevices:v.device?[v.device]:[],description:v.description||v.title,source:v.source,rawTime:v.rawTime})));
+        }
+        const errors = d.results.filter(r=>r.error).map(r=>`${r.toolId}: ${r.error}`);
+        if (!toolIds) {
           if (errors.length > 0) { setSyncError(errors.join(' · ')); setSyncStatus('error'); }
           else { setSyncStatus('ok'); }
-        } else {
-          setSyncStatus('error'); setSyncError(d.error || 'Sync failed');
         }
-        setLastSynced(new Date().toISOString());
-      })
-      .catch(e=>{ setSyncStatus('error'); setSyncError(e.message); });
-    };
+      } else {
+        if (!toolIds) { setSyncStatus('error'); setSyncError(d.error || 'Sync failed'); }
+      }
+      if (!toolIds) setLastSynced(now);
+      setSyncingTool(null);
+    })
+    .catch(e=>{
+      if (!toolIds) { setSyncStatus('error'); setSyncError(e.message); }
+      setSyncingTool(null);
+    });
+  }, [demoMode, connectedTools, tenantRef]);
+
+  useEffect(()=>{
+    if (!credentialsLoaded || demoMode || Object.keys(connectedTools).length === 0) return;
     doSync();
-    const interval = setInterval(doSync, 60000);
+    const interval = setInterval(()=>doSync(), 60000);
     return () => clearInterval(interval);
   },[demoMode, connectedTools, credentialsLoaded]);
 
@@ -847,6 +851,7 @@ export default function DashboardPage() {
               {!demoMode && syncStatus==='error' && <span style={{display:'inline-flex',alignItems:'center',gap:5}}><span style={{width:6,height:6,borderRadius:'50%',background:'#f0405e',display:'block'}} /><span style={{color:'#f0405e'}} title={syncError||''}>Sync error</span></span>}
               {!demoMode && syncStatus==='ok' && <span style={{display:'inline-flex',alignItems:'center',gap:5}}><span style={{width:6,height:6,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',display:'block'}} />{tools.filter(t=>t.active).length} live · synced {lastSynced?Math.max(0,Math.floor((Date.now()-new Date(lastSynced).getTime())/1000)):0}s ago</span>}
               {!demoMode && syncStatus==='idle' && <span style={{display:'inline-flex',alignItems:'center',gap:5}}><span style={{width:6,height:6,borderRadius:'50%',background:'#6b7a94',display:'block'}} />{Object.keys(connectedTools).length} connected</span>}
+              {!demoMode && Object.keys(connectedTools).length > 0 && <button onClick={()=>doSync()} disabled={syncStatus==='syncing'} title='Force sync all connected tools' style={{padding:'3px 9px',borderRadius:5,border:'1px solid #4f8fff30',background:'#4f8fff0f',color:'#4f8fff',fontSize:'0.62rem',fontWeight:700,cursor:syncStatus==='syncing'?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',opacity:syncStatus==='syncing'?0.6:1}}>⟳ Sync Now</button>}
               {canUse('team') && <button onClick={async()=>{
                 const d=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
                 const summary=`SHIFT HANDOVER — ${d}
@@ -1729,7 +1734,7 @@ Generated by Watchtower`;
           )}
           {/* ═══════════════════════════════ TOOLS ══════════════════════════════════ */}
           {activeTab==='tools' && (
-            <ToolsTab connected={connectedTools} setConnected={setConnectedTools} />
+            <ToolsTab connected={connectedTools} setConnected={setConnectedTools} toolSyncResults={toolSyncResults} doSync={doSync} syncingTool={syncingTool} demoMode={demoMode} />
           )}
 
           {/* ═══════════════════════════════ ADMIN PORTAL ═══════════════════════════════ */}
@@ -1744,30 +1749,86 @@ Generated by Watchtower`;
       {/* ═══════════════════════════════ MODALS ════════════════════════════════════ */}
 
       {/* Deploy Agent Modal */}
-      {deployAgentDevice && (
-        <Modal title={`Deploy Agent — ${deployAgentDevice.hostname}`} onClose={()=>setDeployAgentDevice(null)}>
-          <div style={{fontSize:'0.78rem',color:'var(--wt-secondary)',lineHeight:1.7,marginBottom:16}}>
-            This device is missing: <strong style={{color:'#f0405e'}}>{deployAgentDevice.missing.join(', ')}</strong><br />
-            Reason: {deployAgentDevice.reason}
-          </div>
-          <div style={{fontSize:'0.7rem',fontWeight:700,color:'#4f8fff',marginBottom:10,textTransform:'uppercase',letterSpacing:'0.5px'}}>Deployment Options</div>
-          {[
-            {title:'1. Automated Push (recommended)',desc:'Watchtower will push the agent via your existing RMM or SCCM/Intune. Requires admin credentials configured in Settings.',btn:'Push via RMM',color:'#4f8fff'},
-            {title:'2. Manual install — Windows',desc:'Download the installer and run on the target device. Requires local admin rights.',btn:'Download .exe',color:'#22d49a'},
-            {title:'3. Manual install — macOS/Linux',desc:'Run the curl command on the target device via SSH or terminal.',btn:'Copy curl command',color:'#22d49a'},
-            {title:'4. Group Policy / MDM',desc:'Deploy at scale via GPO (Windows) or MDM profile (macOS). Recommended for 10+ devices.',btn:'Download GPO template',color:'#8b6fff'},
-          ].map(opt=>(
-            <div key={opt.title} style={{padding:'12px 14px',background:'var(--wt-card)',border:'1px solid #1d2535',borderRadius:10,marginBottom:8}}>
-              <div style={{fontSize:'0.76rem',fontWeight:700,marginBottom:4}}>{opt.title}</div>
-              <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginBottom:8,lineHeight:1.5}}>{opt.desc}</div>
-              <button style={{padding:'5px 14px',borderRadius:6,border:`1px solid ${opt.color}30`,background:`${opt.color}12`,color:opt.color,fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{opt.btn}</button>
+      {deployAgentDevice && (()=>{
+        const TOOL_INSTRUCTIONS = {
+          'CrowdStrike Falcon': {
+            color:'#f0405e',
+            steps:[
+              {label:'1. Download sensor installer',detail:`Log into Falcon console → Host Setup → Sensor Downloads. Select installer for ${deployAgentDevice.os?.includes('mac')?'macOS':deployAgentDevice.os?.includes('Linux')||deployAgentDevice.os?.includes('NAS')?'Linux':'Windows'}.`},
+              {label:'2. Run with your CID',detail:'Windows: `CsInstaller.exe /install /quiet CID=<your-CID>` — requires local admin.\nmacOS: `sudo installer -pkg falcon-sensor.pkg -target /`\nLinux: `rpm -ivh falcon-sensor.rpm` then `/opt/CrowdStrike/falconctl -s --cid=<your-CID>`'},
+              {label:'3. Verify check-in',detail:'Falcon console → Hosts → search for hostname. Sensor version and last-seen will appear within 5 minutes of install.'},
+            ],
+            note:'Legacy OS / IoT note: CrowdStrike Falcon requires Windows 7 SP1+ / macOS 10.15+ / RHEL 6+. For older or restricted devices, consider Falcon Go or a network-level sensor.'
+          },
+          'Tenable.io': {
+            color:'#00b3e3',
+            steps:[
+              {label:'1. Create a scanner link key',detail:'Tenable.io → Settings → Sensors → Nessus Agents → Add Agent. Copy the linking key.'},
+              {label:'2. Install the Nessus Agent',detail:'Windows: `NessusAgent.msi NESSUS_SERVER=cloud.tenable.com:443 NESSUS_KEY=<key>`\nmacOS: Install .dmg, then `/Library/NessusAgent/run/sbin/nessuscli agent link --key=<key> --cloud`\nLinux: `dpkg -i NessusAgent.deb && /opt/nessus_agent/sbin/nessuscli agent link --key=<key> --cloud`'},
+              {label:'3. Assign to a scan group',detail:'Tenable.io → Sensors → Nessus Agents → assign to the relevant agent group for automatic scanning.'},
+            ],
+            note:'NAS / IoT note: Nessus Agent requires a general-purpose OS with exec support. For FreeNAS or IoT devices, use an unauthenticated network scan from a Nessus scanner instead.'
+          },
+          'Splunk SIEM': {
+            color:'#65a637',
+            steps:[
+              {label:'1. Download the Universal Forwarder',detail:'Splunk downloads page → Universal Forwarder → select architecture. Use the version matching your Splunk Enterprise/Cloud version.'},
+              {label:'2. Install and configure',detail:'Windows: `msiexec.exe /i splunkforwarder.msi SPLUNK_SERVER=<your-splunk>:9997 /quiet`\nLinux: `tar -xvzf splunkforwarder.tgz -C /opt && /opt/splunkforwarder/bin/splunk start --accept-license --answer-yes`\nThen: `./splunk add forward-server <splunk-host>:9997`'},
+              {label:'3. Configure inputs',detail:'Add inputs.conf to monitor relevant logs: Windows Event Log, syslog, or application logs depending on device role. Use Splunk Add-ons for structured data sources.'},
+            ],
+            note:'NAS note: Splunk UF is not supported on FreeNAS/TrueNAS directly. Instead, configure syslog forwarding from the NAS to a Splunk syslog listener on port 514.'
+          },
+          'Microsoft Defender': {
+            color:'#00a4ef',
+            steps:[
+              {label:'1. Onboard via Intune or Group Policy',detail:'Microsoft 365 Defender → Settings → Endpoints → Onboarding. Select deployment method: Intune, SCCM, Group Policy, or Local Script.'},
+              {label:'2. Run the onboarding script',detail:'Download WindowsDefenderATPOnboardingPackage.zip. Extract and run `WindowsDefenderATPLocalOnboardingScript.cmd` as Administrator on the target device.'},
+              {label:'3. Verify onboarding',detail:'Defender portal → Devices → search for hostname. Device should appear within 5–10 minutes with onboarding status "Onboarded".'},
+            ],
+            note:'IoT / Windows 10 IoT note: Defender for Endpoint requires Windows 10 Enterprise or Windows Server 2016+. Windows 10 IoT is not fully supported — consider network-based detection via Defender for IoT (OT sensor) instead.'
+          },
+        };
+        const missing = deployAgentDevice.missing || [];
+        return (
+          <Modal title={`Deploy Agents — ${deployAgentDevice.hostname}`} onClose={()=>setDeployAgentDevice(null)}>
+            <div style={{marginBottom:14,padding:'8px 12px',background:'var(--wt-card2)',border:'1px solid var(--wt-border)',borderRadius:8}}>
+              <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginBottom:3}}>Device: <strong style={{color:'var(--wt-text)',fontFamily:'JetBrains Mono,monospace'}}>{deployAgentDevice.hostname}</strong> · {deployAgentDevice.os} · {deployAgentDevice.ip}</div>
+              <div style={{fontSize:'0.68rem',color:'#f0405e'}}>⚠ {deployAgentDevice.reason}</div>
             </div>
-          ))}
-          <div style={{marginTop:12,padding:'10px 14px',background:'var(--wt-card2)',border:'1px solid #4f8fff15',borderRadius:8,fontSize:'0.68rem',color:'var(--wt-muted)',lineHeight:1.6}}>
-            💡 After deployment, the agent will check in within 5 minutes. This device will be removed from the gaps list automatically.
-          </div>
-        </Modal>
-      )}
+            {missing.map(tool=>{
+              const info = TOOL_INSTRUCTIONS[tool] || {color:'#4f8fff',steps:[{label:'Manual deployment required',detail:`Visit the ${tool} admin console and follow the agent deployment guide for ${deployAgentDevice.os}.`}],note:null};
+              return (
+                <div key={tool} style={{marginBottom:12,border:`1px solid ${info.color}25`,borderRadius:10,overflow:'hidden'}}>
+                  <div style={{padding:'9px 14px',background:`${info.color}0f`,borderBottom:`1px solid ${info.color}20`,display:'flex',alignItems:'center',gap:8}}>
+                    <span style={{width:8,height:8,borderRadius:'50%',background:info.color,display:'block',flexShrink:0}} />
+                    <span style={{fontSize:'0.8rem',fontWeight:800,color:info.color}}>{tool}</span>
+                    <span style={{marginLeft:'auto',fontSize:'0.58rem',color:'var(--wt-dim)',fontWeight:600}}>{missing.indexOf(tool)+1}/{missing.length}</span>
+                  </div>
+                  <div style={{padding:'10px 14px',display:'flex',flexDirection:'column',gap:8}}>
+                    {info.steps.map(step=>(
+                      <div key={step.label} style={{display:'flex',gap:10,alignItems:'flex-start'}}>
+                        <div style={{width:18,height:18,borderRadius:4,background:`${info.color}18`,border:`1px solid ${info.color}30`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.52rem',fontWeight:800,color:info.color,flexShrink:0,marginTop:1}}>{info.steps.indexOf(step)+1}</div>
+                        <div style={{flex:1}}>
+                          <div style={{fontSize:'0.72rem',fontWeight:700,marginBottom:2}}>{step.label}</div>
+                          <div style={{fontSize:'0.66rem',color:'var(--wt-muted)',lineHeight:1.65,fontFamily:'JetBrains Mono,monospace',background:'var(--wt-card2)',padding:'5px 8px',borderRadius:5,whiteSpace:'pre-wrap',wordBreak:'break-all'}}>{step.detail}</div>
+                        </div>
+                      </div>
+                    ))}
+                    {info.note && (
+                      <div style={{padding:'6px 10px',background:'#f0a03009',border:'1px solid #f0a03022',borderRadius:6,fontSize:'0.63rem',color:'#f0a030',lineHeight:1.55}}>
+                        ⚠ {info.note}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            <div style={{padding:'8px 12px',background:'var(--wt-card2)',border:'1px solid #4f8fff15',borderRadius:7,fontSize:'0.66rem',color:'var(--wt-muted)',lineHeight:1.6}}>
+              💡 After deployment, agents check in within 5 minutes. This device will clear from the gaps list automatically once all agents are reporting.
+            </div>
+          </Modal>
+        );
+      })()}
 
       {/* Coverage Gap Modal */}
       {modal?.type==='gaps' && (

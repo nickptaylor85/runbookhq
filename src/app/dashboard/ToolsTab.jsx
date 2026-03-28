@@ -44,7 +44,7 @@ const ALL_TOOLS = [
   {id:'zscaler',name:'Zscaler',category:'Network',desc:'Zero trust network access'},
   {id:'okta',name:'Okta',category:'Identity',desc:'Identity & access management'},
 ];
-export default function ToolsTab({ connected, setConnected }) {
+export default function ToolsTab({ connected, setConnected, toolSyncResults, doSync, syncingTool, demoMode }) {
   const [filter, setFilter] = useState('All');
   const [modal, setModal] = useState(null);
   const [formVals, setFormVals] = useState({});
@@ -198,29 +198,73 @@ export default function ToolsTab({ connected, setConnected }) {
       <div style={{display:'flex',flexDirection:'column',gap:6}}>
         {filtered.map(tool=>{
           const isOn = !!connected[tool.id];
+          const syncResult = toolSyncResults?.[tool.id];
+          const hasError = syncResult?.error;
+          const isRetrying = syncingTool === tool.id;
+          // Derive status: connected but never synced = 'pending', synced ok = 'ok', error = 'error'
+          const syncDot = !isOn ? null : hasError ? '#f0405e' : syncResult ? '#22d49a' : '#f0a030';
+          const syncLabel = !isOn ? null : hasError ? 'Error' : syncResult ? 'OK' : demoMode ? 'Demo' : 'Pending sync';
           return (
-            <div key={tool.id} style={{padding:'12px 16px',background:'var(--wt-card)',border:`1px solid ${isOn?'#22c99218':'var(--wt-border)'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12}}>
-              <div style={{width:9,height:9,borderRadius:'50%',background:isOn?'#22c992':'#252e42',boxShadow:isOn?'0 0 7px #22c992':'none',flexShrink:0}} />
-              <div style={{flex:1}}>
-                <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:1}}>
-                  <span style={{fontSize:'0.82rem',fontWeight:700}}>{tool.name}</span>
-                  <span style={{fontSize:'0.5rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff18'}}>{tool.category}</span>
-                </div>
-                <div style={{fontSize:'0.64rem',color:isOn?'#22d49a':'var(--wt-muted)',display:'flex',alignItems:'center',gap:4}}>
-                  {isOn && <span style={{width:5,height:5,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 5px #22c992',display:'block'}} />}
-                  {isOn ? 'Connected' : tool.desc}
-                </div>
-                {isOn && connected[tool.id] && (
-                  <div style={{fontSize:'0.58rem',color:'var(--wt-dim)',marginTop:2}}>
-                    {Object.entries(connected[tool.id]).filter(([k])=>!k.includes('secret')&&!k.includes('password')&&!k.includes('token')&&!k.includes('key')).slice(0,2).map(([k,v])=>(
-                      <span key={k} style={{marginRight:8}}>{k}: <span style={{fontFamily:'JetBrains Mono,monospace'}}>{String(v).slice(0,20)}</span></span>
-                    ))}
+            <div key={tool.id} style={{padding:'12px 16px',background:'var(--wt-card)',border:`1px solid ${hasError&&isOn?'#f0405e25':isOn?'#22c99218':'var(--wt-border)'}`,borderRadius:10}}>
+              <div style={{display:'flex',alignItems:'center',gap:12}}>
+                <div style={{width:9,height:9,borderRadius:'50%',background:isOn?'#22c992':'#252e42',boxShadow:isOn?'0 0 7px #22c992':'none',flexShrink:0}} />
+                <div style={{flex:1}}>
+                  <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:1}}>
+                    <span style={{fontSize:'0.82rem',fontWeight:700}}>{tool.name}</span>
+                    <span style={{fontSize:'0.5rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff18'}}>{tool.category}</span>
+                    {syncDot && <span style={{display:'inline-flex',alignItems:'center',gap:4,marginLeft:4}}>
+                      <span style={{width:5,height:5,borderRadius:'50%',background:syncDot,boxShadow:`0 0 5px ${syncDot}`,display:'block'}} />
+                      <span style={{fontSize:'0.56rem',fontWeight:700,color:syncDot}}>{syncLabel}</span>
+                    </span>}
                   </div>
-                )}
+                  <div style={{fontSize:'0.64rem',color:isOn?'#22d49a':'var(--wt-muted)',display:'flex',alignItems:'center',gap:4}}>
+                    {isOn && <span style={{width:5,height:5,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 5px #22c992',display:'block'}} />}
+                    {isOn ? 'Connected' : tool.desc}
+                  </div>
+                  {isOn && connected[tool.id] && (
+                    <div style={{fontSize:'0.58rem',color:'var(--wt-dim)',marginTop:2}}>
+                      {Object.entries(connected[tool.id]).filter(([k])=>!k.includes('secret')&&!k.includes('password')&&!k.includes('token')&&!k.includes('key')).slice(0,2).map(([k,v])=>(
+                        <span key={k} style={{marginRight:8}}>{k}: <span style={{fontFamily:'JetBrains Mono,monospace'}}>{String(v).slice(0,20)}</span></span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:5,flexShrink:0}}>
+                  {isOn
+                    ? <button onClick={()=>{if(window.confirm('Disconnect '+tool.name+'?')) handleDisconnect(tool.id);}} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #f0405e30',background:'#f0405e10',color:'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:5}}>🗑 Disconnect</button>
+                    : <button onClick={()=>openModal(tool)} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #4f8fff40',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>+ Connect</button>}
+                  {isOn && !demoMode && doSync && (
+                    <button onClick={()=>doSync([tool.id])} disabled={isRetrying} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #4f8fff28',background:'#4f8fff0a',color:isRetrying?'var(--wt-dim)':'#4f8fff',fontSize:'0.6rem',fontWeight:700,cursor:isRetrying?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>
+                      {isRetrying ? <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:8,height:8,borderRadius:'50%',border:'1.5px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}} />Syncing…</span> : '⟳ Sync'}
+                    </button>
+                  )}
+                </div>
               </div>
-              {isOn
-                ? <button onClick={()=>{if(window.confirm('Disconnect '+tool.name+'?')) handleDisconnect(tool.id);}} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #f0405e30',background:'#f0405e10',color:'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:5}}>🗑 Disconnect</button>
-                : <button onClick={()=>openModal(tool)} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #4f8fff40',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>+ Connect</button>}
+              {/* Per-tool sync status row */}
+              {isOn && syncResult && (
+                <div style={{marginTop:8,padding:'6px 10px',background:'var(--wt-card2)',borderRadius:7,border:`1px solid ${hasError?'#f0405e18':'var(--wt-border)'}`,display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+                  {hasError ? (
+                    <>
+                      <span style={{fontSize:'0.62rem',color:'#f0405e',fontWeight:700}}>✗ Sync error</span>
+                      <span style={{fontSize:'0.62rem',color:'#f0405e',fontFamily:'JetBrains Mono,monospace',flex:1,wordBreak:'break-all'}}>{syncResult.error}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span style={{fontSize:'0.62rem',color:'#22d49a',fontWeight:700}}>✓ Last sync</span>
+                      <span style={{fontSize:'0.62rem',color:'var(--wt-muted)',fontFamily:'JetBrains Mono,monospace'}}>{syncResult.syncedAt ? new Date(syncResult.syncedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'}) : '—'}</span>
+                      <span style={{fontSize:'0.62rem',color:'var(--wt-muted)'}}>·</span>
+                      <span style={{fontSize:'0.62rem',color:'var(--wt-secondary)',fontWeight:600}}>{syncResult.count ?? 0} records</span>
+                      {syncResult.count === 0 && (
+                        <span style={{fontSize:'0.6rem',color:'#f0a030',background:'#f0a03010',padding:'1px 7px',borderRadius:4,border:'1px solid #f0a03028'}}>⚠ No data returned — check credentials & permissions</span>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+              {/* Connected but no sync result yet — show nudge */}
+              {isOn && !syncResult && !demoMode && (
+                <div style={{marginTop:6,fontSize:'0.6rem',color:'var(--wt-dim)',paddingLeft:21}}>Waiting for first sync… click ⟳ Sync to check now.</div>
+              )}
             </div>
           );
         })}
