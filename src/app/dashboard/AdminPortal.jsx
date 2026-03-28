@@ -1,5 +1,40 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+
+// Signup toggle sub-component — reads/writes signup_enabled flag from Redis via /api/admin/platform
+function SignupToggle() {
+  const [enabled, setEnabled] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  useEffect(()=>{
+    fetch('/api/admin/platform',{headers:{'x-is-admin':'true'}}).then(r=>r.json()).then(d=>{
+      if (typeof d.signup_enabled === 'boolean') setEnabled(d.signup_enabled);
+      setLoaded(true);
+    }).catch(()=>setLoaded(true));
+  },[]);
+  const toggle = async () => {
+    setSaving(true);
+    try {
+      await fetch('/api/admin/platform',{method:'POST',headers:{'Content-Type':'application/json','x-is-admin':'true'},body:JSON.stringify({signup_enabled:!enabled})});
+      setEnabled(e=>!e);
+    } catch(e) {}
+    setSaving(false);
+  };
+  return (
+    <div style={{padding:'14px 16px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,display:'flex',alignItems:'center',gap:12}}>
+      <div style={{flex:1}}>
+        <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:2}}>Public Sign-ups</div>
+        <div style={{fontSize:'0.64rem',color:'var(--wt-muted)'}}>
+          {enabled ? 'New users can register at /signup' : 'Sign-up page is disabled — existing users unaffected'}
+        </div>
+      </div>
+      <button onClick={toggle} disabled={saving||!loaded} style={{padding:'6px 16px',borderRadius:7,border:`1px solid ${enabled?'#22d49a30':'#f0405e30'}`,background:enabled?'#22d49a15':'#f0405e12',color:enabled?'#22d49a':'#f0405e',fontSize:'0.72rem',fontWeight:700,cursor:saving?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>
+        {saving?'Saving…':enabled?'✓ Enabled — click to disable':'✗ Disabled — click to enable'}
+      </button>
+    </div>
+  );
+}
+
 export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBanner, setClientBanner, adminBannerInput, setAdminBannerInput, userRole, setUserRole, currentTenant }) {
   const WTC_SUBSCRIBERS = [
     {id:'mssp-cyberguard', name:'CyberGuard Solutions',  type:'MSSP',     plan:'MSSP',     seats:0,  mrr:1115, clients:4,  status:'Active',  posture:84, alerts:36, incidents:7,  coverage:93, joined:'2024-01-10', billing:'Paid'},
@@ -78,9 +113,9 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
           </h2>
           <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginTop:3}}>All organisations subscribed to Watchtower · Impersonate any tenant to view their dashboard</div>
         </div>
-        <div style={{marginLeft:'auto',display:'flex',gap:4,background:'var(--wt-card2)',borderRadius:7,padding:3}}>
+        <div style={{marginLeft:'auto',display:'flex',gap:4,background:'var(--wt-card2)',borderRadius:7,padding:3,overflowX:'auto',maxWidth:'100%',flexShrink:0}}>
           {['subscribers','users','platform','stripe','saml','broadcast','ailog'].map(v=>(
-            <button key={v} onClick={()=>{setAdminView(v);if(v==='ailog')fetchAiLog();}} style={{padding:'5px 14px',borderRadius:5,border:'none',background:adminView===v?'#f0a030':'transparent',color:adminView===v?'#fff':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{v==='ailog'?'✦ AI Log':v.charAt(0).toUpperCase()+v.slice(1)}</button>
+            <button key={v} onClick={()=>{setAdminView(v);if(v==='ailog')fetchAiLog();}} style={{padding:'5px 14px',borderRadius:5,border:'none',background:adminView===v?'#f0a030':'transparent',color:adminView===v?'#fff':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',whiteSpace:'nowrap',flexShrink:0}}>{v==='ailog'?'✦ AI Log':v.charAt(0).toUpperCase()+v.slice(1)}</button>
           ))}
         </div>
       </div>
@@ -99,6 +134,8 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
           </div>
         ))}
       </div>
+      {/* Signup toggle — always visible regardless of sub-tab */}
+      <SignupToggle />
 
       {adminView==='subscribers' && (
         <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
@@ -298,6 +335,10 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
       )}
 
       {adminView==='platform' && (
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          {/* Platform controls */}
+          <SignupToggle />
+          {/* Stats grid */}
         <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}}>
           {[
             {label:'API Calls Today',val:'12,847',color:'#4f8fff',sub:'↑ 8% vs yesterday'},
@@ -316,7 +357,8 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
               <div style={{fontSize:'0.58rem',color:s.color,marginTop:2,opacity:0.8}}>{s.sub}</div>
             </div>
           ))}
-        </div>
+          </div>
+      </div>
       )}
 
       {adminView==='stripe' && (
