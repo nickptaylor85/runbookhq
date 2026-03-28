@@ -173,7 +173,7 @@ export default function AlertsTab({
 
       {/* Alert rows */}
       {alertsPaged.map(alert => {
-        const vStyle = VERDICT_STYLE[alert.verdict];
+        const vStyle = VERDICT_STYLE[alert.verdict] || VERDICT_STYLE.Pending;
         const expanded = expandedAlerts.has(alert.id);
         const aiActed = alert.verdict==='FP' || alert.verdict==='TP';
         const isSelected = selectedAlerts.has(alert.id);
