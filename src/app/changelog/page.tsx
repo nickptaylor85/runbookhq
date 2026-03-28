@@ -4,6 +4,29 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.9.113',
+    date: '2026-03-28',
+    tag: 'Major Release',
+    tagColor: '#8b6fff',
+    summary: 'All 4 sprint features: response actions, exec report, email, onboarding, API keys, audit, SLA, correlation, Stripe, cron',
+    changes: [
+      { type: 'feat', text: 'Sprint 1: Response actions route now fires real CrowdStrike Falcon isolation and Taegis isolation when automation slider is set to Full Auto in live mode. Audit log entry written per action.' },
+      { type: 'feat', text: 'Sprint 1: Executive PDF report — /api/exec-summary generates a formatted HTML report with AI executive summary, key findings, and recommendations. Business+ "📊 Report" button in topbar opens print dialog.' },
+      { type: 'feat', text: 'Sprint 1: MSSP branding now loaded from Redis on mount — survives page refresh. White-label name and colour persist across sessions.' },
+      { type: 'feat', text: 'Sprint 1: Alert assignees persisted to Redis via alert-state route. Analyst claiming an alert now survives refresh and is visible to all team members.' },
+      { type: 'feat', text: 'Sprint 2: Onboarding wizard — 3-step modal (Connect tool → Add API key → Go Live) shown when no tools connected. Replaces dead empty state.' },
+      { type: 'feat', text: 'Sprint 2: Email notifications wired — /api/email sends real emails via Resend for critical alerts, incident creation, and weekly digest. HTML templates for all types.' },
+      { type: 'feat', text: 'Sprint 2: Cross-tenant IOC correlation (/api/mssp/correlation) runs real comparison across client sync data. MSSP portfolio panel now shows live results when available.' },
+      { type: 'feat', text: 'Sprint 3: Audit log — /api/audit records all analyst actions (FP/TP, auto-responses, incident create). Persisted to Redis, max 1000 entries per tenant.' },
+      { type: 'feat', text: 'Sprint 3: SLA tracking — /api/sla records alert acknowledge events and calculates MTTA/MTTR by severity. Written automatically on alert acknowledgement.' },
+      { type: 'feat', text: 'Sprint 3: API keys — /api/auth/api-keys supports create/list/revoke. Keys shown once on creation. Settings → API Keys tab with full management UI.' },
+      { type: 'feat', text: 'Sprint 4: Cron job (/api/cron) runs weekly to send digest emails. vercel.json created with Monday 08:00 schedule.' },
+      { type: 'feat', text: 'Sprint 4: Branded client login page at /login/[slug] — loads MSSP white-label branding from Redis and renders a custom login screen for each client.' },
+      { type: 'feat', text: 'Sprint 4: Stripe portal (/api/stripe/portal) and webhook fully wired — plan changes update userTier in Redis, cancellations downgrade to community, payment failures send email.' },
+    ],
+  },
+
+  {
     version: 'v74.9.109',
     date: '2026-03-28',
     tag: 'UX + Features',

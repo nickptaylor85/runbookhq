@@ -1,20 +1,67 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { redisGet, redisSet } from '@/lib/redis';
+import { randomBytes, createHmac } from 'crypto';
 
 function getTenantId(req: NextRequest): string {
   return req.headers.get('x-tenant-id') || 'global';
 }
+const apiKeysKey = (t: string) => `wt:${t}:api_keys`;
+
+interface ApiKey {
+  id: string; name: string; prefix: string;
+  hash: string; createdAt: number; lastUsed?: number; scopes: string[];
+}
+
+function hashKey(key: string): string {
+  return createHmac('sha256', process.env.WATCHTOWER_SESSION_SECRET || 'wt-dev-secret').update(key).digest('hex');
+}
 
 export async function GET(req: NextRequest) {
-  const _tenantId = getTenantId(req);
-  return NextResponse.json({"ok": true, "keys": []});
+  try {
+    const tenantId = getTenantId(req);
+    const raw = await redisGet(apiKeysKey(tenantId));
+    const keys: ApiKey[] = raw ? JSON.parse(raw) : [];
+    // Never return the hash — return only safe fields
+    return NextResponse.json({ ok: true, keys: keys.map(({ id, name, prefix, createdAt, lastUsed, scopes }) => ({ id, name, prefix, createdAt, lastUsed, scopes })) });
+  } catch {
+    return NextResponse.json({ ok: true, keys: [] });
+  }
 }
 
 export async function POST(req: NextRequest) {
-  const _tenantId = getTenantId(req);
-  return NextResponse.json({"ok": true});
+  try {
+    const tenantId = getTenantId(req);
+    const body = await req.json() as { name: string; scopes?: string[] };
+    const { name, scopes = ['read:alerts', 'read:incidents'] } = body;
+    if (!name) return NextResponse.json({ ok: false, error: 'name required' }, { status: 400 });
+
+    const raw = await redisGet(apiKeysKey(tenantId));
+    const keys: ApiKey[] = raw ? JSON.parse(raw) : [];
+    if (keys.length >= 10) return NextResponse.json({ ok: false, error: 'Max 10 API keys per tenant' }, { status: 400 });
+
+    const secret = `wt_live_${randomBytes(24).toString('hex')}`;
+    const prefix = secret.slice(0, 14);
+    const newKey: ApiKey = { id: randomBytes(8).toString('hex'), name, prefix, hash: hashKey(secret), createdAt: Date.now(), scopes };
+    keys.push(newKey);
+    await redisSet(apiKeysKey(tenantId), JSON.stringify(keys));
+
+    // Return the full key only once — never again
+    return NextResponse.json({ ok: true, key: secret, id: newKey.id, prefix, scopes });
+  } catch(e: any) {
+    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+  }
 }
 
 export async function DELETE(req: NextRequest) {
-  const _tenantId = getTenantId(req);
-  return NextResponse.json({"ok": true});
+  try {
+    const tenantId = getTenantId(req);
+    const body = await req.json() as { id: string };
+    const raw = await redisGet(apiKeysKey(tenantId));
+    const keys: ApiKey[] = raw ? JSON.parse(raw) : [];
+    const filtered = keys.filter(k => k.id !== body.id);
+    await redisSet(apiKeysKey(tenantId), JSON.stringify(filtered));
+    return NextResponse.json({ ok: true });
+  } catch(e: any) {
+    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+  }
 }

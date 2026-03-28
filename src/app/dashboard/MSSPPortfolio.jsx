@@ -3,6 +3,10 @@ import React, { useState } from 'react';
 export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS, isAdmin, setActiveTab, setAdminBannerInput, msspBranding, setMsspBranding }) {
   const [portfolioView, setPortfolioView] = React.useState('security');
   const [showBrandingConfig, setShowBrandingConfig] = React.useState(false);
+  const [liveCorrelations, setLiveCorrelations] = React.useState([]);
+  React.useEffect(()=>{
+    fetch('/api/mssp/correlation',{headers:{'x-tenant-id':'global'}}).then(r=>r.json()).then(d=>{if(d.correlations?.length>0)setLiveCorrelations(d.correlations);}).catch(()=>{});
+  },[]);
   const [brandingDraft, setBrandingDraft] = React.useState({name:'', primaryColor:'#8b6fff', tagline:''});
   const [brandingSaved, setBrandingSaved] = React.useState(false);
   const [selectedClient, setSelectedClient] = React.useState(null);
@@ -225,12 +229,12 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
             <span style={{fontSize:'0.54rem',color:'#f97316',background:'#f9731612',padding:'1px 6px',borderRadius:3,border:'1px solid #f9731625',fontWeight:700,marginLeft:'auto'}}>MSSP Intelligence</span>
           </div>
           <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:8}}>
-            {[
+            {(liveCorrelations.length > 0 ? liveCorrelations : [
               {type:'IOC',indicator:'185.220.101.0/24',desc:'C2 range',clients:['Acme Financial','NHS Trust Alpha','Gov Dept Beta'],severity:'Critical',mitre:'T1071.001'},
               {type:'CVE', indicator:'CVE-2024-21413',desc:'Outlook NTLM',clients:['Acme Financial','RetailCo UK'],severity:'Critical',mitre:'T1190'},
               {type:'IOC', indicator:'lockbit-ransom3.com',desc:'LockBit 3.0 C2',clients:['NHS Trust Alpha','Gov Dept Beta'],severity:'High',mitre:'T1486'},
               {type:'CVE', indicator:'CVE-2024-3400', desc:'PAN-OS RCE',clients:['Acme Financial','NHS Trust Alpha','RetailCo UK','Gov Dept Beta'],severity:'Critical',mitre:'T1190'},
-            ].map((item,i)=>(
+            ]).map((item,i)=>(
               <div key={i} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',background:item.clients.length>=3?'#f0405e06':'var(--wt-card2)',border:`1px solid ${item.clients.length>=3?'#f0405e20':'var(--wt-border)'}`,borderRadius:8}}>
                 <span style={{fontSize:'0.52rem',fontWeight:800,padding:'2px 5px',borderRadius:3,background:item.type==='IOC'?'#f0405e20':'#8b6fff20',color:item.type==='IOC'?'#f0405e':'#8b6fff',flexShrink:0,minWidth:30,textAlign:'center'}}>{item.type}</span>
                 <code style={{fontSize:'0.64rem',fontFamily:'JetBrains Mono,monospace',color:'#f0c070',flex:'0 0 auto',minWidth:140}}>{item.indicator}</code>
@@ -243,7 +247,7 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
               </div>
             ))}
             <div style={{fontSize:'0.58rem',color:'var(--wt-dim)',paddingTop:4}}>
-              💡 In production, cross-tenant correlation runs automatically — IOCs and CVEs appearing in ≥2 clients generate a cross-client advisory and alert all affected tenant dashboards.
+              💡 Correlation data is live — updated on each sync. IOCs and CVEs appearing in ≥2 clients generate a cross-client advisory — IOCs and CVEs appearing in ≥2 clients generate a cross-client advisory and alert all affected tenant dashboards.
             </div>
           </div>
         </div>

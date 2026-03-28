@@ -314,7 +314,7 @@ export default function DashboardPage() {
         }
         // Load persisted alert notes
         fetch('/api/alert-notes',{headers:{'x-tenant-id':tenantRef.current}}).then(r=>r.json()).then(d=>{if(d.notes&&typeof d.notes==='object')setAlertNotes(d.notes);}).catch(()=>{});
-        fetch('/api/alert-state',{headers:{'x-tenant-id':tenantRef.current}}).then(r=>r.json()).then(d=>{if(d.overrides&&typeof d.overrides==='object')setAlertOverrides(d.overrides);}).catch(()=>{});
+        fetch('/api/alert-state',{headers:{'x-tenant-id':tenantRef.current}}).then(r=>r.json()).then(d=>{if(d.overrides&&typeof d.overrides==='object')setAlertOverrides(d.overrides);if(d.assignees&&typeof d.assignees==='object')setAlertAssignees(d.assignees);}).catch(()=>{});
         if (d.settings?.demoMode !== undefined) {
           setDemoMode(d.settings.demoMode === 'true');
         } else {
@@ -336,7 +336,15 @@ export default function DashboardPage() {
   const [intelFetchedAt, setIntelFetchedAt] = useState(null);
   const [livetenableNews, setLiveTenableNews] = useState([]);
   const [msspBranding, setMsspBranding] = useState(null);
+  // Load MSSP branding on mount
+  useEffect(()=>{
+    if(userTier==='mssp' || isAdmin) {
+      fetch('/api/mssp/branding',{headers:{'x-tenant-id':tenantRef.current}}).then(r=>r.json()).then(d=>{if(d.branding?.name)setMsspBranding(d.branding);}).catch(()=>{});
+    }
+  },[userTier,isAdmin]);
   const [shiftHandover, setShiftHandover] = useState(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState(0);
   const [handoverLoading, setHandoverLoading] = useState(false); // {name,primaryColor,accentColor}
   const intelAutoRefreshRef = React.useRef(null);
   const [expandedAlerts, setExpandedAlerts] = useState(new Set());
@@ -508,19 +516,36 @@ export default function DashboardPage() {
 
   // Theme preference intentionally uses localStorage — it must apply synchronously
   // before React hydrates to avoid a dark→light flash. Not user data, pure display state.
+  // demoMode uses the same pattern — it's a display preference, not account data.
   useEffect(()=>{
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('wt_theme') : null;
-    if (saved === 'light') setTheme('light');
+    const savedTheme = typeof window !== 'undefined' ? localStorage.getItem('wt_theme') : null;
+    if (savedTheme === 'light') setTheme('light');
+    const savedDemo = typeof window !== 'undefined' ? localStorage.getItem('wt_demo_mode') : null;
+    if (savedDemo !== null) setDemoMode(savedDemo === 'true');
   },[]);
 
 
   // Persist alertOverrides to Redis whenever it changes (debounced 2s)
+  // SLA tracking — write acknowledge events when alerts are acknowledged
+  React.useEffect(()=>{
+    if(demoMode) return;
+    Object.entries(alertOverrides).forEach(([alertId, override]) => {
+      if(override && typeof override === 'object' && (override as any).acknowledged && !(override as any).slaAckLogged) {
+        const alert = alerts.find(a=>a.id===alertId);
+        if(alert?.rawTime) {
+          fetch('/api/sla',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({alertId,severity:alert.severity,event:'acknowledged',timestamp:Date.now()})}).catch(()=>{});
+          setAlertOverrides(prev=>({...prev,[alertId]:{...(prev[alertId]||{}),slaAckLogged:true}}));
+        }
+      }
+    });
+  },[alertOverrides,demoMode]);
+
   const overrideSaveTimer = React.useRef(null);
   useEffect(()=>{
     if (Object.keys(alertOverrides).length === 0) return; // don't wipe on initial empty state
     if (overrideSaveTimer.current) clearTimeout(overrideSaveTimer.current);
     overrideSaveTimer.current = setTimeout(()=>{
-      fetch('/api/alert-state',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({overrides:alertOverrides})}).catch(()=>{});
+      fetch('/api/alert-state',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({overrides:alertOverrides,assignees:alertAssignees})}).catch(()=>{});
     }, 2000);
     return ()=>{ if(overrideSaveTimer.current) clearTimeout(overrideSaveTimer.current); };
   },[alertOverrides]);
@@ -688,10 +713,24 @@ export default function DashboardPage() {
   const autColor = ['#6b7a94','#f0a030','#22d49a'][automation];
   // Automation effects: filter what's "acted on" based on level
   const actedAlerts = alerts.filter(a => {
-    if (automation === 0) return false; // Recommend Only — no auto actions
-    if (automation === 1) return a.verdict === 'FP' && a.confidence >= 90; // Auto+Notify — auto-close high-confidence FPs only
-    return a.confidence >= 80; // Full Auto — act on all high-confidence verdicts
+    if (automation === 0) return false;
+    if (automation === 1) return a.verdict === 'FP' && a.confidence >= 90;
+    return a.confidence >= 80;
   });
+  // Fire real response actions when automation > 0 and TP alerts with devices are found
+  React.useEffect(()=>{
+    if (automation === 0 || demoMode) return;
+    const actionableAlerts = alerts.filter(a => a.verdict==='TP' && a.severity==='Critical' && a.device && (automation===2 || a.confidence>=95));
+    actionableAlerts.forEach(alert => {
+      if (!alertOverrides[alert.id]?.actionFired) {
+        fetch('/api/response-actions',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({action:'isolate_device',device:alert.device,alertId:alert.id,analyst:'AI Auto'})}).then(r=>r.json()).then(d=>{
+          if(d.ok) { setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),actionFired:true,actionResult:d.results}})); }
+        }).catch(()=>{});
+        // Write audit log entry
+        fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({type:'auto_response',action:'isolate_device',device:alert.device,alertId:alert.id,alertTitle:alert.title,automation,analyst:'AI'})}).catch(()=>{});
+      }
+    });
+  },[actedAlerts.length,automation,demoMode]);
   const automationBannerText = automation === 0
     ? 'AI is recommending only — all actions require analyst approval.'
     : automation === 1
@@ -921,9 +960,11 @@ export default function DashboardPage() {
             <button onClick={toggleTheme} title={theme==='dark'?'Light mode':'Dark mode'} style={{width:32,height:32,borderRadius:8,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.9rem',flexShrink:0}}>{theme==='dark'?'☀️':'🌙'}</button>
               <button onClick={()=>setDemoMode(d=>{
                 const next=!d;
+                if(typeof window!=='undefined') localStorage.setItem('wt_demo_mode',String(next));
                 fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});
                 return next;
               })} title={demoMode?'Switch to live data':'Switch to demo data'} style={{padding:'4px 10px',borderRadius:7,border:`1px solid ${demoMode?'#f0a03030':'#22d49a30'}`,background:demoMode?'#f0a03010':'#22d49a10',color:demoMode?'#f0a030':'#22d49a',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>{demoMode?'● DEMO':'● LIVE'}</button>
+              {canUse('business')&&<button onClick={async()=>{const w=window.open('','_blank');if(!w)return;w.document.write('<html><body style="background:#050508;color:#e8ecf4;font-family:Inter;display:flex;align-items:center;justify-content:center;height:100vh">Generating report…</body></html>');try{const r=await fetch('/api/exec-summary',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({org:'My Organisation',period:'Last 7 days',totalAlerts,critAlerts:critAlerts.length,openCases,closedCases:0,slaBreaches,fpsClosed:fpAlerts.length,tpConfirmed:tpAlerts.length,posture,coverage:coveredPct,tools:Object.keys(connectedTools).length,topAlerts:critAlerts.slice(0,5).map(a=>a.title),topVulns:vulns.slice(0,3).map(v=>v.title)})});const d=await r.json();if(d.html&&w){w.document.open();w.document.write(d.html);w.document.close();setTimeout(()=>w.print(),500);}}catch(e){if(w)w.close();}}} title='Download Executive Report' style={{padding:'4px 10px',borderRadius:7,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>📊 Report</button>}
               <select value={userTier} onChange={e=>{
                 setUserTier(e.target.value);
                 fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({userTier:e.target.value})}).catch(()=>{});
@@ -990,7 +1031,7 @@ Generated by Watchtower`;
           {/* Mobile controls — theme + demo toggle only */}
           <div className="wt-topbar-controls-mobile" style={{marginLeft:'auto',alignItems:'center',gap:6}}>
             <button onClick={toggleTheme} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem'}}>{theme==='dark'?'☀️':'🌙'}</button>
-            <button onClick={()=>setDemoMode(d=>{const next=!d;fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});return next;})} style={{padding:'4px 8px',borderRadius:6,border:`1px solid ${demoMode?'#f0a03030':'#22d49a30'}`,background:demoMode?'#f0a03010':'#22d49a10',color:demoMode?'#f0a030':'#22d49a',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{demoMode?'DEMO':'LIVE'}</button>
+            <button onClick={()=>setDemoMode(d=>{const next=!d;if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode',String(next));fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});return next;})} style={{padding:'4px 8px',borderRadius:6,border:`1px solid ${demoMode?'#f0a03030':'#22d49a30'}`,background:demoMode?'#f0a03010':'#22d49a10',color:demoMode?'#f0a030':'#22d49a',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{demoMode?'DEMO':'LIVE'}</button>
           </div>
         </div>
 
@@ -1184,7 +1225,9 @@ Generated by Watchtower`;
                       <span style={{fontSize:'0.56rem',color:'#4f8fff'}}>Details ↗</span>
                     </div>
                     {Object.keys(connectedTools).length===0&&!demoMode&&(
-                      <div style={{fontSize:'0.62rem',color:'#f0a030',marginTop:6}}>No tools connected — <button onClick={e=>{e.stopPropagation();setActiveTab('tools');}} style={{color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:'inherit',padding:0}}>configure in Tools →</button></div>
+                      <div style={{fontSize:'0.62rem',color:'#f0a030',marginTop:6}}>No tools connected — <button onClick={e=>{e.stopPropagation();setShowOnboarding(true);setOnboardingStep(0);}} style={{color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:'inherit',padding:0,textDecoration:'underline'}}>Start setup wizard →</button></div>
+                    )}
+ onClick={e=>{e.stopPropagation();setActiveTab('tools');}} style={{color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:'inherit',padding:0}}>Setup wizard →</button> or <button onClick={e=>{e.stopPropagation();setActiveTab('tools');}} style={{color:'#22d49a',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:'inherit',padding:0}}>Tools tab →</button></div>
                     )}
                   </div>
                 </div>
@@ -2010,6 +2053,77 @@ Generated by Watchtower`;
 
       {/* ═══════════════════════════════ MODALS ════════════════════════════════════ */}
 
+      {/* Onboarding Wizard */}
+      {showOnboarding&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={()=>setShowOnboarding(false)}>
+          <div style={{background:'var(--wt-card2)',border:'1px solid #4f8fff30',borderRadius:16,maxWidth:520,width:'100%',padding:28}} onClick={e=>e.stopPropagation()}>
+            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:20}}>
+              <div style={{width:36,height:36,background:'linear-gradient(135deg,#4f8fff,#8b6fff)',borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.1rem'}}>🛡</div>
+              <div>
+                <div style={{fontSize:'0.92rem',fontWeight:800}}>Welcome to Watchtower</div>
+                <div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>3 steps to your first live alert</div>
+              </div>
+              <button onClick={()=>setShowOnboarding(false)} style={{marginLeft:'auto',background:'none',border:'none',color:'var(--wt-dim)',cursor:'pointer',fontSize:'1.2rem'}}>×</button>
+            </div>
+            <div style={{display:'flex',gap:4,marginBottom:24}}>
+              {['Connect a tool','Configure AI','Go live'].map((s,i)=>(
+                <div key={i} style={{flex:1,textAlign:'center'}}>
+                  <div style={{height:4,borderRadius:2,background:i<=onboardingStep?'#4f8fff':'var(--wt-border)',marginBottom:4,transition:'background .3s'}} />
+                  <div style={{fontSize:'0.6rem',color:i===onboardingStep?'#4f8fff':'var(--wt-dim)',fontWeight:i===onboardingStep?700:400}}>{s}</div>
+                </div>
+              ))}
+            </div>
+            {onboardingStep===0&&(
+              <div>
+                <div style={{fontSize:'0.82rem',fontWeight:700,marginBottom:8}}>Step 1 — Connect your first integration</div>
+                <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:16}}>Watchtower connects to your existing tools — CrowdStrike, Tenable, Splunk, Sentinel, and 14 others. Click "+ Connect" on any tool to add your credentials.</div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:16}}>
+                  {[{id:'crowdstrike',name:'CrowdStrike Falcon',cat:'EDR',color:'#f0405e'},{id:'tenable',name:'Tenable.io',cat:'Vuln',color:'#00b3e3'},{id:'splunk',name:'Splunk SIEM',cat:'SIEM',color:'#65a637'},{id:'sentinel',name:'Microsoft Sentinel',cat:'SIEM',color:'#4f8fff'}].map(t=>(
+                    <div key={t.id} style={{padding:'10px 12px',background:'var(--wt-card)',border:`1px solid ${t.color}20`,borderRadius:8,display:'flex',alignItems:'center',gap:8}}>
+                      <div style={{width:8,height:8,borderRadius:'50%',background:connectedTools[t.id]?'#22c992':'#252e42',flexShrink:0}} />
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:'0.72rem',fontWeight:600}}>{t.name}</div>
+                        <div style={{fontSize:'0.56rem',color:'var(--wt-dim)'}}>{t.cat}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{display:'flex',gap:8}}>
+                  <button onClick={()=>{setShowOnboarding(false);setActiveTab('tools');}} style={{flex:1,padding:'10px',borderRadius:8,border:'none',background:'#4f8fff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Go to Tools →</button>
+                  {Object.keys(connectedTools).length>0&&<button onClick={()=>setOnboardingStep(1)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Next ✓</button>}
+                </div>
+              </div>
+            )}
+            {onboardingStep===1&&(
+              <div>
+                <div style={{fontSize:'0.82rem',fontWeight:700,marginBottom:8}}>Step 2 — Add your Anthropic API key</div>
+                <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:16}}>Watchtower uses Claude Haiku to triage alerts, generate attack narratives, and power the Co-Pilot. Add your own key to activate AI features.</div>
+                <div style={{padding:'12px',background:'#4f8fff08',border:'1px solid #4f8fff20',borderRadius:8,fontSize:'0.72rem',color:'var(--wt-secondary)',marginBottom:16,lineHeight:1.6}}>Get a free key at <a href='https://console.anthropic.com/account/keys' target='_blank' rel='noopener noreferrer' style={{color:'#4f8fff'}}>console.anthropic.com</a> → API Keys → Create Key. It starts with <code style={{fontFamily:'JetBrains Mono,monospace',background:'var(--wt-border)',padding:'1px 4px',borderRadius:3}}>sk-ant-</code></div>
+                <div style={{display:'flex',gap:8}}>
+                  <button onClick={()=>setOnboardingStep(0)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid var(--wt-border)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>← Back</button>
+                  <button onClick={()=>{setShowOnboarding(false);setActiveTab('tools');}} style={{flex:1,padding:'10px',borderRadius:8,border:'none',background:'#4f8fff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Add in Tools tab →</button>
+                  <button onClick={()=>setOnboardingStep(2)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Skip</button>
+                </div>
+              </div>
+            )}
+            {onboardingStep===2&&(
+              <div>
+                <div style={{fontSize:'0.82rem',fontWeight:700,marginBottom:8}}>Step 3 — Switch to Live mode</div>
+                <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:16}}>You're currently in Demo mode showing sample data. Click the DEMO toggle in the top bar to switch to Live and see your real alerts.</div>
+                <div style={{padding:'12px 14px',background:'#22d49a08',border:'1px solid #22d49a20',borderRadius:8,marginBottom:16,display:'flex',alignItems:'center',gap:10}}>
+                  <span style={{fontSize:'1.2rem'}}>✦</span>
+                  <div style={{fontSize:'0.72rem',color:'var(--wt-secondary)',lineHeight:1.6}}>Watchtower will sync your tools every 60 seconds and start triaging alerts automatically.</div>
+                </div>
+                <div style={{display:'flex',gap:8}}>
+                  <button onClick={()=>setOnboardingStep(1)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid var(--wt-border)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>← Back</button>
+                  <button onClick={()=>{setDemoMode(false);if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode','false');setShowOnboarding(false);}} style={{flex:1,padding:'10px',borderRadius:8,border:'none',background:'#22d49a',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Go Live! →</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Deploy Agent Modal */}
       {deployAgentDevice && (()=>{
         const TOOL_INSTRUCTIONS = {
@@ -2151,7 +2265,7 @@ Generated by Watchtower`;
           })}
           {tools.filter(t=>!t.active&&!connectedTools[t.id]).length > 0 && (
             <div style={{marginTop:10,padding:'8px 10px',background:'var(--wt-card2)',borderRadius:7,fontSize:'0.66rem',color:'var(--wt-dim)'}}>
-              {tools.filter(t=>!t.active&&!connectedTools[t.id]).length} tools not connected — <button onClick={()=>{setModal(null);setActiveTab('tools');}} style={{color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontSize:'0.66rem',padding:0}}>configure in Tools →</button>
+              {tools.filter(t=>!t.active&&!connectedTools[t.id]).length} tools not connected — <button onClick={()=>{setModal(null);setActiveTab('tools');}} style={{color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontSize:'0.66rem',padding:0}}>Setup wizard →</button> or <button onClick={e=>{e.stopPropagation();setActiveTab('tools');}} style={{color:'#22d49a',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:'inherit',padding:0}}>Tools tab →</button>
             </div>
           )}
         </Modal>

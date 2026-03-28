@@ -38,28 +38,46 @@ export async function POST(req: NextRequest) {
 
     switch (event.type) {
       case 'checkout.session.completed': {
-        const session = event.data.object;
-        console.log(`New subscription: ${session.customer_email} — plan session ${session.id}`);
-        // TODO: Create user account, set plan in DB
+        const session = event.data.object as { customer_email?: string; metadata?: Record<string,string>; customer?: string; subscription?: string };
+        const email = session.customer_email;
+        const plan = session.metadata?.plan || 'team';
+        console.log(`New subscription: ${email} plan=${plan}`);
+        if (email) {
+          // Update user tier in Redis settings
+          const { redisHSet, KEYS } = await import('@/lib/redis');
+          await redisHSet(KEYS.TENANT_SETTINGS('global'), 'userTier', plan).catch(() => {});
+          await redisHSet(KEYS.TENANT_SETTINGS('global'), 'stripeCustomerId', session.customer || '').catch(() => {});
+          await redisHSet(KEYS.TENANT_SETTINGS('global'), 'stripeSubscriptionId', session.subscription || '').catch(() => {});
+          console.log(`Plan updated: ${email} → ${plan}`);
+        }
         break;
       }
       case 'customer.subscription.created':
       case 'customer.subscription.updated': {
-        const sub = event.data.object;
+        const sub = event.data.object as { id: string; status: string; metadata?: Record<string,string>; customer?: string };
         console.log(`Subscription ${event.type}: ${sub.id} status=${sub.status}`);
-        // TODO: Update user plan/status in DB
+        if (sub.status === 'active' && sub.metadata?.plan) {
+          const { redisHSet, KEYS } = await import('@/lib/redis');
+          await redisHSet(KEYS.TENANT_SETTINGS('global'), 'userTier', sub.metadata.plan).catch(() => {});
+        }
         break;
       }
       case 'customer.subscription.deleted': {
-        const sub = event.data.object;
+        const sub = event.data.object as { id: string; customer?: string };
         console.log(`Subscription cancelled: ${sub.id}`);
-        // TODO: Downgrade user to Community plan
+        const { redisHSet, KEYS } = await import('@/lib/redis');
+        await redisHSet(KEYS.TENANT_SETTINGS('global'), 'userTier', 'community').catch(() => {});
         break;
       }
       case 'invoice.payment_failed': {
-        const invoice = event.data.object;
+        const invoice = event.data.object as { customer_email?: string };
         console.log(`Payment failed: ${invoice.customer_email}`);
-        // TODO: Email user, flag account
+        if (invoice.customer_email) {
+          await fetch(new URL('/api/email', req.url).toString(), {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'custom', to: invoice.customer_email, subject: 'Payment failed — Watchtower subscription', customHtml: '<p>Your Watchtower payment failed. Please update your payment method to avoid service interruption.</p>' }),
+          }).catch(() => {});
+        }
         break;
       }
     }

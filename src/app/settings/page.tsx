@@ -65,6 +65,11 @@ function MfaSetup() {
 
   if (!mfaStatus) return <div style={{ fontSize: '0.74rem', color: '#6b7a94' }}>Loading…</div>;
 
+  function loadKeys() {
+    fetch('/api/auth/api-keys').then(r => r.json()).then(d => { if (d.keys) setApiKeys(d.keys); }).catch(() => {});
+  }
+  useEffect(() => { if (activeSection === 'api-keys') loadKeys(); }, [activeSection]);
+
   return (
     <div>
       {success && <div style={{ padding: '8px 12px', background: '#22d49a12', border: '1px solid #22d49a30', borderRadius: 7, fontSize: '0.72rem', color: '#22d49a', marginBottom: 12 }}>{success}</div>}
@@ -421,7 +426,50 @@ export default function SettingsPage() {
             </div>
           </div>
         )}
-      </div>
+
+
+      {activeSection === 'api-keys' && (
+        <div>
+          <h2 style={{ fontSize: '0.96rem', fontWeight: 700, marginBottom: 4 }}>API Keys</h2>
+          <p style={{ fontSize: '0.78rem', color: '#6b7a94', marginBottom: 20, lineHeight: 1.6 }}>Generate keys to access Watchtower data programmatically. A key is shown only once — copy it immediately.</p>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+            <input value={newKeyName} onChange={e => setNewKeyName(e.target.value)} placeholder="Key name (e.g. SIEM Integration)" style={{ flex: 1, padding: '9px 12px', background: '#070a14', border: '1px solid #263044', borderRadius: 8, color: '#e8ecf4', fontSize: '0.84rem', fontFamily: 'Inter, sans-serif', outline: 'none' }} />
+            <button disabled={!newKeyName.trim() || keyLoading} onClick={async () => {
+              setKeyLoading(true);
+              try {
+                const r = await fetch('/api/auth/api-keys', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: newKeyName.trim(), scopes: ['read:alerts', 'read:incidents', 'read:vulns'] }) });
+                const d = await r.json();
+                if (d.ok) { setNewKey(d.key); setNewKeyName(''); loadKeys(); }
+              } catch {}
+              setKeyLoading(false);
+            }} style={{ padding: '9px 18px', borderRadius: 8, border: 'none', background: newKeyName.trim() ? '#4f8fff' : '#1d2535', color: newKeyName.trim() ? '#fff' : '#3a4050', fontSize: '0.84rem', fontWeight: 700, cursor: newKeyName.trim() ? 'pointer' : 'not-allowed', fontFamily: 'Inter, sans-serif' }}>
+              {keyLoading ? 'Creating…' : '+ Create Key'}
+            </button>
+          </div>
+          {newKey && (
+            <div style={{ background: '#06100e', border: '1px solid #22d49a30', borderRadius: 8, padding: '12px 14px', marginBottom: 16 }}>
+              <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#22d49a', marginBottom: 6 }}>✓ Key created — copy it now, it won't be shown again</div>
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <code style={{ flex: 1, fontFamily: 'JetBrains Mono, monospace', fontSize: '0.78rem', color: '#22d49a', wordBreak: 'break-all' }}>{newKey}</code>
+                <button onClick={() => { navigator.clipboard.writeText(newKey); }} style={{ padding: '4px 10px', borderRadius: 5, border: '1px solid #22d49a30', background: 'transparent', color: '#22d49a', cursor: 'pointer', fontSize: '0.72rem', fontFamily: 'Inter, sans-serif', flexShrink: 0 }}>Copy</button>
+                <button onClick={() => setNewKey(null)} style={{ padding: '4px 10px', borderRadius: 5, border: '1px solid #1d2535', background: 'transparent', color: '#6b7a94', cursor: 'pointer', fontSize: '0.72rem', fontFamily: 'Inter, sans-serif', flexShrink: 0 }}>✕</button>
+              </div>
+            </div>
+          )}
+          {apiKeys.length === 0 ? (
+            <div style={{ fontSize: '0.78rem', color: '#3a4050', textAlign: 'center', padding: '24px 0' }}>No API keys yet</div>
+          ) : apiKeys.map((k: any) => (
+            <div key={k.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: '#0a0d18', border: '1px solid #1d2535', borderRadius: 8, marginBottom: 6 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '0.82rem', fontWeight: 600 }}>{k.name}</div>
+                <div style={{ fontSize: '0.68rem', color: '#6b7a94', fontFamily: 'JetBrains Mono, monospace' }}>{k.prefix}… · {k.scopes?.join(', ')}</div>
+              </div>
+              <div style={{ fontSize: '0.64rem', color: '#3a4050' }}>Created {new Date(k.createdAt).toLocaleDateString('en-GB')}</div>
+              <button onClick={async () => { await fetch('/api/auth/api-keys', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: k.id }) }); loadKeys(); }} style={{ padding: '3px 10px', borderRadius: 5, border: '1px solid #f0405e25', background: 'transparent', color: '#f0405e', cursor: 'pointer', fontSize: '0.68rem', fontFamily: 'Inter, sans-serif' }}>Revoke</button>
+            </div>
+          ))}
+        </div>
+      )}      </div>
     </div>
   );
 }
