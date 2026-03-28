@@ -333,7 +333,7 @@ export default function DashboardPage() {
   const [intelLoading, setIntelLoading] = useState(false);
   const [customIntel, setCustomIntel] = useState(null);
   const [intelFetchedAt, setIntelFetchedAt] = useState(null);
-  const [livetenableNews, setLiveTenableNews] = useState([]);live intel fetch
+  const [livetenableNews, setLiveTenableNews] = useState([]);
   const intelAutoRefreshRef = React.useRef(null);
   const [expandedAlerts, setExpandedAlerts] = useState(new Set());
   // Alerts tab features
