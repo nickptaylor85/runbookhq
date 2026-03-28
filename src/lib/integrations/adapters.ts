@@ -101,15 +101,20 @@ export const tenable: IntegrationAdapter = {
     );
     if (!listRes.ok) throw new Error(`Tenable: HTTP ${listRes.status}`);
     const listData = await listRes.json();
-    // Filter out scan-info plugins (plugin 19506 etc) and enforce High/Critical
+    // Filter: severity >= 3 (High/Critical on Tenable scale). Exclude known scan-info plugins.
+    // NOTE: cvss3_base_score is NOT present on /workbenches/vulnerabilities list endpoint — do not filter on it here.
+    const SCAN_INFO_PLUGINS = new Set([19506, 56984, 45590, 11219, 12634]); // scan info / host enum plugins
     const plugins: any[] = (listData.vulnerabilities || [])
       .filter((p: any) => {
         const sev = Number(p.severity);
-        const cvss = Number(p.cvss3_base_score || 0);
-        // Must be High(3) or Critical(4), skip pure scan-info with no real CVE impact
-        return sev >= 3 && (cvss >= 6.5 || sev === 4);
+        const pid = Number(p.plugin_id);
+        return sev >= 3 && !SCAN_INFO_PLUGINS.has(pid);
       })
       .slice(0, 10);
+    console.log(`[tenable] ${plugins.length} plugins after filter (from ${listData.vulnerabilities?.length || 0} raw)`);
+    if (plugins.length > 0) {
+      console.log(`[tenable] top plugins: ${plugins.map((p:any) => `${p.plugin_id}(sev${p.severity})`).join(', ')}`);
+    }
     if (plugins.length === 0) return [];
 
     // Step 2: fetch /outputs for each plugin in parallel
