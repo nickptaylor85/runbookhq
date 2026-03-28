@@ -191,6 +191,39 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
         );
       })}
 
+      {/* Cross-tenant correlation — IOCs and vulns seen across multiple clients */}
+      {portfolioView==='security' && (
+        <div style={{background:'var(--wt-card)',border:'1px solid #f97316 20',borderRadius:12,overflow:'hidden'}}>
+          <div style={{padding:'10px 16px',background:'#f9731608',borderBottom:'1px solid #f9731620',display:'flex',alignItems:'center',gap:8}}>
+            <span style={{fontSize:'0.64rem',fontWeight:800,color:'#f97316',textTransform:'uppercase',letterSpacing:'0.5px'}}>⚡ Cross-Tenant Correlation</span>
+            <span style={{fontSize:'0.58rem',color:'var(--wt-muted)'}}>IOCs and vulnerabilities detected across multiple clients</span>
+            <span style={{fontSize:'0.54rem',color:'#f97316',background:'#f9731612',padding:'1px 6px',borderRadius:3,border:'1px solid #f9731625',fontWeight:700,marginLeft:'auto'}}>MSSP Intelligence</span>
+          </div>
+          <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:8}}>
+            {[
+              {type:'IOC',indicator:'185.220.101.0/24',desc:'C2 range',clients:['Acme Financial','NHS Trust Alpha','Gov Dept Beta'],severity:'Critical',mitre:'T1071.001'},
+              {type:'CVE', indicator:'CVE-2024-21413',desc:'Outlook NTLM',clients:['Acme Financial','RetailCo UK'],severity:'Critical',mitre:'T1190'},
+              {type:'IOC', indicator:'lockbit-ransom3.com',desc:'LockBit 3.0 C2',clients:['NHS Trust Alpha','Gov Dept Beta'],severity:'High',mitre:'T1486'},
+              {type:'CVE', indicator:'CVE-2024-3400', desc:'PAN-OS RCE',clients:['Acme Financial','NHS Trust Alpha','RetailCo UK','Gov Dept Beta'],severity:'Critical',mitre:'T1190'},
+            ].map((item,i)=>(
+              <div key={i} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',background:item.clients.length>=3?'#f0405e06':'var(--wt-card2)',border:`1px solid ${item.clients.length>=3?'#f0405e20':'var(--wt-border)'}`,borderRadius:8}}>
+                <span style={{fontSize:'0.52rem',fontWeight:800,padding:'2px 5px',borderRadius:3,background:item.type==='IOC'?'#f0405e20':'#8b6fff20',color:item.type==='IOC'?'#f0405e':'#8b6fff',flexShrink:0,minWidth:30,textAlign:'center'}}>{item.type}</span>
+                <code style={{fontSize:'0.64rem',fontFamily:'JetBrains Mono,monospace',color:'#f0c070',flex:'0 0 auto',minWidth:140}}>{item.indicator}</code>
+                <span style={{fontSize:'0.6rem',color:'var(--wt-dim)',flex:1}}>{item.desc}</span>
+                <div style={{display:'flex',gap:3,flexWrap:'wrap',flex:'0 0 auto'}}>
+                  {item.clients.map(c=><span key={c} style={{fontSize:'0.52rem',padding:'1px 5px',borderRadius:3,background:'var(--wt-border)',color:'var(--wt-muted)'}}>{c.split(' ')[0]}</span>)}
+                </div>
+                <span style={{fontSize:'0.52rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:`${item.severity==='Critical'?'#f0405e':'#f97316'}18`,color:item.severity==='Critical'?'#f0405e':'#f97316',flexShrink:0}}>{item.clients.length} clients</span>
+                <span style={{fontSize:'0.48rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace',flexShrink:0}}>{item.mitre}</span>
+              </div>
+            ))}
+            <div style={{fontSize:'0.58rem',color:'var(--wt-dim)',paddingTop:4}}>
+              💡 In production, cross-tenant correlation runs automatically — IOCs and CVEs appearing in ≥2 clients generate a cross-client advisory and alert all affected tenant dashboards.
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MSSP billing footer */}
       <div style={{padding:'12px 16px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
         <div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>Your Watchtower MSSP subscription: <strong style={{color:'#8b6fff'}}>£{799 + Math.max(0,(MY_CLIENTS.length-5)*79)}/mo</strong> · {MY_CLIENTS.length} clients ({MY_CLIENTS.length<=5?'included':MY_CLIENTS.length-5+' extra × £79'})</div>

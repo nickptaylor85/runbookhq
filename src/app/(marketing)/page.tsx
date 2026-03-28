@@ -443,7 +443,7 @@ export default function LandingPage() {
             <defs><linearGradient id="fg" x1="0" y1="0" x2="22" y2="22" gradientUnits="userSpaceOnUse"><stop stopColor="#3b7fff"/><stop offset="1" stopColor="#7c3aff"/></linearGradient></defs>
           </svg>
           <span style={{ fontWeight:700, fontSize:'0.88rem' }}>Watchtower</span>
-          <span style={{ color:'#2a3448', marginLeft:8, fontSize:'0.72rem' }}>© 2026 RunbookHQ Ltd</span>
+          <span style={{ color:'#2a3448', marginLeft:8, fontSize:'0.72rem' }}>© 2026 Watchtower Ltd</span>
         </div>
         <div style={{ display:'flex', gap:20 }}>
           {[{l:'Privacy',h:'/privacy'},{l:'Terms',h:'/terms'},{l:'Security',h:'/security'},{l:'Docs',h:'/docs'}].map(({l,h})=><a key={l} href={h} style={{color:'#4a5568',fontSize:'0.76rem',textDecoration:'none'}} onMouseEnter={e=>{(e.target as HTMLElement).style.color='#8a9ab0';}} onMouseLeave={e=>{(e.target as HTMLElement).style.color='#4a5568';}}>{l}</a>)}

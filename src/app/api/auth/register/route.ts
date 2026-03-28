@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createUser, getUserByEmail, hashPassword } from '@/lib/users';
-import { redisSet } from '@/lib/redis';
+import { redisSet, redisGet } from '@/lib/redis';
 
 export async function POST(req: NextRequest) {
   try {
+    // Check if signups are enabled (default: true)
+    const platformRaw = await redisGet('wt:platform:settings').catch(() => null);
+    const platformSettings = platformRaw ? JSON.parse(platformRaw) : {};
+    if (platformSettings.signup_enabled === false) {
+      return NextResponse.json({ error: 'Sign-ups are currently disabled. Contact your administrator.' }, { status: 403 });
+    }
+
     const { name, email, password, plan } = await req.json();
     if (!name || !email || !password)
       return NextResponse.json({ error: 'Name, email and password required' }, { status: 400 });

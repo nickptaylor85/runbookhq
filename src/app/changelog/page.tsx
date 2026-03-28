@@ -4,6 +4,24 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.9.107',
+    date: '2026-03-28',
+    tag: 'Fix + Features',
+    tagColor: '#22d49a',
+    summary: 'Fix intel/incidents/coverage/vulns/comply, cross-tenant alerts, branding, signup toggle',
+    changes: [
+      { type: 'fix', text: 'General intel now always shows CISA KEV / ThreatFox / URLhaus feeds as background intel regardless of mode. Industry-specific AI intel uses industryIntel variable.' },
+      { type: 'fix', text: 'Incidents: demo incidents no longer shown in live mode. Only user-created incidents visible when demoMode=false.' },
+      { type: 'fix', text: 'Coverage: gapDevices now filtered to only devices where missing.length>0. coveredPct uses actual Tenable estate size in live mode.' },
+      { type: 'fix', text: 'Vulns: grouped by product name with severity badge counts per group (Critical N, High N etc). IIFE renders product sections sorted by highest severity.' },
+      { type: 'fix', text: 'Compliance: shows informative empty state in live mode when no MITRE-tagged alerts have arrived yet.' },
+      { type: 'feat', text: 'MSSP Portfolio: Cross-Tenant Correlation panel showing IOCs and CVEs present across multiple clients. In production this auto-generates cross-client advisories.' },
+      { type: 'fix', text: 'Landing page: copyright footer now reads Watchtower Ltd, not RunbookHQ Ltd.' },
+      { type: 'feat', text: 'Admin → Platform tab: SignupToggle lets admin enable/disable public sign-ups. Register route enforces the flag via wt:platform:settings Redis key.' },
+    ],
+  },
+
+  {
     version: 'v74.9.106',
     date: '2026-03-28',
     tag: 'Production Readiness',
