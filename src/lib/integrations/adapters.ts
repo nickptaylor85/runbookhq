@@ -108,7 +108,7 @@ export const tenable: IntegrationAdapter = {
 
     for (let i = 0; i < plugins.length; i++) {
       const plugin = plugins[i];
-      const raw = settled[i].status === 'fulfilled' ? settled[i].value : null;
+      const raw = settled[i].status === 'fulfilled' ? (settled[i] as PromiseFulfilledResult<any>).value : null;
       const assetList: Array<{hostname:string; ipv4:string}> = [];
 
       if (raw?.outputs) {
