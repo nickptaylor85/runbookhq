@@ -57,9 +57,11 @@ export async function POST(req: NextRequest) {
         const adapter = ADAPTERS[id];
         if (!adapter) return { toolId: id, alerts: [], error: 'Unknown integration', count: 0 };
         try {
+          const t0 = Date.now();
           const alerts = await adapter.fetchAlerts(credentials, since);
-          console.log(`[sync] ${id}: ${alerts.length} records`);
-          return { toolId: id, alerts, count: alerts.length };
+          const durationMs = Date.now() - t0;
+          console.log(`[sync] ${id}: ${alerts.length} records ${durationMs}ms`);
+          return { toolId: id, alerts, count: alerts.length, durationMs };
         } catch (e: any) {
           const errMsg = e?.message || String(e);
           const cause = e?.cause?.message || e?.cause?.code || '';
