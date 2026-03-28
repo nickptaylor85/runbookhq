@@ -175,6 +175,10 @@ export default function AlertsTab({
       {alertsPaged.map(alert => {
         const vStyle = VERDICT_STYLE[alert.verdict] || VERDICT_STYLE.Pending;
         const expanded = expandedAlerts.has(alert.id);
+        const aiText = (!demoMode && aiTriageCache[alert.id]?.result?.reasoning) || '';
+        const aiVerdict = aiText.match(/True Positive|False Positive|Suspicious/i)?.[0] || '';
+        const aiConf = aiText.match(/\d+%/)?.[0] || '';
+        const aiVC = aiVerdict.toLowerCase().includes('true')?'#f0405e':aiVerdict.toLowerCase().includes('false')?'#22d49a':'#f0a030';
         const aiActed = alert.verdict==='FP' || alert.verdict==='TP';
         const isSelected = selectedAlerts.has(alert.id);
         const hasNote = alertNotes[alert.id];
@@ -231,7 +235,7 @@ export default function AlertsTab({
                         Verdict derived from <strong style={{color:'var(--wt-secondary)'}}>{alert.source}</strong> detection, cross-referenced with Tenable CVE exposure on <strong style={{color:'var(--wt-secondary)'}}>{alert.device||'this host'}</strong>, live NCSC advisories for your sector, and ThreatFox IOC database. Confidence {alert.confidence||'N/A'}%.
                       </div>
                     </div>
-                    {alert.evidenceChain && alert.evidenceChain.length > 0 && (
+                    {alert.evidenceChain?.length > 0 && (
                       <div style={{marginBottom:8}}>
                         <div style={{fontSize:'0.58rem',fontWeight:700,color:'var(--wt-muted)',marginBottom:4}}>EVIDENCE CHAIN</div>
                         {(alert.evidenceChain||[]).map((e,i)=>(
@@ -241,7 +245,7 @@ export default function AlertsTab({
                         ))}
                       </div>
                     )}
-                    {alert.aiActions && alert.aiActions.length > 0 && (
+                    {alert.aiActions?.length > 0 && (
                       <div style={{marginBottom:8}}>
                         <div style={{fontSize:'0.58rem',fontWeight:700,color:'var(--wt-muted)',marginBottom:4}}>ACTIONS TAKEN</div>
                         {(alert.aiActions||[]).map((a,i)=>(
@@ -259,20 +263,24 @@ export default function AlertsTab({
                   </div>
                 )}
                 {!demoMode && cached && cached.result && (
-                  <div style={{marginTop:12}}>
-                    <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Triage — Cross-Source Analysis</div>
-                    {/* Sources consulted */}
-                    <div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:8}}>
-                      {[
-                        {src:'Taegis XDR', c:'#f0405e'},
-                        {src:'Tenable Vulns', c:'#00b3e3'},
-                        {src:'NCSC Intel', c:'#22d49a'},
-                        {src:'ThreatFox IOCs', c:'#f0a030'},
-                      ].map(({src,c})=>(
-                        <span key={src} style={{fontSize:'0.56rem',padding:'1px 6px',borderRadius:3,background:`${c}12`,color:c,border:`1px solid ${c}25`,fontWeight:700}}>{src}</span>
+                  <div style={{marginTop:12,background:'linear-gradient(135deg,rgba(79,143,255,0.05),rgba(34,201,146,0.03))',border:'1px solid #4f8fff20',borderRadius:10,overflow:'hidden'}}>
+                    {/* Header */}
+                    <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',borderBottom:'1px solid #4f8fff15'}}>
+                      <span style={{fontSize:'0.6rem',fontWeight:800,color:'#4f8fff',letterSpacing:'0.5px'}}>✦ AI TRIAGE</span>
+                      {aiVerdict && <span style={{fontSize:'0.6rem',fontWeight:800,padding:'1px 8px',borderRadius:4,background:`${aiVC}18`,color:aiVC,border:`1px solid ${aiVC}30`}}>{aiVerdict}{aiConf?' · '+aiConf+' confidence':''}</span>}
+                      {/* Sources consulted */}
+                      <div style={{display:'flex',gap:4,marginLeft:'auto',flexWrap:'wrap'}}>
+                        {[{src:'Taegis',c:'#f0405e'},{src:'Tenable',c:'#00b3e3'},{src:'Intel',c:'#22d49a'},{src:'IOCs',c:'#f0a030'}].map(({src,c})=>(
+                          <span key={src} style={{fontSize:'0.5rem',padding:'1px 5px',borderRadius:3,background:`${c}12`,color:c,fontWeight:700}}>{src}</span>
+                        ))}
+                      </div>
+                    </div>
+                    {/* Reasoning text - split on newlines for readability */}
+                    <div style={{padding:'10px 12px'}}>
+                      {aiText.split('\n').filter(s=>s.trim()).map((line,i,arr)=>(
+                        <div key={i} style={{fontSize:'0.72rem',color:'var(--wt-secondary)',lineHeight:1.7,marginBottom:i<arr.length-1?6:0}}>{line.trim()}</div>
                       ))}
                     </div>
-                    <div style={{fontSize:'0.76rem',color:'var(--wt-secondary)',lineHeight:1.75,background:'rgba(79,143,255,0.04)',padding:'10px 12px',borderRadius:8,border:'1px solid #4f8fff18'}}>{cached.result.reasoning}</div>
                   </div>
                 )}
 
