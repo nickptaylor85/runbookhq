@@ -127,6 +127,13 @@ export default function AlertsTab({
           }} style={{padding:'4px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
             Create Incident
           </button>
+          {setAlertSnoozes && <button onClick={()=>{
+            const until=Date.now()+(2*60*60*1000);
+            setAlertSnoozes(prev=>{const n={...prev};[...selectedAlerts].forEach(id=>{n[id]=until;});return n;});
+            setSelectedAlerts(new Set());
+          }} style={{padding:'4px 12px',borderRadius:6,border:'1px solid #f0a03030',background:'#f0a03010',color:'#f0a030',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+            Snooze 2h
+          </button>}
           <button onClick={()=>setSelectedAlerts(new Set())}
             style={{marginLeft:'auto',padding:'4px 10px',borderRadius:6,border:'1px solid var(--wt-border)',background:'none',color:'var(--wt-muted)',fontSize:'0.68rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
             Deselect all
@@ -282,7 +289,10 @@ export default function AlertsTab({
                       <div style={{display:'flex',gap:6}}>
                         <button onClick={()=>{
                           if(noteInput.trim()) setAlertNotes(prev=>({...prev,[alert.id]:noteInput.trim()}));
-                          else { const n={...alertNotes}; delete n[alert.id]; setAlertNotes(n); }
+                          fetch('/api/alert-notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alertId:alert.id,note:noteInput.trim()})}).catch(()=>{});
+                          } else { const n={...alertNotes}; delete n[alert.id]; setAlertNotes(n);
+                          fetch('/api/alert-notes',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({alertId:alert.id})}).catch(()=>{});
+                          }
                           setEditingNote(null); setNoteInput('');
                         }} style={{padding:'4px 12px',borderRadius:6,border:'none',background:'#4f8fff',color:'#fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Save</button>
                         <button onClick={()=>{setEditingNote(null);setNoteInput('');}}

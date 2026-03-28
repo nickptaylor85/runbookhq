@@ -1,20 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { redisHSet, redisHGetAll, redisHDel, KEYS } from '@/lib/redis';
 
 function getTenantId(req: NextRequest): string {
   return req.headers.get('x-tenant-id') || 'global';
 }
 
+function notesKey(tenantId: string) {
+  return `wt:${tenantId}:alert_notes`;
+}
+
 export async function GET(req: NextRequest) {
-  const _tenantId = getTenantId(req);
-  return NextResponse.json({"ok": true, "notes": []});
+  try {
+    const tenantId = getTenantId(req);
+    const notes = await redisHGetAll(notesKey(tenantId));
+    return NextResponse.json({ ok: true, notes: notes || {} });
+  } catch (e: unknown) {
+    return NextResponse.json({ ok: false, notes: {}, message: e instanceof Error ? e.message : 'error' });
+  }
 }
 
 export async function POST(req: NextRequest) {
-  const _tenantId = getTenantId(req);
-  return NextResponse.json({"ok": true});
+  try {
+    const tenantId = getTenantId(req);
+    const body = await req.json() as { alertId?: string; note?: string };
+    if (!body?.alertId) return NextResponse.json({ error: 'alertId required' }, { status: 400 });
+    const note = String(body.note || '').slice(0, 2000);
+    if (note) {
+      await redisHSet(notesKey(tenantId), body.alertId, note);
+    } else {
+      await redisHDel(notesKey(tenantId), body.alertId);
+    }
+    return NextResponse.json({ ok: true });
+  } catch (e: unknown) {
+    return NextResponse.json({ ok: false, message: e instanceof Error ? e.message : 'error' }, { status: 500 });
+  }
 }
 
 export async function DELETE(req: NextRequest) {
-  const _tenantId = getTenantId(req);
-  return NextResponse.json({"ok": true});
+  try {
+    const tenantId = getTenantId(req);
+    const body = await req.json() as { alertId?: string };
+    if (!body?.alertId) return NextResponse.json({ error: 'alertId required' }, { status: 400 });
+    await redisHDel(notesKey(tenantId), body.alertId);
+    return NextResponse.json({ ok: true });
+  } catch (e: unknown) {
+    return NextResponse.json({ ok: false, message: e instanceof Error ? e.message : 'error' }, { status: 500 });
+  }
 }

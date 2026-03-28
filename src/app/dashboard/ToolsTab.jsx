@@ -50,6 +50,7 @@ export default function ToolsTab({ connected, setConnected }) {
   const [formVals, setFormVals] = useState({});
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [anthropicKey, setAnthropicKey] = useState('');
   const [keyStatus, setKeyStatus] = useState('idle');
   const [aiTestStatus, setAiTestStatus] = useState(null);
@@ -129,6 +130,8 @@ export default function ToolsTab({ connected, setConnected }) {
     // Persist to Redis
     fetch('/api/integrations/credentials', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({toolId:modal.id, credentials:newCreds})}).catch(()=>{});
     setModal(null);
+    setSaveSuccess(true);
+    setTimeout(()=>setSaveSuccess(false), 2500);
   }
 
   function handleDisconnect(id) {
@@ -226,6 +229,9 @@ export default function ToolsTab({ connected, setConnected }) {
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={()=>setModal(null)}>
           <div style={{background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:16,maxWidth:480,width:'100%',padding:24,maxHeight:'85vh',overflow:'auto'}} onClick={e=>e.stopPropagation()}>
             <div style={{fontSize:'0.92rem',fontWeight:800,marginBottom:4}}>Connect {modal.name}</div>
+            <div style={{fontSize:'0.66rem',color:'#22d49a',background:'#22d49a08',border:'1px solid #22d49a20',borderRadius:6,padding:'6px 10px',marginBottom:12,display:'flex',alignItems:'center',gap:6}}>
+              <span>🔒</span> Credentials encrypted at rest with AES-256-GCM — never returned to browser after saving.
+            </div>
             <div style={{fontSize:'0.7rem',color:'var(--wt-muted)',marginBottom:18}}>Credentials are sent directly to the integration API for validation and never stored on our servers.</div>
             {(CRED_FIELDS[modal.id]||[]).map(f=>(
               <div key={f.key} style={{marginBottom:12}}>
@@ -243,7 +249,7 @@ export default function ToolsTab({ connected, setConnected }) {
                 {testing?'Testing…':'Test Connection'}
               </button>
               <button onClick={handleSave} disabled={Object.keys(formVals).length===0} style={{flex:1,padding:'9px 0',borderRadius:8,border:'none',background:Object.keys(formVals).length>0?'#4f8fff':'var(--wt-border2)',color:Object.keys(formVals).length>0?'#fff':'#3a4050',fontSize:'0.78rem',fontWeight:700,cursor:Object.keys(formVals).length>0?'pointer':'not-allowed',fontFamily:'Inter,sans-serif'}}>
-                Save & Connect
+                {saveSuccess ? '✓ Saved' : 'Save & Connect'}
               </button>
               <button onClick={()=>setModal(null)} style={{padding:'9px 16px',borderRadius:8,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.78rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Cancel</button>
             </div>

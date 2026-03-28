@@ -90,6 +90,14 @@ export async function setTenantAnthropicKey(tenantId: string, key: string): Prom
   await redisSet(KEYS.TENANT_ANTHROPIC_KEY(tenantId), key);
 }
 
+export async function redisHDel(key: string, field: string): Promise<void> {
+  const url = process.env.UPSTASH_REDIS_REST_URL!;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
+  await fetch(`${url}/hdel/${encodeURIComponent(key)}/${encodeURIComponent(field)}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+}
+
 export async function getTenantSettings(tenantId: string): Promise<Record<string, string>> {
   try {
     return await redisHGetAll(KEYS.TENANT_SETTINGS(tenantId));
