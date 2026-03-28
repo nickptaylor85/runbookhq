@@ -104,7 +104,19 @@ export const tenable: IntegrationAdapter = {
     // Filter: severity >= 3 (High/Critical on Tenable scale). Exclude known scan-info plugins.
     // NOTE: cvss3_base_score is NOT present on /workbenches/vulnerabilities list endpoint — do not filter on it here.
     const SCAN_INFO_PLUGINS = new Set([19506, 56984, 45590, 11219, 12634]); // scan info / host enum plugins
-    const plugins: any[] = (listData.vulnerabilities || [])
+    const rawVulns = listData.vulnerabilities || [];
+    // Log raw severity distribution to diagnose filter issues
+    const sevDist: Record<string, number> = {};
+    for (const p of rawVulns) {
+      const s = String(p.severity);
+      sevDist[s] = (sevDist[s] || 0) + 1;
+    }
+    console.log(`[tenable] raw: ${rawVulns.length} plugins, severity dist: ${JSON.stringify(sevDist)}`);
+    if (rawVulns.length > 0) {
+      const sample = rawVulns[0];
+      console.log(`[tenable] sample plugin fields: ${JSON.stringify({plugin_id:sample.plugin_id,plugin_name:sample.plugin_name?.slice(0,40),severity:sample.severity,severity_id:sample.severity_id,count:sample.count})}`);
+    }
+    const plugins: any[] = rawVulns
       .filter((p: any) => {
         const sev = Number(p.severity);
         const pid = Number(p.plugin_id);
