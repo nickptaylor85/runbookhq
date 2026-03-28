@@ -119,7 +119,6 @@ export const tenable: IntegrationAdapter = {
       .filter((p: any) => Number(p.severity) >= 2 && !SCAN_INFO_PLUGINS.has(Number(p.plugin_id)))
       .slice(0, 20);
     console.log(`[tenable] after filter: ${plugins.length} (sev>=2, excluding scan-info)`);
-    }
     if (plugins.length === 0) return [];
 
     // Step 2: fetch /outputs for each plugin in parallel
