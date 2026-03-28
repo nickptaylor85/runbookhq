@@ -6,6 +6,9 @@ import { redisGet, KEYS } from '@/lib/redis';
 import { decrypt } from '@/lib/encrypt';
 import type { SyncResult } from '@/lib/integrations';
 
+// Extend max execution time — Tenable makes 2 sequential API calls, needs headroom
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   try {
     const userId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
@@ -55,6 +58,7 @@ export async function POST(req: NextRequest) {
         if (!adapter) return { toolId: id, alerts: [], error: 'Unknown integration', count: 0 };
         try {
           const alerts = await adapter.fetchAlerts(credentials, since);
+          console.log(`[sync] ${id}: ${alerts.length} records`);
           return { toolId: id, alerts, count: alerts.length };
         } catch (e: any) {
           const errMsg = e?.message || String(e);

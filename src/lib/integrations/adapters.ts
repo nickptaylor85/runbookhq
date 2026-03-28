@@ -77,73 +77,77 @@ export const tenable: IntegrationAdapter = {
     } catch(e: any) { return { ok: false, message: e.message }; }
   },
   async fetchAlerts(creds, since) {
-    // Tenable.io: /workbenches/vulnerabilities returns plugin-level aggregates only (no asset data).
-    // To get hostnames we must call /workbenches/vulnerabilities/{plugin_id}/outputs for each plugin.
-    const headers = { 'X-ApiKeys': `accessKey=${creds.access_key};secretKey=${creds.secret_key}`, 'Accept': 'application/json' };
+    // Two-call approach — avoids the 25-parallel-call timeout problem.
+    // Call 1: GET /workbenches/assets  → build UUID→hostname map
+    // Call 2: GET /workbenches/vulnerabilities → vulnerability list with asset_id field
+    // Join: enrich each vulnerability with the hostname from the asset map.
+    const headers = {
+      'X-ApiKeys': `accessKey=${creds.access_key};secretKey=${creds.secret_key}`,
+      'Accept': 'application/json',
+    };
+    const timeout = AbortSignal.timeout(15000); // 15s per call, well within 60s route limit
 
-    // Step 1: get top plugins by severity (Critical=4, High=3)
-    const params = new URLSearchParams({
+    // --- Call 1: asset map ---
+    const assetParams = new URLSearchParams({
+      date_range: '90',
+      limit: '500',
+    });
+    let assetMap: Record<string, { hostname: string; ipv4: string }> = {};
+    try {
+      const assetRes = await fetch(
+        `https://cloud.tenable.com/workbenches/assets?${assetParams}`,
+        { headers, signal: timeout }
+      );
+      if (assetRes.ok) {
+        const assetData = await assetRes.json();
+        for (const a of (assetData.assets || [])) {
+          const id = a.id;
+          if (!id) continue;
+          const hostname =
+            (a.fqdn?.[0]) || (a.hostname?.[0]) ||
+            (a.netbios_name?.[0]) || (a.ipv4?.[0]) || 'Unknown';
+          const ipv4 = a.ipv4?.[0] || '';
+          assetMap[id] = { hostname, ipv4 };
+        }
+      }
+    } catch { /* asset fetch failed — proceed without hostnames */ }
+
+    // --- Call 2: vulnerability list ---
+    const vulnParams = new URLSearchParams({
       date_range: '30',
       'filter.0.filter': 'severity',
       'filter.0.quality': 'gte',
-      'filter.0.value': '3',
+      'filter.0.value': '3', // 3=High, 4=Critical
       'filter.search_type': 'and',
-      limit: '25',
+      limit: '200',
     });
-    const listRes = await fetch(`https://cloud.tenable.com/workbenches/vulnerabilities?${params.toString()}`, { headers });
-    if (!listRes.ok) throw new Error(`Tenable API error: HTTP ${listRes.status}`);
-    const listData = await listRes.json();
-    const plugins: any[] = (listData.vulnerabilities || []).slice(0, 20);
-    if (plugins.length === 0) return [];
-
-    // Step 2: fetch per-asset outputs for each plugin in parallel
-    const outputResults = await Promise.allSettled(
-      plugins.map(async (plugin: any) => {
-        const outRes = await fetch(`https://cloud.tenable.com/workbenches/vulnerabilities/${plugin.plugin_id}/outputs`, { headers });
-        if (!outRes.ok) return [];
-        const outData = await outRes.json();
-        const records: NormalisedAlert[] = [];
-        for (const output of (outData.outputs || [])) {
-          for (const state of (output.states || [])) {
-            if (state.name !== 'open') continue;
-            for (const result of (state.results || [])) {
-              for (const asset of (result.assets || [])) {
-                records.push({
-                  id: safeId('tenable', plugin.plugin_id, asset.id || asset.ipv4),
-                  source: 'Tenable',
-                  sourceId: `${plugin.plugin_id}`,
-                  title: plugin.plugin_name || 'Tenable vulnerability',
-                  severity: normSev(plugin.severity),
-                  device: asset.hostname || asset.fqdn || asset.ipv4 || 'Unknown',
-                  ip: asset.ipv4,
-                  user: undefined,
-                  time: plugin.last_found || new Date().toISOString(),
-                  rawTime: new Date(plugin.last_found || Date.now()).getTime(),
-                  description: `${plugin.plugin_name}${plugin.cve?.[0] ? ` — CVE: ${plugin.cve[0]}` : ''}`,
-                  verdict: 'Pending',
-                  confidence: plugin.cvss3_base_score ? Math.round(plugin.cvss3_base_score * 10) : 50,
-                  tags: ['tenable', 'vuln', plugin.cve?.[0]].filter(Boolean),
-                  raw: { plugin, asset, output: output.plugin_output },
-                });
-              }
-            }
-          }
-        }
-        return records;
-      })
+    const vulnRes = await fetch(
+      `https://cloud.tenable.com/workbenches/vulnerabilities?${vulnParams}`,
+      { headers, signal: AbortSignal.timeout(15000) }
     );
+    if (!vulnRes.ok) throw new Error(`Tenable API error: HTTP ${vulnRes.status}`);
+    const vulnData = await vulnRes.json();
 
-    // Flatten, dedupe by id, limit to 150
-    const seen = new Set<string>();
-    const all: NormalisedAlert[] = [];
-    for (const r of outputResults) {
-      if (r.status === 'fulfilled') {
-        for (const item of r.value) {
-          if (!seen.has(item.id)) { seen.add(item.id); all.push(item); }
-        }
-      }
-    }
-    return all.slice(0, 150);
+    return (vulnData.vulnerabilities || []).slice(0, 150).map((v: any): NormalisedAlert => {
+      const assetInfo = assetMap[v.asset_id] || { hostname: v.asset_id ? 'Asset ' + String(v.asset_id).slice(0,8) : 'Unknown', ipv4: '' };
+      return {
+        id: safeId('tenable', v.plugin_id, v.asset_id || 'x'),
+        source: 'Tenable',
+        sourceId: `${v.plugin_id}`,
+        title: v.plugin_name || 'Tenable vulnerability',
+        severity: normSev(v.severity),
+        device: assetInfo.hostname,
+        ip: assetInfo.ipv4 || undefined,
+        user: undefined,
+        time: v.last_found || new Date().toISOString(),
+        rawTime: new Date(v.last_found || Date.now()).getTime(),
+        description: `${v.plugin_name}${v.cve?.[0] ? ` — CVE: ${v.cve[0]}` : ''}${v.count > 1 ? ` (${v.count} assets affected)` : ''}`,
+        verdict: 'Pending',
+        confidence: v.cvss3_base_score ? Math.round(v.cvss3_base_score * 10) : 50,
+        tags: ['tenable', 'vuln', v.cve?.[0]].filter(Boolean),
+        raw: v,
+      };
+    });
   },
 };
 
