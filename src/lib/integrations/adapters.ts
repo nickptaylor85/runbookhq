@@ -87,16 +87,16 @@ export const tenable: IntegrationAdapter = {
     } catch(e: any) { return { ok: false, message: e.message }; }
   },
   async fetchAlerts(creds, since) {
-    // Strategy: get top 5 Critical/High plugins, then fetch /outputs for each in parallel (≤5 calls)
+    // Strategy: get top 15 Medium+ plugins, fetch /outputs per plugin in parallel for per-asset hostnames
     // /workbenches/vulnerabilities/{id}/outputs → outputs[].states[].results[].assets[] with hostname
     const headers = {
       'X-ApiKeys': `accessKey=${creds.access_key};secretKey=${creds.secret_key}`,
       'Accept': 'application/json',
     };
 
-    // Step 1: top plugins (Critical=4, High=3), last 90 days, limit 5
+    // Step 1: plugins sev>=2 (Medium=2, High=3, Critical=4), last 90 days, limit 50
     const listRes = await fetch(
-      `https://cloud.tenable.com/workbenches/vulnerabilities?date_range=90&filter.0.filter=severity&filter.0.quality=gte&filter.0.value=3&filter.search_type=and&limit=20`,
+      `https://cloud.tenable.com/workbenches/vulnerabilities?date_range=90&filter.0.filter=severity&filter.0.quality=gte&filter.0.value=2&filter.search_type=and&limit=50`,
       { headers, signal: AbortSignal.timeout(12000) }
     );
     if (!listRes.ok) throw new Error(`Tenable: HTTP ${listRes.status}`);
@@ -105,27 +105,20 @@ export const tenable: IntegrationAdapter = {
     // NOTE: cvss3_base_score is NOT present on /workbenches/vulnerabilities list endpoint — do not filter on it here.
     const SCAN_INFO_PLUGINS = new Set([19506, 56984, 45590, 11219, 12634]); // scan info / host enum plugins
     const rawVulns = listData.vulnerabilities || [];
-    // Log raw severity distribution to diagnose filter issues
-    const sevDist: Record<string, number> = {};
-    for (const p of rawVulns) {
-      const s = String(p.severity);
-      sevDist[s] = (sevDist[s] || 0) + 1;
-    }
-    console.log(`[tenable] raw: ${rawVulns.length} plugins, severity dist: ${JSON.stringify(sevDist)}`);
+    // Log each severity count separately (Vercel truncates long single log lines)
+    const sevDist: Record<string,number> = {};
+    for (const p of rawVulns) { const s = String(p.severity); sevDist[s] = (sevDist[s]||0)+1; }
+    for (const [sev,cnt] of Object.entries(sevDist)) { console.log(`[tenable] sev${sev}=${cnt}`); }
     if (rawVulns.length > 0) {
-      const sample = rawVulns[0];
-      console.log(`[tenable] sample plugin fields: ${JSON.stringify({plugin_id:sample.plugin_id,plugin_name:sample.plugin_name?.slice(0,40),severity:sample.severity,severity_id:sample.severity_id,count:sample.count})}`);
+      const s0 = rawVulns[0];
+      console.log(`[tenable] sample id=${s0.plugin_id} sev=${s0.severity} name=${String(s0.plugin_name||'').slice(0,25)}`);
     }
+    // Include Medium (sev>=2) — many environments have no High/Critical
+    const SCAN_INFO_PLUGINS = new Set([19506, 56984, 45590, 11219, 12634]);
     const plugins: any[] = rawVulns
-      .filter((p: any) => {
-        const sev = Number(p.severity);
-        const pid = Number(p.plugin_id);
-        return sev >= 3 && !SCAN_INFO_PLUGINS.has(pid);
-      })
-      .slice(0, 10);
-    console.log(`[tenable] ${plugins.length} plugins after filter (from ${listData.vulnerabilities?.length || 0} raw)`);
-    if (plugins.length > 0) {
-      console.log(`[tenable] top plugins: ${plugins.map((p:any) => `${p.plugin_id}(sev${p.severity})`).join(', ')}`);
+      .filter((p: any) => Number(p.severity) >= 2 && !SCAN_INFO_PLUGINS.has(Number(p.plugin_id)))
+      .slice(0, 20);
+    console.log(`[tenable] after filter: ${plugins.length} (sev>=2, excluding scan-info)`);
     }
     if (plugins.length === 0) return [];
 

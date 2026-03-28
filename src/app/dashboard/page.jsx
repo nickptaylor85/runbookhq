@@ -139,19 +139,19 @@ const DEMO_INCIDENTS = [
 
 const DEMO_INTEL_BY_INDUSTRY = {
   'Financial Services':[
-    {id:'i1',title:'TA505 Targeting UK Banks — Cobalt Strike Deployment',summary:'TA505 (Clop ransomware affiliate) observed targeting UK financial institutions with spear-phishing campaigns delivering Cobalt Strike beacons via fake SWIFT notification emails. 3 UK banks confirmed compromised in the last 14 days.',severity:'Critical',source:'NCSC & ThreatFox',time:'2h ago',iocs:['185.220.101.42','hxxps://swift-notification[.]com','cobalt-cs-payload-2024.exe'],mitre:'T1566.001',industrySpecific:true,url:'https://www.securityweek.com/ta505-targets-uk-financial-institutions-cobalt-strike'},
+    {id:'i1',title:'TA505 Targeting UK Banks — Cobalt Strike Deployment',summary:'TA505 (Clop ransomware affiliate) observed targeting UK financial institutions with spear-phishing campaigns delivering Cobalt Strike beacons via fake SWIFT notification emails. 3 UK banks confirmed compromised in the last 14 days.',severity:'Critical',source:'NCSC & ThreatFox',time:'2h ago',iocs:['185.220.101.42','hxxps://swift-notification[.]com','cobalt-cs-payload-2024.exe'],mitre:'T1566.001',industrySpecific:true,url:'https://www.ncsc.gov.uk/news/ta505-targeting-uk-financial-sector'},
     {id:'i2',title:'QakBot Resurgence — Banking Trojans via PDF Lures',summary:'QakBot (QBot) back in circulation after law enforcement takedown. New infrastructure and updated PDF lure themed around invoice disputes. Financial sector primary target. High evasion capability — bypasses standard email security.',severity:'High',source:'CISA KEV',time:'6h ago',iocs:['invoice-dispute-2024.pdf','hxxp://qakbot-new[.]ru'],mitre:'T1566.001',industrySpecific:true,url:'https://www.bleepingcomputer.com/news/security/qakbot-returns-new-pdf-lures-targeting-financial-sector/'},
     {id:'i3',title:'SWIFT Customer Security Programme — Audit Deadline',summary:'SWIFT CSP mandatory controls attestation deadline approaching. Ensure your SWIFT connector environments comply with CSP 2024 requirements, particularly around multi-factor authentication and anomaly detection integration.',severity:'Medium',source:'SWIFT ISAC',time:'1d ago',industrySpecific:true,url:'https://www.swift.com/our-solutions/compliance-and-shared-services/financial-crime-cyber-security'},
   ],
   'Healthcare':[
-    {id:'i4',title:'Rhysida Ransomware Targeting NHS Trusts',summary:'Rhysida ransomware group actively targeting NHS Trusts and healthcare providers. Gain access via phishing, move laterally to clinical systems, and exfiltrate patient data before encryption. 4 NHS Trusts hit in last 30 days.',severity:'Critical',source:'NCSC Health Alert',time:'4h ago',iocs:['rhysida-ransom.onion','185.181.60.92','health-tender-2024.exe'],mitre:'T1486',industrySpecific:true,url:'https://www.ncsc.gov.uk/sector/healthcare'},
+    {id:'i4',title:'Rhysida Ransomware Targeting NHS Trusts',summary:'Rhysida ransomware group actively targeting NHS Trusts and healthcare providers. Gain access via phishing, move laterally to clinical systems, and exfiltrate patient data before encryption. 4 NHS Trusts hit in last 30 days.',severity:'Critical',source:'NCSC Health Alert',time:'4h ago',iocs:['rhysida-ransom.onion','185.181.60.92','health-tender-2024.exe'],mitre:'T1486',industrySpecific:true,url:'https://www.ncsc.gov.uk/news/rhysida-ransomware-targeting-healthcare'},
     {id:'i5',title:'DICOM Vulnerability — Medical Imaging Systems Exposed',summary:'Multiple DICOM-compliant medical imaging systems found to have patient data exposed on the internet without authentication. Check for internet-exposed DICOM servers on port 104. Over 1,000 UK systems found exposed in recent scan.',severity:'High',source:'Cynerio Research',time:'1d ago',industrySpecific:true,url:'https://cynerio.com/blog'},
   ],
   'default':[
-    {id:'def1',title:'CISA KEV Update — CVE-2024-21413, CVE-2024-3400, CVE-2024-27198',summary:'CISA added three critical CVEs to the Known Exploited Vulnerabilities catalog: CVE-2024-21413 (Microsoft Outlook RCE), CVE-2024-3400 (PAN-OS command injection), CVE-2024-27198 (JetBrains TeamCity auth bypass). All actively exploited. Patch deadline: 72 hours.',severity:'Critical',source:'CISA KEV',time:'3h ago',iocs:['CVE-2024-21413','CVE-2024-3400','CVE-2024-27198'],mitre:'T1190',industrySpecific:false,url:'https://www.cisa.gov/known-exploited-vulnerabilities-catalog'},
-    {id:'def2',title:'LockBit 3.0 Infrastructure Resurfaces Post-Takedown',summary:'LockBit 3.0 operational infrastructure identified on new IP ranges following law enforcement takedown. Group recruiting new affiliates and offering updated locker with improved evasion. Healthcare and financial sectors primary targets.',severity:'High',source:'ThreatFox',time:'8h ago',iocs:['185.220.101.0/24','lockbit-ransom3.com'],mitre:'T1486',industrySpecific:false,url:'https://www.bleepingcomputer.com/news/security/lockbit-returns-new-infrastructure-post-takedown/'},
-    {id:'def3',title:'ThreatFox IOC Feed — 847 New C2 Indicators',summary:'ThreatFox published 847 new command-and-control indicators in the last 24 hours. Predominant malware families: AsyncRAT, RedLine Stealer, Cobalt Strike. Recommend enriching alert triage rules with updated IOC set.',severity:'Medium',source:'ThreatFox',time:'1h ago',industrySpecific:false},
-    {id:'def4',title:'URLhaus Phishing Kit — 23 New Malicious Domains',summary:'23 newly registered domains identified distributing credential harvesting kits mimicking Microsoft 365, DocuSign, and SharePoint. All domains registered in last 72h with low reputation.',severity:'Medium',source:'URLhaus',time:'2h ago',industrySpecific:false},
+    {id:'def1',title:'CISA KEV Update — CVE-2024-21413, CVE-2024-3400, CVE-2024-27198',summary:'CISA added three critical CVEs to the Known Exploited Vulnerabilities catalog: CVE-2024-21413 (Microsoft Outlook RCE), CVE-2024-3400 (PAN-OS command injection), CVE-2024-27198 (JetBrains TeamCity auth bypass). All actively exploited. Patch deadline: 72 hours.',severity:'Critical',source:'CISA KEV',time:'3h ago',iocs:['CVE-2024-21413','CVE-2024-3400','CVE-2024-27198'],mitre:'T1190',industrySpecific:false,url:'https://www.cisa.gov/known-exploited-vulnerabilities-catalog',url:'https://www.cisa.gov/known-exploited-vulnerabilities-catalog'},
+    {id:'def2',title:'LockBit 3.0 Infrastructure Resurfaces Post-Takedown',summary:'LockBit 3.0 operational infrastructure identified on new IP ranges following law enforcement takedown. Group recruiting new affiliates and offering updated locker with improved evasion. Healthcare and financial sectors primary targets.',severity:'High',source:'ThreatFox',time:'8h ago',iocs:['185.220.101.0/24','lockbit-ransom3.com'],mitre:'T1486',industrySpecific:false,url:'https://www.bleepingcomputer.com/news/security/lockbit-returns-new-infrastructure-post-takedown/',url:'https://www.bleepingcomputer.com/news/security/lockbit-returns-post-takedown/'},
+    {id:'def3',title:'ThreatFox IOC Feed — 847 New C2 Indicators',summary:'ThreatFox published 847 new command-and-control indicators in the last 24 hours. Predominant malware families: AsyncRAT, RedLine Stealer, Cobalt Strike. Recommend enriching alert triage rules with updated IOC set.',severity:'Medium',source:'ThreatFox',time:'1h ago',industrySpecific:false,url:'https://threatfox.abuse.ch/export/',
+    {id:'def4',title:'URLhaus Phishing Kit — 23 New Malicious Domains',summary:'23 newly registered domains identified distributing credential harvesting kits mimicking Microsoft 365, DocuSign, and SharePoint. All domains registered in last 72h with low reputation.',severity:'Medium',source:'URLhaus',time:'2h ago',industrySpecific:false,url:'https://urlhaus.abuse.ch/browse/',
   ],
 };
 
@@ -657,6 +657,13 @@ export default function DashboardPage() {
     : `AI acted autonomously on ${actedAlerts.length} alert${actedAlerts.length!==1?'s':''} — ${alerts.filter(a=>a.verdict==='TP'&&a.confidence>=80).length} threats contained, ${alerts.filter(a=>a.verdict==='FP'&&a.confidence>=80).length} FPs suppressed.`;
 
   const totalAlerts = (!demoMode && liveAlerts.length > 0) ? liveAlerts.length : alerts.length;
+  // Hot device map for overview
+  const overviewDeviceCounts = {};
+  alerts.forEach(a=>{if(a.device&&a.device!=='unknown'){overviewDeviceCounts[a.device]=(overviewDeviceCounts[a.device]||0)+1;}});
+  const hotDevices = Object.entries(overviewDeviceCounts).sort((a,b)=>b[1]-a[1]).slice(0,4);
+  const hotDevicesMax = hotDevices[0]?.[1]||1;
+  // MTTR estimate: acknowledged crits divided by their count gives avg age
+  const unackedCritCount = critAlerts.filter(a=>!(alertOverrides[a.id]?.acknowledged)&&!a.acknowledged).length;
   const totalVulns = (!demoMode && liveVulns.length > 0) ? liveVulns.length : vulns.length;
   const openCases = incidents.filter(i=>!deletedIncidents.has(i.id)&&(incidentStatuses[i.id]||i.status)==='Active').length;
   const slaBreaches = incidents.filter(i=>{if(!i.created||(incidentStatuses[i.id]||i.status)!=='Active') return false; const ageMs=Date.now()-new Date(i.created).getTime(); const slaMs=(i.severity==='Critical'?3600:i.severity==='High'?14400:86400)*1000; return ageMs>slaMs;}).length;
@@ -1149,6 +1156,42 @@ Generated by Watchtower`;
                 </div>
               </div>
 
+              {/* ── HOT ASSETS + SHIFT METRICS ───────────────────────────────── */}
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}} className='wt-two-col'>
+                <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px'}}>
+                  <div style={{fontSize:'0.62rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:10}}>🔥 Hot Assets</div>
+                  {hotDevices.length===0 && <div style={{fontSize:'0.66rem',color:'var(--wt-dim)',padding:'8px 0',textAlign:'center'}}>No device data — sync a tool to see hot assets</div>}
+                  {hotDevices.map(([device,count])=>(
+                    <div key={device} style={{marginBottom:7}}>
+                      <div style={{display:'flex',justifyContent:'space-between',marginBottom:2}}>
+                        <span style={{fontSize:'0.6rem',fontFamily:'JetBrains Mono,monospace',color:'var(--wt-secondary)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'75%'}}>{device}</span>
+                        <span style={{fontSize:'0.62rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:count>=5?'#f0405e':count>=3?'#f97316':'#f0a030'}}>{count}</span>
+                      </div>
+                      <div style={{height:3,background:'var(--wt-border)',borderRadius:2,overflow:'hidden'}}>
+                        <div style={{height:'100%',width:`${(count/hotDevicesMax)*100}%`,background:count>=5?'#f0405e':count>=3?'#f97316':'#f0a030',borderRadius:2,transition:'width .6s'}}/>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px'}}>
+                  <div style={{fontSize:'0.62rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:10}}>⏱ Shift Metrics</div>
+                  {[
+                    {label:'Unacked Criticals',value:unackedCritCount,color:unackedCritCount>0?'#f0405e':'#22d49a',sub:'need triage now'},
+                    {label:'SLA Breaches',value:slaBreaches,color:slaBreaches>0?'#f0405e':'#22d49a',sub:'open cases over SLA'},
+                    {label:'FPs Auto-Closed',value:fpAlerts.length,color:'#22d49a',sub:'AI noise reduction'},
+                    {label:'Tools Live',value:Object.keys(connectedTools).length,color:Object.keys(connectedTools).length>0?'#4f8fff':'#f0a030',sub:'feeding alerts'},
+                  ].map(m=>(
+                    <div key={m.label} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'5px 0',borderBottom:'1px solid var(--wt-border)'}}>
+                      <div>
+                        <div style={{fontSize:'0.62rem',color:'var(--wt-secondary)',fontWeight:600}}>{m.label}</div>
+                        <div style={{fontSize:'0.54rem',color:'var(--wt-dim)'}}>{m.sub}</div>
+                      </div>
+                      <span style={{fontSize:'0.9rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:m.color}}>{m.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
             </div>
           )}
 
@@ -1577,10 +1620,21 @@ Generated by Watchtower`;
                           })()}
                         </div>
                         <div style={{fontSize:'0.84rem',fontWeight:700,marginBottom:4}}>{inc.title}</div>
-                        <div style={{display:'flex',gap:10,flexWrap:'wrap'}}>
-                          {inc.mitreTactics.map(t=><span key={t} style={{fontSize:'0.52rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{t}</span>)}
-                          <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{inc.alertCount} alerts · {inc.devices.length} devices</span>
-                          <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>Updated {inc.updated.split(' ')[1]}</span>
+                        <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
+                          {(inc.mitreTactics||[]).map(t=><span key={t} style={{fontSize:'0.52rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{t}</span>)}
+                          <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{inc.alertCount} alert{inc.alertCount!==1?'s':''} · {(inc.devices||[]).length} device{(inc.devices||[]).length!==1?'s':''}</span>
+                          <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>Updated {inc.updated&&inc.updated.split&&inc.updated.split(' ')[1]||'—'}</span>
+                          {(()=>{
+                            if(!inc.created||(incidentStatuses[inc.id]||inc.status)!=='Active') return null;
+                            const ageMs=Date.now()-new Date(inc.created).getTime();
+                            const slaSec=inc.severity==='Critical'?3600:inc.severity==='High'?14400:86400;
+                            const remainMs=slaSec*1000-ageMs;
+                            const breached=remainMs<0;
+                            const h=Math.floor(Math.abs(remainMs)/3600000);
+                            const m=Math.floor((Math.abs(remainMs)%3600000)/60000);
+                            const label=breached?`SLA breached ${h}h${m}m ago`:`SLA ${h}h${m}m remaining`;
+                            return <span style={{fontSize:'0.56rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:breached?'#f0405e':'#f0a03012',color:breached?'#fff':'#f0a030',border:breached?'none':'1px solid #f0a03030'}}>{label}</span>;
+                          })()}
                         </div>
                       </div>
                       <span style={{fontSize:'0.7rem',color:'var(--wt-dim)',flexShrink:0}}>{isSel?'▲':'▼'}</span>
@@ -1595,7 +1649,7 @@ Generated by Watchtower`;
                         </GateWall>
                         <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Attack Timeline</div>
                         <div style={{display:'flex',flexDirection:'column',gap:0}}>
-                          {inc.timeline.map((event,i)=>(
+                          {(inc.timeline||[]).map((event,i)=>(
                             <div key={i} style={{display:'flex',gap:0,padding:'5px 0'}}>
                               <div style={{display:'flex',flexDirection:'column',alignItems:'center',minWidth:50}}>
                                 <span style={{fontSize:'0.6rem',fontFamily:'JetBrains Mono,monospace',color:'var(--wt-dim)',marginBottom:3}}>{event.t}</span>

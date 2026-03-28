@@ -9,11 +9,7 @@ const VALID_INDUSTRIES = new Set([
 ]);
 
 // Source URLs by sector for believable, clickable links
-const SOURCE_URLS: Record<string, string[]> = {
-  'Financial Services': ['https://www.ncsc.gov.uk/section/about-this-website/what-we-do', 'https://www.cisa.gov/topics/critical-infrastructure-security/financial-services', 'https://www.swift.com/our-solutions/compliance-and-shared-services/financial-crime-cyber-security'],
-  'Healthcare': ['https://www.ncsc.gov.uk/sector/healthcare', 'https://www.cisa.gov/topics/critical-infrastructure-security/healthcare-and-public-health', 'https://www.hhs.gov/hipaa/for-professionals/security/guidance/index.html'],
-  'default': ['https://www.ncsc.gov.uk/threats', 'https://www.cisa.gov/news-events/cybersecurity-advisories', 'https://threatfox.abuse.ch'],
-};
+// SOURCE_URLS removed — AI generates real article URLs directly
 
 export async function POST(req: NextRequest) {
   try {
@@ -35,7 +31,6 @@ export async function POST(req: NextRequest) {
 
     const t0Intel = Date.now();
     const today = new Date().toISOString().split('T')[0];
-    const sources = (SOURCE_URLS[industry] || SOURCE_URLS['default']);
 
     const prompt = `Today is ${today}. You are a senior threat intelligence analyst at a UK MSSP.
 
