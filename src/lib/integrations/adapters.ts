@@ -96,7 +96,7 @@ export const tenable: IntegrationAdapter = {
 
     // Step 1: top plugins (Critical=4, High=3), last 90 days, limit 5
     const listRes = await fetch(
-      `https://cloud.tenable.com/workbenches/vulnerabilities?date_range=90&filter.0.filter=severity&filter.0.quality=gte&filter.0.value=3&filter.1.filter=cvss3_base_score&filter.1.quality=gte&filter.1.value=7.0&filter.search_type=and&limit=20`,
+      `https://cloud.tenable.com/workbenches/vulnerabilities?date_range=90&filter.0.filter=severity&filter.0.quality=gte&filter.0.value=3&filter.search_type=and&limit=20`,
       { headers, signal: AbortSignal.timeout(12000) }
     );
     if (!listRes.ok) throw new Error(`Tenable: HTTP ${listRes.status}`);

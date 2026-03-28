@@ -12,6 +12,16 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
     {id:'org-free1',       name:'TestOrg Alpha',         type:'Community',plan:'Community',seats:1,  mrr:0,    clients:0,  status:'Active',  posture:55, alerts:2,  incidents:0,  coverage:60, joined:'2024-06-01', billing:'Free'},
   ];
   const [adminView, setAdminView] = useState('subscribers');
+  const [aiLog, setAiLog] = useState(null);
+  const [aiLogLoading, setAiLogLoading] = useState(false);
+  async function fetchAiLog() {
+    setAiLogLoading(true);
+    try {
+      const r = await fetch('/api/ai/ailog?limit=200', {headers:{'x-is-admin':'true','x-tenant-id':currentTenant||'global'}});
+      if (r.ok) { const d = await r.json(); if (d.ok) setAiLog(d); }
+    } catch(e) {}
+    setAiLogLoading(false);
+  }
   const [filterPlan, setFilterPlan] = useState('All');
   const [filterStatus, setFilterStatus] = useState('All');
 
@@ -70,7 +80,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
         </div>
         <div style={{marginLeft:'auto',display:'flex',gap:4,background:'var(--wt-card2)',borderRadius:7,padding:3}}>
           {['subscribers','users','platform','stripe','saml','broadcast'].map(v=>(
-            <button key={v} onClick={()=>setAdminView(v)} style={{padding:'5px 14px',borderRadius:5,border:'none',background:adminView===v?'#f0a030':'transparent',color:adminView===v?'#fff':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',textTransform:'capitalize'}}>{v}</button>
+            <button key={v} onClick={()=>setAdminView(v)} style={{padding:'5px 14px',borderRadius:5,border:'none',background:adminView===v?'#f0a030':'transparent',color:adminView===v?'#fff':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',textTransform:v==='ailog'?'uppercase':'capitalize',letterSpacing:v==='ailog'?'0.5px':undefined}}>{v==='ailog'?'✦ AI Log':v}</button>
           ))}
         </div>
       </div>
@@ -510,6 +520,69 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+
+
+      {adminView==='ailog' && (
+        <div style={{display:'flex',flexDirection:'column',gap:12}}>
+          <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+            <h3 style={{fontSize:'0.88rem',fontWeight:700}}>AI Query Log</h3>
+            <span style={{fontSize:'0.62rem',color:'var(--wt-muted)'}}>Every AI call through Watchtower — admin only</span>
+            <button onClick={fetchAiLog} disabled={aiLogLoading} style={{marginLeft:'auto',padding:'4px 12px',borderRadius:5,border:'1px solid #4f8fff28',background:'#4f8fff0a',color:'#4f8fff',fontSize:'0.64rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{aiLogLoading?'Loading…':'⟳ Refresh'}</button>
+          </div>
+          {aiLog && aiLog.stats && (
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+              {[{l:'Total',v:aiLog.stats.total,c:'#4f8fff'},{l:'OK',v:aiLog.stats.ok,c:'#22d49a'},{l:'Errors',v:aiLog.stats.errors,c:'#f0405e'},{l:'Avg ms',v:aiLog.stats.avgDurationMs,c:'#f0a030'}].map(s=>(
+                <div key={s.l} style={{padding:'10px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:8,textAlign:'center'}}>
+                  <div style={{fontSize:'1.3rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.c}}>{s.v}</div>
+                  <div style={{fontSize:'0.58rem',color:'var(--wt-dim)',marginTop:2}}>{s.l}</div>
+                </div>
+              ))}
+              {aiLog.stats.byType && Object.entries(aiLog.stats.byType).length > 0 && (
+                <div style={{gridColumn:'1/-1',display:'flex',gap:6,flexWrap:'wrap',padding:'8px 10px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:8}}>
+                  <span style={{fontSize:'0.58rem',color:'var(--wt-dim)',marginRight:4,alignSelf:'center'}}>By type:</span>
+                  {Object.entries(aiLog.stats.byType).map(([type,count])=>{
+                    const tc = {'triage':'#f0405e','vuln_assist':'#8b6fff','intel':'#22d49a','copilot':'#4f8fff','shift_handover':'#f0a030','other':'#6b7a94'};
+                    const c = tc[type]||'#6b7a94';
+                    return <span key={type} style={{fontSize:'0.6rem',padding:'2px 8px',borderRadius:4,background:c+'15',color:c,border:'1px solid '+c+'30',fontWeight:700}}>{type}: {count}</span>;
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+          {!aiLog && !aiLogLoading && (
+            <div style={{padding:'32px',textAlign:'center',color:'var(--wt-muted)',fontSize:'0.76rem',border:'1px dashed var(--wt-border)',borderRadius:10}}>Click Refresh to load AI query log. Entries appear after any AI action (triage, co-pilot, intel, vuln assist).</div>
+          )}
+          {aiLogLoading && <div style={{padding:'20px',textAlign:'center',color:'var(--wt-muted)',fontSize:'0.76rem'}}>Loading…</div>}
+          {aiLog && aiLog.entries && aiLog.entries.length === 0 && (
+            <div style={{padding:'20px',textAlign:'center',color:'var(--wt-muted)',fontSize:'0.76rem'}}>No AI queries logged yet. Run triage, open Co-Pilot, or fetch threat intel to see entries.</div>
+          )}
+          {aiLog && aiLog.entries && aiLog.entries.length > 0 && (
+            <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:10,overflow:'hidden'}}>
+              <div style={{display:'grid',gridTemplateColumns:'75px 80px 80px 1fr 55px 55px',padding:'6px 12px',borderBottom:'1px solid var(--wt-border)',fontSize:'0.56rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px'}}>
+                <span>Time</span><span>Type</span><span>User</span><span>Prompt / Context</span><span>ms</span><span>Status</span>
+              </div>
+              <div style={{maxHeight:500,overflowY:'auto'}}>
+                {aiLog.entries.map((e,i)=>{
+                  const tc = {'triage':'#f0405e','vuln_assist':'#8b6fff','intel':'#22d49a','copilot':'#4f8fff','shift_handover':'#f0a030','other':'#6b7a94'};
+                  const c = tc[e.type]||'#6b7a94';
+                  const ctx = e.alertTitle?'Alert: '+e.alertTitle:e.vulnCve?'Vuln: '+e.vulnCve:e.industry&&e.industry!=='ioc_hunt'?'Intel: '+e.industry:e.promptPreview||'—';
+                  return (
+                    <div key={i} style={{display:'grid',gridTemplateColumns:'75px 80px 80px 1fr 55px 55px',padding:'6px 12px',borderBottom:'1px solid #1d2535',background:i%2===0?'transparent':'var(--wt-card2)',fontSize:'0.6rem',alignItems:'center',gap:4}}>
+                      <span style={{color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',fontSize:'0.56rem'}}>{new Date(e.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>
+                      <span style={{padding:'1px 5px',borderRadius:3,background:c+'18',color:c,border:'1px solid '+c+'30',fontWeight:700,fontSize:'0.54rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{e.type}</span>
+                      <span style={{color:'var(--wt-muted)',fontFamily:'JetBrains Mono,monospace',fontSize:'0.56rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{(e.userId||'anon').split('@')[0].slice(0,12)}</span>
+                      <span style={{color:'var(--wt-secondary)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:'0.6rem'}} title={ctx}>{ctx.slice(0,80)}</span>
+                      <span style={{color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',fontSize:'0.56rem'}}>{e.durationMs}ms</span>
+                      <span style={{fontWeight:700,fontSize:'0.6rem',color:e.ok?'#22d49a':'#f0405e'}}>{e.ok?'✓ OK':'✗ '+((e.error||'err').slice(0,15))}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
