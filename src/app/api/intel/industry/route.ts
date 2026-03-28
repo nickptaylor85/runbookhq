@@ -94,7 +94,7 @@ Make the intel feel genuinely current and specific — named threat groups (APT4
         summary: item.summary || '',
         severity: ['Critical', 'High', 'Medium', 'Low'].includes(item.severity) ? item.severity : 'High',
         source: item.source || 'NCSC',
-        url: item.url || sources[0],
+        url: item.url || 'https://www.ncsc.gov.uk/news',
         time: item.time || `${Math.floor(Math.random() * 12) + 1}h ago`,
         iocs: Array.isArray(item.iocs) ? item.iocs : [],
         mitre: item.mitre || 'T1566',
