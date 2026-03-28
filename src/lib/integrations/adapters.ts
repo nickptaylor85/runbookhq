@@ -63,9 +63,8 @@ function tenableSev(s: number | string | undefined): 'Critical'|'High'|'Medium'|
   if (s === 'High' || s === 3) return 'High';
   if (s === 'Medium' || s === 2) return 'Medium';
   return 'Low';
-}dium';
-  return 'Low';
 }
+
 
 export const tenable: IntegrationAdapter = {
   id: 'tenable',
