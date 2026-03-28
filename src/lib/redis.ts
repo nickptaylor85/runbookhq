@@ -105,3 +105,18 @@ export async function getTenantSettings(tenantId: string): Promise<Record<string
     return {};
   }
 }
+
+// ── List operations (for AI query log) ──────────────────────────────────────
+export async function redisLPush(key: string, ...values: string[]): Promise<number> {
+  const result = await redisCommand('LPUSH', key, ...values);
+  return result as number;
+}
+
+export async function redisLRange(key: string, start: number, stop: number): Promise<string[]> {
+  const result = await redisCommand('LRANGE', key, start, stop);
+  return (result as string[]) || [];
+}
+
+export async function redisLTrim(key: string, start: number, stop: number): Promise<void> {
+  await redisCommand('LTRIM', key, start, stop);
+}
