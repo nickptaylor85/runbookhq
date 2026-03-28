@@ -4,6 +4,33 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.9.102',
+    date: '2026-03-28',
+    tag: 'Features',
+    tagColor: '#22d49a',
+    summary: 'Vuln patch links, coverage device totals, overview cleanup, intel sections, AI commands in cases, sync log',
+    changes: [
+      { type: 'feat', text: 'Vuln cards: NVD, Find Patch, and Tenable Plugin links always visible — no longer gated behind vuln.patch. All links show on every card that has a CVE.' },
+      { type: 'feat', text: 'Coverage: Total device count badge in header. OS breakdown pills show counts inline (Windows 42, Linux 18). Live mode shows Tenable-derived device count.' },
+      { type: 'feat', text: 'Overview: Hot Assets panel removed. Shift Metrics now full-width 4-column card grid — Unacked Criticals, SLA Breaches, FPs Auto-Closed, Tools Live.' },
+      { type: 'feat', text: 'Intel: each section capped at top 3. Added Tenable "In The News" section with 3 Tenable Research CVE disclosures, CVE badges, MITRE tags, read-article links.' },
+      { type: 'feat', text: 'Cases: "AI Commands Executed" sub-panel below timeline — extracts all AI-actor cmd fields, terminal-style display with timestamps, action labels, and copy buttons.' },
+      { type: 'feat', text: 'Tools: Sync log always visible above tool grid — dark terminal style, newest-first, auto-scrolls to latest, colour-coded per tool, shows duration ms.' },
+      { type: 'fix', text: 'liveVulns mapping uses v.affectedAssets?.length for device count so grouped Tenable vulns show correct asset counts.' },
+    ],
+  },
+  {
+    version: 'v74.9.101',
+    date: '2026-03-28',
+    tag: 'Fix',
+    tagColor: '#f0405e',
+    summary: 'Fix AdminPortal double-button and guide.tsx fused entry syntax errors',
+    changes: [
+      { type: 'fix', text: 'AdminPortal line 83: str_replace fused two button closings. Removed orphaned ontWeight:700... tail.' },
+      { type: 'fix', text: 'guide/page.tsx line 84: AI Triage body was appended directly after AI Query Log body. Restored as separate entries.' },
+    ],
+  },
+  {
     version: 'v74.9.100',
     date: '2026-03-28',
     tag: 'Features',

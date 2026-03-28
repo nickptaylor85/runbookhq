@@ -73,7 +73,6 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [showSyncLog, setShowSyncLog] = useState(false);
   const [anthropicKey, setAnthropicKey] = useState('');
   const [keyStatus, setKeyStatus] = useState('idle');
   const [aiTestStatus, setAiTestStatus] = useState(null);
@@ -168,11 +167,32 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
       <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
         <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Integrations</h2>
         <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{Object.keys(connected).length} connected</span>
-          {syncLog && syncLog.length > 0 && (
-            <button onClick={()=>setShowSyncLog(s=>!s)} style={{padding:'2px 9px',borderRadius:4,border:'1px solid #4f8fff28',background:showSyncLog?'#4f8fff20':'#4f8fff0a',color:'#4f8fff',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
-              📋 Sync Log {showSyncLog?'▲':'▼'}
-            </button>
+      {/* Always-visible Sync Log */}
+      <div style={{background:'#060b10',border:'1px solid #1a2535',borderRadius:10,overflow:'hidden'}}>
+        <div style={{padding:'8px 14px',borderBottom:'1px solid #1a2535',display:'flex',alignItems:'center',gap:8}}>
+          <span style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff'}}>📋 Sync Log</span>
+          <span style={{fontSize:'0.56rem',color:'var(--wt-dim)',marginLeft:4}}>live output — last {syncLog&&syncLog.length>0?syncLog.length:0} events</span>
+          {(!syncLog||syncLog.length===0)&&<span style={{fontSize:'0.56rem',color:'#f0a030',marginLeft:'auto'}}>No syncs yet — connect a tool and click Sync</span>}
+        </div>
+        <div style={{maxHeight:180,overflowY:'auto',padding:'8px 0',fontFamily:'JetBrains Mono,monospace',fontSize:'0.6rem'}} ref={el=>{if(el)el.scrollTop=el.scrollHeight}}>
+          {syncLog&&syncLog.length>0 ? syncLog.slice().reverse().map((entry,i)=>(
+            <div key={i} style={{display:'flex',alignItems:'flex-start',gap:8,padding:'3px 14px',background:entry.error?'#f0405e06':i%2===0?'#0a0f18':'transparent'}}>
+              <span style={{color:'#3a4a5e',flexShrink:0,minWidth:62}}>{new Date(entry.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>
+              <span style={{color:entry.toolId==='tenable'?'#00b3e3':entry.toolId==='taegis'?'#e8172c':entry.toolId==='crowdstrike'?'#f0405e':entry.toolId==='sentinel'?'#4f8fff':'#7c6aff',fontWeight:700,minWidth:100,flexShrink:0}}>{entry.toolId}</span>
+              {entry.error
+                ? <span style={{color:'#f0405e',flex:1}}>✗ ERROR: {entry.error.slice(0,80)}</span>
+                : <span style={{color:entry.count>0?'#22d49a':'#f0a030',flex:1}}>
+                    {entry.count>0
+                      ? `✓ ${entry.count} record${entry.count!==1?'s':''} synced${entry.durationMs?` · ${entry.durationMs}ms`:''}`
+                      : '⚠ 0 records — check credentials or scan history'}
+                  </span>
+              }
+            </div>
+          )) : (
+            <div style={{padding:'16px 14px',color:'#2a3448',fontSize:'0.6rem',textAlign:'center'}}>waiting for sync...</div>
           )}
+        </div>
+      </div>
         <div style={{display:'flex',gap:4,marginLeft:'auto',flexWrap:'wrap'}}>
           {CATEGORIES.map(c=>(
             <button key={c} onClick={()=>setFilter(c)} style={{padding:'3px 10px',borderRadius:5,border:`1px solid ${filter===c?'#4f8fff40':'var(--wt-border2)'}`,background:filter===c?'#4f8fff18':'transparent',color:filter===c?'#4f8fff':'#6b7a94',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{c}</button>
@@ -223,24 +243,6 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
         )}
       </div>
 
-      {/* Sync Log Panel */}
-      {showSyncLog && syncLog && syncLog.length > 0 && (
-        <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:10,padding:'12px 14px',marginBottom:6}}>
-          <div style={{fontSize:'0.68rem',fontWeight:700,color:'#4f8fff',marginBottom:8}}>Sync Log — last {syncLog.length} events</div>
-          <div style={{maxHeight:220,overflowY:'auto',display:'flex',flexDirection:'column',gap:3}}>
-            {syncLog.map((entry,i)=>(
-              <div key={i} style={{display:'flex',alignItems:'center',gap:8,padding:'4px 6px',borderRadius:4,background:entry.error?'#f0405e06':i%2===0?'var(--wt-card2)':'transparent',fontSize:'0.62rem',fontFamily:'JetBrains Mono,monospace'}}>
-                <span style={{color:'var(--wt-dim)',flexShrink:0,minWidth:55}}>{new Date(entry.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>
-                <span style={{color:entry.toolId==='tenable'?'#00b3e3':entry.toolId==='taegis'?'#e8172c':'var(--wt-secondary)',fontWeight:700,minWidth:90,flexShrink:0}}>{entry.toolId}</span>
-                {entry.error
-                  ? <span style={{color:'#f0405e',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}} title={entry.error}>✗ {entry.error.slice(0,60)}</span>
-                  : <span style={{color:entry.count>0?'#22d49a':'#f0a030',flex:1}}>{entry.count>0?`✓ ${entry.count} record${entry.count!==1?'s':''}`:'⚠ 0 records — check credentials'}</span>
-                }
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
       <div style={{display:'flex',flexDirection:'column',gap:6}}>
         {filtered.map(tool=>{
           const isOn = !!connected[tool.id];
