@@ -4,6 +4,43 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.9.106',
+    date: '2026-03-28',
+    tag: 'Production Readiness',
+    tagColor: '#4f8fff',
+    summary: 'Persist analyst work, alert dedup, SLA badges, live intel cleanup, AI timelines, CVE fix',
+    changes: [
+      { type: 'feat', text: 'Alert overrides (FP/TP/ACK) persisted to Redis via /api/alert-state. Debounced 2s save, loads on mount. Analyst verdicts survive page refresh.' },
+      { type: 'feat', text: 'Alert deduplication — live alerts merged by ID across syncs. Analyst work on existing alerts preserved between 60s syncs.' },
+      { type: 'feat', text: 'SLA breach badge on alert cards: Critical unacked >1h and High unacked >4h show red SLA BREACH badge and border.' },
+      { type: 'feat', text: 'Incidents from live alerts now have AI-generated timelines with real commands — SIEM queries, EDR hunts, isolation commands, runbook generation based on MITRE tactic.' },
+      { type: 'fix', text: 'Intel tab live mode: no longer appends demo defaults alongside AI intel. Live = AI-generated only.' },
+      { type: 'fix', text: 'CVE extraction uses /^CVE-\\d{4}-\\d+$/ regex instead of startsWith — correct for all tag formats.' },
+      { type: 'fix', text: 'durationMs now included in sync log entries.' },
+    ],
+  },
+  {
+    version: 'v74.9.105',
+    date: '2026-03-28',
+    tag: 'Fix',
+    tagColor: '#f0405e',
+    summary: 'Coverage only vs connected tools, sync route timing',
+    changes: [
+      { type: 'fix', text: 'Coverage per-tool bars now use connected tools only. Empty state shown when no tools connected in live mode.' },
+      { type: 'fix', text: 'Sync route now returns durationMs per tool.' },
+    ],
+  },
+  {
+    version: 'v74.9.104',
+    date: '2026-03-28',
+    tag: 'Fix',
+    tagColor: '#f0405e',
+    summary: 'Fix orphaned comment on useState line 336',
+    changes: [
+      { type: 'fix', text: 'str_replace left "live intel fetch" text fused onto livetenableNews useState declaration causing SWC parse error.' },
+    ],
+  },
+  {
     version: 'v74.9.103',
     date: '2026-03-28',
     tag: 'Fix + Features',

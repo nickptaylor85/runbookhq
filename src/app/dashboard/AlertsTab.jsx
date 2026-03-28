@@ -55,6 +55,32 @@ export default function AlertsTab({
     setExpandedAlerts(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   }
 
+  // Generate AI auto-response timeline entries based on alert content
+  function buildAiTimeline(alertList, incId) {
+    const t = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    const top = alertList[0];
+    const isCrit = top && (top.severity==='Critical'||top.severity==='High');
+    const device = (top&&top.device)||'Unknown';
+    const mitre = (top&&top.mitre)||'';
+    const entries = [{t, actor:'Analyst', action:'Incident created', detail:`${alertList.length} alert${alertList.length!==1?'s':''} grouped into ${incId}`}];
+    if (isCrit) {
+      entries.push({t, actor:'AI', action:'Cross-source correlation', detail:`Querying SIEM for related events on ${device}`, cmd:`index=* host="${device}" earliest=-4h | stats count by sourcetype, EventCode | where count > 5`});
+    }
+    if (mitre.startsWith('T1003')||mitre.startsWith('T1055')||mitre.startsWith('T1059')) {
+      entries.push({t, actor:'AI', action:'Credential/execution hunt dispatched', detail:`Checking for ${mitre} activity on ${device}`, cmd:`Get-WinEvent -ComputerName ${device} -FilterHashtable @{LogName='Security';Id=4688,4624,4625} -MaxEvents 100 | Where-Object {$_.TimeCreated -gt (Get-Date).AddHours(-4)}`});
+    }
+    if (mitre.startsWith('T1190')) {
+      entries.push({t, actor:'AI', action:'Vulnerability context retrieved', detail:`Cross-referencing Tenable for open CVEs on ${device}`, cmd:`curl -s "https://cloud.tenable.com/workbenches/vulnerabilities?filter.0.filter=hostname&filter.0.value=${device}" -H "X-ApiKeys: accessKey=<key>;secretKey=<key>"`});
+    }
+    if (mitre.startsWith('T1071')||mitre.startsWith('T1041')||mitre.startsWith('T1486')) {
+      entries.push({t, actor:'AI', action:'Network isolation recommended', detail:`C2/exfil TTP detected — isolation pending analyst approval`, cmd:`CsFalcon.exe -policy isolate --host "${device}" --reason "Auto-recommend: ${mitre} detected by Watchtower AI — pending approval"`});
+    }
+    if (isCrit) {
+      entries.push({t, actor:'AI', action:'Runbook generated', detail:'5-step response playbook attached to this incident', cmd:`python3 runbook_gen.py --incident ${incId} --mitre "${mitre}" --severity ${top?.severity||'High'} --device "${device}" --output runbook_${incId}.md`});
+    }
+    return entries;
+  }
+
   // Device alert count — for hot-device indicator
   const deviceCounts = {};
   alerts.forEach(a => { if (a.device) deviceCounts[a.device] = (deviceCounts[a.device]||0) + 1; });
@@ -151,7 +177,8 @@ export default function AlertsTab({
             const sel=alerts.filter(a=>selectedAlerts.has(a.id));
             const sevOrder={Critical:0,High:1,Medium:2,Low:3};
             const top=sel.sort((a,b)=>(sevOrder[a.severity]||4)-(sevOrder[b.severity]||4))[0];
-            const inc={id:'INC-'+String(Date.now()).slice(-4),title:'Incident — '+(top&&top.title||'Multiple alerts'),severity:top&&top.severity||'High',status:'Active',created:new Date().toLocaleString(),updated:new Date().toLocaleString(),alertCount:sel.length,devices:[...new Set(sel.map(a=>a.device).filter(Boolean))],mitreTactics:[...new Set(sel.map(a=>a.mitre).filter(Boolean))],aiSummary:'Incident from '+sel.length+' alerts: '+sel.map(a=>a.title).join('; ').slice(0,120),alerts:sel.map(a=>a.id),timeline:[{t:'now',actor:'Analyst',action:'Incident created',detail:`${sel.length} alerts grouped`}]};
+            const incId='INC-'+String(Date.now()).slice(-4);
+            const inc={id:incId,title:'Incident — '+(top&&top.title||'Multiple alerts'),severity:top&&top.severity||'High',status:'Active',created:new Date().toLocaleString(),updated:new Date().toLocaleString(),alertCount:sel.length,devices:[...new Set(sel.map(a=>a.device).filter(Boolean))],mitreTactics:[...new Set(sel.map(a=>a.mitre).filter(Boolean))],aiSummary:'Incident from '+sel.length+' alerts: '+sel.map(a=>a.title).join('; ').slice(0,120),alerts:sel.map(a=>a.id),timeline:buildAiTimeline(sel,incId)};
             setCreatedIncidents(prev=>[inc,...prev]);setSelectedAlerts(new Set());setActiveTab('incidents');
           }} style={{padding:'4px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
             Create Incident
@@ -211,10 +238,14 @@ export default function AlertsTab({
         const ageStr = relTime(alert.rawTime, alert.time);
         const isFresh = alert.rawTime && (Date.now() - new Date(alert.rawTime).getTime()) < 15*60*1000;
         const isStale = alert.rawTime && (Date.now() - new Date(alert.rawTime).getTime()) > 4*60*60*1000;
+        // SLA breach indicator on alert card: Critical unacked >1h, High unacked >4h
+        const alertAgeMs = alert.rawTime ? Date.now() - new Date(alert.rawTime).getTime() : 0;
+        const alertSlaMs = alert.severity==='Critical' ? 3600000 : alert.severity==='High' ? 14400000 : 0;
+        const isSlaBreach = !isAcknowledged && alertSlaMs > 0 && alertAgeMs > alertSlaMs && effectiveVerdict === 'Pending';
 
         return (
           <div key={alert.id} style={{padding:0,overflow:'hidden',background:'var(--wt-card)',
-            border:`1px solid ${isSelected?'#4f8fff60':alert.severity==='Critical'&&!isAcknowledged?'#f0405e30':'var(--wt-border)'}`,
+            border:`1px solid ${isSelected?'#4f8fff60':isSlaBreach?'#f0405e60':alert.severity==='Critical'&&!isAcknowledged?'#f0405e30':'var(--wt-border)'}`,
             borderRadius:10,opacity:isAcknowledged?0.65:isSnoozed?0.75:1,
             transition:'border-color .15s,opacity .15s'}}>
 
@@ -235,6 +266,7 @@ export default function AlertsTab({
                     color:isAcknowledged?'var(--wt-muted)':undefined,
                     maxWidth:'60vw'}}>{alert.title}</span>
                   {isFresh && <span style={{fontSize:'0.46rem',fontWeight:800,padding:'1px 4px',borderRadius:3,background:'#22d49a',color:'#fff',flexShrink:0}}>NEW</span>}
+                  {isSlaBreach && <span style={{fontSize:'0.46rem',fontWeight:800,padding:'1px 4px',borderRadius:3,background:'#f0405e',color:'#fff',flexShrink:0}}>SLA BREACH</span>}
                   {isHotDevice && <span style={{fontSize:'0.46rem',fontWeight:800,padding:'1px 4px',borderRadius:3,background:'#f0405e20',color:'#f0405e',border:'1px solid #f0405e30',flexShrink:0}}>🔥 {deviceAlertCount}</span>}
                   {hasNote && <span style={{fontSize:'0.46rem',color:'#f0a030',background:'#f0a03012',border:'1px solid #f0a03025',padding:'1px 4px',borderRadius:3,flexShrink:0}}>note</span>}
                   {isAcknowledged && <span style={{fontSize:'0.46rem',color:'#22d49a',background:'#22d49a12',padding:'1px 4px',borderRadius:3,flexShrink:0,fontWeight:800}}>ACK</span>}
@@ -360,7 +392,8 @@ export default function AlertsTab({
                     {isAcknowledged?'✓ Acked':'Acknowledge'}
                   </button>
                   <button onClick={()=>{
-                    const inc={id:'INC-'+String(Date.now()).slice(-4),title:'Incident — '+alert.title,severity:alert.severity,status:'Active',created:new Date().toLocaleString(),updated:new Date().toLocaleString(),alertCount:1,devices:alert.device?[alert.device]:[],mitreTactics:alert.mitre?[alert.mitre]:[],aiSummary:'Incident from: '+alert.title,alerts:[alert.id],timeline:[{t:'now',actor:'Analyst',action:'Incident created',detail:'From alert: '+alert.title}]};
+                    const singleIncId='INC-'+String(Date.now()).slice(-4);
+                    const inc={id:singleIncId,title:'Incident — '+alert.title,severity:alert.severity,status:'Active',created:new Date().toLocaleString(),updated:new Date().toLocaleString(),alertCount:1,devices:alert.device?[alert.device]:[],mitreTactics:alert.mitre?[alert.mitre]:[],aiSummary:'Incident from: '+alert.title,alerts:[alert.id],timeline:buildAiTimeline([alert],singleIncId)};
                     setCreatedIncidents(prev=>[inc,...prev]);setActiveTab('incidents');
                   }} style={{padding:'4px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                     Create Case

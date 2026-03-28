@@ -314,6 +314,7 @@ export default function DashboardPage() {
         }
         // Load persisted alert notes
         fetch('/api/alert-notes',{headers:{'x-tenant-id':tenantRef.current}}).then(r=>r.json()).then(d=>{if(d.notes&&typeof d.notes==='object')setAlertNotes(d.notes);}).catch(()=>{});
+        fetch('/api/alert-state',{headers:{'x-tenant-id':tenantRef.current}}).then(r=>r.json()).then(d=>{if(d.overrides&&typeof d.overrides==='object')setAlertOverrides(d.overrides);}).catch(()=>{});
         if (d.settings?.demoMode !== undefined) {
           setDemoMode(d.settings.demoMode === 'true');
         } else {
@@ -420,14 +421,19 @@ export default function DashboardPage() {
           return next;
         });
         // Append to rolling sync log (last 50 entries)
-        setSyncLog(prev=>[...d.results.map(r=>({ts:now,toolId:r.toolId,count:r.count||0,error:r.error||null})), ...prev].slice(0,50));
+        setSyncLog(prev=>[...d.results.map(r=>({ts:now,toolId:r.toolId,count:r.count||0,error:r.error||null,durationMs:r.durationMs||null})), ...prev].slice(0,50));
         const VULN_SOURCES = new Set(['tenable','nessus','qualys','wiz']);
         const allItems = d.results.flatMap(r => r.alerts || []);
         const vulnItems = allItems.filter(a => VULN_SOURCES.has((a.source||'').toLowerCase().replace(/[^a-z]/g,'')));
         const alertItems = allItems.filter(a => !VULN_SOURCES.has((a.source||'').toLowerCase().replace(/[^a-z]/g,'')));
         if (!toolIds) {
-          setLiveAlerts(alertItems);
-          if (vulnItems.length > 0) setLiveVulns(vulnItems.map(v=>({id:v.id,cve:(v.tags||[]).find(t=>t?.startsWith?.('CVE'))||null,title:v.title,severity:v.severity,cvss:v.confidence?(v.confidence/10).toFixed(1):'N/A',kev:(v.tags||[]).includes('kev'),affected:v.affectedAssets?.length||1,affectedAssets:v.affectedAssets||[],affectedDevices:v.affectedAssets||(v.device?[v.device]:[]),description:v.description||v.title,source:v.source,rawTime:v.rawTime,prevalence:null,remediation:[v.description||'See NVD for remediation details.'],patch:null})));
+          // Merge new alerts with existing — preserve analyst overrides by not discarding known alerts
+          setLiveAlerts(prev => {
+            const merged = new Map(prev.map(a => [a.id, a]));
+            alertItems.forEach(a => merged.set(a.id, a)); // update or add
+            return Array.from(merged.values()).sort((a,b) => (b.rawTime||0)-(a.rawTime||0));
+          });
+          if (vulnItems.length > 0) setLiveVulns(vulnItems.map(v=>{const cveTag=(v.tags||[]).find(t=>t&&/^CVE-\d{4}-\d+$/i.test(t))||(v.tags||[]).find(t=>t?.toUpperCase?.().startsWith('CVE-'))||null;return({id:v.id,cve:cveTag,title:v.title,severity:v.severity,cvss:v.confidence?(v.confidence/10).toFixed(1):'N/A',kev:(v.tags||[]).includes('kev'),affected:v.affectedAssets?.length||1,affectedAssets:v.affectedAssets||[],affectedDevices:v.affectedAssets||(v.device?[v.device]:[]),description:v.description||v.title,source:v.source,rawTime:v.rawTime,prevalence:null,remediation:[v.description||'See NVD for remediation details.'],patch:null});}));
         }
         const errors = d.results.filter(r=>r.error).map(r=>`${r.toolId}: ${r.error}`);
         if (!toolIds) {
@@ -502,6 +508,17 @@ export default function DashboardPage() {
     if (saved === 'light') setTheme('light');
   },[]);
 
+
+  // Persist alertOverrides to Redis whenever it changes (debounced 2s)
+  const overrideSaveTimer = React.useRef(null);
+  useEffect(()=>{
+    if (Object.keys(alertOverrides).length === 0) return; // don't wipe on initial empty state
+    if (overrideSaveTimer.current) clearTimeout(overrideSaveTimer.current);
+    overrideSaveTimer.current = setTimeout(()=>{
+      fetch('/api/alert-state',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({overrides:alertOverrides})}).catch(()=>{});
+    }, 2000);
+    return ()=>{ if(overrideSaveTimer.current) clearTimeout(overrideSaveTimer.current); };
+  },[alertOverrides]);
 
   // Keyboard shortcuts: G+key to navigate tabs, ? for help
   useEffect(()=>{
@@ -683,15 +700,21 @@ export default function DashboardPage() {
   const openCases = incidents.filter(i=>!deletedIncidents.has(i.id)&&(incidentStatuses[i.id]||i.status)==='Active').length;
   const slaBreaches = incidents.filter(i=>{if(!i.created||(incidentStatuses[i.id]||i.status)!=='Active') return false; const ageMs=Date.now()-new Date(i.created).getTime(); const slaMs=(i.severity==='Critical'?3600:i.severity==='High'?14400:86400)*1000; return ageMs>slaMs;}).length;
   
-  const intelItems = customIntel || (DEMO_INTEL_BY_INDUSTRY[industry] || DEMO_INTEL_BY_INDUSTRY['default']);
-  // Make demo timestamps feel current — offset each by its index so they spread through the last 24h
+  // Make demo timestamps feel current
   const DEMO_TIME_OFFSETS = [2,4,6,9,13,18,24,3,7,11];
-  const rawAllIntel = [...intelItems, ...DEMO_INTEL_BY_INDUSTRY['default'].filter(i=>!intelItems.find(x=>x.id===i.id))];
+  // In live mode with customIntel, show ONLY AI-generated items (no demo defaults mixed in)
+  // In demo mode, show industry-specific + general default items
+  const allIntel = !demoMode && customIntel
+    ? customIntel
+    : (() => {
+        const industryItems = DEMO_INTEL_BY_INDUSTRY[industry] || DEMO_INTEL_BY_INDUSTRY['default'];
+        const defaultItems = DEMO_INTEL_BY_INDUSTRY['default'].filter(i=>!industryItems.find(x=>x.id===i.id));
+        return [...industryItems, ...defaultItems].map((item,idx)=>({...item, time:`${DEMO_TIME_OFFSETS[idx%DEMO_TIME_OFFSETS.length]}h ago`}));
+      })();
   // Tenable news: live API data in live mode, demo fallback in demo mode
   const tenableNewsItems = !demoMode && livetenableNews.length > 0
     ? livetenableNews
     : demoMode ? (DEMO_INTEL_BY_INDUSTRY['tenable_news'] || []) : [];
-  const allIntel = customIntel ? rawAllIntel : rawAllIntel.map((item,idx)=>({...item, time: `${DEMO_TIME_OFFSETS[idx%DEMO_TIME_OFFSETS.length]}h ago`}));
 
   async function fetchIntelForIndustry(ind, silent) {
     if (!silent) setIntelLoading(true);
