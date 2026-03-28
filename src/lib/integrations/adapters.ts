@@ -112,9 +112,12 @@ export const tenable: IntegrationAdapter = {
       const assetList: Array<{hostname:string; ipv4:string}> = [];
 
       if (raw?.outputs) {
+        const stateNames = raw.outputs.flatMap((o: any) => (o.states||[]).map((s: any) => s.name)).join(',');
+        if (stateNames) console.log(`[tenable] plugin ${plugin.plugin_id} states: ${stateNames}`);
         for (const output of raw.outputs) {
           for (const state of (output.states || [])) {
-            if (state.name !== 'open' && state.name !== 'Open') continue;
+            const sn = (state.name || '').toLowerCase();
+            if (sn === 'fixed' || sn === 'closed' || sn === 'resolved') continue;
             for (const result of (state.results || [])) {
               for (const asset of (result.assets || [])) {
                 const hostname = asset.fqdn || asset.hostname || asset.netbios_name || asset.ipv4 || 'Unknown';
@@ -630,6 +633,14 @@ export const taegis: IntegrationAdapter = {
               confidence
               description
               created_at { seconds }
+              sourceDevice { hostname ipAddress }
+              originSourceId
+              nativeId
+            }
+            entities {
+              type
+              name
+              value
             }
           }
         }
@@ -639,7 +650,7 @@ export const taegis: IntegrationAdapter = {
       in: {
         limit: 100,
         offset: 0,
-        cql_query: "FROM alert WHERE severity >= 0.6 AND status = 'OPEN' EARLIEST=-7d",
+        cql_query: "FROM alert WHERE severity >= 0.7 AND status = 'OPEN' EARLIEST=-7d",
       }
     };
     const res = await fetch(`https://${graphqlHost}/graphql`, {
@@ -657,13 +668,23 @@ export const taegis: IntegrationAdapter = {
     return alertList.map((a: any): NormalisedAlert => {
       const meta = a.metadata || {};
       const createdMs = meta.created_at?.seconds ? meta.created_at.seconds * 1000 : Date.now();
+      const device = meta.sourceDevice?.hostname
+        || (a.entities||[]).find((e:any)=>e.type==='ASSET'||e.type==='HOST')?.name
+        || (a.entities||[]).find((e:any)=>e.value&&(e.value.includes('.')||/^[A-Z0-9-]{3,}$/i.test(e.value)))?.value
+        || meta.originSourceId?.split(':')[0]
+        || meta.nativeId?.split(':')[0]
+        || 'Unknown';
+      const ipv4 = meta.sourceDevice?.ipAddress
+        || (a.entities||[]).find((e:any)=>e.type==='IP_ADDRESS')?.value
+        || undefined;
       return {
         id: safeId('taegis', a.id),
         source: 'Taegis XDR',
         sourceId: a.id,
         title: meta.title || meta.description || 'Taegis alert',
         severity: normSev(meta.severity),
-        device: 'Unknown',
+        device,
+        ip: ipv4,
         time: new Date(createdMs).toISOString(),
         rawTime: createdMs,
         description: meta.description || meta.title,
