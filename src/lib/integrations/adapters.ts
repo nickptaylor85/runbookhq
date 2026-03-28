@@ -57,10 +57,13 @@ export const elastic: IntegrationAdapter = {
 
 // Tenable severity scale: 0=Info, 1=Low, 2=Medium, 3=High, 4=Critical
 function tenableSev(s: number | string | undefined): 'Critical'|'High'|'Medium'|'Low' {
-  const n = Number(s);
-  if (n === 4) return 'Critical';
-  if (n === 3) return 'High';
-  if (n === 2) return 'Medium';
+  // Tenable workbenches API returns severity as string: 'Critical','High','Medium','Low','None'
+  // Older endpoints may return integers 4/3/2/1/0
+  if (s === 'Critical' || s === 4) return 'Critical';
+  if (s === 'High' || s === 3) return 'High';
+  if (s === 'Medium' || s === 2) return 'Medium';
+  return 'Low';
+}dium';
   return 'Low';
 }
 
@@ -94,28 +97,31 @@ export const tenable: IntegrationAdapter = {
       'Accept': 'application/json',
     };
 
-    // Step 1: plugins sev>=2 (Medium=2, High=3, Critical=4), last 90 days, limit 50
+    // Step 1: fetch High + Critical vulnerabilities using correct Tenable filter string values
+    // Per docs: filter.N.value for severity must be string: None|Low|Medium|High|Critical
+    // Use two filters with OR: severity=High OR severity=Critical
     const listRes = await fetch(
-      `https://cloud.tenable.com/workbenches/vulnerabilities?date_range=90&filter.0.filter=severity&filter.0.quality=gte&filter.0.value=2&filter.search_type=and&limit=50`,
+      `https://cloud.tenable.com/workbenches/vulnerabilities?date_range=90&filter.0.filter=severity&filter.0.quality=eq&filter.0.value=High&filter.1.filter=severity&filter.1.quality=eq&filter.1.value=Critical&filter.search_type=or&limit=100`,
       { headers, signal: AbortSignal.timeout(12000) }
     );
     if (!listRes.ok) throw new Error(`Tenable: HTTP ${listRes.status}`);
     const listData = await listRes.json();
     const rawVulns = listData.vulnerabilities || [];
-    // Log each severity count separately (Vercel truncates long single log lines)
-    const sevDist: Record<string,number> = {};
-    for (const p of rawVulns) { const s = String(p.severity); sevDist[s] = (sevDist[s]||0)+1; }
-    for (const [sev,cnt] of Object.entries(sevDist)) { console.log(`[tenable] sev${sev}=${cnt}`); }
+    // Log severity distribution and raw field names
     if (rawVulns.length > 0) {
       const s0 = rawVulns[0];
-      console.log(`[tenable] sample id=${s0.plugin_id} sev=${s0.severity} name=${String(s0.plugin_name||'').slice(0,25)}`);
+      console.log(`[tenable] total=${rawVulns.length} fields=${Object.keys(s0).join(',')}`);
+      console.log(`[tenable] sample sev=${s0.severity} risk=${s0.risk_factor} vpr=${s0.vpr_score} name=${String(s0.plugin_name||'').slice(0,30)}`);
+    } else {
+      console.log('[tenable] 0 results from API — check credentials or scan history');
     }
-    // Include Medium (sev>=2) — many environments have no High/Critical
+    // API already filters to High/Critical via server-side filter
+    // Client-side: also exclude known scan-info plugins
     const SCAN_INFO_PLUGINS = new Set([19506, 56984, 45590, 11219, 12634]);
     const plugins: any[] = rawVulns
-      .filter((p: any) => Number(p.severity) >= 2 && !SCAN_INFO_PLUGINS.has(Number(p.plugin_id)))
+      .filter((p: any) => !SCAN_INFO_PLUGINS.has(Number(p.plugin_id)))
       .slice(0, 20);
-    console.log(`[tenable] after filter: ${plugins.length} (sev>=2, excluding scan-info)`);
+    console.log(`[tenable] after scan-info filter: ${plugins.length}/${rawVulns.length}`);
     if (plugins.length === 0) return [];
 
     // Step 2: fetch /outputs for each plugin in parallel
