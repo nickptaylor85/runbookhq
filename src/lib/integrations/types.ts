@@ -22,6 +22,7 @@ export interface NormalisedAlert {
   verdict: Verdict;
   confidence: number;
   tags: string[];
+  affectedAssets?: string[];   // grouped vuln: all hostnames affected by this plugin
   raw?: unknown;
 }
 

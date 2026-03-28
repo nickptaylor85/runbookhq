@@ -123,7 +123,7 @@ export const tenable: IntegrationAdapter = {
     console.log(`[tenable] after scan-info filter: ${plugins.length}/${rawVulns.length}`);
     if (plugins.length === 0) return [];
 
-    // Step 2: fetch /outputs for each plugin in parallel
+    // Step 2: fetch /outputs for each plugin in parallel to get per-asset hostnames
     const settled = await Promise.allSettled(
       plugins.map(p =>
         fetch(`https://cloud.tenable.com/workbenches/vulnerabilities/${p.plugin_id}/outputs`, {
@@ -133,16 +133,15 @@ export const tenable: IntegrationAdapter = {
     );
 
     const results: NormalisedAlert[] = [];
-    const seen = new Set<string>();
 
     for (let i = 0; i < plugins.length; i++) {
       const plugin = plugins[i];
       const raw = settled[i].status === 'fulfilled' ? (settled[i] as PromiseFulfilledResult<any>).value : null;
-      const assetList: Array<{hostname:string; ipv4:string}> = [];
+
+      // Collect all unique asset hostnames for this plugin
+      const assetSet = new Map<string, string>(); // hostname → ipv4
 
       if (raw?.outputs) {
-        const stateNames = raw.outputs.flatMap((o: any) => (o.states||[]).map((s: any) => s.name)).join(',');
-        if (stateNames) console.log(`[tenable] plugin ${plugin.plugin_id} states: ${stateNames}`);
         for (const output of raw.outputs) {
           for (const state of (output.states || [])) {
             const sn = (state.name || '').toLowerCase();
@@ -151,42 +150,42 @@ export const tenable: IntegrationAdapter = {
               for (const asset of (result.assets || [])) {
                 const hostname = asset.fqdn || asset.hostname || asset.netbios_name || asset.ipv4 || 'Unknown';
                 const ipv4 = asset.ipv4 || '';
-                assetList.push({ hostname, ipv4 });
+                if (!assetSet.has(hostname)) assetSet.set(hostname, ipv4);
               }
             }
           }
         }
       }
 
-      // If /outputs returned no assets, fall back to plugin-level record
-      if (assetList.length === 0) {
-        assetList.push({ hostname: `${plugin.counts?.total||plugin.count||1} host(s) — expand for details`, ipv4: '' });
-      }
+      const affectedAssets = assetSet.size > 0
+        ? Array.from(assetSet.keys())
+        : [`${plugin.counts?.total || plugin.count || 1} host(s)`];
 
-      for (const asset of assetList) {
-        const id = safeId('tenable', plugin.plugin_id, asset.hostname || 'x');
-        if (seen.has(id)) continue;
-        seen.add(id);
-        results.push({
-          id,
-          source: 'Tenable',
-          sourceId: `${plugin.plugin_id}`,
-          title: plugin.plugin_name || 'Tenable vulnerability',
-          severity: tenableSev(plugin.severity),
-          device: asset.hostname,
-          ip: asset.ipv4 || undefined,
-          user: undefined,
-          time: plugin.last_found || new Date().toISOString(),
-          rawTime: new Date(plugin.last_found || Date.now()).getTime(),
-          description: `${plugin.plugin_name}${plugin.cve?.[0] ? ` — CVE: ${plugin.cve[0]}` : ''}`,
-          verdict: 'Pending',
-          confidence: plugin.cvss3_base_score ? Math.round(plugin.cvss3_base_score * 10) : 50,
-          tags: ['tenable', 'vuln', ...(plugin.cve || [])].filter(Boolean),
-          raw: plugin,
-        });
-      }
+      const primaryDevice = affectedAssets[0] || 'Unknown';
+      const primaryIp = assetSet.get(primaryDevice) || undefined;
+
+      console.log(`[tenable] plugin ${plugin.plugin_id} "${String(plugin.plugin_name||'').slice(0,25)}" → ${affectedAssets.length} asset(s)`);
+
+      results.push({
+        id: safeId('tenable', plugin.plugin_id),
+        source: 'Tenable',
+        sourceId: `${plugin.plugin_id}`,
+        title: plugin.plugin_name || 'Tenable vulnerability',
+        severity: tenableSev(plugin.severity),
+        device: affectedAssets.length === 1 ? primaryDevice : `${affectedAssets.length} assets`,
+        ip: affectedAssets.length === 1 ? primaryIp : undefined,
+        user: undefined,
+        time: plugin.last_found || new Date().toISOString(),
+        rawTime: new Date(plugin.last_found || Date.now()).getTime(),
+        description: `${plugin.plugin_name}${plugin.cve?.[0] ? ` — CVE: ${plugin.cve[0]}` : ''}`,
+        verdict: 'Pending',
+        confidence: plugin.cvss3_base_score ? Math.round(plugin.cvss3_base_score * 10) : 50,
+        tags: ['tenable', 'vuln', ...(plugin.cve || [])].filter(Boolean),
+        affectedAssets,
+        raw: plugin,
+      });
     }
-    console.log(`[tenable] ${results.length} vuln-asset records from ${plugins.length} plugins`);
+    console.log(`[tenable] ${results.length} unique plugins, ${results.reduce((n,r)=>n+(r.affectedAssets?.length||1),0)} total asset-findings`);
     return results;
   },
 };

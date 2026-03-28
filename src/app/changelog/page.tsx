@@ -4,6 +4,19 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.9.100',
+    date: '2026-03-28',
+    tag: 'Features',
+    tagColor: '#22d49a',
+    summary: 'Tenable vulns grouped by plugin — unique vulnerabilities with affected asset count and list',
+    changes: [
+      { type: 'feat', text: 'Tenable adapter now produces one record per unique plugin (vulnerability), not one per asset. affectedAssets[] field added to NormalisedAlert type.' },
+      { type: 'feat', text: 'Vulns tab: device count now shows the real number of affected assets per vulnerability (e.g. "7 devices affected"). Expanded view lists all hostnames as individual badges.' },
+      { type: 'feat', text: 'Coverage tab: live device derivation now expands affectedAssets from each grouped vuln record to enumerate all unique scanned hosts — previously only used the primary device field.' },
+      { type: 'feat', text: 'Plugin log now shows per-plugin asset count: "[tenable] plugin 12345 CVE-2024-xxxx → 7 asset(s)" for easy diagnosis.' },
+    ],
+  },
+  {
     version: 'v74.9.99',
     date: '2026-03-28',
     tag: 'Fix',
