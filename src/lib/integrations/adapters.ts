@@ -54,6 +54,16 @@ export const elastic: IntegrationAdapter = {
 };
 
 // ─── Tenable.io ───────────────────────────────────────────────────────────────
+
+// Tenable severity scale: 0=Info, 1=Low, 2=Medium, 3=High, 4=Critical
+function tenableSev(s: number | string | undefined): 'Critical'|'High'|'Medium'|'Low' {
+  const n = Number(s);
+  if (n === 4) return 'Critical';
+  if (n === 3) return 'High';
+  if (n === 2) return 'Medium';
+  return 'Low';
+}
+
 export const tenable: IntegrationAdapter = {
   id: 'tenable',
   name: 'Tenable.io',
@@ -86,12 +96,20 @@ export const tenable: IntegrationAdapter = {
 
     // Step 1: top plugins (Critical=4, High=3), last 90 days, limit 5
     const listRes = await fetch(
-      `https://cloud.tenable.com/workbenches/vulnerabilities?date_range=90&filter.0.filter=severity&filter.0.quality=gte&filter.0.value=3&filter.search_type=and&limit=5`,
+      `https://cloud.tenable.com/workbenches/vulnerabilities?date_range=90&filter.0.filter=severity&filter.0.quality=gte&filter.0.value=3&filter.1.filter=cvss3_base_score&filter.1.quality=gte&filter.1.value=7.0&filter.search_type=and&limit=20`,
       { headers, signal: AbortSignal.timeout(12000) }
     );
     if (!listRes.ok) throw new Error(`Tenable: HTTP ${listRes.status}`);
     const listData = await listRes.json();
-    const plugins: any[] = (listData.vulnerabilities || []).slice(0, 5);
+    // Filter out scan-info plugins (plugin 19506 etc) and enforce High/Critical
+    const plugins: any[] = (listData.vulnerabilities || [])
+      .filter((p: any) => {
+        const sev = Number(p.severity);
+        const cvss = Number(p.cvss3_base_score || 0);
+        // Must be High(3) or Critical(4), skip pure scan-info with no real CVE impact
+        return sev >= 3 && (cvss >= 6.5 || sev === 4);
+      })
+      .slice(0, 10);
     if (plugins.length === 0) return [];
 
     // Step 2: fetch /outputs for each plugin in parallel
@@ -143,7 +161,7 @@ export const tenable: IntegrationAdapter = {
           source: 'Tenable',
           sourceId: `${plugin.plugin_id}`,
           title: plugin.plugin_name || 'Tenable vulnerability',
-          severity: normSev(plugin.severity),
+          severity: tenableSev(plugin.severity),
           device: asset.hostname,
           ip: asset.ipv4 || undefined,
           user: undefined,
