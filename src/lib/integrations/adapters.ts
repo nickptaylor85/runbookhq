@@ -645,8 +645,14 @@ export const taegis: IntegrationAdapter = {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: params.toString(),
     });
+    if (!tokenRes.ok) {
+      const errText = await tokenRes.text().catch(()=>'');
+      throw new Error(`Taegis token request failed: HTTP ${tokenRes.status} ${errText.slice(0,200)}`);
+    }
     const tokenData = await tokenRes.json();
+    if (!tokenData.access_token) throw new Error(`Taegis auth failed: ${JSON.stringify(tokenData).slice(0,200)}`);
     const token = tokenData.access_token;
+    console.log('[taegis] token obtained, querying alerts...');
     // Taegis GraphQL - using official documented schema
     // Ref: https://docs.taegis.secureworks.com/apis/using_alerts_api/
     const graphqlHost = region === 'us1' || !region
@@ -661,7 +667,6 @@ export const taegis: IntegrationAdapter = {
           list {
             id
             status
-            resolution_reason
             metadata {
               title
               full_title
@@ -686,7 +691,7 @@ export const taegis: IntegrationAdapter = {
       in: {
         limit: 100,
         offset: 0,
-        cql_query: "FROM alert WHERE severity >= 0.7 AND status = 'OPEN' EARLIEST=-7d",
+        cql_query: "FROM alert WHERE severity >= 0.6 EARLIEST=-24h",
       }
     };
     const res = await fetch(`https://${graphqlHost}/graphql`, {
@@ -700,7 +705,9 @@ export const taegis: IntegrationAdapter = {
     }
     const data = await res.json();
     if (data.errors) throw new Error(`Taegis query error: ${data.errors[0]?.message}`);
+    const totalRes = data.data?.alertsServiceSearch?.alerts?.total_results || 0;
     const alertList = data.data?.alertsServiceSearch?.alerts?.list || [];
+    console.log(`[taegis] total_results=${totalRes}, list=${alertList.length}, status=${data.data?.alertsServiceSearch?.status}, reason=${data.data?.alertsServiceSearch?.reason}`);
     return alertList.map((a: any): NormalisedAlert => {
       const meta = a.metadata || {};
       const createdMs = meta.created_at?.seconds ? meta.created_at.seconds * 1000 : Date.now();
@@ -729,7 +736,7 @@ export const taegis: IntegrationAdapter = {
         time: new Date(createdMs).toISOString(),
         rawTime: createdMs,
         description: meta.description || meta.title,
-        verdict: a.status === 'FALSE_POSITIVE' || a.resolution_reason === 'FALSE_POSITIVE' ? 'FP' : 'Pending',
+        verdict: a.status === 'FALSE_POSITIVE' || a.status === 'CLOSED_FALSE_POSITIVE' ? 'FP' : a.status === 'CLOSED' ? 'TP' : 'Pending',
         confidence: meta.confidence ? Math.round(meta.confidence * 100) : 70,
         tags: ['taegis', 'xdr', a.status].filter(Boolean),
         raw: a,
