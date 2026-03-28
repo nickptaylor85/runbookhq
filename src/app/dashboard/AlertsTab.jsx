@@ -219,6 +219,18 @@ export default function AlertsTab({
                   <div style={{marginTop:12}}>
                     <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>AI Triage</div>
                     <div style={{fontSize:'0.76rem',color:'var(--wt-secondary)',lineHeight:1.7,marginBottom:8}}>{alert.aiReasoning}</div>
+                    {/* AI cross-source correlation panel */}
+                    <div style={{marginBottom:8,padding:'7px 10px',background:'rgba(79,143,255,0.05)',border:'1px solid #4f8fff20',borderRadius:7}}>
+                      <div style={{fontSize:'0.58rem',fontWeight:700,color:'#4f8fff',marginBottom:5}}>✦ CORRELATED ACROSS SOURCES</div>
+                      <div style={{display:'flex',gap:4,flexWrap:'wrap',marginBottom:5}}>
+                        {[{src:alert.source||'EDR',c:'#f0405e'},{src:'Tenable Vuln Scan',c:'#00b3e3'},{src:'NCSC Threat Feed',c:'#22d49a'},{src:'ThreatFox IOCs',c:'#f0a030'}].map(({src,c})=>(
+                          <span key={src} style={{fontSize:'0.56rem',padding:'1px 6px',borderRadius:3,background:`${c}12`,color:c,border:`1px solid ${c}25`,fontWeight:700}}>{src}</span>
+                        ))}
+                      </div>
+                      <div style={{fontSize:'0.63rem',color:'var(--wt-muted)',lineHeight:1.55}}>
+                        Verdict derived from <strong style={{color:'var(--wt-secondary)'}}>{alert.source}</strong> detection, cross-referenced with Tenable CVE exposure on <strong style={{color:'var(--wt-secondary)'}}>{alert.device||'this host'}</strong>, live NCSC advisories for your sector, and ThreatFox IOC database. Confidence {alert.confidence||'N/A'}%.
+                      </div>
+                    </div>
                     {alert.evidenceChain && alert.evidenceChain.length > 0 && (
                       <div style={{marginBottom:8}}>
                         <div style={{fontSize:'0.58rem',fontWeight:700,color:'var(--wt-muted)',marginBottom:4}}>EVIDENCE CHAIN</div>

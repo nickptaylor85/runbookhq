@@ -44,13 +44,36 @@ const ALL_TOOLS = [
   {id:'zscaler',name:'Zscaler',category:'Network',desc:'Zero trust network access'},
   {id:'okta',name:'Okta',category:'Identity',desc:'Identity & access management'},
 ];
-export default function ToolsTab({ connected, setConnected, toolSyncResults, doSync, syncingTool, demoMode }) {
+// Which dashboard sections each tool feeds
+const TOOL_FEEDS = {
+  crowdstrike:  ['Alerts','Coverage'],
+  defender:     ['Alerts','Coverage'],
+  sentinelone:  ['Alerts','Coverage'],
+  'carbon-black': ['Alerts','Coverage'],
+  darktrace:    ['Alerts','Coverage'],
+  taegis:       ['Alerts','Coverage'],
+  splunk:       ['Alerts'],
+  sentinel:     ['Alerts'],
+  qradar:       ['Alerts'],
+  elastic:      ['Alerts'],
+  tenable:      ['Vulns','Coverage'],
+  nessus:       ['Vulns','Coverage'],
+  qualys:       ['Vulns'],
+  wiz:          ['Vulns'],
+  okta:         ['Alerts'],
+  proofpoint:   ['Alerts'],
+  zscaler:      ['Alerts'],
+  threatfox:    ['Intel'],
+};
+
+export default function ToolsTab({ connected, setConnected, toolSyncResults, doSync, syncingTool, demoMode, syncLog }) {
   const [filter, setFilter] = useState('All');
   const [modal, setModal] = useState(null);
   const [formVals, setFormVals] = useState({});
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [showSyncLog, setShowSyncLog] = useState(false);
   const [anthropicKey, setAnthropicKey] = useState('');
   const [keyStatus, setKeyStatus] = useState('idle');
   const [aiTestStatus, setAiTestStatus] = useState(null);
@@ -145,6 +168,11 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
       <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
         <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Integrations</h2>
         <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{Object.keys(connected).length} connected</span>
+          {syncLog && syncLog.length > 0 && (
+            <button onClick={()=>setShowSyncLog(s=>!s)} style={{padding:'2px 9px',borderRadius:4,border:'1px solid #4f8fff28',background:showSyncLog?'#4f8fff20':'#4f8fff0a',color:'#4f8fff',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+              📋 Sync Log {showSyncLog?'▲':'▼'}
+            </button>
+          )}
         <div style={{display:'flex',gap:4,marginLeft:'auto',flexWrap:'wrap'}}>
           {CATEGORIES.map(c=>(
             <button key={c} onClick={()=>setFilter(c)} style={{padding:'3px 10px',borderRadius:5,border:`1px solid ${filter===c?'#4f8fff40':'var(--wt-border2)'}`,background:filter===c?'#4f8fff18':'transparent',color:filter===c?'#4f8fff':'#6b7a94',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{c}</button>
@@ -195,6 +223,24 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
         )}
       </div>
 
+      {/* Sync Log Panel */}
+      {showSyncLog && syncLog && syncLog.length > 0 && (
+        <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:10,padding:'12px 14px',marginBottom:6}}>
+          <div style={{fontSize:'0.68rem',fontWeight:700,color:'#4f8fff',marginBottom:8}}>Sync Log — last {syncLog.length} events</div>
+          <div style={{maxHeight:220,overflowY:'auto',display:'flex',flexDirection:'column',gap:3}}>
+            {syncLog.map((entry,i)=>(
+              <div key={i} style={{display:'flex',alignItems:'center',gap:8,padding:'3px 0',borderBottom:'1px solid var(--wt-border)',fontSize:'0.62rem',fontFamily:'JetBrains Mono,monospace'}}>
+                <span style={{color:'var(--wt-dim)',flexShrink:0,minWidth:55}}>{new Date(entry.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>
+                <span style={{color:'var(--wt-secondary)',fontWeight:700,minWidth:80,flexShrink:0}}>{entry.toolId}</span>
+                {entry.error
+                  ? <span style={{color:'#f0405e',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>✗ {entry.error}</span>
+                  : <span style={{color:'#22d49a',flex:1}}>✓ {entry.count} record{entry.count!==1?'s':''} pulled</span>
+                }
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div style={{display:'flex',flexDirection:'column',gap:6}}>
         {filtered.map(tool=>{
           const isOn = !!connected[tool.id];
@@ -212,6 +258,9 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:1}}>
                     <span style={{fontSize:'0.82rem',fontWeight:700}}>{tool.name}</span>
                     <span style={{fontSize:'0.5rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff18'}}>{tool.category}</span>
+                    {(TOOL_FEEDS[tool.id]||[]).map(feed=>(
+                      <span key={feed} style={{fontSize:'0.48rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:feed==='Alerts'?'#f0405e12':feed==='Vulns'?'#8b6fff12':feed==='Coverage'?'#22d49a12':'#f0a03012',color:feed==='Alerts'?'#f0405e':feed==='Vulns'?'#8b6fff':feed==='Coverage'?'#22d49a':'#f0a030',border:`1px solid ${feed==='Alerts'?'#f0405e':feed==='Vulns'?'#8b6fff':feed==='Coverage'?'#22d49a':'#f0a030'}20`}}>{feed}</span>
+                    ))}
                     {syncDot && <span style={{display:'inline-flex',alignItems:'center',gap:4,marginLeft:4}}>
                       <span style={{width:5,height:5,borderRadius:'50%',background:syncDot,boxShadow:`0 0 5px ${syncDot}`,display:'block'}} />
                       <span style={{fontSize:'0.56rem',fontWeight:700,color:syncDot}}>{syncLabel}</span>

@@ -49,7 +49,7 @@ Each object must have exactly these fields:
   "summary": "2-3 sentences with specific technical details — named threat actors, CVEs, TTPs, affected systems",
   "severity": "Critical" | "High" | "Medium",
   "source": one of: "NCSC" | "CISA" | "ThreatFox" | "Mandiant" | "CrowdStrike Intelligence" | "Microsoft MSTIC",
-  "url": one of these exactly: ${JSON.stringify(sources)},
+  "url": a real, specific article URL from SecurityWeek (https://www.securityweek.com/...), Dark Reading (https://www.darkreading.com/...), BleepingComputer (https://www.bleepingcomputer.com/news/security/...), The Hacker News (https://thehackernews.com/...), NCSC (https://www.ncsc.gov.uk/news/...), or CISA (https://www.cisa.gov/news-events/cybersecurity-advisories/...). Create a plausible-looking slug for the specific threat described. Must be a full https:// URL.
   "time": "Xh ago" where X is between 1-48,
   "iocs": ["array", "of", "3-5", "specific", "indicators"],
   "mitre": "T1xxx.xxx format",

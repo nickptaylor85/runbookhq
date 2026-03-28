@@ -122,12 +122,12 @@ const DEMO_VULNS = [
 
 const DEMO_INCIDENTS = [
   {id:'INC-0847',title:'Domain Controller Compromise — admin_svc Credential Dump',severity:'Critical',status:'Active',created:'2026-03-22 09:14',updated:'2026-03-22 09:47',alertCount:4,devices:['DC01','SRV-FINANCE01','laptop-CFO01'],mitreTactics:['Initial Access','Credential Access','Lateral Movement'],aiSummary:'Multi-stage credential theft attack targeting domain infrastructure. Attacker gained initial access via spear-phish, executed LSASS dump on DC01, and used compromised admin_svc credentials to move laterally to SRV-FINANCE01. C2 beacon detected and blocked. Domain credentials at high risk — immediate reset recommended.',timeline:[
-    {t:'09:14',actor:'AI',action:'Initial alert correlated',detail:'LSASS access on DC01 — Incident created and Tier 2 assigned'},
-    {t:'09:15',actor:'AI',action:'admin_svc account disabled',detail:'Auto-response: account suspended across all domain controllers'},
-    {t:'09:16',actor:'AI',action:'C2 traffic blocked',detail:'IP 185.220.101.42 blocked at Zscaler perimeter. Darktrace PCAP initiated'},
-    {t:'09:22',actor:'Analyst',action:'Confirmed TP — escalated to Incident Commander',detail:'IR team engaged. DC01 isolated. Forensic image requested'},
-    {t:'09:31',actor:'AI',action:'Lateral movement path mapped',detail:'admin_svc lateral path: laptop-CFO01 → DC01 → SRV-FINANCE01'},
-    {t:'09:47',actor:'AI',action:'Updated kill chain analysis',detail:'Full attack timeline generated. MITRE ATT&CK mapping complete'},
+    {t:'09:14',actor:'AI',action:'Initial alert correlated',detail:'LSASS access on DC01 — Incident created, Tier 2 paged',cmd:'CrowdStrikeFalcon.exe -policy isolate --host DC01 --reason "LSASS dump detected T1003.001"'},
+    {t:'09:15',actor:'AI',action:'admin_svc account disabled',detail:'Auto-response: account suspended across all domain controllers',cmd:'Disable-ADAccount -Identity admin_svc; Get-ADUser admin_svc | Set-ADUser -Enabled $false'},
+    {t:'09:16',actor:'AI',action:'C2 traffic blocked',detail:'IP 185.220.101.42 blocked at Zscaler perimeter',cmd:'zscli policy add-block --ip 185.220.101.42 --reason "C2 T1071.001" --scope all-users'},
+    {t:'09:22',actor:'Analyst',action:'Confirmed TP — escalated to IC',detail:'DC01 isolated. Memory forensic image requested',cmd:'winpmem_mini.exe DC01_memdump_0922.raw && sha256sum DC01_memdump_0922.raw'},
+    {t:'09:31',actor:'AI',action:'Lateral movement path mapped',detail:'admin_svc path: laptop-CFO01 → DC01 → SRV-FINANCE01',cmd:'Get-WinEvent -ComputerName DC01 -FilterHashtable @{LogName="Security";Id=4624} | Where-Object {$_.Properties[5].Value -eq "admin_svc"} | Select -Last 50'},
+    {t:'09:47',actor:'AI',action:'Kill chain analysis complete',detail:'MITRE mapping: T1566.001 → T1003.001 → T1078 → T1021.002',cmd:'python3 sigma_converter.py --rule lsass_access.yml --target splunk --output hunt_query.spl'},
   ]},
   {id:'INC-0846',title:'Suspected Insider Threat — Data Exfiltration',severity:'High',status:'Contained',created:'2026-03-22 08:45',updated:'2026-03-22 09:12',alertCount:3,devices:['laptop-HR03','cloud-email'],mitreTactics:['Collection','Exfiltration'],aiSummary:'HR employee with active resignation notice uploaded 18GB of payroll and personnel data to personal Google Drive. Email forwarding rule discovered directing inbox to personal Gmail. DLP policies enforced, legal team notified. Data exfiltration contained — no external breach confirmed.',timeline:[
     {t:'08:45',actor:'AI',action:'DLP alert correlated with HR data',detail:'Zscaler flagged 18GB upload. HR system integration confirmed resignation notice'},
@@ -139,8 +139,8 @@ const DEMO_INCIDENTS = [
 
 const DEMO_INTEL_BY_INDUSTRY = {
   'Financial Services':[
-    {id:'i1',title:'TA505 Targeting UK Banks — Cobalt Strike Deployment',summary:'TA505 (Clop ransomware affiliate) observed targeting UK financial institutions with spear-phishing campaigns delivering Cobalt Strike beacons via fake SWIFT notification emails. 3 UK banks confirmed compromised in the last 14 days.',severity:'Critical',source:'NCSC & ThreatFox',time:'2h ago',iocs:['185.220.101.42','hxxps://swift-notification[.]com','cobalt-cs-payload-2024.exe'],mitre:'T1566.001',industrySpecific:true,url:'https://www.ncsc.gov.uk/threats'},
-    {id:'i2',title:'QakBot Resurgence — Banking Trojans via PDF Lures',summary:'QakBot (QBot) back in circulation after law enforcement takedown. New infrastructure and updated PDF lure themed around invoice disputes. Financial sector primary target. High evasion capability — bypasses standard email security.',severity:'High',source:'CISA KEV',time:'6h ago',iocs:['invoice-dispute-2024.pdf','hxxp://qakbot-new[.]ru'],mitre:'T1566.001',industrySpecific:true,url:'https://www.cisa.gov/known-exploited-vulnerabilities-catalog'},
+    {id:'i1',title:'TA505 Targeting UK Banks — Cobalt Strike Deployment',summary:'TA505 (Clop ransomware affiliate) observed targeting UK financial institutions with spear-phishing campaigns delivering Cobalt Strike beacons via fake SWIFT notification emails. 3 UK banks confirmed compromised in the last 14 days.',severity:'Critical',source:'NCSC & ThreatFox',time:'2h ago',iocs:['185.220.101.42','hxxps://swift-notification[.]com','cobalt-cs-payload-2024.exe'],mitre:'T1566.001',industrySpecific:true,url:'https://www.securityweek.com/ta505-targets-uk-financial-institutions-cobalt-strike'},
+    {id:'i2',title:'QakBot Resurgence — Banking Trojans via PDF Lures',summary:'QakBot (QBot) back in circulation after law enforcement takedown. New infrastructure and updated PDF lure themed around invoice disputes. Financial sector primary target. High evasion capability — bypasses standard email security.',severity:'High',source:'CISA KEV',time:'6h ago',iocs:['invoice-dispute-2024.pdf','hxxp://qakbot-new[.]ru'],mitre:'T1566.001',industrySpecific:true,url:'https://www.bleepingcomputer.com/news/security/qakbot-returns-new-pdf-lures-targeting-financial-sector/'},
     {id:'i3',title:'SWIFT Customer Security Programme — Audit Deadline',summary:'SWIFT CSP mandatory controls attestation deadline approaching. Ensure your SWIFT connector environments comply with CSP 2024 requirements, particularly around multi-factor authentication and anomaly detection integration.',severity:'Medium',source:'SWIFT ISAC',time:'1d ago',industrySpecific:true,url:'https://www.swift.com/our-solutions/compliance-and-shared-services/financial-crime-cyber-security'},
   ],
   'Healthcare':[
@@ -148,8 +148,8 @@ const DEMO_INTEL_BY_INDUSTRY = {
     {id:'i5',title:'DICOM Vulnerability — Medical Imaging Systems Exposed',summary:'Multiple DICOM-compliant medical imaging systems found to have patient data exposed on the internet without authentication. Check for internet-exposed DICOM servers on port 104. Over 1,000 UK systems found exposed in recent scan.',severity:'High',source:'Cynerio Research',time:'1d ago',industrySpecific:true,url:'https://cynerio.com/blog'},
   ],
   'default':[
-    {id:'def1',title:'CISA KEV Update — 3 New Actively Exploited CVEs',summary:'CISA added CVE-2024-21413 (Outlook), CVE-2024-3400 (PAN-OS), and CVE-2024-27198 (TeamCity) to Known Exploited Vulnerabilities catalog. All three being actively exploited in the wild. Patch deadline: 72 hours.',severity:'Critical',source:'CISA KEV',time:'3h ago',iocs:[],mitre:'',industrySpecific:false},
-    {id:'def2',title:'LockBit 3.0 Infrastructure Resurfaces Post-Takedown',summary:'LockBit 3.0 operational infrastructure identified on new IP ranges following law enforcement takedown. Group recruiting new affiliates and offering updated locker with improved evasion. Healthcare and financial sectors primary targets.',severity:'High',source:'ThreatFox',time:'8h ago',iocs:['185.220.101.0/24','lockbit-ransom3.com'],mitre:'T1486',industrySpecific:false},
+    {id:'def1',title:'CISA KEV Update — CVE-2024-21413, CVE-2024-3400, CVE-2024-27198',summary:'CISA added three critical CVEs to the Known Exploited Vulnerabilities catalog: CVE-2024-21413 (Microsoft Outlook RCE), CVE-2024-3400 (PAN-OS command injection), CVE-2024-27198 (JetBrains TeamCity auth bypass). All actively exploited. Patch deadline: 72 hours.',severity:'Critical',source:'CISA KEV',time:'3h ago',iocs:['CVE-2024-21413','CVE-2024-3400','CVE-2024-27198'],mitre:'T1190',industrySpecific:false,url:'https://www.cisa.gov/known-exploited-vulnerabilities-catalog'},
+    {id:'def2',title:'LockBit 3.0 Infrastructure Resurfaces Post-Takedown',summary:'LockBit 3.0 operational infrastructure identified on new IP ranges following law enforcement takedown. Group recruiting new affiliates and offering updated locker with improved evasion. Healthcare and financial sectors primary targets.',severity:'High',source:'ThreatFox',time:'8h ago',iocs:['185.220.101.0/24','lockbit-ransom3.com'],mitre:'T1486',industrySpecific:false,url:'https://www.bleepingcomputer.com/news/security/lockbit-returns-new-infrastructure-post-takedown/'},
     {id:'def3',title:'ThreatFox IOC Feed — 847 New C2 Indicators',summary:'ThreatFox published 847 new command-and-control indicators in the last 24 hours. Predominant malware families: AsyncRAT, RedLine Stealer, Cobalt Strike. Recommend enriching alert triage rules with updated IOC set.',severity:'Medium',source:'ThreatFox',time:'1h ago',industrySpecific:false},
     {id:'def4',title:'URLhaus Phishing Kit — 23 New Malicious Domains',summary:'23 newly registered domains identified distributing credential harvesting kits mimicking Microsoft 365, DocuSign, and SharePoint. All domains registered in last 72h with low reputation.',severity:'Medium',source:'URLhaus',time:'2h ago',industrySpecific:false},
   ],
@@ -375,6 +375,7 @@ export default function DashboardPage() {
   const [syncError, setSyncError] = useState(null);
   const [lastSynced, setLastSynced] = useState(null);
   const [toolSyncResults, setToolSyncResults] = useState({}); // {toolId: {count, error, syncedAt}}
+  const [syncLog, setSyncLog] = useState([]); // [{ts, toolId, count, error, durationMs}]
   const [syncingTool, setSyncingTool] = useState(null); // toolId currently force-syncing
   const [currentTenant, setCurrentTenant] = useState('global');
   const tenantRef = React.useRef('global');
@@ -412,6 +413,8 @@ export default function DashboardPage() {
           d.results.forEach(r=>{ next[r.toolId]={count:r.count||0, error:r.error||null, syncedAt:now}; });
           return next;
         });
+        // Append to rolling sync log (last 50 entries)
+        setSyncLog(prev=>[...d.results.map(r=>({ts:now,toolId:r.toolId,count:r.count||0,error:r.error||null})), ...prev].slice(0,50));
         const VULN_SOURCES = new Set(['tenable','nessus','qualys','wiz']);
         const allItems = d.results.flatMap(r => r.alerts || []);
         const vulnItems = allItems.filter(a => VULN_SOURCES.has((a.source||'').toLowerCase().replace(/[^a-z]/g,'')));
@@ -590,7 +593,17 @@ export default function DashboardPage() {
   const taegisActive = tools.find(t=>t.id==='taegis')?.active || false;
   const darktrace = tools.find(t=>t.id==='darktrace');
   const totalDevices = 247;
-  const gapDevices = DEMO_GAP_DEVICES;
+  // In live mode, derive known devices from Tenable vulns; gap = known devices missing EDR
+  const liveKnownDevices = !demoMode && liveVulns.length > 0
+    ? [...new Map(liveVulns.filter(v=>v.device&&v.device!=='Unknown').map(v=>[v.device, {
+        hostname: v.device, ip: v.ip||'', os: v.raw?.os || 'Unknown',
+        missing: Object.values(connectedTools).length===0 ? ['EDR not configured'] : ['CrowdStrike Falcon'],
+        reason: 'Device found in Tenable scan — EDR coverage unverified',
+        lastSeen: 'via Tenable', lastSeenDays: 0,
+      }])).values()]
+    : [];
+  const osBreakdown = (demoMode?DEMO_GAP_DEVICES:liveKnownDevices.length>0?liveKnownDevices:DEMO_GAP_DEVICES).reduce((acc,d)=>{const os=d.os?.split(' ')[0]||'Unknown';acc[os]=(acc[os]||0)+1;return acc;},{});
+  const gapDevices = !demoMode && liveKnownDevices.length > 0 ? liveKnownDevices : DEMO_GAP_DEVICES;
   const coveredPct = Math.round(((totalDevices - gapDevices.length) / totalDevices) * 100);
   const critAlerts = alerts.filter(a=>a.severity==='Critical');
   const tpAlerts = alerts.filter(a=>a.verdict==='TP');
@@ -1083,7 +1096,7 @@ Generated by Watchtower`;
                         <div style={{fontSize:'0.72rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.title}</div>
                         <div style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{a.source} · {a.device} · {a.time}</div>
                       </div>
-                      <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:VERDICT_STYLE[a.verdict].bg,color:VERDICT_STYLE[a.verdict].c,flexShrink:0}}>{a.verdict}</span>
+                      <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:(VERDICT_STYLE[a.verdict]||VERDICT_STYLE.Pending).bg,color:(VERDICT_STYLE[a.verdict]||VERDICT_STYLE.Pending).c,flexShrink:0}}>{a.verdict||'—'}</span>
                     </div>
                   ))}
                 </div>
@@ -1274,12 +1287,14 @@ Generated by Watchtower`;
           {activeTab==='vulns' && (
             <div style={{display:'flex',flexDirection:'column',gap:0}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
-                <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Top 10 Vulnerabilities</h2>
+                <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Vulnerabilities</h2>
+                {!demoMode && liveVulns.length>0 && <span style={{fontSize:'0.6rem',color:'#22d49a',background:'#22d49a0a',padding:'2px 8px',borderRadius:4,border:'1px solid #22d49a25',fontWeight:600}}>✦ Live · {liveVulns.length} from Tenable</span>}
+                {demoMode && <span style={{fontSize:'0.6rem',color:'#f0a030',background:'#f0a03010',padding:'2px 8px',borderRadius:4,fontWeight:600}}>Demo data</span>}
                 <span style={{fontSize:'0.62rem',color:'#f0405e',background:'#f0405e12',padding:'2px 8px',borderRadius:4}}>Ranked by severity × prevalence in your estate</span>
                 <span style={{marginLeft:'auto',fontSize:'0.62rem',color:'#f97316',background:'#f9731612',padding:'2px 8px',borderRadius:4}}>{kevVulns.length} CISA KEV — 72h deadline</span>
               </div>
               <div style={{display:'flex',flexDirection:'column',gap:6}}>
-                {DEMO_VULNS.map((vuln,rank)=>(
+                {vulns.slice(0,15).map((vuln,rank)=>(
                   <div key={vuln.id}>
                     <div className='vuln-row' onClick={()=>setSelectedVuln(selectedVuln?.id===vuln.id?null:vuln)} style={{padding:'10px 14px',background:selectedVuln?.id===vuln.id?'#0a0d18':'#0f1526',border:`1px solid ${selectedVuln?.id===vuln.id?'#4f8fff30':'var(--wt-border)'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12}}>
                       <div style={{width:22,height:22,borderRadius:6,background:rank<3?'#f0405e18':'var(--wt-border)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.62rem',fontWeight:900,color:rank<3?'#f0405e':'#6b7a94',flexShrink:0,fontFamily:'JetBrains Mono,monospace'}}>{rank+1}</div>
@@ -1611,7 +1626,10 @@ Generated by Watchtower`;
                                   <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:event.actor==='AI'?'#4f8fff15':'#22d49a15',color:event.actor==='AI'?'#4f8fff':'#22d49a'}}>{event.actor}</span>
                                   <span style={{fontSize:'0.74rem',fontWeight:600}}>{event.action}</span>
                                 </div>
-                                <div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>{event.detail}</div>
+                                <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',lineHeight:1.5}}>{event.detail}</div>
+                                {event.cmd && (
+                                  <div style={{marginTop:4,padding:'4px 8px',background:'#0a0d14',border:'1px solid #1d2535',borderRadius:5,fontSize:'0.6rem',fontFamily:'JetBrains Mono,monospace',color:'#22d49a',lineHeight:1.6,wordBreak:'break-all',whiteSpace:'pre-wrap'}}>{event.cmd}</div>
+                                )}
                               </div>
                             </div>
                           ))}
@@ -1752,7 +1770,7 @@ Generated by Watchtower`;
           )}
           {/* ═══════════════════════════════ TOOLS ══════════════════════════════════ */}
           {activeTab==='tools' && (
-            <ToolsTab connected={connectedTools} setConnected={setConnectedTools} toolSyncResults={toolSyncResults} doSync={doSync} syncingTool={syncingTool} demoMode={demoMode} />
+            <ToolsTab connected={connectedTools} setConnected={setConnectedTools} toolSyncResults={toolSyncResults} doSync={doSync} syncingTool={syncingTool} demoMode={demoMode} syncLog={syncLog} />
           )}
 
           {/* ═══════════════════════════════ ADMIN PORTAL ═══════════════════════════════ */}
@@ -1854,8 +1872,17 @@ Generated by Watchtower`;
           <div style={{marginBottom:10,padding:'8px 12px',background:'#f0405e0a',border:'1px solid #f0405e18',borderRadius:8,fontSize:'0.74rem',color:'#f0405e'}}>
             ⚠ These devices have no agent coverage — they are invisible to your security tools and represent active risk.
           </div>
+          {Object.keys(osBreakdown||{}).length > 0 && (
+            <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:12}}>
+              {Object.entries(osBreakdown||{}).sort((a,b)=>b[1]-a[1]).map(([os,n])=>(
+                <span key={os} style={{fontSize:'0.62rem',padding:'3px 9px',borderRadius:5,background:'var(--wt-card2)',border:'1px solid var(--wt-border)',color:'var(--wt-secondary)',fontFamily:'JetBrains Mono,monospace'}}>{os} <strong style={{color:'var(--wt-text)'}}>{n}</strong></span>
+              ))}
+              <span style={{fontSize:'0.62rem',color:'var(--wt-dim)',alignSelf:'center'}}>by OS</span>
+            </div>
+          )}
           {gapDevices.map(dev=>(
-            <div key={dev.hostname} style={{padding:'12px 0',borderBottom:'1px solid #1d2535'}}>
+            <div key={dev.hostname} style={{padding:'12px 0',borderBottom:'1px solid #1d2535',cursor:'pointer'}} onClick={()=>{setModal(null);setDeployAgentDevice(dev);}}>
+
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontSize:'0.82rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace'}}>{dev.hostname}</span>
                 <span style={{fontSize:'0.6rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{dev.ip}</span>
@@ -1876,16 +1903,31 @@ Generated by Watchtower`;
 
       {/* Tools Modal */}
       {modal?.type==='tools' && (
-        <Modal title='Tool Status' onClose={()=>setModal(null)}>
-          {tools.map(tool=>(
-            <div key={tool.id} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:'1px solid #1d2535'}}>
-              <div style={{width:8,height:8,borderRadius:'50%',background:tool.active?'#22c992':'#f0405e',boxShadow:tool.active?'0 0 6px #22c992':'none',flexShrink:0}} />
-              <span style={{flex:1,fontSize:'0.82rem',fontWeight:600}}>{tool.name}</span>
-              <span style={{fontSize:'0.7rem',color:tool.active?'#22d49a':'#f0405e',fontWeight:700}}>{tool.active?'Connected':'Not configured'}</span>
-              {tool.alertCount && tool.alertCount > 0 && <span style={{fontSize:'0.62rem',color:'#4f8fff'}}>{tool.alertCount} alerts today</span>}
-              {!tool.active && <a href='/settings/tools' style={{padding:'3px 10px',borderRadius:5,background:'#4f8fff12',color:'#4f8fff',fontSize:'0.66rem',fontWeight:700,textDecoration:'none'}}>Configure →</a>}
+        <Modal title='Tool Status & Sync' onClose={()=>setModal(null)}>
+          <div style={{marginBottom:12,fontSize:'0.66rem',color:'var(--wt-muted)'}}>Last synced: {lastSynced ? new Date(lastSynced).toLocaleTimeString('en-GB') : 'Not yet'} · {Object.keys(connectedTools).length} tools connected</div>
+          {tools.filter(t=>t.active||connectedTools[t.id]).map(tool=>{
+            const sr = toolSyncResults[tool.id];
+            return (
+              <div key={tool.id} style={{padding:'10px 0',borderBottom:'1px solid #1d2535'}}>
+                <div style={{display:'flex',alignItems:'center',gap:10}}>
+                  <div style={{width:8,height:8,borderRadius:'50%',background:sr?.error?'#f0405e':sr?'#22c992':'#f0a030',boxShadow:sr?.error?'0 0 5px #f0405e':sr?'0 0 5px #22c992':'none',flexShrink:0}} />
+                  <span style={{flex:1,fontSize:'0.82rem',fontWeight:600}}>{tool.name}</span>
+                  <span style={{fontSize:'0.66rem',color:sr?.error?'#f0405e':sr?'#22d49a':'#f0a030',fontWeight:700}}>
+                    {sr?.error ? '✗ Error' : sr ? `✓ ${sr.count} records` : 'Pending'}
+                  </span>
+                  {!demoMode && doSync && <button onClick={()=>doSync([tool.id])} style={{padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff28',background:'#4f8fff0a',color:'#4f8fff',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>⟳</button>}
+                </div>
+                {sr && <div style={{paddingLeft:18,marginTop:4,fontSize:'0.6rem',color:sr.error?'#f0405e':'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',lineHeight:1.5}}>
+                  {sr.error ? sr.error : `Last sync: ${new Date(sr.syncedAt).toLocaleTimeString('en-GB')} · ${sr.count} record${sr.count!==1?'s':''} pulled`}
+                </div>}
+              </div>
+            );
+          })}
+          {tools.filter(t=>!t.active&&!connectedTools[t.id]).length > 0 && (
+            <div style={{marginTop:10,padding:'8px 10px',background:'var(--wt-card2)',borderRadius:7,fontSize:'0.66rem',color:'var(--wt-dim)'}}>
+              {tools.filter(t=>!t.active&&!connectedTools[t.id]).length} tools not connected — <button onClick={()=>{setModal(null);setActiveTab('tools');}} style={{color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontSize:'0.66rem',padding:0}}>configure in Tools →</button>
             </div>
-          ))}
+          )}
         </Modal>
       )}
 
@@ -1905,9 +1947,9 @@ Generated by Watchtower`;
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:2}}>
                 <span style={{width:4,height:16,borderRadius:2,background:SEV_COLOR[a.severity],flexShrink:0}} />
                 <span style={{fontSize:'0.78rem',fontWeight:600,flex:1}}>{a.title}</span>
-                <span style={{fontSize:'0.56rem',fontWeight:800,padding:'2px 7px',borderRadius:3,color:VERDICT_STYLE[a.verdict].c,background:VERDICT_STYLE[a.verdict].bg}}>{a.verdict}</span>
+                <span style={{fontSize:'0.56rem',fontWeight:800,padding:'2px 7px',borderRadius:3,color:(VERDICT_STYLE[a.verdict]||VERDICT_STYLE.Pending).c,background:(VERDICT_STYLE[a.verdict]||VERDICT_STYLE.Pending).bg}}>{a.verdict||'—'}</span>
               </div>
-              <div style={{fontSize:'0.7rem',color:'#22d49a',paddingLeft:12}}>⚡ {a.aiActions[0]}</div>
+              {a.aiActions?.[0]&&<div style={{fontSize:'0.7rem',color:'#22d49a',paddingLeft:12}}>⚡ {a.aiActions?.[0]}</div>}
             </div>
           ))}
         </Modal>
