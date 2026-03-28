@@ -629,18 +629,19 @@ export const taegis: IntegrationAdapter = {
             resolution_reason
             metadata {
               title
+              full_title
               severity
               confidence
               description
               created_at { seconds }
-              sourceDevice { hostname ipAddress }
-              originSourceId
-              nativeId
+              origin
+              engine { name }
             }
-            entities {
-              type
-              name
-              value
+            third_party_details {
+              generic {
+                name
+                generic { record { key value } }
+              }
             }
           }
         }
@@ -668,15 +669,20 @@ export const taegis: IntegrationAdapter = {
     return alertList.map((a: any): NormalisedAlert => {
       const meta = a.metadata || {};
       const createdMs = meta.created_at?.seconds ? meta.created_at.seconds * 1000 : Date.now();
-      const device = meta.sourceDevice?.hostname
-        || (a.entities||[]).find((e:any)=>e.type==='ASSET'||e.type==='HOST')?.name
-        || (a.entities||[]).find((e:any)=>e.value&&(e.value.includes('.')||/^[A-Z0-9-]{3,}$/i.test(e.value)))?.value
-        || meta.originSourceId?.split(':')[0]
-        || meta.nativeId?.split(':')[0]
-        || 'Unknown';
-      const ipv4 = meta.sourceDevice?.ipAddress
-        || (a.entities||[]).find((e:any)=>e.type==='IP_ADDRESS')?.value
-        || undefined;
+      // Extract hostname from available Taegis fields:
+      // metadata.origin often contains "sensor_id:host_id:hostname" format
+      // third_party_details may have key/value pairs with hostname
+      const originParts = (meta.origin || '').split(':');
+      const originHost = originParts.length >= 3 ? originParts[originParts.length-1] : (meta.origin || '');
+      // Extract from third_party generic records
+      const tpRecords: Array<{key:string;value:string}> = (a.third_party_details?.generic || [])
+        .flatMap((g:any) => (g.generic?.record || []) as Array<{key:string;value:string}>);
+      const tpHost = tpRecords.find((r:any) => 
+        r.key === 'hostname' || r.key === 'host' || r.key === 'asset' || r.key === 'device')?.value;
+      const tpIp = tpRecords.find((r:any) => 
+        r.key === 'ip' || r.key === 'ip_address' || r.key === 'ipv4')?.value;
+      const device = tpHost || (originHost && originHost.length > 2 && !originHost.match(/^[0-9a-f-]{8,}$/i) ? originHost : '') || 'Unknown';
+      const ipv4 = tpIp || undefined;
       return {
         id: safeId('taegis', a.id),
         source: 'Taegis XDR',
