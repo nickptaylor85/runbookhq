@@ -1,7 +1,10 @@
 'use client';
 import React, { useState } from 'react';
-export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS, isAdmin, setActiveTab, setAdminBannerInput }) {
+export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TENANTS, isAdmin, setActiveTab, setAdminBannerInput, msspBranding, setMsspBranding }) {
   const [portfolioView, setPortfolioView] = React.useState('security');
+  const [showBrandingConfig, setShowBrandingConfig] = React.useState(false);
+  const [brandingDraft, setBrandingDraft] = React.useState({name:'', primaryColor:'#8b6fff', tagline:''});
+  const [brandingSaved, setBrandingSaved] = React.useState(false);
   const [selectedClient, setSelectedClient] = React.useState(null);
 
   // The MSSP's own managed clients — organisations they provide SOC services to
@@ -26,8 +29,30 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
           <h2 style={{fontSize:'0.88rem',fontWeight:700,display:'flex',alignItems:'center',gap:8}}>
             My Client Portfolio
             <span style={{fontSize:'0.62rem',color:'#8b6fff',background:'#8b6fff12',padding:'2px 8px',borderRadius:4,border:'1px solid #8b6fff25',fontWeight:700}}>MSSP</span>
+            {msspBranding?.name&&<span style={{fontSize:'0.58rem',color:'#8b6fff',opacity:0.7}}>· {msspBranding.name}</span>}
+            <button onClick={()=>setShowBrandingConfig(s=>!s)} title='Configure white-label branding' style={{fontSize:'0.56rem',padding:'1px 6px',borderRadius:3,border:'1px solid #8b6fff25',background:'#8b6fff0a',color:'#8b6fff',cursor:'pointer',fontFamily:'Inter,sans-serif',marginLeft:4}}>🎨 Branding</button>
           </h2>
           <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginTop:2}}>Organisations you manage security for · {MY_CLIENTS.length} active clients</div>
+        {/* White-label branding config */}
+        {showBrandingConfig && (
+          <div style={{marginTop:10,padding:'14px 16px',background:'var(--wt-card)',border:'1px solid #8b6fff25',borderRadius:10}}>
+            <div style={{fontSize:'0.7rem',fontWeight:700,marginBottom:10,color:'#8b6fff'}}>🎨 White-Label Branding</div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,marginBottom:10}}>
+              {[{k:'name',label:'Product Name',ph:'CyberGuard SOC'},{k:'tagline',label:'Tagline',ph:'Powered by AI'},{k:'primaryColor',label:'Brand Colour',ph:'#8b6fff'}].map(f=>(
+                <div key={f.k}>
+                  <div style={{fontSize:'0.6rem',color:'var(--wt-muted)',marginBottom:3}}>{f.label}</div>
+                  <input value={brandingDraft[f.k]||''} onChange={e=>setBrandingDraft(prev=>({...prev,[f.k]:e.target.value}))} placeholder={f.ph} style={{width:'100%',padding:'6px 9px',background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:6,color:'var(--wt-text)',fontSize:'0.74rem',fontFamily:'Inter,sans-serif',outline:'none',boxSizing:'border-box'}} />
+                </div>
+              ))}
+            </div>
+            <div style={{display:'flex',gap:8,alignItems:'center'}}>
+              <button onClick={async()=>{try{await fetch('/api/mssp/branding',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(brandingDraft)});if(setMsspBranding)setMsspBranding(brandingDraft);setBrandingSaved(true);setTimeout(()=>setBrandingSaved(false),3000);}catch(e){}}} style={{padding:'6px 14px',borderRadius:6,border:'none',background:'#8b6fff',color:'#fff',fontSize:'0.7rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Save Branding</button>
+              {brandingSaved&&<span style={{fontSize:'0.66rem',color:'#22d49a',fontWeight:600}}>✓ Saved</span>}
+              <button onClick={()=>setShowBrandingConfig(false)} style={{marginLeft:'auto',fontSize:'0.64rem',color:'var(--wt-muted)',background:'none',border:'none',cursor:'pointer'}}>Close</button>
+            </div>
+            <div style={{marginTop:8,fontSize:'0.6rem',color:'var(--wt-dim)'}}>Your clients see your brand name, not Watchtower. Custom domain support available on MSSP plan.</div>
+          </div>
+        )}
         </div>
         <div style={{display:'flex',gap:3,background:'var(--wt-card2)',borderRadius:7,padding:3,marginLeft:'auto'}}>
           {['security','revenue','usage'].map(v=>(

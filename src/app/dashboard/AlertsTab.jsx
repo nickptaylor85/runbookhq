@@ -50,6 +50,7 @@ export default function AlertsTab({
   createdIncidents, setCreatedIncidents,
   setActiveTab,
   userTier,
+  alertAssignees, setAlertAssignees,
 }) {
   function toggleAlertExpand(id) {
     setExpandedAlerts(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
@@ -267,6 +268,7 @@ export default function AlertsTab({
                     maxWidth:'60vw'}}>{alert.title}</span>
                   {isFresh && <span style={{fontSize:'0.46rem',fontWeight:800,padding:'1px 4px',borderRadius:3,background:'#22d49a',color:'#fff',flexShrink:0}}>NEW</span>}
                   {isSlaBreach && <span style={{fontSize:'0.46rem',fontWeight:800,padding:'1px 4px',borderRadius:3,background:'#f0405e',color:'#fff',flexShrink:0}}>SLA BREACH</span>}
+                  {alertAssignees&&alertAssignees[alert.id]&&<span style={{fontSize:'0.46rem',fontWeight:700,padding:'1px 4px',borderRadius:3,background:'#4f8fff18',color:'#4f8fff',border:'1px solid #4f8fff30',flexShrink:0}}>→ {alertAssignees[alert.id]}</span>}
                   {isHotDevice && <span style={{fontSize:'0.46rem',fontWeight:800,padding:'1px 4px',borderRadius:3,background:'#f0405e20',color:'#f0405e',border:'1px solid #f0405e30',flexShrink:0}}>🔥 {deviceAlertCount}</span>}
                   {hasNote && <span style={{fontSize:'0.46rem',color:'#f0a030',background:'#f0a03012',border:'1px solid #f0a03025',padding:'1px 4px',borderRadius:3,flexShrink:0}}>note</span>}
                   {isAcknowledged && <span style={{fontSize:'0.46rem',color:'#22d49a',background:'#22d49a12',padding:'1px 4px',borderRadius:3,flexShrink:0,fontWeight:800}}>ACK</span>}
@@ -295,6 +297,7 @@ export default function AlertsTab({
                 </div>
                 {aiVerdict && !demoMode && <span style={{fontSize:'0.5rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:`${aiVC}15`,color:aiVC}}>AI: {aiVerdict.split(' ')[0]}</span>}
                 {alert.confidence && !aiVerdict && <span style={{fontSize:'0.5rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{alert.confidence}%</span>}
+                {setAlertAssignees&&<button onClick={e=>{e.stopPropagation();const me=alertAssignees&&alertAssignees[alert.id]?null:'Me';setAlertAssignees(prev=>({...prev,[alert.id]:me}));}} title={alertAssignees&&alertAssignees[alert.id]?'Unassign':'Assign to me'} style={{padding:'2px 6px',borderRadius:4,border:`1px solid ${alertAssignees&&alertAssignees[alert.id]?'#4f8fff40':'var(--wt-border2)'}`,background:alertAssignees&&alertAssignees[alert.id]?'#4f8fff15':'transparent',color:alertAssignees&&alertAssignees[alert.id]?'#4f8fff':'var(--wt-dim)',fontSize:'0.52rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',lineHeight:1.4}}>{alertAssignees&&alertAssignees[alert.id]?'✓ Me':'Claim'}</button>}
                 <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{expanded?'▲':'▼'}</span>
               </div>
             </div>

@@ -4,6 +4,26 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.9.109',
+    date: '2026-03-28',
+    tag: 'UX + Features',
+    tagColor: '#4f8fff',
+    summary: 'Nav cleanup, alert/incident assignees, volume chart, handover, MSSP branding, vuln sort',
+    changes: [
+      { type: 'feat', text: 'Compliance removed from main tab bar — now a secondary 🛡 Comply button visible only to admin/business users. Reduces nav from 9 tabs to 8.' },
+      { type: 'feat', text: 'Alert Claim/Assign — analysts can claim an alert to themselves with one click. Assignee badge shown on collapsed card. State tracked per-session.' },
+      { type: 'feat', text: 'Incident Assign — same claim pattern on incident rows. Incoming analyst can see who owns what at a glance.' },
+      { type: 'feat', text: 'Overview: AI Noise Reduction panel replaced with 7-Day Alert Volume bar chart — real operational data, not fabricated metrics.' },
+      { type: 'feat', text: 'Overview: ⇄ Handover button generates an AI shift handover brief from live data (open alerts, criticals, cases, SLA breaches, posture). Displays inline, dismissible.' },
+      { type: 'feat', text: 'Shift handover API (/api/shift-handover) now generates real AI content using Claude Haiku rather than returning hardcoded JSON.' },
+      { type: 'feat', text: 'MSSP Portfolio: 🎨 Branding button opens white-label config panel (product name, tagline, brand colour). Saves to Redis via /api/mssp/branding.' },
+      { type: 'feat', text: 'Branding API (/api/mssp/branding) now reads/writes to Redis instead of returning empty stubs.' },
+      { type: 'fix', text: 'Vulns: global sort by severity × device count × CVSS before grouping by product. Most impactful vulns always appear first within each group.' },
+      { type: 'fix', text: 'Alert page size increased from 10 to 25 — fewer clicks to review a shift.' },
+    ],
+  },
+
+  {
     version: 'v74.9.107',
     date: '2026-03-28',
     tag: 'Fix + Features',

@@ -1,23 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-interface Branding {
-  name?: string;
-  logo?: string;
-  primaryColor?: string;
-  accentColor?: string;
-  domain?: string;
-}
+import { redisGet, redisSet } from '@/lib/redis';
 
 function getTenantId(req: NextRequest): string {
   return req.headers.get('x-tenant-id') || 'global';
 }
+function brandingKey(t: string) { return `wt:${t}:mssp_branding`; }
 
 export async function GET(req: NextRequest) {
-  const _tenantId = getTenantId(req);
-  return NextResponse.json({ ok: true, branding: {} as Branding });
+  try {
+    const raw = await redisGet(brandingKey(getTenantId(req)));
+    return NextResponse.json({ ok: true, branding: raw ? JSON.parse(raw) : {} });
+  } catch(e) { return NextResponse.json({ ok: true, branding: {} }); }
 }
 
 export async function POST(req: NextRequest) {
-  const _tenantId = getTenantId(req);
-  return NextResponse.json({ ok: true });
+  try {
+    const tenantId = getTenantId(req);
+    const body = await req.json();
+    const branding: Record<string,string> = {};
+    if (typeof body.name === 'string') branding.name = body.name.slice(0,80);
+    if (typeof body.tagline === 'string') branding.tagline = body.tagline.slice(0,120);
+    if (typeof body.primaryColor === 'string' && /^#[0-9a-f]{3,6}$/i.test(body.primaryColor)) branding.primaryColor = body.primaryColor;
+    if (typeof body.accentColor === 'string' && /^#[0-9a-f]{3,6}$/i.test(body.accentColor)) branding.accentColor = body.accentColor;
+    await redisSet(brandingKey(tenantId), JSON.stringify(branding));
+    return NextResponse.json({ ok: true, branding });
+  } catch(e: any) { return NextResponse.json({ error: e.message }, { status: 500 }); }
 }
