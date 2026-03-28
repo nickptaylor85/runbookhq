@@ -77,35 +77,73 @@ export const tenable: IntegrationAdapter = {
     } catch(e: any) { return { ok: false, message: e.message }; }
   },
   async fetchAlerts(creds, since) {
-    // Tenable.io API — get high/critical vulnerabilities from the last 7 days
+    // Tenable.io: /workbenches/vulnerabilities returns plugin-level aggregates only (no asset data).
+    // To get hostnames we must call /workbenches/vulnerabilities/{plugin_id}/outputs for each plugin.
     const headers = { 'X-ApiKeys': `accessKey=${creds.access_key};secretKey=${creds.secret_key}`, 'Accept': 'application/json' };
-    // Export vulnerability data via workbench
+
+    // Step 1: get top plugins by severity (Critical=4, High=3)
     const params = new URLSearchParams({
-      date_range: '7',
+      date_range: '30',
       'filter.0.filter': 'severity',
       'filter.0.quality': 'gte',
-      'filter.0.value': '3', // 3=High, 4=Critical
+      'filter.0.value': '3',
       'filter.search_type': 'and',
-      limit: '100',
+      limit: '25',
     });
-    const res = await fetch(`https://cloud.tenable.com/workbenches/vulnerabilities?${params.toString()}`, { headers });
-    if (!res.ok) throw new Error(`Tenable API error: HTTP ${res.status}`);
-    const data = await res.json();
-    return (data.vulnerabilities || []).slice(0, 100).map((v: any): NormalisedAlert => ({
-      id: safeId('tenable', v.plugin_id, v.asset_id),
-      source: 'Tenable',
-      sourceId: `${v.plugin_id}`,
-      title: v.plugin_name || 'Tenable vulnerability',
-      severity: normSev(v.severity),
-      device: v.asset?.fqdn || v.asset?.ipv4 || 'Unknown',
-      ip: v.asset?.ipv4,
-      time: v.last_found || new Date().toISOString(),
-      rawTime: new Date(v.last_found || Date.now()).getTime(),
-      description: `CVE: ${v.cve?.[0] || 'N/A'} — ${v.plugin_name}`,
-      verdict: 'Pending', confidence: v.cvss3_base_score ? Math.round(v.cvss3_base_score * 10) : 50,
-      tags: ['tenable', 'vuln', v.cve?.[0]].filter(Boolean),
-      raw: v,
-    }));
+    const listRes = await fetch(`https://cloud.tenable.com/workbenches/vulnerabilities?${params.toString()}`, { headers });
+    if (!listRes.ok) throw new Error(`Tenable API error: HTTP ${listRes.status}`);
+    const listData = await listRes.json();
+    const plugins: any[] = (listData.vulnerabilities || []).slice(0, 20);
+    if (plugins.length === 0) return [];
+
+    // Step 2: fetch per-asset outputs for each plugin in parallel
+    const outputResults = await Promise.allSettled(
+      plugins.map(async (plugin: any) => {
+        const outRes = await fetch(`https://cloud.tenable.com/workbenches/vulnerabilities/${plugin.plugin_id}/outputs`, { headers });
+        if (!outRes.ok) return [];
+        const outData = await outRes.json();
+        const records: NormalisedAlert[] = [];
+        for (const output of (outData.outputs || [])) {
+          for (const state of (output.states || [])) {
+            if (state.name !== 'open') continue;
+            for (const result of (state.results || [])) {
+              for (const asset of (result.assets || [])) {
+                records.push({
+                  id: safeId('tenable', plugin.plugin_id, asset.id || asset.ipv4),
+                  source: 'Tenable',
+                  sourceId: `${plugin.plugin_id}`,
+                  title: plugin.plugin_name || 'Tenable vulnerability',
+                  severity: normSev(plugin.severity),
+                  device: asset.hostname || asset.fqdn || asset.ipv4 || 'Unknown',
+                  ip: asset.ipv4,
+                  user: undefined,
+                  time: plugin.last_found || new Date().toISOString(),
+                  rawTime: new Date(plugin.last_found || Date.now()).getTime(),
+                  description: `${plugin.plugin_name}${plugin.cve?.[0] ? ` — CVE: ${plugin.cve[0]}` : ''}`,
+                  verdict: 'Pending',
+                  confidence: plugin.cvss3_base_score ? Math.round(plugin.cvss3_base_score * 10) : 50,
+                  tags: ['tenable', 'vuln', plugin.cve?.[0]].filter(Boolean),
+                  raw: { plugin, asset, output: output.plugin_output },
+                });
+              }
+            }
+          }
+        }
+        return records;
+      })
+    );
+
+    // Flatten, dedupe by id, limit to 150
+    const seen = new Set<string>();
+    const all: NormalisedAlert[] = [];
+    for (const r of outputResults) {
+      if (r.status === 'fulfilled') {
+        for (const item of r.value) {
+          if (!seen.has(item.id)) { seen.add(item.id); all.push(item); }
+        }
+      }
+    }
+    return all.slice(0, 150);
   },
 };
 
