@@ -31,6 +31,7 @@ export default function AlertsTab({
   noteInput, setNoteInput,
   alertOverrides, setAlertOverrides,
   aiTriageCache,
+  alertSnoozes, setAlertSnoozes,
   createdIncidents, setCreatedIncidents,
   setActiveTab,
   userTier,
