@@ -336,12 +336,6 @@ export default function DashboardPage() {
   const [intelFetchedAt, setIntelFetchedAt] = useState(null);
   const [livetenableNews, setLiveTenableNews] = useState([]);
   const [msspBranding, setMsspBranding] = useState(null);
-  // Load MSSP branding on mount
-  useEffect(()=>{
-    if(userTier==='mssp' || isAdmin) {
-      fetch('/api/mssp/branding',{headers:{'x-tenant-id':tenantRef.current}}).then(r=>r.json()).then(d=>{if(d.branding?.name)setMsspBranding(d.branding);}).catch(()=>{});
-    }
-  },[userTier,isAdmin]);
   const [shiftHandover, setShiftHandover] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(0);
@@ -487,6 +481,10 @@ export default function DashboardPage() {
   const [userRole, setUserRole] = useState(null); // null=owner, 'tech_admin', 'viewer', 'sales'
   const [userTier, setUserTier] = useState('community');
   const [theme, setTheme] = useState('dark');
+  // Load MSSP branding — must be after userTier and isAdmin are declared
+  useEffect(()=>{
+    if(userTier==='mssp'||isAdmin){fetch('/api/mssp/branding',{headers:{'x-tenant-id':tenantRef.current}}).then(r=>r.json()).then(d=>{if(d.branding?.name)setMsspBranding(d.branding);}).catch(()=>{});}
+  },[userTier,isAdmin]);
 
   const DEMO_TENANTS = [
     {id:'global', name:'My Organisation', type:'direct'},
