@@ -4,6 +4,21 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.9.99',
+    date: '2026-03-28',
+    tag: 'Fix',
+    tagColor: '#f0405e',
+    summary: 'Fix AI log tab missing from admin nav, Taegis API rewrite per official docs',
+    changes: [
+      { type: 'fix', text: 'AI Query Log invisible — "ailog" was missing from admin portal tab array [\'subscribers\',\'users\',...]. Tab panel existed but was never reachable. Added ailog with ✦ AI Log label and fetchAiLog() on click.' },
+      { type: 'fix', text: 'requireAdmin in ailog route now also allows dev mode (no WATCHTOWER_ADMIN_EMAIL set) so AI log is visible in local/staging environments.' },
+      { type: 'fix', text: 'Taegis adapter rewritten per official docs (docs.taegis.secureworks.com): region-specific auth host, search_id + tenant_id in query, removed invalid fields (full_title, third_party_details, origin), extended to -7d window.' },
+      { type: 'fix', text: 'Taegis auth endpoint now uses region-specific host for non-us1 regions (api.{region}.taegis.secureworks.com) — was hardcoded to us1 host for all regions.' },
+      { type: 'fix', text: 'Taegis GraphQL errors now logged individually before throwing — easier to diagnose schema mismatches.' },
+      { type: 'fix', text: 'Taegis verdict mapping adds RESOLVED status → TP (alongside CLOSED).' },
+    ],
+  },
+  {
     version: 'v74.9.98',
     date: '2026-03-28',
     tag: 'Fix',

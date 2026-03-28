@@ -79,8 +79,8 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
           <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginTop:3}}>All organisations subscribed to Watchtower · Impersonate any tenant to view their dashboard</div>
         </div>
         <div style={{marginLeft:'auto',display:'flex',gap:4,background:'var(--wt-card2)',borderRadius:7,padding:3}}>
-          {['subscribers','users','platform','stripe','saml','broadcast'].map(v=>(
-            <button key={v} onClick={()=>setAdminView(v)} style={{padding:'5px 14px',borderRadius:5,border:'none',background:adminView===v?'#f0a030':'transparent',color:adminView===v?'#fff':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',textTransform:v==='ailog'?'uppercase':'capitalize',letterSpacing:v==='ailog'?'0.5px':undefined}}>{v==='ailog'?'✦ AI Log':v}</button>
+          {['subscribers','users','platform','stripe','saml','broadcast','ailog'].map(v=>(
+            <button key={v} onClick={()=>{setAdminView(v);if(v==='ailog')fetchAiLog();}} style={{padding:'5px 14px',borderRadius:5,border:'none',background:adminView===v?'#f0a030':'transparent',color:adminView===v?'#fff':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{v==='ailog'?'✦ AI Log':v.charAt(0).toUpperCase()+v.slice(1)}</button>ontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',textTransform:v==='ailog'?'uppercase':'capitalize',letterSpacing:v==='ailog'?'0.5px':undefined}}>{v==='ailog'?'✦ AI Log':v}</button>
           ))}
         </div>
       </div>

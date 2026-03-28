@@ -627,8 +627,13 @@ export const taegis: IntegrationAdapter = {
   ],
   async testConnection(creds) {
     try {
+      const region = creds.region || 'us1';
+      // Auth endpoint per docs — us1 uses ctpx, other regions use regional subdomain
+      const authHost = region === 'us1' || !region
+        ? 'api.ctpx.secureworks.com'
+        : `api.${region}.taegis.secureworks.com`;
       const params = new URLSearchParams({ grant_type: 'client_credentials', client_id: creds.client_id, client_secret: creds.client_secret });
-      const tokenRes = await fetch('https://api.ctpx.secureworks.com/auth/api/v2/auth/token', {
+      const tokenRes = await fetch(`https://${authHost}/auth/api/v2/auth/token`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: params.toString(),
@@ -644,8 +649,15 @@ export const taegis: IntegrationAdapter = {
   },
   async fetchAlerts(creds, since) {
     const region = creds.region || 'us1';
+    // Region-specific endpoints per docs
+    const authHost = region === 'us1' || !region
+      ? 'api.ctpx.secureworks.com'
+      : `api.${region}.taegis.secureworks.com`;
+    const graphqlHost = authHost; // GraphQL uses same host as auth
+
+    // Step 1: Get access token via client credentials
     const params = new URLSearchParams({ grant_type: 'client_credentials', client_id: creds.client_id, client_secret: creds.client_secret });
-    const tokenRes = await fetch('https://api.ctpx.secureworks.com/auth/api/v2/auth/token', {
+    const tokenRes = await fetch(`https://${authHost}/auth/api/v2/auth/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: params.toString(),
@@ -657,93 +669,93 @@ export const taegis: IntegrationAdapter = {
     const tokenData = await tokenRes.json();
     if (!tokenData.access_token) throw new Error(`Taegis auth failed: ${JSON.stringify(tokenData).slice(0,200)}`);
     const token = tokenData.access_token;
-    console.log('[taegis] token obtained, querying alerts...');
-    // Taegis GraphQL - using official documented schema
-    // Ref: https://docs.taegis.secureworks.com/apis/using_alerts_api/
-    const graphqlHost = region === 'us1' || !region
-      ? 'api.ctpx.secureworks.com'
-      : `api.${region}.taegis.secureworks.com`;
+    console.log('[taegis] token obtained, querying GraphQL...');
+
+    // Step 2: Query alerts via GraphQL
+    // Per official SDK examples: https://docs.taegis.secureworks.com/sdks/python_sdk_getting_started/
+    // Fields: id, tenant_id, status, metadata { title severity confidence description created_at }
+    // Note: "Alerts" renamed to "Detections" in UI but API still uses alert terminology
     const query = `query alertsServiceSearch($in: SearchRequestInput) {
       alertsServiceSearch(in: $in) {
+        search_id
         reason
         status
         alerts {
           total_results
           list {
             id
+            tenant_id
             status
             metadata {
               title
-              full_title
               severity
               confidence
               description
               created_at { seconds }
-              origin
               engine { name }
-            }
-            third_party_details {
-              generic {
-                name
-                generic { record { key value } }
-              }
             }
           }
         }
       }
     }`;
+
+    // CQL: FROM alert — correct syntax per docs
+    // severity is float 0.0-1.0: >=0.9=Critical, >=0.7=High, >=0.4=Medium
+    // -7d gives a full week window to catch alerts
     const variables = {
       in: {
         limit: 100,
         offset: 0,
-        cql_query: "FROM alert WHERE severity >= 0.6 EARLIEST=-24h",
+        cql_query: 'FROM alert WHERE severity >= 0.6 EARLIEST=-7d',
       }
     };
+
     const res = await fetch(`https://${graphqlHost}/graphql`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({ query, variables }),
     });
     if (!res.ok) {
       const errText = await res.text().catch(()=>'');
-      throw new Error(`Taegis GraphQL error: HTTP ${res.status} ${errText.slice(0,200)}`);
+      throw new Error(`Taegis GraphQL HTTP ${res.status}: ${errText.slice(0,200)}`);
     }
     const data = await res.json();
-    if (data.errors) throw new Error(`Taegis query error: ${data.errors[0]?.message}`);
-    const totalRes = data.data?.alertsServiceSearch?.alerts?.total_results || 0;
-    const alertList = data.data?.alertsServiceSearch?.alerts?.list || [];
-    console.log(`[taegis] total_results=${totalRes}, list=${alertList.length}, status=${data.data?.alertsServiceSearch?.status}, reason=${data.data?.alertsServiceSearch?.reason}`);
+    if (data.errors?.length) {
+      // Log all errors for diagnosis
+      data.errors.forEach((e: any) => console.log(`[taegis] GraphQL error: ${e.message}`));
+      throw new Error(`Taegis query errors: ${data.errors.map((e:any)=>e.message).join('; ')}`);
+    }
+
+    const searchResult = data.data?.alertsServiceSearch;
+    const alertList = searchResult?.alerts?.list || [];
+    const totalResults = searchResult?.alerts?.total_results || 0;
+    console.log(`[taegis] search_id=${searchResult?.search_id} total=${totalResults} returned=${alertList.length} status=${searchResult?.status}`);
+
     return alertList.map((a: any): NormalisedAlert => {
       const meta = a.metadata || {};
       const createdMs = meta.created_at?.seconds ? meta.created_at.seconds * 1000 : Date.now();
-      // Extract hostname from available Taegis fields:
-      // metadata.origin often contains "sensor_id:host_id:hostname" format
-      // third_party_details may have key/value pairs with hostname
-      const originParts = (meta.origin || '').split(':');
-      const originHost = originParts.length >= 3 ? originParts[originParts.length-1] : (meta.origin || '');
-      // Extract from third_party generic records
-      const tpRecords: Array<{key:string;value:string}> = (a.third_party_details?.generic || [])
-        .flatMap((g:any) => (g.generic?.record || []) as Array<{key:string;value:string}>);
-      const tpHost = tpRecords.find((r:any) => 
-        r.key === 'hostname' || r.key === 'host' || r.key === 'asset' || r.key === 'device')?.value;
-      const tpIp = tpRecords.find((r:any) => 
-        r.key === 'ip' || r.key === 'ip_address' || r.key === 'ipv4')?.value;
-      const device = tpHost || (originHost && originHost.length > 2 && !originHost.match(/^[0-9a-f-]{8,}$/i) ? originHost : '') || 'Unknown';
-      const ipv4 = tpIp || undefined;
+      // Taegis doesn't reliably return hostname in the alerts list query
+      // Use engine name as source context, tenant_id for MSSP scenarios
+      const engineName = meta.engine?.name || '';
       return {
         id: safeId('taegis', a.id),
         source: 'Taegis XDR',
         sourceId: a.id,
-        title: meta.title || meta.description || 'Taegis alert',
+        title: meta.title || meta.description || 'Taegis Detection',
         severity: taegisSev(meta.severity),
-        device,
-        ip: ipv4,
+        device: engineName || 'Unknown',
+        ip: undefined,
         time: new Date(createdMs).toISOString(),
         rawTime: createdMs,
-        description: meta.description || meta.title,
-        verdict: a.status === 'FALSE_POSITIVE' || a.status === 'CLOSED_FALSE_POSITIVE' ? 'FP' : a.status === 'CLOSED' ? 'TP' : 'Pending',
+        description: meta.description || meta.title || '',
+        verdict: a.status === 'FALSE_POSITIVE' || a.status === 'CLOSED_FALSE_POSITIVE' ? 'FP'
+          : a.status === 'CLOSED' || a.status === 'RESOLVED' ? 'TP'
+          : 'Pending',
         confidence: meta.confidence ? Math.round(meta.confidence * 100) : 70,
-        tags: ['taegis', 'xdr', a.status].filter(Boolean),
+        tags: ['taegis', 'xdr', a.status, engineName].filter(Boolean),
         raw: a,
       };
     });
