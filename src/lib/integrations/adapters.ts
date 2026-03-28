@@ -600,6 +600,17 @@ export const carbonblack: IntegrationAdapter = {
 };
 
 // ─── Secureworks Taegis ───────────────────────────────────────────────────────
+
+// Taegis severity: 0.0-1.0 float scale
+function taegisSev(s: number | string | undefined): 'Critical'|'High'|'Medium'|'Low' {
+  const n = Number(s);
+  if (isNaN(n)) return 'Medium';
+  if (n >= 0.9) return 'Critical';
+  if (n >= 0.7) return 'High';
+  if (n >= 0.4) return 'Medium';
+  return 'Low';
+}
+
 export const taegis: IntegrationAdapter = {
   id: 'taegis',
   name: 'Secureworks Taegis',
@@ -711,7 +722,7 @@ export const taegis: IntegrationAdapter = {
         source: 'Taegis XDR',
         sourceId: a.id,
         title: meta.title || meta.description || 'Taegis alert',
-        severity: normSev(meta.severity),
+        severity: taegisSev(meta.severity),
         device,
         ip: ipv4,
         time: new Date(createdMs).toISOString(),

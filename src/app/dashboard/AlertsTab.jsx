@@ -234,7 +234,7 @@ export default function AlertsTab({
                     {alert.evidenceChain && alert.evidenceChain.length > 0 && (
                       <div style={{marginBottom:8}}>
                         <div style={{fontSize:'0.58rem',fontWeight:700,color:'var(--wt-muted)',marginBottom:4}}>EVIDENCE CHAIN</div>
-                        {alert.evidenceChain.map((e,i)=>(
+                        {(alert.evidenceChain||[]).map((e,i)=>(
                           <div key={i} style={{fontSize:'0.72rem',color:'var(--wt-secondary)',padding:'2px 0',display:'flex',gap:6}}>
                             <span style={{color:'#4f8fff',flexShrink:0}}>{i+1}.</span>{e}
                           </div>
@@ -244,7 +244,7 @@ export default function AlertsTab({
                     {alert.aiActions && alert.aiActions.length > 0 && (
                       <div style={{marginBottom:8}}>
                         <div style={{fontSize:'0.58rem',fontWeight:700,color:'var(--wt-muted)',marginBottom:4}}>ACTIONS TAKEN</div>
-                        {alert.aiActions.map((a,i)=>(
+                        {(alert.aiActions||[]).map((a,i)=>(
                           <div key={i} style={{fontSize:'0.72rem',color:'#22d49a',display:'flex',gap:6}}><span>✓</span>{a}</div>
                         ))}
                       </div>
