@@ -65,11 +65,6 @@ function MfaSetup() {
 
   if (!mfaStatus) return <div style={{ fontSize: '0.74rem', color: '#6b7a94' }}>Loading…</div>;
 
-  function loadKeys() {
-    fetch('/api/auth/api-keys').then(r => r.json()).then(d => { if (d.keys) setApiKeys(d.keys); }).catch(() => {});
-  }
-  useEffect(() => { if (activeSection === 'api-keys') loadKeys(); }, [activeSection]);
-
   return (
     <div>
       {success && <div style={{ padding: '8px 12px', background: '#22d49a12', border: '1px solid #22d49a30', borderRadius: 7, fontSize: '0.72rem', color: '#22d49a', marginBottom: 12 }}>{success}</div>}
@@ -187,7 +182,16 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState<'general'|'account'|'notifications'>('general');
+  const [activeTab, setActiveTab] = useState<'general'|'account'|'notifications'|'api-keys'>('general');
+  const [apiKeys, setApiKeys] = useState<any[]>([]);
+  const [newKeyName, setNewKeyName] = useState('');
+  const [newKey, setNewKey] = useState<string|null>(null);
+  const [keyLoading, setKeyLoading] = useState(false);
+
+  function loadKeys() {
+    fetch('/api/auth/api-keys').then(r => r.json()).then(d => { if (d.keys) setApiKeys(d.keys); }).catch(() => {});
+  }
+  useEffect(() => { if (activeTab === 'api-keys') loadKeys(); }, [activeTab]);
 
   useEffect(() => {
     fetch('/api/settings/user')
@@ -218,6 +222,7 @@ export default function SettingsPage() {
     { id: 'general', label: 'General' },
     { id: 'account', label: 'Account' },
     { id: 'notifications', label: 'Notifications' },
+    { id: 'api-keys', label: 'API Keys' },
   ] as const;
 
   return (
@@ -428,7 +433,7 @@ export default function SettingsPage() {
         )}
 
 
-      {activeSection === 'api-keys' && (
+      {activeTab === 'api-keys' && (
         <div>
           <h2 style={{ fontSize: '0.96rem', fontWeight: 700, marginBottom: 4 }}>API Keys</h2>
           <p style={{ fontSize: '0.78rem', color: '#6b7a94', marginBottom: 20, lineHeight: 1.6 }}>Generate keys to access Watchtower data programmatically. A key is shown only once — copy it immediately.</p>
