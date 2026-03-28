@@ -288,10 +288,12 @@ export default function AlertsTab({
                         style={{width:'100%',padding:'8px 10px',background:'var(--wt-card2)',border:'1px solid #4f8fff40',borderRadius:7,color:'var(--wt-text)',fontSize:'0.76rem',fontFamily:'Inter,sans-serif',outline:'none',resize:'vertical',boxSizing:'border-box'}}/>
                       <div style={{display:'flex',gap:6}}>
                         <button onClick={()=>{
-                          if(noteInput.trim()) setAlertNotes(prev=>({...prev,[alert.id]:noteInput.trim()}));
-                          fetch('/api/alert-notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alertId:alert.id,note:noteInput.trim()})}).catch(()=>{});
-                          } else { const n={...alertNotes}; delete n[alert.id]; setAlertNotes(n);
-                          fetch('/api/alert-notes',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({alertId:alert.id})}).catch(()=>{});
+                          if(noteInput.trim()){
+                            setAlertNotes(prev=>({...prev,[alert.id]:noteInput.trim()}));
+                            fetch('/api/alert-notes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({alertId:alert.id,note:noteInput.trim()})}).catch(()=>{});
+                          } else {
+                            const n={...alertNotes}; delete n[alert.id]; setAlertNotes(n);
+                            fetch('/api/alert-notes',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({alertId:alert.id})}).catch(()=>{});
                           }
                           setEditingNote(null); setNoteInput('');
                         }} style={{padding:'4px 12px',borderRadius:6,border:'none',background:'#4f8fff',color:'#fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Save</button>
