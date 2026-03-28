@@ -530,7 +530,7 @@ export default function DashboardPage() {
   React.useEffect(()=>{
     if(demoMode) return;
     Object.entries(alertOverrides).forEach(([alertId, override]) => {
-      if(override && typeof override === 'object' && (override as any).acknowledged && !(override as any).slaAckLogged) {
+      if(override && typeof override === 'object' && override.acknowledged && !override.slaAckLogged) {
         const alert = alerts.find(a=>a.id===alertId);
         if(alert?.rawTime) {
           fetch('/api/sla',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({alertId,severity:alert.severity,event:'acknowledged',timestamp:Date.now()})}).catch(()=>{});
