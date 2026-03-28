@@ -101,9 +101,6 @@ export const tenable: IntegrationAdapter = {
     );
     if (!listRes.ok) throw new Error(`Tenable: HTTP ${listRes.status}`);
     const listData = await listRes.json();
-    // Filter: severity >= 3 (High/Critical on Tenable scale). Exclude known scan-info plugins.
-    // NOTE: cvss3_base_score is NOT present on /workbenches/vulnerabilities list endpoint — do not filter on it here.
-    const SCAN_INFO_PLUGINS = new Set([19506, 56984, 45590, 11219, 12634]); // scan info / host enum plugins
     const rawVulns = listData.vulnerabilities || [];
     // Log each severity count separately (Vercel truncates long single log lines)
     const sevDist: Record<string,number> = {};
