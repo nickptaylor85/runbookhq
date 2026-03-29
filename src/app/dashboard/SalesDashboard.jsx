@@ -7,21 +7,22 @@ export default function SalesDashboard() {
   const [analysisLoading, setAnalysisLoading] = useState(false);
 
   // Current revenue data (in production, load from /api/admin/analytics)
+  // Recalculated with new pricing: 2×Enterprise £2,499 + 3×Professional £799 + 2×Essentials avg 3 seats×£149
   const CURRENT = {
-    mrr: 2814,  // £ per month
-    arr: 33768,
+    mrr: 8289,  // 2×2499 + 3×799 + 2×(3×149) = 4998+2397+894
+    arr: 99468,
     customers: { mssp:2, business:3, team:2, community:1 },
-    growth: { jan:1890, feb:2200, mar:2814 }, // last 3 months MRR
+    growth: { jan:5100, feb:6800, mar:8289 }, // last 3 months MRR
     churn: 1,
     newThisMonth: 1,
     pipeline: 4, // leads in pipeline
   };
 
   const PLAN_VALUES = {
-    mssp:     { name:'MSSP',     mrr:2499, label:'£2,499/mo', color:'#8b6fff' },
-    business: { name:'Professional', mrr:799, label:'£799/mo', color:'#22d49a' },
-    team:     { name:'Team',     mrr:196,  label:'~£196/mo', color:'#4f8fff', note:'avg 3 seats × £149' },
-    community:{ name:'Community',mrr:0,    label:'Free',     color:'#6b7a94' },
+    mssp:     { name:'Enterprise',    mrr:2499, label:'£2,499/mo', color:'#8b6fff' },
+    business: { name:'Professional',  mrr:799,  label:'£799/mo',   color:'#22d49a' },
+    team:     { name:'Essentials',    mrr:447,  label:'~£447/mo',  color:'#4f8fff', note:'avg 3 seats × £149' },
+    community:{ name:'Community',     mrr:0,    label:'Free',      color:'#6b7a94' },
   };
 
   const mrrGap = mrrTarget ? Math.max(0, parseInt(mrrTarget.replace(/[^0-9]/g,'')) - CURRENT.mrr) : 0;
@@ -30,12 +31,12 @@ export default function SalesDashboard() {
 
   // Calculate how many of each plan type needed to fill the gap
   const mixes = effectiveGap > 0 ? [
-    { label:'All MSSP',     plans:'MSSP partners', count:Math.ceil(effectiveGap/799),   mrr:Math.ceil(effectiveGap/799)*799,   color:'#8b6fff', note:'Highest value — longer sales cycle' },
-    { label:'All Business', plans:'Business orgs', count:Math.ceil(effectiveGap/199),   mrr:Math.ceil(effectiveGap/199)*199,   color:'#22d49a', note:'Mid-market, 2-4 week close' },
-    { label:'All Team',     plans:'Essentials plans',    count:Math.ceil(effectiveGap/447),   mrr:Math.ceil(effectiveGap/147)*147,   color:'#4f8fff', note:'SMB, fastest close, lower ACV' },
-    { label:'Mixed (recommended)', plans:'1 MSSP + Business',
-      count: 1 + Math.ceil(Math.max(0,effectiveGap-799)/199),
-      mrr: 799 + Math.ceil(Math.max(0,effectiveGap-799)/199)*199,
+    { label:'All Enterprise',  plans:'Enterprise partners', count:Math.ceil(effectiveGap/2499), mrr:Math.ceil(effectiveGap/2499)*2499, color:'#8b6fff', note:'Highest value — longer sales cycle' },
+    { label:'All Professional',plans:'Professional orgs',   count:Math.ceil(effectiveGap/799),  mrr:Math.ceil(effectiveGap/799)*799,   color:'#22d49a', note:'Mid-market, 2-4 week close' },
+    { label:'All Essentials',  plans:'Essentials plans',   count:Math.ceil(effectiveGap/447),  mrr:Math.ceil(effectiveGap/447)*447,   color:'#4f8fff', note:'SMB, fastest close, lower ACV' },
+    { label:'Mixed (recommended)', plans:'1 Enterprise + Professional',
+      count: 1 + Math.ceil(Math.max(0,effectiveGap-2499)/799),
+      mrr: 2499 + Math.ceil(Math.max(0,effectiveGap-2499)/799)*799,
       color:'#f0a030', note:'Balance of velocity + value' },
   ] : [];
 
@@ -43,33 +44,42 @@ export default function SalesDashboard() {
     if (!effectiveGap || analysisLoading) return;
     setAnalysisLoading(true);
     setAiAnalysis(null);
-    const mrrVal = mrrTarget ? parseInt(mrrTarget) : Math.ceil(arrGap/12) + CURRENT.mrr;
-    const prompt = `You are a SaaS sales strategist for Watchtower, a cybersecurity SOC platform.
+    const mrrVal = mrrTarget ? parseInt(mrrTarget) || CURRENT.mrr : Math.ceil(arrGap/12) + CURRENT.mrr;
+    const gap = Math.max(0, mrrVal - CURRENT.mrr);
+    const prompt = `You are a SaaS sales strategist for Watchtower, a cybersecurity SOC dashboard for MSSPs and enterprise SOC teams. AI-powered, BYOK model, 18 tool integrations.
 
-Current MRR: £${CURRENT.mrr}/mo · ARR: £${CURRENT.arr}/yr
-Customers: ${CURRENT.customers.mssp} MSSP, ${CURRENT.customers.business} Business, ${CURRENT.customers.team} Team
-MoM growth: £${CURRENT.growth.jan} → £${CURRENT.growth.feb} → £${CURRENT.growth.mar}
-Target MRR: £${mrrVal}/mo · Gap to close: £${effectiveGap}/mo
+Current state: MRR £${CURRENT.mrr.toLocaleString()}/mo | ARR £${CURRENT.arr.toLocaleString()}/yr
+Customer mix: ${CURRENT.customers.mssp} Enterprise, ${CURRENT.customers.business} Professional, ${CURRENT.customers.team} Essentials
+MoM growth: £${Object.values(CURRENT.growth)[0].toLocaleString()} → £${Object.values(CURRENT.growth)[1].toLocaleString()} → £${Object.values(CURRENT.growth)[2].toLocaleString()}
+Target MRR: £${mrrVal.toLocaleString()}/mo | Gap to close: £${gap.toLocaleString()}/mo
 
-Plans: Enterprise £2,499/mo | Professional £799/mo | Essentials £149/seat
+Plans: Enterprise £2,499/mo | Professional £799/mo | Essentials £149/seat/mo (min 2 seats)
 
-Provide a concise go-to-market strategy to close the gap. Include:
-1. IDEAL CUSTOMER PROFILE: Who to target (industry, size, pain points)
-2. CHANNELS: Top 3 acquisition channels
-3. CONVERSION: Key tactics to accelerate close
-4. TIMELINE: Realistic timeline to hit target
-Keep it under 200 words, punchy and actionable.`;
+Give a direct, actionable go-to-market strategy to close this gap. Be specific — name real channels, tactics, and timelines. Structure your response exactly as:
+
+ICP: [2 sentences on who to target — industry, size, job title, pain point]
+
+CHANNELS: [3 specific channels with brief tactic for each]
+
+CONVERSION: [3 specific conversion tactics]
+
+TIMELINE: [Realistic month-by-month breakdown to hit target]`;
 
     fetch('/api/copilot', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({prompt}),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-tenant-id': 'global' },
+      body: JSON.stringify({ prompt }),
     })
-    .then(r=>r.json())
-    .then(d=>{
-      setAiAnalysis(d.ok ? d.response : (d.error || d.message || 'Could not generate analysis. Check your Anthropic API key in Tools.'));
+    .then(r => r.json())
+    .then(d => {
+      if (d.ok && d.response) {
+        setAiAnalysis(d.response);
+      } else {
+        setAiAnalysis(d.message || d.error || 'No Anthropic API key configured — add your key in the Tools tab to enable AI GTM analysis.');
+      }
       setAnalysisLoading(false);
     })
-    .catch(e=>{ setAiAnalysis('Error: ' + e.message); setAnalysisLoading(false); });
+    .catch(e => { setAiAnalysis('Connection error: ' + e.message); setAnalysisLoading(false); });
   }
 
   // Auto-run analysis when target is set (debounced 800ms)
@@ -80,41 +90,46 @@ Keep it under 200 words, punchy and actionable.`;
       setAiAnalysis(null);
       setAnalysisLoading(false);
       const t = setTimeout(()=>{
-        // Inline call to avoid stale closure — reads current state at call time
         if (!effectiveGap) return;
         setAnalysisLoading(true);
         setAiAnalysis(null);
-        const mrrVal = mrrTarget ? parseInt(mrrTarget) : Math.ceil(arrTarget ? parseInt(arrTarget)/12 : 0);
-        const gap = Math.max(0, mrrVal - 2814);
-        const prompt = `You are a SaaS sales strategist for Watchtower, a cybersecurity SOC platform.
+        const mrrVal = mrrTarget ? (parseInt(mrrTarget) || CURRENT.mrr) : Math.ceil(arrTarget ? parseInt(arrTarget)/12 : 0);
+        const gap = Math.max(0, mrrVal - CURRENT.mrr);
+        if (!mrrVal || mrrVal <= CURRENT.mrr) { setAnalysisLoading(false); return; }
+        const prompt = `You are a SaaS sales strategist for Watchtower, a cybersecurity SOC dashboard for MSSPs and enterprise SOC teams. AI-powered, BYOK model, 18 tool integrations.
 
-Current MRR: £2,814/mo · ARR: £33,768/yr
-Customers: 2 MSSP, 3 Business, 2 Team
-MoM growth: £1,890 → £2,200 → £2,814
-Target MRR: £${mrrVal}/mo · Gap to close: £${gap}/mo
+Current state: MRR £${CURRENT.mrr.toLocaleString()}/mo | ARR £${CURRENT.arr.toLocaleString()}/yr
+Customer mix: ${CURRENT.customers.mssp} Enterprise, ${CURRENT.customers.business} Professional, ${CURRENT.customers.team} Essentials
+MoM growth: £${Object.values(CURRENT.growth)[0].toLocaleString()} → £${Object.values(CURRENT.growth)[1].toLocaleString()} → £${Object.values(CURRENT.growth)[2].toLocaleString()}
+Target MRR: £${mrrVal.toLocaleString()}/mo | Gap to close: £${gap.toLocaleString()}/mo
 
-Plans: Enterprise £2,499/mo | Professional £799/mo | Essentials £149/seat
+Plans: Enterprise £2,499/mo | Professional £799/mo | Essentials £149/seat/mo (min 2 seats)
 
-Provide a concise go-to-market strategy to close the gap. Include:
-1. IDEAL CUSTOMER PROFILE: Who to target (industry, size, pain points)
-2. CHANNELS: Top 3 acquisition channels
-3. CONVERSION: Key tactics to accelerate close
-4. TIMELINE: Realistic timeline to hit target
-Keep it under 200 words, punchy and actionable.`;
+Give a direct, actionable go-to-market strategy to close this gap. Be specific — name real channels, tactics, and timelines. Structure your response exactly as:
+
+ICP: [2 sentences on who to target — industry, size, job title, pain point]
+
+CHANNELS: [3 specific channels with brief tactic for each]
+
+CONVERSION: [3 specific conversion tactics]
+
+TIMELINE: [Realistic month-by-month breakdown to hit target]`;
 
         fetch('/api/copilot', {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({prompt}),
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-tenant-id': 'global' },
+          body: JSON.stringify({ prompt }),
         })
-        .then(r=>r.json())
-        .then(d=>{
-          setAiAnalysis(d.ok ? d.response : (d.error || d.message || 'Could not generate analysis. Check your Anthropic API key in Tools.'));
+        .then(r => r.json())
+        .then(d => {
+          if (d.ok && d.response) {
+            setAiAnalysis(d.response);
+          } else {
+            setAiAnalysis(d.message || d.error || 'Add your Anthropic API key in the Tools tab to enable AI GTM analysis.');
+          }
           setAnalysisLoading(false);
         })
-        .catch(e=>{
-          setAiAnalysis('Error: ' + e.message);
-          setAnalysisLoading(false);
-        });
+        .catch(e => { setAiAnalysis('Connection error: ' + e.message); setAnalysisLoading(false); });
       }, 800);
       return () => clearTimeout(t);
     }
@@ -262,8 +277,8 @@ Keep it under 200 words, punchy and actionable.`;
           <div style={{padding:'14px 16px',background:'linear-gradient(135deg,rgba(79,143,255,0.05),rgba(139,111,255,0.05))',border:'1px solid #4f8fff20',borderRadius:10}}>
             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
               <span style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px'}}>⚡ AI Go-to-Market Strategy</span>
-              {analysisLoading && <span style={{fontSize:'0.62rem',color:'#4f8fff',display:'flex',alignItems:'center',gap:4}}><span style={{width:8,height:8,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>Generating strategy…</span>}
-              {aiAnalysis && !analysisLoading && <button onClick={getAiAnalysis} style={{marginLeft:'auto',fontSize:'0.58rem',color:'var(--wt-dim)',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>↻ Regenerate</button>}
+              {analysisLoading && <span style={{fontSize:'0.62rem',color:'#4f8fff',display:'flex',alignItems:'center',gap:4}}><span style={{width:8,height:8,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>Generating…</span>}
+              {!analysisLoading && <button onClick={getAiAnalysis} style={{marginLeft:'auto',fontSize:'0.6rem',padding:'3px 10px',borderRadius:5,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:700}}>{aiAnalysis ? '↻ Regenerate' : '⚡ Generate Strategy'}</button>}
             </div>
             {analysisLoading && (
               <div style={{display:'flex',flexDirection:'column',gap:6}}>
@@ -273,7 +288,23 @@ Keep it under 200 words, punchy and actionable.`;
               </div>
             )}
             {aiAnalysis && !analysisLoading && (
-              <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.75,whiteSpace:'pre-line'}}>{aiAnalysis}</div>
+              <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.8}}>
+                {aiAnalysis.split('\n').filter(l=>l.trim()).map((line,i)=>{
+                  const isHeader = /^(ICP|CHANNELS|CONVERSION|TIMELINE):/i.test(line.trim());
+                  const isError = line.startsWith('No Anthropic') || line.startsWith('Connection error') || line.startsWith('Add your');
+                  return (
+                    <div key={i} style={{marginBottom: isHeader ? 8 : 4}}>
+                      {isHeader
+                        ? <div style={{fontSize:'0.58rem',fontWeight:800,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1px',marginBottom:2,marginTop:i>0?10:0}}>{line.trim()}</div>
+                        : <div style={{color: isError ? '#f0a030' : 'var(--wt-secondary)',paddingLeft: isHeader ? 0 : 0}}>{line.trim()}</div>
+                      }
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {!aiAnalysis && !analysisLoading && (
+              <div style={{fontSize:'0.72rem',color:'var(--wt-dim)',textAlign:'center',padding:'8px 0'}}>Click Generate Strategy to get AI-powered GTM advice for this target</div>
             )}
           </div>
         )}
