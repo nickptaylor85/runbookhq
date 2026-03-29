@@ -445,7 +445,18 @@ export default function DashboardPage() {
         const errors = d.results.filter(r=>r.error).map(r=>`${r.toolId}: ${r.error}`);
         if (!toolIds) {
           if (errors.length > 0) { setSyncError(errors.join(' · ')); setSyncStatus('error'); }
-          else { setSyncStatus('ok'); }
+          else {
+            setSyncStatus('ok');
+            // For MSSP: post IOCs from this sync to cross-tenant correlation
+            if (userTier==='mssp'||isAdmin) {
+              const syncedAlerts = d.results.flatMap(r=>r.alerts||[]);
+              const iocs = [...new Set(syncedAlerts.map(a=>a.device).filter(Boolean))];
+              const cves = [...new Set((liveVulns||[]).map(v=>v.cve).filter(Boolean))];
+              if(iocs.length>0||cves.length>0) {
+                fetch('/api/mssp/correlation',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({clientId:tenantRef.current,iocs,cves})}).catch(()=>{});
+              }
+            }
+          }
         }
       } else {
         if (!toolIds) { setSyncStatus('error'); setSyncError(d.error || 'Sync failed'); }
@@ -683,22 +694,61 @@ export default function DashboardPage() {
     return ()=>clearInterval(iv);
   },[]);
 
-  // Slack notifications — must be after critAlerts is defined
+  // Slack + Email notifications — fires on new critical alerts
   const lastNotifiedRef = React.useRef(new Set());
   useEffect(()=>{
     if(demoMode) return;
     critAlerts.forEach(a=>{
       if(lastNotifiedRef.current.has(a.id)) return;
       lastNotifiedRef.current.add(a.id);
-      fetch('/api/settings/user').then(r=>r.json()).then(d=>{
+      // Slack webhook
+      fetch('/api/settings/user',{headers:{'x-tenant-id':tenantRef.current}}).then(r=>r.json()).then(d=>{
         const webhook=d.settings?.slack_webhook;
-        if(!webhook) return;
-        fetch('/api/slack-webhook',{method:'POST',headers:{'Content-Type':'application/json'},
+        if(webhook) fetch('/api/slack-webhook',{method:'POST',headers:{'Content-Type':'application/json'},
           body:JSON.stringify({webhook,alert:{title:a.title,severity:a.severity,source:a.source,device:a.device,verdict:a.verdict,confidence:a.confidence}})
         }).catch(()=>{});
+        // Email notification if enabled and email set
+        const notifCrit = d.settings?.notif_critical !== 'false';
+        const userEmail = d.settings?.email;
+        if(notifCrit && userEmail) {
+          fetch('/api/email',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},
+            body:JSON.stringify({type:'critical_alert',to:userEmail,alert:{title:a.title,severity:a.severity,source:a.source,device:a.device}})
+          }).catch(()=>{});
+        }
       }).catch(()=>{});
     });
   },[critAlerts,demoMode]);
+
+  // Auto+Notify: close high-confidence FPs and notify; Full Auto: isolate TPs
+  const autoFiredRef = React.useRef(new Set());
+  React.useEffect(()=>{
+    if(automation===0||demoMode) return;
+    // Auto+Notify (level 1): auto-close high-confidence FPs + notify
+    if(automation>=1) {
+      const fpCandidates = alerts.filter(a=>a.verdict==='FP'&&a.confidence>=90&&!autoFiredRef.current.has('fp_'+a.id));
+      fpCandidates.forEach(a=>{
+        autoFiredRef.current.add('fp_'+a.id);
+        setAlertOverrides(prev=>({...prev,[a.id]:{...(prev[a.id]||{}),verdict:'FP',acknowledged:true,autoClosed:true}}));
+        fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({type:'auto_close_fp',alertId:a.id,alertTitle:a.title,confidence:a.confidence,automation,analyst:'AI'})}).catch(()=>{});
+        // Notify via Slack if webhook configured
+        fetch('/api/settings/user',{headers:{'x-tenant-id':tenantRef.current}}).then(r=>r.json()).then(d=>{
+          const webhook=d.settings?.slack_webhook;
+          if(webhook) fetch('/api/slack-webhook',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({webhook,alert:{title:`[Auto-closed FP] ${a.title}`,severity:a.severity,source:a.source,verdict:'FP',confidence:a.confidence}})}).catch(()=>{});
+        }).catch(()=>{});
+      });
+    }
+    // Full Auto (level 2): isolate Critical TP devices
+    if(automation===2) {
+      const tpCandidates = alerts.filter(a=>a.verdict==='TP'&&a.severity==='Critical'&&a.device&&a.confidence>=80&&!autoFiredRef.current.has('tp_'+a.id));
+      tpCandidates.forEach(a=>{
+        autoFiredRef.current.add('tp_'+a.id);
+        fetch('/api/response-actions',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({action:'isolate_device',device:a.device,alertId:a.id,analyst:'AI Auto'})}).then(r=>r.json()).then(d=>{
+          if(d.ok) setAlertOverrides(prev=>({...prev,[a.id]:{...(prev[a.id]||{}),actionFired:true}}));
+        }).catch(()=>{});
+        fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({type:'auto_response',action:'isolate_device',device:a.device,alertId:a.id,alertTitle:a.title,automation,analyst:'AI'})}).catch(()=>{});
+      });
+    }
+  },[actedAlerts.length,automation,demoMode]);
   const critVulns = vulns.filter(v=>v.severity==='Critical');
   const kevVulns = vulns.filter(v=>v.kev);
   const posture = Math.max(0, Math.min(100,
@@ -718,20 +768,7 @@ export default function DashboardPage() {
     if (automation === 1) return a.verdict === 'FP' && a.confidence >= 90;
     return a.confidence >= 80;
   });
-  // Fire real response actions when automation > 0 and TP alerts with devices are found
-  React.useEffect(()=>{
-    if (automation === 0 || demoMode) return;
-    const actionableAlerts = alerts.filter(a => a.verdict==='TP' && a.severity==='Critical' && a.device && (automation===2 || a.confidence>=95));
-    actionableAlerts.forEach(alert => {
-      if (!alertOverrides[alert.id]?.actionFired) {
-        fetch('/api/response-actions',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({action:'isolate_device',device:alert.device,alertId:alert.id,analyst:'AI Auto'})}).then(r=>r.json()).then(d=>{
-          if(d.ok) { setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),actionFired:true,actionResult:d.results}})); }
-        }).catch(()=>{});
-        // Write audit log entry
-        fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({type:'auto_response',action:'isolate_device',device:alert.device,alertId:alert.id,alertTitle:alert.title,automation,analyst:'AI'})}).catch(()=>{});
-      }
-    });
-  },[actedAlerts.length,automation,demoMode]);
+  // autoFiredRef-based useEffect above handles both Auto+Notify and Full Auto
   const automationBannerText = automation === 0
     ? 'AI is recommending only — all actions require analyst approval.'
     : automation === 1
@@ -809,6 +846,7 @@ export default function DashboardPage() {
   function closeIncident(id) {
     setIncidentStatuses(prev=>({...prev,[id]:'Closed'}));
     setSelectedIncident(null);
+    fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({type:'incident_status',incidentId:id,status:'Closed',analyst:'Analyst'})}).catch(()=>{});
   }
 
   async function sendCopilotMessage(msg) {
@@ -902,8 +940,8 @@ export default function DashboardPage() {
               {activeTab!=='admin' && <span style={{position:'absolute',top:3,right:3,width:5,height:5,borderRadius:'50%',background:'#f0a030',boxShadow:'0 0 4px #f0a030'}} />}
             </button>
           )}
-          <button onClick={()=>{setShowCopilot(s=>!s);setTimeout(()=>copilotBottomRef.current?.scrollIntoView({behavior:'auto'}),100);}} title='AI Co-Pilot'
-            style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem',border:`1px solid ${showCopilot?'#4f8fff40':'transparent'}`,background:showCopilot?'#4f8fff18':'transparent',cursor:'pointer',position:'relative'}}>
+          <button onClick={()=>{if(canUse('team')){setShowCopilot(s=>!s);setTimeout(()=>copilotBottomRef.current?.scrollIntoView({behavior:'auto'}),100);}else{window.location.href='/pricing';}}} title={canUse('team')?'AI Co-Pilot':'Upgrade to Team for Co-Pilot'}
+            style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem',border:`1px solid ${showCopilot?'#4f8fff40':'transparent'}`,background:showCopilot?'#4f8fff18':'transparent',cursor:'pointer',position:'relative',opacity:canUse('team')?1:0.5}}>
             ✦
             {canUse('team')&&<span style={{position:'absolute',top:2,right:2,width:5,height:5,borderRadius:'50%',background:'#22d49a',boxShadow:'0 0 4px #22d49a'}} />}
           </button>
@@ -966,12 +1004,12 @@ export default function DashboardPage() {
                 return next;
               })} title={demoMode?'Switch to live data':'Switch to demo data'} style={{padding:'4px 10px',borderRadius:7,border:`1px solid ${demoMode?'#f0a03030':'#22d49a30'}`,background:demoMode?'#f0a03010':'#22d49a10',color:demoMode?'#f0a030':'#22d49a',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>{demoMode?'● DEMO':'● LIVE'}</button>
               {canUse('business')&&<button onClick={async()=>{const w=window.open('','_blank');if(!w)return;w.document.write('<html><body style="background:#050508;color:#e8ecf4;font-family:Inter;display:flex;align-items:center;justify-content:center;height:100vh">Generating report…</body></html>');try{const r=await fetch('/api/exec-summary',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({org:'My Organisation',period:'Last 7 days',totalAlerts,critAlerts:critAlerts.length,openCases,closedCases:0,slaBreaches,fpsClosed:fpAlerts.length,tpConfirmed:tpAlerts.length,posture,coverage:coveredPct,tools:Object.keys(connectedTools).length,topAlerts:critAlerts.slice(0,5).map(a=>a.title),topVulns:vulns.slice(0,3).map(v=>v.title)})});const d=await r.json();if(d.html&&w){w.document.open();w.document.write(d.html);w.document.close();setTimeout(()=>w.print(),500);}}catch(e){if(w)w.close();}}} title='Download Executive Report' style={{padding:'4px 10px',borderRadius:7,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>📊 Report</button>}
-              <select value={userTier} onChange={e=>{
+              {isAdmin&&<select value={userTier} onChange={e=>{
                 setUserTier(e.target.value);
                 fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({userTier:e.target.value})}).catch(()=>{});
-              }} title='Simulate plan tier' style={{padding:'3px 7px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.6rem',fontWeight:700,fontFamily:'Inter,sans-serif',cursor:'pointer',outline:'none'}} >
+              }} title='Simulate plan tier (admin only)' style={{padding:'3px 7px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.6rem',fontWeight:700,fontFamily:'Inter,sans-serif',cursor:'pointer',outline:'none'}} >
                 {(['community','team','business','mssp']).map(t=><option key={t} value={t}>{t.charAt(0).toUpperCase()+t.slice(1)}</option>)}
-              </select>
+              </select>}
               {isAdmin && (
                 <select value={currentTenant} onChange={e=>setCurrentTenant(e.target.value)} style={{padding:'4px 8px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.68rem',fontFamily:'Inter,sans-serif',cursor:'pointer',outline:'none',maxWidth:140}}>
                   {DEMO_TENANTS.map(t=>(
@@ -1093,7 +1131,7 @@ Generated by Watchtower`;
                 <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
                   <span style={{fontSize:'0.62rem',fontWeight:800,color:'#4f8fff',letterSpacing:'1px'}}>✦ AI THREAT BRIEF</span>
                   <span style={{fontSize:'0.56rem',color:'var(--wt-muted)',marginLeft:'auto'}}>{demoMode?'Demo mode':'Live · auto-updates'}</span>
-                  <button onClick={()=>{setShowCopilot(s=>!s);setTimeout(()=>copilotBottomRef.current?.scrollIntoView({behavior:'auto'}),100);}} style={{fontSize:'0.6rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff30',background:'#4f8fff0a',color:'#4f8fff',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Open Co-Pilot →</button>
+                  {canUse('team') ? <button onClick={()=>{setShowCopilot(s=>!s);setTimeout(()=>copilotBottomRef.current?.scrollIntoView({behavior:'auto'}),100);}} style={{fontSize:'0.6rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff30',background:'#4f8fff0a',color:'#4f8fff',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Open Co-Pilot →</button> : <a href='/pricing' style={{fontSize:'0.6rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff30',background:'#4f8fff0a',color:'#4f8fff',textDecoration:'none',display:'inline-block'}}>🔒 Upgrade for Co-Pilot</a>}
                   <button onClick={async()=>{setHandoverLoading(true);try{const r=await fetch('/api/shift-handover',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({openAlerts:totalAlerts,critAlerts:critAlerts.length,openCases,slaBreaches,tools:Object.keys(connectedTools).length,posture,topAlert:critAlerts[0]?.title||alerts[0]?.title||''})});const d=await r.json();if(d.handover)setShiftHandover(d.handover);}catch(e){}setHandoverLoading(false);}} disabled={handoverLoading} style={{fontSize:'0.6rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',cursor:handoverLoading?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>{handoverLoading?<span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'1.5px solid #22d49a',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />:null}⇄ Handover</button>
                 </div>
                 <div style={{fontSize:'0.76rem',color:'var(--wt-secondary)',lineHeight:1.7}}>
@@ -1342,6 +1380,7 @@ Generated by Watchtower`;
                 alertSnoozes={alertSnoozes} setAlertSnoozes={setAlertSnoozes}
                 setActiveTab={setActiveTab} userTier={userTier}
                 alertAssignees={alertAssignees} setAlertAssignees={setAlertAssignees}
+                onAudit={(entry)=>fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify(entry)}).catch(()=>{})}
               />
             )}
 
@@ -1900,7 +1939,7 @@ Generated by Watchtower`;
                         )}
                         <div style={{display:'flex',gap:6,marginTop:10,flexWrap:'wrap'}}>
                           <button onClick={()=>setAddingNoteTo(addingNoteTo===inc.id?null:inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid var(--wt-border2)',background:addingNoteTo===inc.id?'#4f8fff12':'transparent',color:'#8a9ab0',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📝 Add Note</button>
-                          <button onClick={()=>setIncidentStatuses(prev=>({...prev,[inc.id]:'Escalated'}))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0a03030',background:'#f0a03008',color:'#f0a030',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>⬆ Escalate</button>
+                          <button onClick={()=>setIncidentStatuses(prev=>({...prev,[inc.id]:'Escalated'}));fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({type:'incident_status',incidentId:inc.id,status:'Escalated',analyst:'Analyst'})}).catch(()=>{});}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0a03030',background:'#f0a03008',color:'#f0a030',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>⬆ Escalate</button>
                           <button onClick={()=>closeIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✓ Close</button>
                           <button onClick={()=>deleteIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0405e25',background:'#f0405e0a',color:'#f0405e',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🗑 Delete</button>
                           {inc.alerts&&inc.alerts.length>0&&<button onClick={()=>{setAlertSevFilter('all');setAlertSearch('');inc.alerts.forEach(id=>setExpandedAlerts(prev=>{const n=new Set(prev);n.add(id);return n;}));setActiveTab('alerts');}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff08',color:'#4f8fff',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🔗 View source alerts</button>}

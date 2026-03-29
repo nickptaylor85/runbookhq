@@ -51,6 +51,7 @@ export default function AlertsTab({
   setActiveTab,
   userTier,
   alertAssignees, setAlertAssignees,
+  onAudit,
 }) {
   function toggleAlertExpand(id) {
     setExpandedAlerts(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
@@ -286,11 +287,11 @@ export default function AlertsTab({
               <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
                 {/* Quick FP/TP — no expand needed */}
                 <div onClick={e=>e.stopPropagation()} style={{display:'flex',gap:3}}>
-                  <button onClick={()=>setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'FP',confidence:99}}))}
+                  <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'FP',confidence:99}}));onAudit&&onAudit({type:'verdict',verdict:'FP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});}}
                     style={{padding:'2px 7px',borderRadius:4,border:'1px solid #22d49a40',background:effectiveVerdict==='FP'?'#22d49a':'transparent',color:effectiveVerdict==='FP'?'#fff':'#22d49a',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',lineHeight:1.4}}>
                     FP
                   </button>
-                  <button onClick={()=>setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'TP',acknowledged:true}}))}
+                  <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'TP',acknowledged:true}}));onAudit&&onAudit({type:'verdict',verdict:'TP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});}}
                     style={{padding:'2px 7px',borderRadius:4,border:'1px solid #f0405e40',background:effectiveVerdict==='TP'?'#f0405e':'transparent',color:effectiveVerdict==='TP'?'#fff':'#f0405e',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',lineHeight:1.4}}>
                     TP
                   </button>
@@ -376,11 +377,11 @@ export default function AlertsTab({
 
                 {/* Action buttons */}
                 <div style={{display:'flex',gap:6,flexWrap:'wrap',marginTop:12}}>
-                  <button onClick={()=>setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'FP',confidence:99}}))}
+                  <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'FP',confidence:99}}));onAudit&&onAudit({type:'verdict',verdict:'FP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});}}
                     style={{padding:'4px 12px',borderRadius:6,border:'1px solid #22d49a30',background:effectiveVerdict==='FP'?'#22d49a':'#22d49a10',color:effectiveVerdict==='FP'?'#fff':'#22d49a',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                     {effectiveVerdict==='FP'?'✓ Marked FP':'Mark FP'}
                   </button>
-                  <button onClick={()=>setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'TP',acknowledged:true}}))}
+                  <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'TP',acknowledged:true}}));onAudit&&onAudit({type:'verdict',verdict:'TP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});}}
                     style={{padding:'4px 12px',borderRadius:6,border:'1px solid #f0405e30',background:effectiveVerdict==='TP'?'#f0405e':'#f0405e10',color:effectiveVerdict==='TP'?'#fff':'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                     {effectiveVerdict==='TP'?'✓ Marked TP':'Mark TP'}
                   </button>

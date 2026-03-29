@@ -4,6 +4,23 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.9.119',
+    date: '2026-03-29',
+    tag: 'Security + UX',
+    tagColor: '#f0405e',
+    summary: 'Tier enforcement, co-pilot gate, email notifications, automation fixes, audit log, MSSP correlation',
+    changes: [
+      { type: 'fix', text: 'Tier selector (Community/Team/Business/MSSP) is now admin-only. Previously any user could switch themselves to MSSP and bypass all paywalls.' },
+      { type: 'fix', text: 'Co-Pilot button now gated to Team+ in both the AI Threat Brief and the sidebar. Community users see an upgrade prompt instead of the chat.' },
+      { type: 'feat', text: 'Email notifications wired. When a new critical alert arrives in live mode, and notif_critical is enabled in Settings, an email fires via /api/email. Reads email address from user settings.' },
+      { type: 'fix', text: 'Automation slider Auto+Notify now actually closes high-confidence FPs (≥90%) — marks them acknowledged and auto-closed, fires Slack notification. Previously it labelled itself Auto+Notify but did nothing.' },
+      { type: 'fix', text: 'Automation slider Full Auto now correctly uses autoFiredRef to prevent re-firing on re-renders. Old automation useEffect removed.' },
+      { type: 'feat', text: 'Audit log entries written on: FP/TP verdict (any alert card), incident close, incident escalate, auto-close FP, auto-isolate TP. All write to /api/audit with analyst, timestamp, and alert/incident context.' },
+      { type: 'feat', text: 'MSSP correlation: after each successful live sync, the dashboard POSTs IOCs and CVEs to /api/mssp/correlation. Cross-tenant correlation panel now shows live results as clients sync.' },
+    ],
+  },
+
+  {
     version: 'v74.9.113',
     date: '2026-03-28',
     tag: 'Major Release',
