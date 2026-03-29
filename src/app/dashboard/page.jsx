@@ -205,7 +205,7 @@ function GateWall({ feature, requiredTier, children, userTier, isAdmin, demoPrev
   const blurContent = demoPreview || children;
   const tierColors = {team:'#4f8fff',business:'#22d49a',mssp:'#8b6fff'};
   const tierNames = {team:'Essentials',business:'Professional',mssp:'Enterprise'};
-  const tierPrices = {team:'£149/seat/mo',business:'£799/mo',mssp:'£2,499/mo'};
+  const tierPrices = {team:'£149/seat/mo',business:'£1,199/mo',mssp:'£3,499/mo'};
   const featureDetails = {
     'Threat Intelligence': ['Live threat feeds by industry','IOC matching against your alerts','ThreatFox, NCSC & CISA advisories','Hunt query generation per threat'],
     'Incident Management': ['Group alerts into investigations','AI attack narrative & timeline','Deep Investigate — root cause analysis','Shift handover briefs'],

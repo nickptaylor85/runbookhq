@@ -428,7 +428,7 @@ export default function SettingsPage() {
                     {settings.userTier === 'team' ? 'Essentials' : settings.userTier === 'business' ? 'Professional' : settings.userTier === 'mssp' ? 'Enterprise' : 'Community'} Plan
                   </div>
                   <div style={{ fontSize: '0.68rem', color: '#6b7a94', marginTop: 2 }}>
-                    {settings.userTier === 'team' ? '£149/seat/mo' : settings.userTier === 'business' ? '£799/mo' : settings.userTier === 'mssp' ? '£2,499/mo' : 'Free forever'}
+                    {settings.userTier === 'team' ? '£149/seat/mo' : settings.userTier === 'business' ? '£1,199/mo' : settings.userTier === 'mssp' ? '£3,499/mo' : 'Free forever'}
                   </div>
                 </div>
                 <a href="/pricing" style={{ marginLeft: 'auto', padding: '7px 16px', background: '#4f8fff', borderRadius: 8, color: '#fff', fontWeight: 700, fontSize: '0.76rem', textDecoration: 'none' }}>

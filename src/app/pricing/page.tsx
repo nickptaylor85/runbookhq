@@ -46,7 +46,7 @@ const PLANS = [
   {
     id: 'business',
     name: 'Professional',
-    price: '£799',
+    price: '£1,199',
     period: '/mo · up to 15 analysts',
     color: '#22d49a',
     features: [
@@ -67,7 +67,7 @@ const PLANS = [
   {
     id: 'mssp',
     name: 'Enterprise / MSSP',
-    price: '£2,499',
+    price: '£3,499',
     period: '/mo · unlimited analysts',
     color: '#8b6fff',
     features: [

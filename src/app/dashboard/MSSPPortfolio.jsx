@@ -305,8 +305,8 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
 
       {/* MSSP billing footer */}
       <div style={{padding:'12px 16px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
-        <div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>Your Watchtower MSSP subscription: <strong style={{color:'#8b6fff'}}>£{2499 + Math.max(0,(MY_CLIENTS.length-10)*199)}/mo</strong> · {MY_CLIENTS.length} clients ({MY_CLIENTS.length<=5?'included':MY_CLIENTS.length-5+' extra × £79'})</div>
-        <div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>Your MRR from clients: <strong style={{color:'#22d49a'}}>£{totalMRR}/mo</strong> · Margin: <strong style={{color:'#22d49a'}}>£{totalMRR-(2499+Math.max(0,(MY_CLIENTS.length-10)*199))}/mo</strong></div>
+        <div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>Your Watchtower MSSP subscription: <strong style={{color:'#8b6fff'}}>£{3499 + Math.max(0,(MY_CLIENTS.length-10)*199)}/mo</strong> · {MY_CLIENTS.length} clients ({MY_CLIENTS.length<=5?'included':MY_CLIENTS.length-5+' extra × £79'})</div>
+        <div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>Your MRR from clients: <strong style={{color:'#22d49a'}}>£{totalMRR}/mo</strong> · Margin: <strong style={{color:'#22d49a'}}>£{totalMRR-(3499+Math.max(0,(MY_CLIENTS.length-10)*199))}/mo</strong></div>
       </div>
 
     </div>

@@ -11,7 +11,7 @@ export default function PressPage() {
     ['Alert triage speed', '3.2 seconds average (vs 3.5 hours manual)'],
     ['Tool integrations', '18 — CrowdStrike, Tenable, Taegis, Splunk, Sentinel and more'],
     ['AI model', 'Claude (Anthropic) via customer BYOK key'],
-    ['Pricing', 'Community free · Essentials £149/seat · Professional £799/mo · Enterprise £2,499/mo'],
+    ['Pricing', 'Community free · Essentials £149/seat · Professional £1,199/mo · Enterprise £3,499/mo'],
     ['14-day free trial', 'No credit card required'],
     ['Press contact', 'hello@getwatchtower.io'],
   ];

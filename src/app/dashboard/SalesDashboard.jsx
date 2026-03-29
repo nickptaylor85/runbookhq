@@ -9,7 +9,7 @@ export default function SalesDashboard() {
   // Current revenue data (in production, load from /api/admin/analytics)
   // Recalculated with new pricing: 2×Enterprise £2,499 + 3×Professional £799 + 2×Essentials avg 3 seats×£149
   const CURRENT = {
-    mrr: 8289,  // 2×2499 + 3×799 + 2×(3×149) = 4998+2397+894
+    mrr: 8289,  // 2×3499 + 3×799 + 2×(3×149) = 4998+2397+894
     arr: 99468,
     customers: { mssp:2, business:3, team:2, community:1 },
     growth: { jan:5100, feb:6800, mar:8289 }, // last 3 months MRR
@@ -19,8 +19,8 @@ export default function SalesDashboard() {
   };
 
   const PLAN_VALUES = {
-    mssp:     { name:'Enterprise',    mrr:2499, label:'£2,499/mo', color:'#8b6fff' },
-    business: { name:'Professional',  mrr:799,  label:'£799/mo',   color:'#22d49a' },
+    mssp:     { name:'Enterprise',    mrr:3499, label:'£3,499/mo', color:'#8b6fff' },
+    business: { name:'Professional',  mrr:799,  label:'£1,199/mo',   color:'#22d49a' },
     team:     { name:'Essentials',    mrr:447,  label:'~£447/mo',  color:'#4f8fff', note:'avg 3 seats × £149' },
     community:{ name:'Community',     mrr:0,    label:'Free',      color:'#6b7a94' },
   };
@@ -31,12 +31,12 @@ export default function SalesDashboard() {
 
   // Calculate how many of each plan type needed to fill the gap
   const mixes = effectiveGap > 0 ? [
-    { label:'All Enterprise',  plans:'Enterprise partners', count:Math.ceil(effectiveGap/2499), mrr:Math.ceil(effectiveGap/2499)*2499, color:'#8b6fff', note:'Highest value — longer sales cycle' },
-    { label:'All Professional',plans:'Professional orgs',   count:Math.ceil(effectiveGap/799),  mrr:Math.ceil(effectiveGap/799)*799,   color:'#22d49a', note:'Mid-market, 2-4 week close' },
+    { label:'All Enterprise',  plans:'Enterprise partners', count:Math.ceil(effectiveGap/3499), mrr:Math.ceil(effectiveGap/3499)*3499, color:'#8b6fff', note:'Highest value — longer sales cycle' },
+    { label:'All Professional',plans:'Professional orgs',   count:Math.ceil(effectiveGap/1199),  mrr:Math.ceil(effectiveGap/1199)*799,   color:'#22d49a', note:'Mid-market, 2-4 week close' },
     { label:'All Essentials',  plans:'Essentials plans',   count:Math.ceil(effectiveGap/447),  mrr:Math.ceil(effectiveGap/447)*447,   color:'#4f8fff', note:'SMB, fastest close, lower ACV' },
     { label:'Mixed (recommended)', plans:'1 Enterprise + Professional',
-      count: 1 + Math.ceil(Math.max(0,effectiveGap-2499)/799),
-      mrr: 2499 + Math.ceil(Math.max(0,effectiveGap-2499)/799)*799,
+      count: 1 + Math.ceil(Math.max(0,effectiveGap-3499)/799),
+      mrr: 3499 + Math.ceil(Math.max(0,effectiveGap-3499)/1199)*1199,
       color:'#f0a030', note:'Balance of velocity + value' },
   ] : [];
 
@@ -53,7 +53,7 @@ Customer mix: ${CURRENT.customers.mssp} Enterprise, ${CURRENT.customers.business
 MoM growth: £${Object.values(CURRENT.growth)[0].toLocaleString()} → £${Object.values(CURRENT.growth)[1].toLocaleString()} → £${Object.values(CURRENT.growth)[2].toLocaleString()}
 Target MRR: £${mrrVal.toLocaleString()}/mo | Gap to close: £${gap.toLocaleString()}/mo
 
-Plans: Enterprise £2,499/mo | Professional £799/mo | Essentials £149/seat/mo (min 2 seats)
+Plans: Enterprise £3,499/mo | Professional £1,199/mo | Essentials £149/seat/mo (min 2 seats)
 
 Give a direct, actionable go-to-market strategy to close this gap. Be specific — name real channels, tactics, and timelines. Structure your response exactly as:
 
@@ -103,7 +103,7 @@ Customer mix: ${CURRENT.customers.mssp} Enterprise, ${CURRENT.customers.business
 MoM growth: £${Object.values(CURRENT.growth)[0].toLocaleString()} → £${Object.values(CURRENT.growth)[1].toLocaleString()} → £${Object.values(CURRENT.growth)[2].toLocaleString()}
 Target MRR: £${mrrVal.toLocaleString()}/mo | Gap to close: £${gap.toLocaleString()}/mo
 
-Plans: Enterprise £2,499/mo | Professional £799/mo | Essentials £149/seat/mo (min 2 seats)
+Plans: Enterprise £3,499/mo | Professional £1,199/mo | Essentials £149/seat/mo (min 2 seats)
 
 Give a direct, actionable go-to-market strategy to close this gap. Be specific — name real channels, tactics, and timelines. Structure your response exactly as:
 

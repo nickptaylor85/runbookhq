@@ -457,8 +457,8 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
 
           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
             {[
-              {plan:'Enterprise', price:'£2,499/mo', id:stripeConfig.priceMssp, color:'#8b6fff'},
-              {plan:'Professional', price:'£799/mo', id:stripeConfig.priceBusiness, color:'#22d49a'},
+              {plan:'Enterprise', price:'£3,499/mo', id:stripeConfig.priceMssp, color:'#8b6fff'},
+              {plan:'Professional', price:'£1,199/mo', id:stripeConfig.priceBusiness, color:'#22d49a'},
               {plan:'Essentials', price:'£149/seat', id:stripeConfig.priceTeamPerSeat, color:'#4f8fff'},
             ].map(p=>(
               <div key={p.plan} style={{padding:'12px 14px',background:'var(--wt-card)',border:`1px solid ${p.color}20`,borderRadius:10}}>
