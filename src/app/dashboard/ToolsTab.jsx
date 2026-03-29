@@ -410,7 +410,12 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
     await testAiKey();
   }
 
-  const filtered = filter==='All' ? ALL_TOOLS : ALL_TOOLS.filter(t=>t.category===filter);
+  const [toolSearch, setToolSearch] = React.useState('');
+  const filtered = ALL_TOOLS.filter(t => {
+    const matchCat = filter==='All' || t.category===filter;
+    const matchSearch = !toolSearch || t.name.toLowerCase().includes(toolSearch.toLowerCase()) || t.category.toLowerCase().includes(toolSearch.toLowerCase());
+    return matchCat && matchSearch;
+  });
 
   function openModal(tool) {
     setModal(tool);
@@ -485,7 +490,13 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
           )}
         </div>
       </div>
-        <div style={{display:'flex',gap:4,marginLeft:'auto',flexWrap:'wrap'}}>
+        <div style={{display:'flex',gap:6,marginLeft:'auto',flexWrap:'wrap',alignItems:'center'}}>
+          <div style={{position:'relative'}}>
+            <span style={{position:'absolute',left:8,top:'50%',transform:'translateY(-50%)',fontSize:'0.7rem',color:'var(--wt-muted)',pointerEvents:'none'}}>🔍</span>
+            <input type='text' placeholder='Search tools...' value={toolSearch} onChange={e=>setToolSearch(e.target.value)}
+              style={{padding:'4px 8px 4px 26px',background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:7,color:'var(--wt-text)',fontSize:'0.7rem',fontFamily:'Inter,sans-serif',outline:'none',width:150}}
+            />
+          </div>
           {CATEGORIES.map(c=>(
             <button key={c} onClick={()=>setFilter(c)} style={{padding:'3px 10px',borderRadius:5,border:`1px solid ${filter===c?'#4f8fff40':'var(--wt-border2)'}`,background:filter===c?'#4f8fff18':'transparent',color:filter===c?'#4f8fff':'#6b7a94',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{c}</button>
           ))}

@@ -142,6 +142,14 @@ export default function AlertsTab({
         assetContext: (assetContext.isDomainController || assetContext.isServer || assetContext.isExecutive || assetContext.hasPrivilegedAccess) ? assetContext : undefined,
       }),
     }).then(r => r.json()).then(d => {
+      if (!d.ok) {
+        const errMsg = d.error?.includes('Essentials') ? 'APEX requires Essentials plan — upgrade at /pricing'
+          : d.error?.includes('API key') || d.error?.includes('api_key') ? 'No Anthropic API key — add one in the Tools tab'
+          : d.error?.includes('Rate limit') ? 'Rate limited — please wait a moment and retry'
+          : d.error || 'AI analysis failed — please retry';
+        setTriageResults(prev => ({ ...prev, [alert.id]: { error: errMsg } }));
+        return;
+      }
       if (d.ok && d.result) {
         setTriageResults(prev => ({ ...prev, [alert.id]: d.result }));
         // Full Auto: if APEX confirms TP, execute remediation actions automatically
@@ -172,7 +180,9 @@ export default function AlertsTab({
           }
         }
       }
-    }).catch(() => {}).finally(() => {
+    }).catch(() => {
+      setTriageResults(prev => ({ ...prev, [alert.id]: { error: 'AI analysis unavailable — check your API key or try again' } }));
+    }).finally(() => {
       setTriageLoading(prev => { const n = new Set(prev); n.delete(alert.id); return n; });
     });
   }
@@ -582,8 +592,8 @@ export default function AlertsTab({
                 {/* STRUCTURED TRIAGE — on-demand deep analysis (Team+, live mode) */}
                 {!demoMode && canTeam && (
                   <div style={{marginTop:12}}>
-                    {/* Button: show when no result yet and not loading */}
-                    {!structTriage && !structLoading && (
+                    {/* APEX button: team+ only. Community sees upgrade prompt instead */}
+                    {!structTriage && !structLoading && canTeam && (
                       <button
                         onClick={()=>fetchTriage(alert)}
                         style={{display:'flex',alignItems:'center',gap:8,padding:'7px 16px',borderRadius:8,border:'1px solid #4f8fff35',background:'linear-gradient(135deg,#4f8fff0a,#8b6fff08)',color:'#4f8fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'all .15s',width:'100%',justifyContent:'center',marginBottom:8}}
@@ -595,12 +605,33 @@ export default function AlertsTab({
                         <span style={{fontSize:'0.6rem',color:'#8b6fff',fontWeight:600,marginLeft:'auto',padding:'1px 6px',borderRadius:3,background:'#8b6fff15',border:'1px solid #8b6fff25'}}>AI</span>
                       </button>
                     )}
+                    {!structTriage && !structLoading && !canTeam && !demoMode && (
+                      <div style={{display:'flex',alignItems:'center',gap:10,padding:'8px 14px',borderRadius:8,border:'1px solid #4f8fff20',background:'#4f8fff08',marginBottom:8,cursor:'pointer'}} onClick={()=>window.location.href='/pricing'}>
+                        <span style={{fontSize:'0.9rem',opacity:0.5}}>✦</span>
+                        <div style={{flex:1}}>
+                          <div style={{fontSize:'0.72rem',fontWeight:700,color:'#4f8fff50'}}>APEX Deep Analysis</div>
+                          <div style={{fontSize:'0.62rem',color:'var(--wt-dim)'}}>Evidence chain · MITRE mapping · Hunt queries · Essentials+</div>
+                        </div>
+                        <a href='/pricing' style={{padding:'4px 10px',borderRadius:6,background:'#4f8fff',color:'#fff',fontSize:'0.62rem',fontWeight:700,textDecoration:'none',flexShrink:0}}>Upgrade →</a>
+                      </div>
+                    )}
                     {/* Loading state */}
                     {structLoading && (
                       <div style={{display:'flex',alignItems:'center',gap:10,padding:'10px 16px',borderRadius:8,border:'1px solid #4f8fff25',background:'#4f8fff08',marginBottom:8}}>
                         <span style={{width:12,height:12,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite',flexShrink:0}}/>
                         <span style={{fontSize:'0.72rem',color:'#4f8fff',fontWeight:600}}>APEX investigating…</span>
                         <span style={{fontSize:'0.64rem',color:'var(--wt-muted)',marginLeft:'auto'}}>evidence chain · MITRE mapping · hunt queries</span>
+                      </div>
+                    )}
+                    {/* Error state */}
+                    {structTriage && structTriage.error && (
+                      <div style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',borderRadius:8,border:'1px solid #f0405e25',background:'#f0405e08',marginBottom:8}}>
+                        <span style={{fontSize:'1rem'}}>⚠</span>
+                        <div style={{flex:1}}>
+                          <div style={{fontSize:'0.72rem',fontWeight:700,color:'#f0405e'}}>APEX analysis failed</div>
+                          <div style={{fontSize:'0.64rem',color:'var(--wt-muted)',marginTop:1}}>{structTriage.error}</div>
+                        </div>
+                        <button onClick={()=>{setTriageResults(prev=>{const n={...prev};delete n[alert.id];return n;});fetchTriage(alert);}} style={{padding:'4px 10px',borderRadius:5,border:'1px solid #f0405e30',background:'#f0405e10',color:'#f0405e',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Retry</button>
                       </div>
                     )}
                     {/* Evidence Chain — shown after analysis completes */}

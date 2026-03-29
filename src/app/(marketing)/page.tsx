@@ -127,10 +127,10 @@ const TESTIMONIALS = [
 ];
 
 const PLANS = [
-  { name:'Community', price:'£0', period:'forever', color:'#6b7a94', features:['2 tool integrations','AI alert triage (read-only)','Up to 250 alerts/day','1 seat','Community support'] },
-  { name:'Essentials', price:'£149', period:'/seat/mo', color:'#4f8fff', badge:'Most Popular', features:['Unlimited integrations','Full AI Co-Pilot + agentic triage','Automation & response actions','BYOK — your Anthropic key','SLA tracking (MTTA/MTTR)'] },
-  { name:'Professional', price:'£1,199', period:'/mo flat', color:'#22d49a', features:['Everything in Essentials','Up to 15 analyst seats','PDF board reports + API','RBAC & full audit trail','MITRE compliance mapping'] },
-  { name:'Enterprise', price:'£3,499', period:'/mo', color:'#8b6fff', badge:'MSSP', features:['Everything in Professional','Unlimited analysts & clients','White-label branding','Per-client BYOK isolation','Portfolio + cross-client AI intel','Dedicated account manager'] },
+  { name:'Community', price:'£0', annualPrice:'£0', period:'forever', color:'#6b7a94', features:['2 tool integrations','AI alert triage (read-only)','Up to 250 alerts/day','1 seat','Community support'] },
+  { name:'Essentials', price:'£149', annualPrice:'£127', period:'/seat/mo', annualPeriod:'/seat/mo billed annually', color:'#4f8fff', badge:'Most Popular', features:['Unlimited integrations','Full AI Co-Pilot + agentic triage','Automation & response actions','BYOK — your Anthropic key','SLA tracking (MTTA/MTTR)'] },
+  { name:'Professional', price:'£1,199', annualPrice:'£1,019', period:'/mo flat', annualPeriod:'/mo billed annually', color:'#22d49a', features:['Everything in Essentials','Up to 15 analyst seats','PDF board reports + API','RBAC & full audit trail','MITRE compliance mapping'] },
+  { name:'Enterprise', price:'£3,499', annualPrice:'£2,974', period:'/mo', annualPeriod:'/mo billed annually', color:'#8b6fff', badge:'MSSP', features:['Everything in Professional','Unlimited analysts & clients','White-label branding','Per-client BYOK isolation','Portfolio + cross-client AI intel','Dedicated account manager'] },
 ];
 
 function LogoBadge({ color, abbr, slug }: { color: string; abbr: string; slug?: string | null }) {
@@ -165,20 +165,26 @@ function ToolChip({ name, color, abbr, id }: { name: string; color: string; abbr
 function ROICalculator() {
   const [analysts, setAnalysts] = useState(3);
   const [alertsPerDay, setAlertsPerDay] = useState(200);
+  const [hourlyRate, setHourlyRate] = useState(65);
   const hoursSaved = Math.round(alertsPerDay * 0.72 * 0.05 * 22 * analysts);
-  const moneySaved = Math.round(hoursSaved * 65);
+  const moneySaved = Math.round(hoursSaved * hourlyRate);
   return (
     <div style={{ maxWidth:640, margin:'0 auto', background:'#131929', border:'1px solid #1a2030', borderRadius:16, padding:'28px 32px' }}>
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:24, marginBottom:24 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:20, marginBottom:24 }}>
         <div>
-          <label style={{ display:'block', fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1px', marginBottom:8 }}>Analysts on your team</label>
+          <label style={{ display:'block', fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1px', marginBottom:8 }}>Analysts</label>
           <input type='range' min={1} max={20} value={analysts} onChange={e=>setAnalysts(Number(e.target.value))} style={{ width:'100%', accentColor:'#4f8fff' }} />
           <span style={{ fontSize:'1.2rem', fontWeight:800, fontFamily:'JetBrains Mono,monospace', color:'#e8ecf4' }}>{analysts}</span>
         </div>
         <div>
-          <label style={{ display:'block', fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1px', marginBottom:8 }}>Alerts per day</label>
+          <label style={{ display:'block', fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1px', marginBottom:8 }}>Alerts/day</label>
           <input type='range' min={50} max={2000} step={50} value={alertsPerDay} onChange={e=>setAlertsPerDay(Number(e.target.value))} style={{ width:'100%', accentColor:'#4f8fff' }} />
           <span style={{ fontSize:'1.2rem', fontWeight:800, fontFamily:'JetBrains Mono,monospace', color:'#e8ecf4' }}>{alertsPerDay}</span>
+        </div>
+        <div>
+          <label style={{ display:'block', fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1px', marginBottom:8 }}>Analyst rate (£/hr)</label>
+          <input type='range' min={30} max={150} step={5} value={hourlyRate} onChange={e=>setHourlyRate(Number(e.target.value))} style={{ width:'100%', accentColor:'#4f8fff' }} />
+          <span style={{ fontSize:'1.2rem', fontWeight:800, fontFamily:'JetBrains Mono,monospace', color:'#e8ecf4' }}>£{hourlyRate}</span>
         </div>
       </div>
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
@@ -267,7 +273,7 @@ export default function LandingPage() {
   const toolsRef = useRef<HTMLElement>(null);
   const [toolsVisible, setToolsVisible] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [annualBilling, setAnnualBilling] = useState(false);
+  const [annualBilling, setAnnualBilling] = useState(false); // 15% annual discount
 
   useEffect(()=>{
     const obs = new IntersectionObserver(([e])=>{if(e.isIntersecting)setToolsVisible(true);},{threshold:0.2});
@@ -558,10 +564,13 @@ export default function LandingPage() {
               onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.transform='none';(e.currentTarget as HTMLElement).style.boxShadow='none';}}>
               {p.badge && <div style={{ position:'absolute', top:-10, left:'50%', transform:'translateX(-50%)', padding:'3px 12px', background:p.color, borderRadius:20, fontSize:'0.6rem', fontWeight:800, color:'#fff', whiteSpace:'nowrap' }}>{p.badge}</div>}
               <div style={{ fontSize:'0.64rem', fontWeight:700, color:p.color, textTransform:'uppercase', letterSpacing:'1px', marginBottom:6 }}>{p.name}</div>
-              <div style={{ display:'flex', alignItems:'baseline', gap:3, marginBottom:4 }}>
-                <span style={{ fontSize:'2rem', fontWeight:900, letterSpacing:-2, fontFamily:'JetBrains Mono,monospace', color:'#e8ecf4' }}>{p.price}</span>
-                <span style={{ fontSize:'0.72rem', color:'#4a5568' }}>{p.period}</span>
+              <div style={{ display:'flex', alignItems:'baseline', gap:3, marginBottom:2 }}>
+                <span style={{ fontSize:'2rem', fontWeight:900, letterSpacing:-2, fontFamily:'JetBrains Mono,monospace', color:'#e8ecf4' }}>{annualBilling && (p as any).annualPrice ? (p as any).annualPrice : p.price}</span>
+                <span style={{ fontSize:'0.72rem', color:'#4a5568' }}>{annualBilling && (p as any).annualPeriod ? (p as any).annualPeriod : p.period}</span>
               </div>
+              {annualBilling && (p as any).annualPrice && p.price !== '£0' && (
+                <div style={{ fontSize:'0.62rem', color:'#22d49a', fontWeight:700, marginBottom:4 }}>Save 15% vs monthly</div>
+              )}
               <div style={{ height:1, background:'#1d2535', margin:'12px 0' }}/>
               <div style={{ flex:1, display:'flex', flexDirection:'column', gap:7 }}>
                 {p.features.map(f=>(

@@ -143,6 +143,13 @@ export async function POST(req: NextRequest) {
     const userId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
     const rl = await checkRateLimit(`ai:${userId}`, 30, 60);
     if (!rl.ok) return NextResponse.json({ ok: false, error: `Rate limit exceeded. Resets in ${rl.reset}s.` }, { status: 429 });
+
+    // Tier gate: APEX deep analysis requires Essentials or above
+    const userTier = req.headers.get('x-user-tier') || 'community';
+    const tierLevels: Record<string, number> = { community: 0, team: 1, business: 2, mssp: 3 };
+    if ((tierLevels[userTier] || 0) < 1) {
+      return NextResponse.json({ ok: false, error: 'APEX deep analysis requires Essentials plan or above.' }, { status: 403 });
+    }
     const tenantId = req.headers.get('x-tenant-id') || (await cookies()).get('wt_tenant')?.value || 'global';
 
     const body = await req.json() as {

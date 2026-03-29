@@ -8,6 +8,37 @@ const INPUT: React.CSSProperties = {
   fontSize: '0.88rem', fontFamily: 'Inter,sans-serif', outline: 'none', boxSizing: 'border-box',
 };
 
+
+function PasswordStrength({ password }: { password: string }) {
+  const checks = [
+    { label: '8+ chars', ok: password.length >= 8 },
+    { label: 'Uppercase', ok: /[A-Z]/.test(password) },
+    { label: 'Number', ok: /[0-9]/.test(password) },
+    { label: 'Symbol', ok: /[^A-Za-z0-9]/.test(password) },
+  ];
+  const score = checks.filter(c => c.ok).length;
+  const color = score <= 1 ? '#f0405e' : score === 2 ? '#f97316' : score === 3 ? '#f0a030' : '#22d49a';
+  const label = score <= 1 ? 'Weak' : score === 2 ? 'Fair' : score === 3 ? 'Good' : 'Strong';
+  if (!password) return null;
+  return (
+    <div style={{ marginTop: 6 }}>
+      <div style={{ display: 'flex', gap: 3, marginBottom: 4 }}>
+        {[1,2,3,4].map(i => (
+          <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i <= score ? color : '#1d2535', transition: 'background .2s' }} />
+        ))}
+      </div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {checks.map(c => (
+          <span key={c.label} style={{ fontSize: '0.6rem', color: c.ok ? '#22d49a' : '#3a4050', fontWeight: c.ok ? 700 : 400 }}>
+            {c.ok ? '✓' : '○'} {c.label}
+          </span>
+        ))}
+        <span style={{ fontSize: '0.6rem', color, fontWeight: 700, marginLeft: 'auto' }}>{label}</span>
+      </div>
+    </div>
+  );
+}
+
 export default function SignupPage() {
   const router = useRouter();
   const [name, setName] = useState('');
@@ -128,19 +159,7 @@ export default function SignupPage() {
               <label style={{ display:'block', fontSize:'0.72rem', color:'#6b7a94', fontWeight:600, marginBottom:6 }}>Password (min. 8 characters)</label>
               <input type="password" value={password} onChange={e=>setPassword(e.target.value)} required minLength={8}
                 placeholder="••••••••••" style={{ ...INPUT, fontFamily:'JetBrains Mono,monospace' }} />
-              {password.length > 0 && (() => {
-                const score = password.length < 8 ? 0 : password.length < 12 && !/[!@#$%^&*]/.test(password) ? 1 : password.length >= 12 && /[!@#$%^&*]/.test(password) && /[A-Z]/.test(password) ? 3 : 2;
-                const labels = ['Too short', 'Weak', 'Fair', 'Strong'];
-                const colors = ['#f0405e', '#f0405e', '#f0a030', '#22d49a'];
-                return (
-                  <div style={{ marginTop:6 }}>
-                    <div style={{ display:'flex', gap:3, marginBottom:4 }}>
-                      {[0,1,2].map(i => <div key={i} style={{ flex:1, height:3, borderRadius:2, background: score > i ? colors[score] : '#263044', transition:'background .2s' }} />)}
-                    </div>
-                    <div style={{ fontSize:'0.62rem', color: colors[score], fontWeight:600 }}>{labels[score]}</div>
-                  </div>
-                );
-              })()}
+              <PasswordStrength password={password} />
             </div>
 
             {/* T&C checkbox */}
@@ -158,6 +177,11 @@ export default function SignupPage() {
               </span>
             </div>
 
+            <p style={{fontSize:'0.68rem',color:'#4a5568',marginBottom:8,textAlign:'center',lineHeight:1.5}}>
+              {plan !== 'community'
+                ? 'Account created first, then payment via Stripe. 14-day free trial — no charge until trial ends.'
+                : 'Community plan is free forever — no card required.'}
+            </p>
             <button type="submit" disabled={loading || !agreedToTerms}
               style={{ width:'100%', padding:'11px', border:'none', borderRadius:9, color:'#fff', fontWeight:700,
                 fontSize:'0.9rem', cursor: loading?'not-allowed':'pointer', fontFamily:'Inter,sans-serif',
