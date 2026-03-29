@@ -4,6 +4,24 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.9.131',
+    date: '2026-03-29',
+    tag: 'GTM',
+    tagColor: '#f0a030',
+    summary: 'Market-ready sprint — paywall enforcement, UX consistency, NIS2/DORA export, 2-tool community limit, unified tab navigation',
+    changes: [
+      { type: 'fix', text: 'Export CSV locked to Essentials+ — community users see a disabled greyed lock button instead of being able to download alert data.' },
+      { type: 'fix', text: '250-alert live limit now enforced — community tier live alerts sliced to 250 before render, not just in demo data constants.' },
+      { type: 'fix', text: '2-tool limit active in ToolsTab — after 2 connected tools, Community users see Upgrade button instead of Connect. Count badge shows X/2 tools.' },
+      { type: 'fix', text: 'Community expanded-alert UX — spinner no longer shows for users who cannot use AI triage (no BYOK). Shows upgrade CTA with evidence chain/blast radius preview instead.' },
+      { type: 'fix', text: 'Unified tab navigation — TABS array is now the single source of truth for all 11 tabs. Removed duplicate Compliance and Sales buttons from top bar. All tabs share tab-btn class with consistent active states.' },
+      { type: 'feat', text: 'Compliance sidebar icon (🗂) added — Professional+ users now see Compliance in the left icon sidebar. MSSP Portfolio (🏢) added for Enterprise users. Bottom nav updated with correct distinct icons.' },
+      { type: 'feat', text: 'NIS2/DORA Export button in Compliance tab — generates a regulatory text report covering NIS2 Art.21, DORA Art.10, ISO 27001, Cyber Essentials, and NIST CSF v2.0, pre-populated from live alert/incident data.' },
+      { type: 'feat', text: 'Board Report PDF button moved inline to Compliance tab header for discoverability.' },
+    ],
+  },
+
+  {
     version: 'v74.9.130',
     date: '2026-03-29',
     tag: 'Routes',

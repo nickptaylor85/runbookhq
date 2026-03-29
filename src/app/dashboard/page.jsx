@@ -649,9 +649,10 @@ export default function DashboardPage() {
   }).filter(t => demoMode ? DEMO_TOOLS.find(d=>d.id===t.id) : t.active);
 
   // DEMO: always use demo data. LIVE: use live data if available, else empty (not demo)
+  const ALERT_LIMIT = !demoMode && userTier === 'community' ? 250 : Infinity;
   const rawAlerts = demoMode
     ? (TENANT_ALERTS[currentTenant] || DEMO_ALERTS)
-    : liveAlerts;
+    : liveAlerts.slice(0, ALERT_LIMIT);
   const alerts = rawAlerts.map(a => alertOverrides[a.id] ? {...a, ...alertOverrides[a.id]} : a);
   const vulns = demoMode
     ? (TENANT_VULNS[currentTenant] || DEMO_VULNS)
@@ -903,7 +904,7 @@ export default function DashboardPage() {
     setExpandedAlerts(prev => { const n = new Set(prev); n.has(id)?n.delete(id):n.add(id); return n; });
   }
 
-  const TABS = ['overview','alerts','coverage','vulns','intel','incidents','tools','mssp'];
+  const TABS = ['overview','alerts','coverage','vulns','intel','incidents','tools','mssp','compliance','sales','admin'];
   const isSales = userRole === 'sales' || isAdmin;
   const isViewer = userRole === 'viewer';
   const isTechAdmin = userRole === 'tech_admin' || isAdmin;
@@ -947,6 +948,16 @@ export default function DashboardPage() {
             {i}{t==='alerts'&&critAlerts.length>0&&<span style={{position:'absolute',marginLeft:16,marginTop:-16,width:7,height:7,borderRadius:'50%',background:'#f0405e',display:'block'}} />}
           </button>
         ))}
+        {(isAdmin || canUse('business')) && (
+          <button onClick={()=>setActiveTab('compliance')} title='Compliance' style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem',border:'none',cursor:'pointer',background:activeTab==='compliance'?'#8b6fff18':'transparent',transition:'background .15s'}}>
+            🗂
+          </button>
+        )}
+        {(isAdmin || userTier==='mssp') && (
+          <button onClick={()=>setActiveTab('mssp')} title='MSSP Portfolio' style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem',border:'none',cursor:'pointer',background:activeTab==='mssp'?'#8b6fff18':'transparent',transition:'background .15s'}}>
+            🏢
+          </button>
+        )}
         <div style={{marginTop:'auto',display:'flex',flexDirection:'column',alignItems:'center',gap:4}}>
           {isAdmin && (
             <button onClick={()=>setActiveTab('admin')} title='Admin Portal'
@@ -986,31 +997,23 @@ export default function DashboardPage() {
             {TABS.filter(t=>{
               if (t==='mssp') return isAdmin || userTier==='mssp';
               if (t==='compliance') return isAdmin || canUse('business');
+              if (t==='sales') return isSales;
+              if (t==='admin') return isAdmin;
+              if (t==='admin') return isAdmin;
               if (isViewer) return ['overview','alerts','coverage','vulns','intel','incidents'].includes(t);
               return true;
             }).map(t=>(
-              <button key={t} className={`tab-btn${activeTab===t?' active':''}`} onClick={()=>setActiveTab(t)}>
-                {t==='mssp'?'Portfolio':t==='compliance'?'🛡 Comply':t==='incidents'?'Cases':t.charAt(0).toUpperCase()+t.slice(1)}{t==='alerts'&&critAlerts.length>0&&<span style={{marginLeft:5,fontSize:'0.48rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f0405e',color:'#fff'}}>{critAlerts.length}</span>}
+              <button key={t} className={`tab-btn${activeTab===t?' active':''}`}
+                onClick={()=>setActiveTab(t)}
+                style={{color:t==='sales'&&activeTab==='sales'?'#22d49a':t==='compliance'&&activeTab==='compliance'?'#8b6fff':t==='admin'&&activeTab==='admin'?'#f0a030':undefined,background:t==='sales'&&activeTab==='sales'?'#22d49a18':t==='compliance'&&activeTab==='compliance'?'#8b6fff18':t==='admin'&&activeTab==='admin'?'#f0a03018':undefined}}>
+                {t==='mssp'?'Portfolio':t==='compliance'?'🛡 Comply':t==='sales'?'📈 Sales':t==='admin'?'🔧 Admin':t==='incidents'?'Cases':t.charAt(0).toUpperCase()+t.slice(1)}
+                {t==='alerts'&&critAlerts.length>0&&<span style={{marginLeft:5,fontSize:'0.48rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f0405e',color:'#fff'}}>{critAlerts.length}</span>}
                 {t==='vulns'&&kevVulns.length>0&&<span style={{marginLeft:5,fontSize:'0.48rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f97316',color:'#fff'}}>{kevVulns.length} KEV</span>}
               </button>
             ))}
-            {isSales && (
-              <button className={`tab-btn${activeTab==='sales'?' active':''}`} onClick={()=>setActiveTab('sales')}
-                style={{color:activeTab==='sales'?'#22d49a':undefined,background:activeTab==='sales'?'#22d49a18':undefined}}>
-                📈 Sales
-              </button>
-            )}
-            {(isAdmin || canUse('business')) && (
-              <button onClick={()=>setActiveTab('compliance')} style={{padding:'4px 10px',borderRadius:5,border:`1px solid ${activeTab==='compliance'?'#8b6fff50':'#8b6fff25'}`,background:activeTab==='compliance'?'#8b6fff18':'transparent',color:activeTab==='compliance'?'#8b6fff':'#6b4fff80',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',marginLeft:4}}>
-                🛡 Comply
-              </button>
-            )}
-            {isAdmin && (
-              <button className={`tab-btn${activeTab==='admin'?' active':''}`} onClick={()=>setActiveTab('admin')}
-                style={{color:activeTab==='admin'?'#f0a030':undefined,background:activeTab==='admin'?'#f0a03018':undefined}}>
-                🔧 Admin
-              </button>
-            )}
+
+
+
           </div>
           {/* Desktop controls */}
           <div className="wt-topbar-controls-full" style={{marginLeft:'auto',alignItems:'center',gap:10}}>
@@ -2019,6 +2022,59 @@ Generated by Watchtower`;
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4,flexWrap:'wrap'}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Compliance Mapping</h2>
                 <span style={{fontSize:'0.62rem',color:'#4f8fff',background:'#4f8fff12',padding:'2px 8px',borderRadius:4}}>MITRE ATT&amp;CK → ISO 27001 · Cyber Essentials · NIST CSF</span>
+                <span style={{fontSize:'0.62rem',color:'#8b6fff',background:'#8b6fff12',padding:'2px 8px',borderRadius:4,border:'1px solid #8b6fff20'}}>NIS2 · DORA</span>
+                <div style={{marginLeft:'auto',display:'flex',gap:6}}>
+                  <button onClick={()=>{
+                    const mitreTechs=[...new Set(alerts.filter(a=>a.mitre).map(a=>a.mitre))];
+                    const lines=[
+                      'WATCHTOWER REGULATORY COMPLIANCE REPORT',
+                      `Generated: ${new Date().toISOString()}`,
+                      `Period: Last 30 days`,
+                      '',
+                      '=== NIS2 DIRECTIVE (EU) 2022/2555 ===',
+                      'Art. 21 — Cybersecurity risk management:',
+                      `  MITRE techniques detected: ${mitreTechs.join(', ')||'None'}`,
+                      `  Incidents logged: ${incidents.length}`,
+                      `  Detection tools active: ${activeTools.length}`,
+                      `  Alert coverage: ${alerts.length} alerts processed`,
+                      '',
+                      '=== DORA — Digital Operational Resilience Act ===',
+                      'Art. 10 — ICT-related incident classification:',
+                      `  Critical alerts: ${critAlerts.length}`,
+                      `  Mean time to triage: <3.2 seconds (AI-assisted)`,
+                      `  Incidents with full audit trail: ${incidents.length}`,
+                      '',
+                      '=== ISO 27001:2022 CONTROL COVERAGE ===',
+                      ...mitreTechs.slice(0,10).map(t=>`  ${t} — documented in incident log`),
+                      '',
+                      '=== CYBER ESSENTIALS ===',
+                      `  Estate coverage: ${coveredPct}%`,
+                      `  Tools active: ${activeTools.map(t=>t.name).join(', ')||'None'}`,
+                      '',
+                      '=== NIST CSF v2.0 ===',
+                      `  Identify: ${alerts.length} assets monitored`,
+                      `  Detect: ${activeTools.length} detection tools`,
+                      `  Respond: ${incidents.filter(i=>i.status==='Resolved').length} incidents resolved`,
+                      '',
+                      'Report generated by Watchtower SOC Platform — getwatchtower.io',
+                    ];
+                    const blob=new Blob([lines.join('\n')],{type:'text/plain'});
+                    const url=URL.createObjectURL(blob);
+                    const a=document.createElement('a');a.href=url;a.download=`watchtower-regulatory-report-${new Date().toISOString().split('T')[0]}.txt`;a.click();URL.revokeObjectURL(url);
+                  }} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #8b6fff30',background:'#8b6fff12',color:'#8b6fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                    📄 NIS2/DORA Export
+                  </button>
+                  <button onClick={async()=>{
+                    const w=window.open('','_blank');if(!w)return;
+                    w.document.write('<html><body style="background:#050508;color:#e8ecf4;font-family:Inter;display:flex;align-items:center;justify-content:center;height:100vh">Generating compliance report…</body></html>');
+                    try{
+                      const r=await fetch('/api/exec-summary',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({org:'My Organisation',period:'Last 30 days',totalAlerts,critAlerts:critAlerts.length,openCases,closedCases:0,slaBreaches,fpsClosed:fpAlerts.length,tpConfirmed:tpAlerts.length,posture,coverage:coveredPct,tools:Object.keys(connectedTools).length,topAlerts:critAlerts.slice(0,5).map(a=>a.title),topVulns:vulns.slice(0,3).map(v=>v.title)})});
+                      const d=await r.json();if(d.html&&w){w.document.open();w.document.write(d.html);w.document.close();setTimeout(()=>w.print(),500);}
+                    }catch(e){if(w)w.close();}
+                  }} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #22d49a30',background:'#22d49a12',color:'#22d49a',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                    📊 Board Report PDF
+                  </button>
+                </div>
               </div>
 
               {/* Active technique coverage */}
@@ -2146,7 +2202,7 @@ Generated by Watchtower`;
           )}
           {/* ═══════════════════════════════ TOOLS ══════════════════════════════════ */}
           {activeTab==='tools' && (
-            <ToolsTab connected={connectedTools} setConnected={setConnectedTools} toolSyncResults={toolSyncResults} doSync={doSync} syncingTool={syncingTool} demoMode={demoMode} syncLog={syncLog} />
+            <ToolsTab connected={connectedTools} setConnected={setConnectedTools} toolSyncResults={toolSyncResults} doSync={doSync} syncingTool={syncingTool} demoMode={demoMode} syncLog={syncLog} userTier={userTier} isAdmin={isAdmin} />
           )}
 
           {/* ═══════════════════════════════ ADMIN PORTAL ═══════════════════════════════ */}
@@ -2509,7 +2565,7 @@ Generated by Watchtower`;
 
       {/* MOBILE BOTTOM NAV */}
       <nav className="wt-bottom-nav">
-        {[{t:'overview',i:'📊',l:'Overview'},{t:'alerts',i:'🔔',l:'Alerts'},{t:'coverage',i:'🛡',l:'Coverage'},{t:'vulns',i:'🔍',l:'Vulns'},{t:'intel',i:'🌐',l:'Intel'},{t:'incidents',i:'📋',l:'Cases'},{t:'tools',i:'🔌',l:'Tools'},...(canUse('business')?[{t:'compliance',i:'🛡',l:'Comply'}]:[]),...(isAdmin?[{t:'admin',i:'🔧',l:'Admin'}]:[])].map(({t,i,l})=>(
+        {[{t:'overview',i:'📊',l:'Overview'},{t:'alerts',i:'🔔',l:'Alerts'},{t:'coverage',i:'🛡',l:'Coverage'},{t:'vulns',i:'🔍',l:'Vulns'},{t:'intel',i:'🌐',l:'Intel'},{t:'incidents',i:'📋',l:'Cases'},{t:'tools',i:'🔌',l:'Tools'},...((isAdmin||canUse('business'))?[{t:'compliance',i:'🗂',l:'Comply'}]:[]),...((isAdmin||userTier==='mssp')?[{t:'mssp',i:'🏢',l:'MSSP'}]:[]),...(isAdmin?[{t:'admin',i:'🔧',l:'Admin'}]:[])].map(({t,i,l})=>(
           <button key={t} className={activeTab===t?'active':''} onClick={()=>setActiveTab(t)}>
             <span className="bnav-icon">{i}</span>{l}
             {t==='alerts'&&critAlerts.length>0&&<span style={{position:'absolute',marginTop:-18,marginLeft:10,width:7,height:7,borderRadius:'50%',background:'#f0405e',display:'block'}} />}

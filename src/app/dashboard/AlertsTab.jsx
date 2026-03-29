@@ -186,6 +186,7 @@ export default function AlertsTab({
           <span style={{fontSize:'0.66rem',color:'var(--wt-muted)'}}>
             {alerts.length} total · {fpAlerts.length} auto-FP · {tpAlerts.length} escalated
           </span>
+          {canTeam ? (
           <button onClick={()=>{
             const rows = [['ID','Title','Severity','Source','Device','User','IP','Time','Verdict','Confidence','MITRE','Notes']];
             alertsFiltered.forEach(a=>{
@@ -199,6 +200,9 @@ export default function AlertsTab({
           }} style={{padding:'4px 10px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
             Export CSV
           </button>
+          ) : (
+          <span title='Upgrade to Essentials to export' style={{padding:'4px 10px',borderRadius:6,border:'1px solid var(--wt-border)',color:'var(--wt-dim)',fontSize:'0.68rem',cursor:'not-allowed'}}>🔒 Export</span>
+          )}
         </div>
       </div>
 
@@ -436,11 +440,22 @@ export default function AlertsTab({
                     )}
                   </div>
                 )}
-                {/* Live AI triage - spinner */}
-                {!demoMode && (cached === undefined || (cached && cached.loading)) && (
+                {/* Live AI triage - spinner (only show if user has API key configured = team+) */}
+                {!demoMode && canTeam && (cached === undefined || (cached && cached.loading)) && (
                   <div style={{padding:'10px 0',fontSize:'0.72rem',color:'var(--wt-muted)',display:'flex',alignItems:'center',gap:8}}>
                     <span style={{width:10,height:10,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>
                     AI triage running…
+                  </div>
+                )}
+                {/* Community upgrade prompt - shown instead of AI triage */}
+                {!demoMode && !canTeam && (
+                  <div style={{marginTop:10,padding:'10px 12px',background:'linear-gradient(135deg,rgba(79,143,255,0.05),rgba(139,111,255,0.05))',border:'1px solid #4f8fff20',borderRadius:10,display:'flex',alignItems:'center',gap:10}}>
+                    <span style={{fontSize:'1.2rem'}}>✦</span>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:'0.72rem',fontWeight:700,color:'#4f8fff',marginBottom:2}}>AI Triage — Essentials+</div>
+                      <div style={{fontSize:'0.66rem',color:'var(--wt-muted)',lineHeight:1.5}}>Upgrade to get evidence chain, MITRE mapping, hunt queries & blast radius on every alert.</div>
+                    </div>
+                    <a href='/pricing' style={{padding:'5px 12px',borderRadius:7,background:'#4f8fff',color:'#fff',fontSize:'0.66rem',fontWeight:700,textDecoration:'none',flexShrink:0,whiteSpace:'nowrap'}}>Upgrade →</a>
                   </div>
                 )}
                 {/* Live AI triage - result */}

@@ -66,7 +66,10 @@ const TOOL_FEEDS = {
   threatfox:    ['Intel'],
 };
 
-export default function ToolsTab({ connected, setConnected, toolSyncResults, doSync, syncingTool, demoMode, syncLog }) {
+export default function ToolsTab({ connected, setConnected, toolSyncResults, doSync, syncingTool, demoMode, syncLog, userTier, isAdmin }) {
+  const connectedCount = Object.keys(connected || {}).filter(k => connected[k]).length;
+  const isCommunity = !isAdmin && userTier === 'community';
+  const atToolLimit = isCommunity && connectedCount >= 2;
   const [filter, setFilter] = useState('All');
   const [modal, setModal] = useState(null);
   const [formVals, setFormVals] = useState({});
@@ -167,6 +170,7 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
       <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
         <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Integrations</h2>
         <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{Object.keys(connected).length} connected</span>
+        {isCommunity && <span style={{fontSize:'0.62rem',color:'#f0a030',background:'#f0a03012',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025'}}>{connectedCount}/2 tools — <a href='/pricing' style={{color:'#f0a030',textDecoration:'underline'}}>upgrade for unlimited</a></span>}
       {/* Always-visible Sync Log */}
       <div style={{background:'#060b10',border:'1px solid #1a2535',borderRadius:10,overflow:'hidden'}}>
         <div style={{padding:'8px 14px',borderBottom:'1px solid #1a2535',display:'flex',alignItems:'center',gap:8}}>
@@ -295,7 +299,9 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
                 <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:5,flexShrink:0}}>
                   {isOn
                     ? <button onClick={()=>{if(window.confirm('Disconnect '+tool.name+'?')) handleDisconnect(tool.id);}} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #f0405e30',background:'#f0405e10',color:'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:5}}>🗑 Disconnect</button>
-                    : <button onClick={()=>openModal(tool)} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #4f8fff40',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>+ Connect</button>}
+                    : atToolLimit
+                      ? <a href='/pricing' style={{padding:'5px 14px',borderRadius:7,border:'1px solid #f0a03030',background:'#f0a03010',color:'#f0a030',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',textDecoration:'none'}}>🔒 Upgrade</a>
+                      : <button onClick={()=>openModal(tool)} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #4f8fff40',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>+ Connect</button>}
                   {isOn && !demoMode && doSync && (
                     <button onClick={()=>doSync([tool.id])} disabled={isRetrying} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #4f8fff28',background:'#4f8fff0a',color:isRetrying?'var(--wt-dim)':'#4f8fff',fontSize:'0.6rem',fontWeight:700,cursor:isRetrying?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>
                       {isRetrying ? <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:8,height:8,borderRadius:'50%',border:'1.5px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}} />Syncing…</span> : '⟳ Sync'}
