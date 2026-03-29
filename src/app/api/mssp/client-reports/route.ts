@@ -58,7 +58,6 @@ export async function POST(req: NextRequest) {
       to: body.recipientEmail,
       subject: `Watchtower Security Report — ${body.clientName} — ${new Date().toLocaleDateString('en-GB')}`,
       html,
-      text: `Watchtower Security Report for ${body.clientName}. ${summary ? `Critical alerts: ${summary.critAlerts}. Posture: ${summary.posture}%.` : 'Connect your tools to receive detailed reports.'} Generated: ${new Date().toISOString()}`,
     });
 
     return NextResponse.json({ ok: true, sent: emailResult.ok, recipient: body.recipientEmail });

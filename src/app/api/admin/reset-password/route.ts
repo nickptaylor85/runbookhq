@@ -22,7 +22,6 @@ export async function POST(req: NextRequest) {
       to: body.email,
       subject: 'Reset your Watchtower password',
       html: `<p>A password reset was requested for ${body.email}.</p><p><a href="${resetUrl}">Click here to reset your password</a></p><p>This link expires in 24 hours.</p>`,
-      text: `Reset your password: ${resetUrl}`,
     });
 
     return NextResponse.json({ ok: true, email: body.email });
