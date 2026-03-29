@@ -147,8 +147,11 @@ export async function POST(req: NextRequest) {
     // Tier gate: APEX requires Essentials+, but bypass for admin and mssp-tier accounts
     const userTier = req.headers.get('x-user-tier') || 'community';
     const isAdminReq = req.headers.get('x-is-admin') === 'true';
+    const userId2 = req.headers.get('x-user-id') || 'none';
+    console.log(`[triage gate] userId=${userId2} tier=${userTier} isAdmin=${isAdminReq}`);
     const tierLevels: Record<string, number> = { community: 0, team: 1, business: 2, mssp: 3 };
     if (!isAdminReq && userTier !== 'mssp' && (tierLevels[userTier] || 0) < 1) {
+      console.error(`[triage] BLOCKED userId=${userId2} tier=${userTier} isAdmin=${isAdminReq}`);
       return NextResponse.json({ ok: false, error: 'APEX deep analysis requires Essentials plan or above.' }, { status: 403 });
     }
     const tenantId = req.headers.get('x-tenant-id') || (await cookies()).get('wt_tenant')?.value || 'global';
