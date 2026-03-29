@@ -6,9 +6,9 @@ const POSTS = [
     slug: 'soc-alert-triage-ai',
     title: 'How AI Reduces SOC Alert Triage from 3.5 Hours to 3.2 Seconds',
     date: '2026-03-15',
-    tag: 'AI & Automation',
+    tag: 'AI and Automation',
     tagColor: '#4f8fff',
-    excerpt: 'Traditional alert triage burns analyst hours on false positives. Here's how AI evidence chains, blast radius analysis, and institutional knowledge change the economics of a SOC.',
+    excerpt: `Traditional alert triage burns analyst hours on false positives. Here's how AI evidence chains, blast radius analysis, and institutional knowledge change the economics of a SOC.`,
     readTime: '7 min',
   },
   {
@@ -17,7 +17,7 @@ const POSTS = [
     date: '2026-03-08',
     tag: 'MSSP',
     tagColor: '#8b6fff',
-    excerpt: 'MSSPs have been promised single-pane-of-glass for 15 years. AI cross-tenant correlation is what finally makes it real — not just a marketing slide.',
+    excerpt: `MSSPs have been promised single-pane-of-glass for 15 years. AI cross-tenant correlation is what finally makes it real — not just a marketing slide.`,
     readTime: '5 min',
   },
   {
@@ -26,7 +26,7 @@ const POSTS = [
     date: '2026-02-28',
     tag: 'Compliance',
     tagColor: '#22d49a',
-    excerpt: 'NIS2 Art.21 requires documented risk management. DORA Art.10 mandates ICT incident classification. Here's what both mean for your SOC workflow and how to satisfy them without a 6-month project.',
+    excerpt: `NIS2 Art.21 requires documented risk management. DORA Art.10 mandates ICT incident classification. Here's what both mean for your SOC workflow and how to satisfy them without a 6-month project.`,
     readTime: '9 min',
   },
   {
@@ -35,7 +35,7 @@ const POSTS = [
     date: '2026-02-14',
     tag: 'Security',
     tagColor: '#f0405e',
-    excerpt: 'When your AI key is shared, your alert data is commingled with other organisations. BYOK — Bring Your Own Key — is not just an enterprise feature. It's the minimum bar for security data.',
+    excerpt: `When your AI key is shared, your alert data is commingled with other organisations. BYOK — Bring Your Own Key — is not just an enterprise feature. It's the minimum bar for security data.`,
     readTime: '4 min',
   },
 ];
