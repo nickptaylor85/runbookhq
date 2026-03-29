@@ -18,9 +18,9 @@ export default function SalesDashboard() {
   };
 
   const PLAN_VALUES = {
-    mssp:     { name:'MSSP',     mrr:799,  label:'£799+/mo', color:'#8b6fff', clients:'+ £79/client' },
-    business: { name:'Business', mrr:199,  label:'£199/mo',  color:'#22d49a' },
-    team:     { name:'Team',     mrr:196,  label:'~£196/mo', color:'#4f8fff', note:'avg 4 seats × £49' },
+    mssp:     { name:'MSSP',     mrr:2499, label:'£2,499/mo', color:'#8b6fff' },
+    business: { name:'Professional', mrr:799, label:'£799/mo', color:'#22d49a' },
+    team:     { name:'Team',     mrr:196,  label:'~£196/mo', color:'#4f8fff', note:'avg 3 seats × £149' },
     community:{ name:'Community',mrr:0,    label:'Free',     color:'#6b7a94' },
   };
 
@@ -32,7 +32,7 @@ export default function SalesDashboard() {
   const mixes = effectiveGap > 0 ? [
     { label:'All MSSP',     plans:'MSSP partners', count:Math.ceil(effectiveGap/799),   mrr:Math.ceil(effectiveGap/799)*799,   color:'#8b6fff', note:'Highest value — longer sales cycle' },
     { label:'All Business', plans:'Business orgs', count:Math.ceil(effectiveGap/199),   mrr:Math.ceil(effectiveGap/199)*199,   color:'#22d49a', note:'Mid-market, 2-4 week close' },
-    { label:'All Team',     plans:'Team plans',    count:Math.ceil(effectiveGap/147),   mrr:Math.ceil(effectiveGap/147)*147,   color:'#4f8fff', note:'SMB, fastest close, lower ACV' },
+    { label:'All Team',     plans:'Essentials plans',    count:Math.ceil(effectiveGap/447),   mrr:Math.ceil(effectiveGap/147)*147,   color:'#4f8fff', note:'SMB, fastest close, lower ACV' },
     { label:'Mixed (recommended)', plans:'1 MSSP + Business',
       count: 1 + Math.ceil(Math.max(0,effectiveGap-799)/199),
       mrr: 799 + Math.ceil(Math.max(0,effectiveGap-799)/199)*199,
@@ -51,7 +51,7 @@ Customers: ${CURRENT.customers.mssp} MSSP, ${CURRENT.customers.business} Busines
 MoM growth: £${CURRENT.growth.jan} → £${CURRENT.growth.feb} → £${CURRENT.growth.mar}
 Target MRR: £${mrrVal}/mo · Gap to close: £${effectiveGap}/mo
 
-Plans: MSSP £799/mo+£79/client | Business £199/mo | Team £49/seat
+Plans: Enterprise £2,499/mo | Professional £799/mo | Essentials £149/seat
 
 Provide a concise go-to-market strategy to close the gap. Include:
 1. IDEAL CUSTOMER PROFILE: Who to target (industry, size, pain points)
@@ -93,7 +93,7 @@ Customers: 2 MSSP, 3 Business, 2 Team
 MoM growth: £1,890 → £2,200 → £2,814
 Target MRR: £${mrrVal}/mo · Gap to close: £${gap}/mo
 
-Plans: MSSP £799/mo+£79/client | Business £199/mo | Team £49/seat
+Plans: Enterprise £2,499/mo | Professional £799/mo | Essentials £149/seat
 
 Provide a concise go-to-market strategy to close the gap. Include:
 1. IDEAL CUSTOMER PROFILE: Who to target (industry, size, pain points)

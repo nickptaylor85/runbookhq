@@ -255,7 +255,7 @@ export default function LandingPage() {
             <a href='/signup' className='btn-primary' style={{fontSize:'0.9rem',padding:'13px 28px'}}>Start free — no card needed →</a>
             <a href='/demo' className='btn-outline' style={{fontSize:'0.9rem',padding:'13px 24px'}}>See live demo</a>
           </div>
-          <div style={{ marginTop:16, fontSize:'0.72rem', color:'#3a4a60' }}>Community plan free forever · Team from £49/seat/mo</div>
+          <div style={{ marginTop:16, fontSize:'0.72rem', color:'#3a4a60' }}>Community plan free forever · Essentials from £149/seat/mo</div>
         </div>
       </section>
 
@@ -429,7 +429,7 @@ export default function LandingPage() {
           <h2 style={{ fontSize:'2.2rem', fontWeight:900, letterSpacing:-2, marginBottom:14, lineHeight:1.1 }}>Your SOC deserves better than 6 tabs.</h2>
           <p style={{ fontSize:'0.95rem', color:'#6b7a94', lineHeight:1.75, marginBottom:32 }}>Start for free today. Connect your first tool in under 5 minutes.</p>
           <a href='/signup' className='btn-primary' style={{ fontSize:'1rem', padding:'14px 36px' }}>Get started free →</a>
-          <div style={{ marginTop:14, fontSize:'0.72rem', color:'#3a4a60' }}>No credit card · Community plan free forever · Team from £49/seat/mo</div>
+          <div style={{ marginTop:14, fontSize:'0.72rem', color:'#3a4a60' }}>No credit card · Community plan free forever · Essentials from £149/seat/mo</div>
         </div>
       </section>
 

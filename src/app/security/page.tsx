@@ -57,7 +57,7 @@ export default function Page() {
         </SECTION>
 
         <SECTION title="Data Residency">
-          Default data storage is in Upstash Redis US East region. EU data residency is available for Business and MSSP plans using Upstash EU-West endpoints — contact us to configure this before account setup. AI API calls (Anthropic) are processed via your own BYOK key and subject to Anthropic&apos;s data processing terms. We do not retain the content of AI prompts or responses.
+          Default data storage is in Upstash Redis US East region. EU data residency is available for Professional and Enterprise plans using Upstash EU-West endpoints — contact us to configure this before account setup. AI API calls (Anthropic) are processed via your own BYOK key and subject to Anthropic&apos;s data processing terms. We do not retain the content of AI prompts or responses.
         </SECTION>
 
         <SECTION title="AI Security (BYOK)">

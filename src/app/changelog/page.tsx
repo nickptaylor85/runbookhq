@@ -4,6 +4,22 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.9.127',
+    date: '2026-03-29',
+    tag: 'Polish',
+    tagColor: '#22d49a',
+    summary: 'Full pricing alignment across all 12 files — admin permanently unlocked including AlertsTab canVote/canTeam',
+    changes: [
+      { type: 'fix', text: 'Admin accounts were still seeing Upgrade to Triage prompt in AlertsTab because isAdmin was not being passed as a prop and canVote/canTeam only checked userTier. Fixed: isAdmin now passed to AlertsTab, canVote and canTeam both check isAdmin || userTier !== community.' },
+      { type: 'fix', text: 'AdminPortal subscriber pricing table updated: Team→Essentials £149/seat, Business→Professional £799/mo, MSSP→Enterprise £2,499/mo.' },
+      { type: 'fix', text: 'SalesDashboard plan data updated: Essentials £149/seat, Professional £799/mo, Enterprise £2,499/mo. AI GTM prompt updated to new plan names and prices.' },
+      { type: 'fix', text: 'Signup page plan list updated to Essentials/Professional/Enterprise with correct pricing.' },
+      { type: 'fix', text: 'Landing page footer updated: Team from £49/seat/mo → Essentials from £149/seat/mo.' },
+      { type: 'fix', text: 'Co-Pilot API error message updated from Team plan to Essentials plan. Docs, security, guide, MSSPPortfolio, pricing FAQ all updated to use Enterprise/MSSP naming.' },
+    ],
+  },
+
+  {
     version: 'v74.9.126',
     date: '2026-03-29',
     tag: 'Polish',

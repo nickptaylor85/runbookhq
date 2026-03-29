@@ -54,9 +54,10 @@ export default function AlertsTab({
   alertAssignees, setAlertAssignees,
   onAudit,
   autoClosedIds,
+  isAdmin,
 }) {
-  const canVote = userTier !== 'community';
-  const canTeam = userTier !== 'community';
+  const canVote = isAdmin || userTier !== 'community';
+  const canTeam = isAdmin || userTier !== 'community';
 
   // Structured triage results (evidence chain, hunt queries) — fetched from /api/triage
   const [triageResults, setTriageResults] = React.useState({});

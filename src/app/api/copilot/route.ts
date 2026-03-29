@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
     const userTier = req.headers.get('x-user-tier') || '';
     const isAuthenticated = !!req.headers.get('x-user-id');
     if (isAuthenticated && !isOwner && userTier === 'community' && prompt && prompt.length > 200) {
-      return NextResponse.json({ error: 'AI Co-Pilot requires Team plan or higher.' }, { status: 403 });
+      return NextResponse.json({ error: 'AI Co-Pilot requires Essentials plan or higher.' }, { status: 403 });
     }
 
     const tenantId = req.headers.get('x-tenant-id') ||

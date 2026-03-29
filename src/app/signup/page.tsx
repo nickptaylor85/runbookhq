@@ -20,9 +20,9 @@ export default function SignupPage() {
 
   const PLANS = [
     { id:'community', label:'Community', price:'Free', note:'2 tools, 1 seat' },
-    { id:'team',      label:'Team',      price:'£49/seat', note:'Full AI, min 3 seats' },
-    { id:'business',  label:'Business',  price:'£199/mo', note:'10 seats, RBAC, API' },
-    { id:'mssp',      label:'MSSP',      price:'£799/mo', note:'Multi-tenant, white-label' },
+    { id:'team',      label:'Essentials', price:'£149/seat', note:'Full AI, min 2 seats' },
+    { id:'business',  label:'Professional', price:'£799/mo', note:'Up to 15 analysts, reports, API' },
+    { id:'mssp',      label:'Enterprise', price:'£2,499/mo', note:'Unlimited clients, white-label' },
   ] as const;
 
   async function handleSignup(e: React.FormEvent) {

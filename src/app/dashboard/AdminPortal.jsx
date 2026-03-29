@@ -405,9 +405,9 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                 {key:'publishableKey', label:'Publishable Key', placeholder:'pk_live_...', hint:'Safe to use in browser'},
                 {key:'secretKey', label:'Secret Key', placeholder:'sk_live_...', hint:'Never share — server only', secret:true},
                 {key:'webhookSecret', label:'Webhook Secret', placeholder:'whsec_...', hint:'From Stripe webhook settings', secret:true},
-                {key:'priceMssp', label:'MSSP Price ID', placeholder:'price_...', hint:'Monthly MSSP plan price ID'},
-                {key:'priceBusiness', label:'Business Price ID', placeholder:'price_...', hint:'Monthly Business plan price ID'},
-                {key:'priceTeamPerSeat', label:'Team Per-Seat Price ID', placeholder:'price_...', hint:'Per-seat Team plan price ID'},
+                {key:'priceMssp', label:'MSSP Price ID', placeholder:'price_...', hint:'Monthly Enterprise/MSSP plan price ID'},
+                {key:'priceBusiness', label:'Business Price ID', placeholder:'price_...', hint:'Monthly Professional plan price ID'},
+                {key:'priceTeamPerSeat', label:'Team Per-Seat Price ID', placeholder:'price_...', hint:'Per-seat Essentials plan price ID'},
               ].map(field=>(
                 <div key={field.key}>
                   <label style={{display:'block',fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>{field.label}</label>
@@ -454,9 +454,9 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
 
           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
             {[
-              {plan:'MSSP', price:'£799+/mo', id:stripeConfig.priceMssp, color:'#8b6fff'},
-              {plan:'Business', price:'£199/mo', id:stripeConfig.priceBusiness, color:'#22d49a'},
-              {plan:'Team', price:'£49/seat', id:stripeConfig.priceTeamPerSeat, color:'#4f8fff'},
+              {plan:'Enterprise', price:'£2,499/mo', id:stripeConfig.priceMssp, color:'#8b6fff'},
+              {plan:'Professional', price:'£799/mo', id:stripeConfig.priceBusiness, color:'#22d49a'},
+              {plan:'Essentials', price:'£149/seat', id:stripeConfig.priceTeamPerSeat, color:'#4f8fff'},
             ].map(p=>(
               <div key={p.plan} style={{padding:'12px 14px',background:'var(--wt-card)',border:`1px solid ${p.color}20`,borderRadius:10}}>
                 <div style={{fontSize:'0.7rem',fontWeight:700,color:p.color,marginBottom:2}}>{p.plan}</div>

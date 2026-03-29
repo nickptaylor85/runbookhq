@@ -42,7 +42,7 @@ export default function Page() {
           </div>
           <div style={{marginBottom: '28px'}}>
             <h2 style={{fontSize: '1rem', fontWeight: 800, marginBottom: '10px', color: '#e8ecf4'}}>Automation Levels</h2>
-            <p style={{fontSize: '0.87rem', color: '#8a9ab0', lineHeight: '1.8'}}>Three levels: Recommend Only (AI advises, humans act), Auto + Notify (AI acts and notifies you), Full Auto (AI acts silently). Available from Team plan upwards. All automated actions are fully audited and support one-click revert.</p>
+            <p style={{fontSize: '0.87rem', color: '#8a9ab0', lineHeight: '1.8'}}>Three levels: Recommend Only (AI advises, humans act), Auto + Notify (AI acts and notifies you), Full Auto (AI acts silently). Available from Essentials plan and above. All automated actions are fully audited and support one-click revert.</p>
           </div>
           <div style={{marginBottom: '28px'}}>
             <h2 style={{fontSize: '1rem', fontWeight: 800, marginBottom: '10px', color: '#e8ecf4'}}>AI Configuration (BYOK)</h2>
@@ -50,7 +50,7 @@ export default function Page() {
           </div>
           <div style={{marginBottom: '28px'}}>
             <h2 style={{fontSize: '1rem', fontWeight: 800, marginBottom: '10px', color: '#e8ecf4'}}>MSSP Portfolio</h2>
-            <p style={{fontSize: '0.87rem', color: '#8a9ab0', lineHeight: '1.8'}}>Visible to MSSP plan users. Shows all client tenants in one view with posture, alert counts, and revenue. Use the tenant switcher in the top bar to drill into any client context.</p>
+            <p style={{fontSize: '0.87rem', color: '#8a9ab0', lineHeight: '1.8'}}>Visible to Enterprise/Enterprise/MSSP users. Shows all client tenants in one view with posture, alert counts, and revenue. Use the tenant switcher in the top bar to drill into any client context.</p>
           </div>
           <div style={{marginBottom: '28px'}}>
             <h2 style={{fontSize: '1rem', fontWeight: 800, marginBottom: '10px', color: '#e8ecf4'}}>Support</h2>

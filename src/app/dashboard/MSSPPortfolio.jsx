@@ -54,7 +54,7 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
               {brandingSaved&&<span style={{fontSize:'0.66rem',color:'#22d49a',fontWeight:600}}>✓ Saved</span>}
               <button onClick={()=>setShowBrandingConfig(false)} style={{marginLeft:'auto',fontSize:'0.64rem',color:'var(--wt-muted)',background:'none',border:'none',cursor:'pointer'}}>Close</button>
             </div>
-            <div style={{marginTop:8,fontSize:'0.6rem',color:'var(--wt-dim)'}}>Your clients see your brand name, not Watchtower. Custom domain support available on MSSP plan.</div>
+            <div style={{marginTop:8,fontSize:'0.6rem',color:'var(--wt-dim)'}}>Your clients see your brand name, not Watchtower. Custom domain support available on Enterprise plan.</div>
           </div>
         )}
         </div>
