@@ -1,20 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { redisHSet, redisHGetAll, KEYS } from '@/lib/redis';
+import { redisGet, redisSet } from '@/lib/redis';
+
+const SETTINGS_KEY = (tenantId: string) => `wt:${tenantId}:settings:v2`;
 
 const ALLOWED_SETTINGS = new Set([
-  'industry', 'demoMode', 'automation', 'userTier', 'clientBanner', 'theme', 'slack_webhook', 'notif_critical', 'notif_incidents', 'notif_digest', 'notif_sync'
+  'industry', 'demoMode', 'automation', 'userTier', 'clientBanner',
+  'theme', 'slack_webhook', 'notif_critical', 'notif_incidents',
+  'notif_digest', 'notif_sync', 'anthropic_api_key',
 ]);
 
 function getTenantId(req: NextRequest): string {
   return req.headers.get('x-tenant-id') || 'global';
 }
 
+async function getSettings(tenantId: string): Promise<Record<string, string>> {
+  try {
+    const raw = await redisGet(SETTINGS_KEY(tenantId));
+    if (raw) return JSON.parse(raw) as Record<string, string>;
+  } catch {}
+  return {};
+}
+
 export async function GET(req: NextRequest) {
   try {
     const tenantId = getTenantId(req);
-    const settings = await redisHGetAll(KEYS.TENANT_SETTINGS(tenantId));
+    const settings = await getSettings(tenantId);
     return NextResponse.json({ ok: true, settings });
   } catch (e: any) {
+    console.error('[settings/user GET]', e.message);
     return NextResponse.json({ ok: false, settings: {} });
   }
 }
@@ -27,28 +40,26 @@ export async function POST(req: NextRequest) {
     }
 
     const tenantId = getTenantId(req);
-    
-    // Only allow whitelisted settings keys, sanitize values
-    const allowed: Record<string, string> = {};
+
+    // Only allow whitelisted keys
+    const updates: Record<string, string> = {};
     for (const [key, value] of Object.entries(body)) {
       if (!ALLOWED_SETTINGS.has(key)) continue;
       if (typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean') continue;
-      const strVal = String(value).slice(0, 500); // max 500 chars
-      allowed[key] = strVal;
+      updates[key] = String(value).slice(0, 500);
     }
 
-    if (Object.keys(allowed).length === 0) {
+    if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: 'No valid settings provided' }, { status: 400 });
     }
 
-    // Batch all fields into a single HSET call to avoid parallel write issues
-    const settingsKey = KEYS.TENANT_SETTINGS(tenantId);
-    for (const [key, value] of Object.entries(allowed)) {
-      await redisHSet(settingsKey, key, value);
-    }
+    // Read-merge-write as single JSON blob
+    const existing = await getSettings(tenantId);
+    const merged = { ...existing, ...updates };
+    await redisSet(SETTINGS_KEY(tenantId), JSON.stringify(merged), 86400 * 30); // 30 days TTL
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    console.error('[settings/user POST]', e.message, e.stack?.split('\n')[1]);
+    console.error('[settings/user POST]', e.message);
     return NextResponse.json({ ok: false, message: e.message }, { status: 500 });
   }
 }
@@ -63,10 +74,9 @@ export async function PATCH(req: NextRequest) {
     if (newPassword.length < 8) return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 });
     if (newPassword.length > 128) return NextResponse.json({ error: 'Password too long' }, { status: 400 });
 
-    const { getUserByEmail, getUsers, updateUser, hashPassword, verifyPassword } = await import('@/lib/users');
-    // Find user by ID
+    const { getUsers, updateUser, hashPassword, verifyPassword } = await import('@/lib/users');
     const users = await getUsers('global');
-    const user = users.find(u => u.id === userId);
+    const user = users.find((u: any) => u.id === userId);
     if (!user || !user.passwordHash) return NextResponse.json({ error: 'User not found' }, { status: 404 });
     if (!verifyPassword(currentPassword, user.passwordHash)) return NextResponse.json({ error: 'Current password is incorrect' }, { status: 401 });
 
@@ -87,10 +97,8 @@ export async function DELETE(req: NextRequest) {
     const { deleteUser } = await import('@/lib/users');
     const { redisDel } = await import('@/lib/redis');
 
-    // Delete user record
     await deleteUser('global', userId);
-    // Delete tenant settings and data
-    await redisDel(`wt:${tenantId}:settings`).catch(() => {});
+    await redisDel(SETTINGS_KEY(tenantId)).catch(() => {});
     await redisDel(`wt:user:${userId}:mfa`).catch(() => {});
     await redisDel(`wt:user:${userId}:mfa_setup_required`).catch(() => {});
     await redisDel(`wt:${tenantId}:alerts`).catch(() => {});

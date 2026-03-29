@@ -78,6 +78,8 @@ export async function POST(req: NextRequest) {
       const token = signSession({ userId: email, tenantId: 'global', isAdmin: true, email, role: 'owner', tier: 'mssp' });
       const res = NextResponse.json({ ok: true, role: 'owner' });
       res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 86400, path: '/' });
+      // Clear any stale MFA-pending cookie to prevent redirect loop
+      res.cookies.set('wt_mfa_pending', '', { httpOnly: false, maxAge: 0, path: '/' });
       return res;
     }
 
@@ -94,6 +96,8 @@ export async function POST(req: NextRequest) {
       const res = NextResponse.json({ ok: true, role: user.role });
       res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 86400, path: '/' });
       res.cookies.set('wt_tier', userTier, { httpOnly: false, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 86400, path: '/' });
+      // Clear any stale MFA-pending cookie
+      res.cookies.set('wt_mfa_pending', '', { httpOnly: false, maxAge: 0, path: '/' });
       return res;
     }
 
