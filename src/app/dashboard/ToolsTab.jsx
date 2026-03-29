@@ -21,9 +21,95 @@ const CRED_FIELDS = {
   mimecast:[{key:'base_url',label:'Base URL',placeholder:'https://eu-api.mimecast.com'},{key:'client_id',label:'Client ID'},{key:'client_secret',label:'Client Secret',secret:true}],
   zscaler:[{key:'cloud',label:'Cloud URL',placeholder:'https://zsapi.zscaler.net'},{key:'username',label:'Username'},{key:'password',label:'Password',secret:true},{key:'api_key',label:'API Key',secret:true}],
   okta:[{key:'domain',label:'Okta Domain',placeholder:'https://company.okta.com'},{key:'api_token',label:'API Token',secret:true}],
+  // XDR
+  cortex:[{key:'client_id',label:'Client ID'},{key:'client_secret',label:'Client Secret',secret:true},{key:'region',label:'Region',placeholder:'api-us-1'}],
+  // Cloud
+  aws_security_hub:[{key:'access_key_id',label:'AWS Access Key ID'},{key:'secret_access_key',label:'AWS Secret Access Key',secret:true},{key:'region',label:'AWS Region',placeholder:'eu-west-2'}],
+  azure_defender:[{key:'tenant_id',label:'Tenant ID'},{key:'client_id',label:'Client ID'},{key:'client_secret',label:'Client Secret',secret:true},{key:'subscription_id',label:'Subscription ID'}],
+  google_workspace:[{key:'service_account_json',label:'Service Account JSON (paste contents)',secret:true},{key:'admin_email',label:'Admin Email',placeholder:'admin@company.com'}],
+  // ITSM
+  servicenow:[{key:'instance',label:'Instance URL',placeholder:'https://company.service-now.com'},{key:'username',label:'Username'},{key:'password',label:'Password',secret:true}],
+  pagerduty:[{key:'api_key',label:'API Key',secret:true},{key:'service_id',label:'Service ID (optional)',placeholder:'PXXXXXX'}],
+  jira:[{key:'host',label:'Jira URL',placeholder:'https://company.atlassian.net'},{key:'email',label:'Email'},{key:'api_token',label:'API Token',secret:true},{key:'project_key',label:'Project Key',placeholder:'SEC'}],
+  // MSP tools
+  connectwise:[{key:'site',label:'Site URL',placeholder:'https://na.myconnectwise.net'},{key:'company_id',label:'Company ID'},{key:'public_key',label:'Public Key'},{key:'private_key',label:'Private Key',secret:true}],
+  // SIEM additions
+  chronicle:[{key:'customer_id',label:'Customer ID'},{key:'service_account_json',label:'Service Account JSON',secret:true},{key:'region',label:'Region',placeholder:'us'}],
+  logrhythm:[{key:'host',label:'LogRhythm API URL',placeholder:'https://logrhythm.company.com:8501'},{key:'api_key',label:'API Key',secret:true}],
+  rapid7:[{key:'host',label:'InsightIDR URL',placeholder:'https://us.api.insight.rapid7.com'},{key:'api_key',label:'API Key',secret:true}],
+  exabeam:[{key:'host',label:'Exabeam URL',placeholder:'https://company.exabeam.cloud'},{key:'username',label:'Username'},{key:'password',label:'Password',secret:true}],
+  // NDR addition
+  vectra:[{key:'host',label:'Vectra Brain URL',placeholder:'https://brain.vectra.ai'},{key:'api_key',label:'API Token',secret:true}],
+  // Identity additions
+  entra:[{key:'tenant_id',label:'Tenant ID'},{key:'client_id',label:'Client ID'},{key:'client_secret',label:'Client Secret',secret:true}],
+  duo:[{key:'api_hostname',label:'API Hostname',placeholder:'api-xxxxxxxx.duosecurity.com'},{key:'integration_key',label:'Integration Key'},{key:'secret_key',label:'Secret Key',secret:true}],
+  jumpcloud:[{key:'api_key',label:'API Key',secret:true},{key:'org_id',label:'Organisation ID (optional)'}],
+  cyberark:[{key:'host',label:'PAS URL',placeholder:'https://cyberark.company.com'},{key:'username',label:'Username'},{key:'password',label:'Password',secret:true}],
+  // EDR addition
+  sophos:[{key:'client_id',label:'Client ID'},{key:'client_secret',label:'Client Secret',secret:true},{key:'region',label:'API Region',placeholder:'eu-west-1'}],
+  // Email addition
+  abnormal:[{key:'api_key',label:'API Token',secret:true}],
+  // Network/Firewall
+  fortigate:[{key:'host',label:'FortiGate URL',placeholder:'https://firewall.company.com'},{key:'api_key',label:'API Token',secret:true}],
+  // Threat Intel
+  virustotal:[{key:'api_key',label:'API Key',secret:true}],
+  recorded_future:[{key:'api_key',label:'API Key',secret:true}],
+  // Asset
+  axonius:[{key:'host',label:'Axonius URL',placeholder:'https://company.axonius.com'},{key:'api_key',label:'API Key'},{key:'api_secret',label:'API Secret',secret:true}],
+  // SOAR
+  xsoar:[{key:'host',label:'XSOAR URL',placeholder:'https://xsoar.company.com'},{key:'api_key',label:'API Key',secret:true}],
+  swimlane:[{key:'host',label:'Swimlane URL',placeholder:'https://swimlane.company.com'},{key:'api_key',label:'API Key',secret:true}],
+  tines:[{key:'api_key',label:'API Key',secret:true},{key:'tenant_url',label:'Tenant URL',placeholder:'https://company.tines.com'}],
+  torq:[{key:'api_key',label:'API Key',secret:true},{key:'workspace_id',label:'Workspace ID'}],
+  // CSPM additions
+  prisma_cloud:[{key:'api_url',label:'API URL',placeholder:'https://api.prismacloud.io'},{key:'access_key',label:'Access Key ID'},{key:'secret_key',label:'Secret Key',secret:true}],
+  lacework:[{key:'account',label:'Account Name',placeholder:'mycompany'},{key:'api_key',label:'API Key'},{key:'api_secret',label:'API Secret',secret:true}],
+  orca:[{key:'api_token',label:'API Token',secret:true}],
+  aqua:[{key:'host',label:'Aqua URL',placeholder:'https://api.aquasec.com'},{key:'api_key',label:'API Key'},{key:'api_secret',label:'API Secret',secret:true}],
+  // AppSec
+  snyk:[{key:'api_token',label:'API Token',secret:true},{key:'org_id',label:'Organisation ID (optional)'}],
+  checkmarx:[{key:'host',label:'CxSAST URL',placeholder:'https://checkmarx.company.com'},{key:'username',label:'Username'},{key:'password',label:'Password',secret:true}],
+  github_advanced:[{key:'token',label:'Personal Access Token',secret:true},{key:'org',label:'GitHub Organisation',placeholder:'myorg'}],
+  // MSP additions
+  halopsa:[{key:'host',label:'HaloPSA URL',placeholder:'https://company.halopsa.com'},{key:'client_id',label:'Client ID'},{key:'client_secret',label:'Client Secret',secret:true}],
+  autotask:[{key:'username',label:'API Username'},{key:'secret',label:'API Secret',secret:true},{key:'integration_code',label:'Integration Code'}],
+  huntress:[{key:'api_key',label:'API Key'},{key:'api_secret',label:'API Secret',secret:true}],
+  // Identity additions
+  beyondtrust:[{key:'host',label:'BeyondTrust URL',placeholder:'https://bt.company.com'},{key:'api_key',label:'API Key',secret:true}],
+  sailpoint:[{key:'org',label:'Organisation ID'},{key:'client_id',label:'Client ID'},{key:'client_secret',label:'Client Secret',secret:true}],
+  active_directory:[{key:'host',label:'AD Server',placeholder:'ldaps://dc.company.com:636'},{key:'username',label:'Bind Username'},{key:'password',label:'Bind Password',secret:true},{key:'base_dn',label:'Base DN',placeholder:'DC=company,DC=com'}],
+  // Network/Firewall additions
+  palo_ngfw:[{key:'host',label:'Panorama URL',placeholder:'https://panorama.company.com'},{key:'api_key',label:'API Key',secret:true}],
+  cisco_firepower:[{key:'host',label:'FMC URL',placeholder:'https://fmc.company.com'},{key:'username',label:'Username'},{key:'password',label:'Password',secret:true}],
+  checkpoint:[{key:'host',label:'SmartConsole URL',placeholder:'https://checkpoint.company.com'},{key:'api_key',label:'API Key',secret:true}],
+  // ThreatIntel additions
+  alienvault:[{key:'api_key',label:'API Key',secret:true}],
+  threatconnect:[{key:'base_url',label:'Base URL',placeholder:'https://app.threatconnect.com'},{key:'access_id',label:'Access ID'},{key:'secret_key',label:'Secret Key',secret:true}],
+  misp:[{key:'host',label:'MISP URL',placeholder:'https://misp.company.com'},{key:'api_key',label:'Auth Key',secret:true}],
+  mandiant:[{key:'api_key',label:'API Key'},{key:'api_secret',label:'API Secret',secret:true}],
+  // Endpoint management
+  tanium:[{key:'host',label:'Tanium Console URL',placeholder:'https://tanium.company.com'},{key:'api_token',label:'API Token',secret:true}],
+  intune:[{key:'tenant_id',label:'Tenant ID'},{key:'client_id',label:'Client ID'},{key:'client_secret',label:'Client Secret',secret:true}],
+  // OT/ICS
+  claroty:[{key:'host',label:'CTD URL',placeholder:'https://ctd.company.com'},{key:'username',label:'Username'},{key:'password',label:'Password',secret:true}],
+  nozomi:[{key:'host',label:'Vantage URL',placeholder:'https://nozomi.company.com'},{key:'api_key',label:'API Key',secret:true}],
+  dragos:[{key:'host',label:'Platform URL',placeholder:'https://platform.dragos.com'},{key:'api_key',label:'API Token'},{key:'api_secret',label:'API Secret',secret:true}],
+  // Cloud additions
+  gcp_scc:[{key:'project_id',label:'GCP Project ID'},{key:'service_account_json',label:'Service Account JSON',secret:true}],
+  // SIEM additions
+  sumo_logic:[{key:'access_id',label:'Access ID'},{key:'access_key',label:'Access Key',secret:true},{key:'endpoint',label:'API Endpoint',placeholder:'https://api.sumologic.com'}],
+  datadog:[{key:'api_key',label:'API Key',secret:true},{key:'app_key',label:'Application Key',secret:true},{key:'site',label:'Site',placeholder:'datadoghq.eu'}],
+  panther:[{key:'api_token',label:'API Token',secret:true},{key:'api_host',label:'API Host',placeholder:'https://api.company.runpanther.net'}],
+  // Comms / Ticketing
+  slack:[{key:'webhook_url',label:'Webhook URL',placeholder:'https://hooks.slack.com/services/...',secret:true},{key:'channel',label:'Default Channel',placeholder:'#security-alerts'}],
+  teams:[{key:'webhook_url',label:'Webhook URL',placeholder:'https://company.webhook.office.com/...',secret:true}],
+  freshservice:[{key:'domain',label:'Domain',placeholder:'company.freshservice.com'},{key:'api_key',label:'API Key',secret:true}],
+  zendesk:[{key:'subdomain',label:'Subdomain',placeholder:'company'},{key:'email',label:'Email'},{key:'api_token',label:'API Token',secret:true}],
+  m365_defender:[{key:'tenant_id',label:'Tenant ID'},{key:'client_id',label:'Client ID'},{key:'client_secret',label:'Client Secret',secret:true}],
+  barracuda:[{key:'api_token',label:'API Token',secret:true},{key:'region',label:'Region',placeholder:'us-west-2'}],
 };
 
-const CATEGORIES = ['All','EDR','SIEM','NDR','XDR','Vuln','CSPM','Email','Network','Identity'];
+const CATEGORIES = ['All','EDR','SIEM','NDR','XDR','SOAR','Cloud','Vuln','CSPM','AppSec','Email','Network','Identity','ITSM','ThreatIntel','MSP','Firewall','Asset','OT/ICS','Comms'];
 const ALL_TOOLS = [
   {id:'crowdstrike',name:'CrowdStrike Falcon',category:'EDR',desc:'Endpoint detection & response'},
   {id:'defender',name:'Microsoft Defender',category:'EDR',desc:'Defender for Endpoint — Azure AD app required'},
@@ -43,6 +129,93 @@ const ALL_TOOLS = [
   {id:'mimecast',name:'Mimecast',category:'Email',desc:'Email security platform'},
   {id:'zscaler',name:'Zscaler',category:'Network',desc:'Zero trust network access'},
   {id:'okta',name:'Okta',category:'Identity',desc:'Identity & access management'},
+  // XDR additions
+  {id:'cortex',name:'Palo Alto Cortex XDR',category:'XDR',desc:'Unified endpoint, cloud & network detection'},
+  // Cloud / CSPM
+  {id:'aws_security_hub',name:'AWS Security Hub',category:'Cloud',desc:'Aggregates GuardDuty, Inspector & partner findings'},
+  {id:'azure_defender',name:'Microsoft Defender for Cloud',category:'Cloud',desc:'Azure workload protection — VMs, containers, SQL'},
+  {id:'google_workspace',name:'Google Workspace',category:'Cloud',desc:'Admin audit logs, Drive, Gmail security events'},
+  // ITSM
+  {id:'servicenow',name:'ServiceNow',category:'ITSM',desc:'Enterprise ITSM — auto-create & sync incidents'},
+  {id:'pagerduty',name:'PagerDuty',category:'ITSM',desc:'On-call escalation for confirmed critical incidents'},
+  {id:'jira',name:'Jira Service Management',category:'ITSM',desc:'Mid-market incident tickets — Atlassian'},
+  // MSP
+  {id:'connectwise',name:'ConnectWise PSA',category:'MSP',desc:'MSP PSA — auto-create billable tickets from incidents'},
+  // SIEM additions
+  {id:'chronicle',name:'Google Chronicle / SecOps',category:'SIEM',desc:'Google cloud-native SIEM with 300+ native connectors'},
+  {id:'logrhythm',name:'LogRhythm NextGen SIEM',category:'SIEM',desc:'Common in regulated industries — NHS, finance, gov'},
+  {id:'rapid7',name:'Rapid7 InsightIDR',category:'SIEM',desc:'SIEM + SOAR for mid-market & hybrid environments'},
+  {id:'exabeam',name:'Exabeam',category:'SIEM',desc:'UEBA-heavy SIEM popular in financial services'},
+  // NDR addition
+  {id:'vectra',name:'Vectra AI',category:'NDR',desc:'Network detection — lateral movement & cloud threats'},
+  // Identity additions
+  {id:'entra',name:'Microsoft Entra ID',category:'Identity',desc:'Azure AD — sign-in logs, conditional access, PIM alerts'},
+  {id:'duo',name:'Cisco Duo',category:'Identity',desc:'MFA platform dominant in education & healthcare'},
+  {id:'jumpcloud',name:'JumpCloud',category:'Identity',desc:'Cloud directory & MDM — popular with UK MSPs'},
+  {id:'cyberark',name:'CyberArk PAM',category:'Identity',desc:'Privileged access management — session & credential logs'},
+  // EDR addition
+  {id:'sophos',name:'Sophos Intercept X',category:'EDR',desc:'Dominant EDR in UK SMB & MSP-managed estates'},
+  // Email addition
+  {id:'abnormal',name:'Abnormal Security',category:'Email',desc:'AI-native email security — Proofpoint/Mimecast alternative'},
+  // Firewall
+  {id:'fortigate',name:'Fortinet FortiGate',category:'Firewall',desc:'NGFW — firewall deny logs, threat events'},
+  // Threat Intel
+  {id:'virustotal',name:'VirusTotal',category:'ThreatIntel',desc:'IP, hash & domain enrichment — embedded in AI triage'},
+  {id:'recorded_future',name:'Recorded Future',category:'ThreatIntel',desc:'Commercial threat intelligence feed & IOC enrichment'},
+  // Asset
+  {id:'axonius',name:'Axonius',category:'Asset',desc:'Asset intelligence — aggregates devices from all tools'},
+  // SOAR
+  {id:'xsoar',name:'Palo Alto Cortex XSOAR',category:'SOAR',desc:'Security orchestration, automation & response'},
+  {id:'swimlane',name:'Swimlane',category:'SOAR',desc:'Low-code security automation platform'},
+  {id:'tines',name:'Tines',category:'SOAR',desc:'No-code security workflow automation'},
+  {id:'torq',name:'Torq',category:'SOAR',desc:'Hyperautomation — AI-native SOAR platform'},
+  // CSPM additions
+  {id:'prisma_cloud',name:'Palo Alto Prisma Cloud',category:'CSPM',desc:'Cloud-native security platform — CSPM + CWPP'},
+  {id:'lacework',name:'Lacework',category:'CSPM',desc:'Cloud security & compliance — anomaly detection'},
+  {id:'orca',name:'Orca Security',category:'CSPM',desc:'Agentless cloud security platform'},
+  {id:'aqua',name:'Aqua Security',category:'CSPM',desc:'Container & cloud-native security'},
+  // AppSec
+  {id:'snyk',name:'Snyk',category:'AppSec',desc:'Developer-first security — OSS, containers, IaC'},
+  {id:'checkmarx',name:'Checkmarx',category:'AppSec',desc:'SAST/SCA for enterprise application security'},
+  {id:'github_advanced',name:'GitHub Advanced Security',category:'AppSec',desc:'Code scanning, secret detection, dependency review'},
+  // MSP
+  {id:'halopsa',name:'Halo PSA',category:'MSP',desc:'MSP PSA platform — popular in UK/EU market'},
+  {id:'autotask',name:'Autotask (Datto)',category:'MSP',desc:'PSA for MSPs — Datto platform'},
+  {id:'huntress',name:'Huntress MDR',category:'MSP',desc:'Managed detection & response for MSPs'},
+  // Identity
+  {id:'beyondtrust',name:'BeyondTrust PAM',category:'Identity',desc:'Privileged access management — session vault'},
+  {id:'sailpoint',name:'SailPoint IGA',category:'Identity',desc:'Identity governance & administration'},
+  {id:'active_directory',name:'Active Directory',category:'Identity',desc:'On-premise AD — LDAP event ingestion'},
+  // Firewall
+  {id:'palo_ngfw',name:'Palo Alto NGFW',category:'Firewall',desc:'Next-gen firewall logs via Panorama'},
+  {id:'cisco_firepower',name:'Cisco Firepower',category:'Firewall',desc:'FTD/FMC firewall events & intrusion alerts'},
+  {id:'checkpoint',name:'Check Point',category:'Firewall',desc:'SmartConsole threat prevention logs'},
+  // ThreatIntel
+  {id:'alienvault',name:'AlienVault OTX',category:'ThreatIntel',desc:'Open threat exchange — free community IOC feeds'},
+  {id:'threatconnect',name:'ThreatConnect',category:'ThreatIntel',desc:'TIP — aggregate & operationalise threat intel'},
+  {id:'misp',name:'MISP',category:'ThreatIntel',desc:'Open-source threat sharing platform'},
+  {id:'mandiant',name:'Mandiant Threat Intel',category:'ThreatIntel',desc:'Premium threat intelligence — Google Cloud'},
+  // Endpoint
+  {id:'tanium',name:'Tanium',category:'EDR',desc:'Real-time endpoint management & detection'},
+  {id:'intune',name:'Microsoft Intune',category:'EDR',desc:'MDM/MAM — device compliance & inventory'},
+  // OT/ICS
+  {id:'claroty',name:'Claroty',category:'OT/ICS',desc:'OT/ICS security — industrial network visibility'},
+  {id:'nozomi',name:'Nozomi Networks',category:'OT/ICS',desc:'OT & IoT security monitoring'},
+  {id:'dragos',name:'Dragos',category:'OT/ICS',desc:'ICS/OT threat detection & response'},
+  // Cloud
+  {id:'gcp_scc',name:'GCP Security Command Center',category:'Cloud',desc:'Google Cloud native security findings'},
+  // SIEM
+  {id:'sumo_logic',name:'Sumo Logic',category:'SIEM',desc:'Cloud-native log analytics & SIEM'},
+  {id:'datadog',name:'Datadog Security',category:'SIEM',desc:'Cloud monitoring + SIEM + CSPM'},
+  {id:'panther',name:'Panther',category:'SIEM',desc:'Detection-as-code cloud SIEM'},
+  // Email
+  {id:'m365_defender',name:'Microsoft 365 Defender',category:'Email',desc:'M365 suite — email, identity, endpoint, cloud apps'},
+  {id:'barracuda',name:'Barracuda Email Security',category:'Email',desc:'Email security with managed XDR option'},
+  // Comms/Ticketing
+  {id:'slack',name:'Slack',category:'Comms',desc:'Alert notifications to Slack channels'},
+  {id:'teams',name:'Microsoft Teams',category:'Comms',desc:'Incident notifications to Teams channels'},
+  {id:'freshservice',name:'Freshservice',category:'ITSM',desc:'IT service management — Freshworks'},
+  {id:'zendesk',name:'Zendesk',category:'ITSM',desc:'Support ticketing — create tickets from incidents'},
 ];
 // Which dashboard sections each tool feeds
 const TOOL_FEEDS = {
@@ -64,6 +237,82 @@ const TOOL_FEEDS = {
   proofpoint:   ['Alerts'],
   zscaler:      ['Alerts'],
   threatfox:    ['Intel'],
+  // New tools
+  cortex:           ['Alerts','Coverage'],
+  aws_security_hub: ['Alerts','Vulns'],
+  azure_defender:   ['Alerts','Vulns'],
+  google_workspace: ['Alerts'],
+  servicenow:       ['Incidents'],
+  pagerduty:        ['Incidents'],
+  jira:             ['Incidents'],
+  connectwise:      ['Incidents'],
+  chronicle:        ['Alerts'],
+  logrhythm:        ['Alerts'],
+  rapid7:           ['Alerts','Vulns'],
+  exabeam:          ['Alerts'],
+  vectra:           ['Alerts','Coverage'],
+  entra:            ['Alerts'],
+  duo:              ['Alerts'],
+  jumpcloud:        ['Alerts','Coverage'],
+  cyberark:         ['Alerts'],
+  sophos:           ['Alerts','Coverage'],
+  abnormal:         ['Alerts'],
+  fortigate:        ['Alerts'],
+  virustotal:       ['Intel'],
+  recorded_future:  ['Intel'],
+  axonius:          ['Coverage'],
+  // SOAR
+  xsoar:            ['Incidents'],
+  swimlane:         ['Incidents'],
+  tines:            ['Incidents'],
+  torq:             ['Incidents'],
+  // CSPM
+  prisma_cloud:     ['Vulns','Alerts'],
+  lacework:         ['Alerts','Vulns'],
+  orca:             ['Vulns'],
+  aqua:             ['Vulns'],
+  // AppSec
+  snyk:             ['Vulns'],
+  checkmarx:        ['Vulns'],
+  github_advanced:  ['Vulns'],
+  // MSP
+  halopsa:          ['Incidents'],
+  autotask:         ['Incidents'],
+  huntress:         ['Alerts','Coverage'],
+  // Identity
+  beyondtrust:      ['Alerts'],
+  sailpoint:        ['Alerts'],
+  active_directory: ['Alerts'],
+  // Firewall
+  palo_ngfw:        ['Alerts'],
+  cisco_firepower:  ['Alerts'],
+  checkpoint:       ['Alerts'],
+  // ThreatIntel
+  alienvault:       ['Intel'],
+  threatconnect:    ['Intel'],
+  misp:             ['Intel'],
+  mandiant:         ['Intel'],
+  // Endpoint
+  tanium:           ['Alerts','Coverage'],
+  intune:           ['Coverage'],
+  // OT/ICS
+  claroty:          ['Alerts','Coverage'],
+  nozomi:           ['Alerts'],
+  dragos:           ['Alerts'],
+  // Cloud
+  gcp_scc:          ['Alerts','Vulns'],
+  // SIEM
+  sumo_logic:       ['Alerts'],
+  datadog:          ['Alerts'],
+  panther:          ['Alerts'],
+  // Email
+  m365_defender:    ['Alerts'],
+  barracuda:        ['Alerts'],
+  // Comms
+  slack:            ['Incidents'],
+  teams:            ['Incidents'],
+  freshservice:     ['Incidents'],
+  zendesk:          ['Incidents'],
 };
 
 export default function ToolsTab({ connected, setConnected, toolSyncResults, doSync, syncingTool, demoMode, syncLog, userTier, isAdmin }) {

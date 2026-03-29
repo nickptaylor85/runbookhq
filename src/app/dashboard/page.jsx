@@ -73,14 +73,56 @@ const INDUSTRIES = ['Financial Services','Healthcare','Retail & eCommerce','Manu
 // ─── Demo Data ─────────────────────────────────────────────────────────────────
 
 const DEMO_TOOLS = [
-  {id:'crowdstrike',name:'CrowdStrike',configured:true,active:true,alertCount:8},
-  {id:'defender',name:'Defender',configured:true,active:true,alertCount:5},
-  {id:'taegis',name:'Taegis XDR',configured:false,active:false},
-  {id:'darktrace',name:'Darktrace',configured:true,active:true,alertCount:3},
-  {id:'splunk',name:'Splunk',configured:true,active:true,alertCount:12},
-  {id:'sentinel',name:'Sentinel',configured:true,active:true,alertCount:4},
-  {id:'tenable',name:'Tenable',configured:true,active:true},
-  {id:'proofpoint',name:'Proofpoint',configured:true,active:true,alertCount:2},
+  // EDR
+  {id:'crowdstrike',name:'CrowdStrike Falcon',configured:true,active:true,alertCount:8,category:'EDR'},
+  {id:'defender',name:'Microsoft Defender',configured:true,active:true,alertCount:5,category:'EDR'},
+  {id:'sentinelone',name:'SentinelOne',configured:true,active:true,alertCount:3,category:'EDR'},
+  {id:'sophos',name:'Sophos Intercept X',configured:false,active:false,category:'EDR'},
+  // SIEM
+  {id:'splunk',name:'Splunk SIEM',configured:true,active:true,alertCount:12,category:'SIEM'},
+  {id:'sentinel',name:'Microsoft Sentinel',configured:true,active:true,alertCount:4,category:'SIEM'},
+  {id:'elastic',name:'Elastic Security',configured:false,active:false,category:'SIEM'},
+  {id:'qradar',name:'IBM QRadar',configured:false,active:false,category:'SIEM'},
+  // XDR/NDR
+  {id:'taegis',name:'Secureworks Taegis',configured:false,active:false,category:'XDR'},
+  {id:'cortex',name:'Palo Alto Cortex XDR',configured:false,active:false,category:'XDR'},
+  {id:'darktrace',name:'Darktrace',configured:true,active:true,alertCount:3,category:'NDR'},
+  {id:'vectra',name:'Vectra AI',configured:false,active:false,category:'NDR'},
+  // Cloud
+  {id:'aws_security_hub',name:'AWS Security Hub',configured:false,active:false,category:'Cloud'},
+  {id:'azure_defender',name:'Defender for Cloud',configured:false,active:false,category:'Cloud'},
+  {id:'gcp_scc',name:'GCP Security Cmd',configured:false,active:false,category:'Cloud'},
+  // Identity
+  {id:'okta',name:'Okta',configured:true,active:true,alertCount:2,category:'Identity'},
+  {id:'entra',name:'Microsoft Entra ID',configured:false,active:false,category:'Identity'},
+  {id:'duo',name:'Cisco Duo',configured:false,active:false,category:'Identity'},
+  // Vuln
+  {id:'tenable',name:'Tenable.io',configured:true,active:true,category:'Vuln'},
+  {id:'qualys',name:'Qualys',configured:false,active:false,category:'Vuln'},
+  {id:'wiz',name:'Wiz',configured:false,active:false,category:'CSPM'},
+  // Email
+  {id:'proofpoint',name:'Proofpoint',configured:true,active:true,alertCount:2,category:'Email'},
+  {id:'abnormal',name:'Abnormal Security',configured:false,active:false,category:'Email'},
+  {id:'m365_defender',name:'M365 Defender',configured:false,active:false,category:'Email'},
+  // ITSM / SOAR
+  {id:'servicenow',name:'ServiceNow',configured:false,active:false,category:'ITSM'},
+  {id:'pagerduty',name:'PagerDuty',configured:false,active:false,category:'ITSM'},
+  {id:'jira',name:'Jira',configured:false,active:false,category:'ITSM'},
+  // ThreatIntel
+  {id:'virustotal',name:'VirusTotal',configured:false,active:false,category:'ThreatIntel'},
+  {id:'recorded_future',name:'Recorded Future',configured:false,active:false,category:'ThreatIntel'},
+  // Network/Firewall
+  {id:'zscaler',name:'Zscaler',configured:true,active:true,alertCount:1,category:'Network'},
+  {id:'fortigate',name:'FortiGate',configured:false,active:false,category:'Firewall'},
+  // OT/ICS
+  {id:'claroty',name:'Claroty',configured:false,active:false,category:'OT/ICS'},
+  {id:'nozomi',name:'Nozomi Networks',configured:false,active:false,category:'OT/ICS'},
+  // MSP
+  {id:'huntress',name:'Huntress MDR',configured:false,active:false,category:'MSP'},
+  {id:'connectwise',name:'ConnectWise PSA',configured:false,active:false,category:'MSP'},
+  // Comms
+  {id:'slack',name:'Slack',configured:false,active:false,category:'Comms'},
+  {id:'teams',name:'Microsoft Teams',configured:false,active:false,category:'Comms'},
 ];
 
 const DEMO_GAP_DEVICES = [
@@ -105,6 +147,9 @@ const DEMO_ALERTS = [
   {id:'a11',title:'Endpoint EDR detection — Cobalt Strike beacon',severity:'Critical',source:'SentinelOne',device:'WS-DEV08',user:'rchang@corp',ip:'192.168.1.88',time:'11:19',verdict:'TP',confidence:95,aiReasoning:'SentinelOne AI detected in-memory Cobalt Strike beacon activity on developer workstation. Process injection into legitimate svchost.exe. Beacon profile matches known CS team server. Developer workstation with elevated privileges — high lateral movement risk.',evidenceChain:['Cobalt Strike process injection: malware→svchost.exe','In-memory beacon — no disk artefact (fileless)','CS team server profile match','Developer account has domain admin','Outbound C2 to new domain registered 3 days ago'],aiActions:['WS-DEV08 isolated immediately','Process killed and memory dump taken','rchang credentials reset','Incident INC-0853 P1 created'],runbookSteps:['Immediate network isolation of WS-DEV08','Full memory forensics via SentinelOne Deep Visibility','Hunt for lateral movement from rchang account','Reset all privileged credentials accessible from this host','Check CI/CD pipeline for injected code'],mitre:'T1055.002',incidentId:'INC-0853'},
   {id:'a12',title:'Carbon Black — PowerShell Empire C2 detected',severity:'High',source:'Carbon Black',device:'SRV-HR01',ip:'10.0.2.31',time:'11:33',verdict:'TP',confidence:89,aiReasoning:'Carbon Black Response detected Empire PowerShell C2 framework. Encrypted HTTP traffic to non-corporate IP. Staging behaviour consistent with post-exploitation recon phase. HR server — PII data at risk.',evidenceChain:['Empire PowerShell C2 signature match','Encrypted HTTP to non-corporate IP: 92.63.197.44','AMSI bypass attempted','HR server — contains employee PII','Process chain: outlook.exe → powershell.exe → network'],aiActions:['Host isolated via Carbon Black Response','Kill switch deployed on CB agent','HR data access logged for DPA purposes','NCSC reported — GDPR breach assessment started'],runbookSteps:['Isolate SRV-HR01','Identify initial access vector — suspect phishing email','Preserve logs for ICO potential notification','Hunt for Empire agents across estate','Engage DPO for GDPR 72h assessment'],mitre:'T1059.001'},
   {id:'a13',title:'Vulnerability scan — Critical CVE on exposed service',severity:'High',source:'Tenable',device:'SRV-EXTERNAL01',ip:'203.0.113.42',time:'11:45',verdict:'TP',confidence:92,aiReasoning:'Tenable.io identifies CVE-2024-1709 (ConnectWise ScreenConnect auth bypass, CVSS 10.0) on internet-facing server. CISA KEV listed. Active exploitation in the wild. Immediate patching required.',evidenceChain:['CVE-2024-1709 CVSS 10.0 — CISA KEV listed','Internet-facing host with no WAF in front','Plugin ID 212918 — auth bypass confirmed','Exploit PoC publicly available','Active exploitation confirmed by CISA'],aiActions:['Critical vuln ticket raised — P1 SLA 24h','Firewall rule applied to restrict access','Patch notification sent to ops team'],runbookSteps:['Apply patch immediately — CVE-2024-1709','If patch not possible: block external access','Verify no exploitation occurred in last 14 days','Deploy WAF rule as compensating control','Rescan after patch to verify remediation'],mitre:'T1190'},
+  {id:'a15',title:'AWS GuardDuty — Unusual IAM activity',severity:'High',source:'AWS Security Hub',device:'iam-role-prod',user:'svc-deploy@company.com',ip:'54.220.101.15',time:'11:55',verdict:'SUS',confidence:78,aiReasoning:'AWS Security Hub ingested GuardDuty finding: IAM role assuming unusual cross-account permissions outside business hours. Source IP not in expected CIDR range for CI/CD pipeline.',evidenceChain:['IAM role: arn:aws:iam::prod-account — cross-account assume','Outside business hours: 03:22 UTC','Source IP 54.220.101.15 not in known CI/CD CIDR','GuardDuty: UnauthorizedAccess:IAMUser/AnomalousBehavior','No matching deployment pipeline activity'],aiActions:['IAM session suspended','AWS Config rule triggered — non-compliant resource flagged','Incident INC-0854 created'],runbookSteps:['Revoke IAM session token immediately','Check CloudTrail for all actions taken by this role in last 2h','Review cross-account trust relationships','Rotate access keys for svc-deploy service account','Enable IAM Access Analyzer if not active'],mitre:'T1078.004'},
+  {id:'a16',title:'Sophos Intercept X — RansomSafe triggered',severity:'Critical',source:'Sophos',device:'SRV-SHARES01',user:'lthomas@corp',ip:'10.0.5.33',time:'12:08',verdict:'TP',confidence:96,aiReasoning:'Sophos RansomSafe intercepted ransomware-like mass file modification. 847 files renamed in 4 seconds with new extension. CryptoGuard rollback initiated. Sophos Deep Learning detected novel ransomware variant not in signature database.',evidenceChain:['847 files modified in 4 seconds','CryptoGuard: mass encryption intercepted','Novel variant — Deep Learning detection','Share server: highest lateral movement risk','Process: svchost.exe (spoofed — invalid signature)'],aiActions:['SRV-SHARES01 isolated by Sophos','Files rolled back via CryptoGuard','Incident INC-0855 created — P1','CISO and IR team paged'],runbookSteps:['Verify CryptoGuard rollback success — check file hashes','Isolate entire VLAN from SRV-SHARES01','Identify patient zero via process tree','Hunt for matching process hash across estate','Notify ICO within 72h if PII affected'],mitre:'T1486',incidentId:'INC-0855'},
+  {id:'a17',title:'Vectra AI — Privileged lateral movement detected',severity:'High',source:'Vectra AI',device:'WS-DEV03',ip:'10.0.3.41',time:'12:22',verdict:'SUS',confidence:82,aiReasoning:'Vectra AI Cognito detected privileged credential usage from a non-privileged workstation. Threat score 87/100. Device querying domain controller via LDAP at unusual frequency — potential account enumeration preceding lateral movement.',evidenceChain:['Privilege score: 87 — 94th percentile','LDAP queries to DC: 847 in 10min (baseline: 12)','Source: developer workstation — no admin rights','No matching maintenance activity','Similar to pre-breach enumeration pattern'],aiActions:['Vectra detection flagged for analyst review','Account placed on Vectra watchlist'],runbookSteps:['Review LDAP queries from WS-DEV03 in last 2h','Check user account login history across all hosts','If enumeration confirmed: isolate workstation','Hunt for Kerberoasting attempts from same host'],mitre:'T1087.002'},
   {id:'a14',title:'QRadar SIEM — Insider threat data staging',severity:'High',source:'QRadar',device:'WS-FIN22',user:'tpatel@corp',ip:'10.1.5.22',time:'12:01',verdict:'SUS',confidence:76,aiReasoning:'QRadar correlated multiple events: unusual after-hours file access, large archive creation, USB device insertion, and internal IP scanning. Pattern matches pre-exfiltration staging. User is on PIP — HR flag.',evidenceChain:['After-hours file access to /finance/budgets — 2am','7z archive created: company_data.7z (3.4GB)','USB device inserted 02:14','Internal IP scan from WS-FIN22 03:00','HR flag: user on performance improvement plan'],aiActions:['DLP alert raised','USB activity flagged for HR review','Account placed on enhanced monitoring','Legal briefed on potential IP theft'],runbookSteps:['Preserve forensic image of WS-FIN22','Brief HR and Legal before any user contact','Review DLP logs for data classification','Check USB device serial number against asset register','Prepare evidence chain for potential proceedings'],mitre:'T1074.001'},
 ]
 
