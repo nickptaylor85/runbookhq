@@ -198,14 +198,6 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
               </div>
               <span style={{fontSize:'0.54rem',color:'var(--wt-dim)',flexShrink:0}}>{isSel?'▲':'▼'}</span>
             </div>
-                  {currentTenant===client.id && <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#8b6fff15',color:'#8b6fff',border:'1px solid #8b6fff25'}}>VIEWING</span>}
-                </div>
-                <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:1}}>Last active {client.lastSeen} · {client.seats} seats · {client.toolsConnected} tools</div>
-              </div>
-              {/* Quick stats */}
-              {portfolioView==='security' && (
-                <div style={{display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
-
 
             {/* Expanded detail */}
             {isSel && (
@@ -280,5 +272,6 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
       </div>
 
     </div>
+  </div>
   );
 }
