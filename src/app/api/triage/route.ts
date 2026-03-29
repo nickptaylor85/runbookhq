@@ -234,7 +234,13 @@ export async function POST(req: NextRequest) {
         });
         if (!fb.ok) return NextResponse.json({ ok: false, error: `AI error: ${resp.status}` }, { status: 502 });
         const data = await fb.json();
-        return processResponse(data, body, tenantId, cacheKey, 'haiku-fallback');
+        const fbText = (data.content || []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('');
+        let fbParsed: any;
+        try { fbParsed = JSON.parse(fbText.replace(/^```json\s*/m,'').replace(/^```\s*/m,'').replace(/```\s*$/m,'').trim()); }
+        catch { const m = fbText.match(/\{[\s\S]+\}/); if (m) { try { fbParsed = JSON.parse(m[0]); } catch { return NextResponse.json({ ok: false, error: 'Malformed AI response' }, { status: 502 }); } } else return NextResponse.json({ ok: false, error: 'Malformed AI response' }, { status: 502 }); }
+        const fbResult: TriageResult = { alertId: body.alertId, verdict: ['TP','FP','SUS'].includes(fbParsed.verdict) ? fbParsed.verdict : 'SUS', confidence: typeof fbParsed.confidence === 'number' ? Math.min(100,Math.max(0,fbParsed.confidence)) : 50, analystNarrative: fbParsed.analystNarrative || fbParsed.reasoning || '', evidenceChain: Array.isArray(fbParsed.evidenceChain) ? fbParsed.evidenceChain : [], counterarguments: Array.isArray(fbParsed.counterarguments) ? fbParsed.counterarguments : [], mitreMapping: fbParsed.mitreMapping || { tactic:'', technique:'', id:'' }, huntQueries: { splunk:'', sentinel:'', defender:'', elastic:'', ...fbParsed.huntQueries }, immediateActions: Array.isArray(fbParsed.immediateActions) ? fbParsed.immediateActions : [], blastRadius: fbParsed.blastRadius || '', attackerObjective: fbParsed.attackerObjective || '', campaignIndicators: Array.isArray(fbParsed.campaignIndicators) ? fbParsed.campaignIndicators : [], escalationTriggers: Array.isArray(fbParsed.escalationTriggers) ? fbParsed.escalationTriggers : [], cachedAt: Date.now(), modelVersion: 'haiku-fallback' };
+        await redisSet(cacheKey, JSON.stringify(fbResult)).catch(() => {});
+        return NextResponse.json({ ok: true, result: fbResult, cached: false, modelVersion: 'haiku-fallback' });
       }
       return NextResponse.json({ ok: false, error: `AI error: ${resp.status}` }, { status: 502 });
     }
