@@ -22,8 +22,9 @@ export function hashPassword(password: string, salt?: string): string {
   const s = salt || randomBytes(16).toString('hex');
   const hash = scryptSync(password, s, 64).toString('hex');
   return `scrypt:${s}:${hash}`;
-},
-verifyPassword(password: string, stored: string): boolean {
+}
+
+export function verifyPassword(password: string, stored: string): boolean {
   if (stored.startsWith('scrypt:')) {
     const [, salt, hash] = stored.split(':');
     const derived = scryptSync(password, salt, 64);
@@ -79,17 +80,4 @@ export async function deleteUser(tenantId: string, userId: string): Promise<bool
   if (filtered.length === users.length) return false;
   await saveUsers(tenantId, filtered);
   return true;
-}
-
-// Standalone export for use in auth routes
-export function verifyPassword(password: string, stored: string): boolean {
-  if (stored.startsWith('scrypt:')) {
-    const [, salt, hash] = stored.split(':');
-    const derived = scryptSync(password, salt, 64);
-    const storedBuf = Buffer.from(hash, 'hex');
-    return timingSafeEqual(derived, storedBuf);
-  }
-  // Legacy SHA-256 fallback (migrate on next login)
-  const legacy = createHash('sha256').update(password + (process.env.WATCHTOWER_SESSION_SECRET || 'dev')).digest('hex');
-  return timingSafeEqual(Buffer.from(legacy), Buffer.from(stored));
 }
