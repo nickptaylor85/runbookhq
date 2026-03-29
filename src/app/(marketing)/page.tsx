@@ -134,16 +134,19 @@ const PLANS = [
 ];
 
 function LogoBadge({ color, abbr, slug }: { color: string; abbr: string; slug?: string | null }) {
-  const [err, setErr] = useState(false);
-  if (!err && slug) {
-    return (
-      <span style={{ width:18, height:18, borderRadius:4, flexShrink:0, background:'#1a2535', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
-        <img src={`https://cdn.simpleicons.org/${slug}/ffffff`} alt="" width={12} height={12} onError={()=>setErr(true)} style={{ width:12, height:12, objectFit:'contain', display:'block' }} />
-      </span>
-    );
-  }
   return (
-    <span style={{ width:18, height:18, borderRadius:4, flexShrink:0, background:`linear-gradient(135deg,${color}cc,${color}55)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.44rem', fontWeight:900, color:'#fff', letterSpacing:0 }}>{abbr}</span>
+    <span style={{ width:18, height:18, borderRadius:4, flexShrink:0, position:'relative', display:'inline-flex', alignItems:'center', justifyContent:'center', background:`linear-gradient(135deg,${color}cc,${color}55)`, fontSize:'0.44rem', fontWeight:900, color:'#fff', letterSpacing:0, overflow:'hidden' }}>
+      {abbr}
+      {slug && (
+        <img
+          src={`https://cdn.simpleicons.org/${slug}/ffffff`}
+          alt=""
+          aria-hidden="true"
+          style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'contain', padding:'2px', background:'#0d111e' }}
+          onError={e=>{(e.currentTarget as HTMLImageElement).style.display='none';}}
+        />
+      )}
+    </span>
   );
 }
 

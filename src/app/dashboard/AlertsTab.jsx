@@ -527,7 +527,7 @@ export default function AlertsTab({
                           {structTriage.mitreMapping?.id && <span style={{fontSize:'0.52rem',color:'#8b6fff',fontFamily:'JetBrains Mono,monospace',marginLeft:'auto'}}>{structTriage.mitreMapping.id} — {structTriage.mitreMapping.tactic}</span>}
                         </div>
                         <div style={{padding:'10px 12px'}}>
-                          <div style={{fontSize:'0.72rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:10}}>{structTriage.reasoning}</div>
+                          <div style={{fontSize:'0.72rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:10}}>{structTriage.analystNarrative || structTriage.reasoning}</div>
                           {structTriage.evidenceChain?.length > 0 && (
                             <div style={{marginBottom:10}}>
                               {structTriage.evidenceChain.map((step,i)=>(
@@ -539,10 +539,47 @@ export default function AlertsTab({
                             </div>
                           )}
                           {structTriage.immediateActions?.length > 0 && (
-                            <div>
+                            <div style={{marginBottom:10}}>
                               <div style={{fontSize:'0.56rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Immediate Actions</div>
-                              {structTriage.immediateActions.map((a,i)=>(
-                                <div key={i} style={{fontSize:'0.66rem',color:'#f0a030',display:'flex',gap:6,marginBottom:2}}><span>⚡</span>{a}</div>
+                              {structTriage.immediateActions.map((a,i)=>{
+                                const action = typeof a === 'string' ? a : a.action;
+                                const priority = typeof a === 'object' ? a.priority : null;
+                                const tf = typeof a === 'object' ? a.timeframe : null;
+                                const owner = typeof a === 'object' ? a.owner : null;
+                                const pColor = priority==='CRITICAL'?'#f0405e':priority==='HIGH'?'#f97316':'#f0a030';
+                                return (
+                                  <div key={i} style={{display:'flex',gap:8,padding:'5px 0',borderBottom:'1px solid var(--wt-border)',alignItems:'flex-start'}}>
+                                    <span style={{fontSize:'0.5rem',fontWeight:800,color:pColor,flexShrink:0,marginTop:2,fontFamily:'JetBrains Mono,monospace',minWidth:16}}>{priority?priority[0]:'⚡'}</span>
+                                    <div style={{flex:1}}>
+                                      <span style={{fontSize:'0.68rem',color:pColor,lineHeight:1.55}}>{action}</span>
+                                      {(tf||owner)&&<div style={{fontSize:'0.58rem',color:'var(--wt-dim)',marginTop:1}}>{tf&&<span>{tf}</span>}{tf&&owner&&' · '}{owner&&<span>{owner}</span>}</div>}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                          {structTriage.counterarguments?.length > 0 && (
+                            <div style={{marginBottom:8,padding:'8px 10px',background:'#f0a03008',border:'1px solid #f0a03020',borderRadius:6}}>
+                              <div style={{fontSize:'0.54rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>⚖ Counterarguments Considered</div>
+                              {structTriage.counterarguments.map((c,i)=>(
+                                <div key={i} style={{fontSize:'0.64rem',color:'#f0a030',marginBottom:2,opacity:0.8}}>• {c}</div>
+                              ))}
+                            </div>
+                          )}
+                          {structTriage.escalationTriggers?.length > 0 && (
+                            <div style={{marginBottom:8,padding:'8px 10px',background:'#f0405e06',border:'1px solid #f0405e18',borderRadius:6}}>
+                              <div style={{fontSize:'0.54rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>🚨 Escalation Triggers</div>
+                              {structTriage.escalationTriggers.map((t,i)=>(
+                                <div key={i} style={{fontSize:'0.64rem',color:'#f0405e',marginBottom:2,opacity:0.85}}>• {t}</div>
+                              ))}
+                            </div>
+                          )}
+                          {structTriage.campaignIndicators?.length > 0 && (
+                            <div style={{padding:'8px 10px',background:'#8b6fff06',border:'1px solid #8b6fff18',borderRadius:6}}>
+                              <div style={{fontSize:'0.54rem',fontWeight:700,color:'#8b6fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>🔗 Campaign Indicators</div>
+                              {structTriage.campaignIndicators.map((c,i)=>(
+                                <div key={i} style={{fontSize:'0.64rem',color:'#8b6fff',marginBottom:2,opacity:0.85}}>• {c}</div>
                               ))}
                             </div>
                           )}
@@ -553,7 +590,7 @@ export default function AlertsTab({
                     {structTriage && showingHunt && (
                       <div style={{background:'#080a12',border:'1px solid #1e2536',borderRadius:10,padding:'10px 12px',marginBottom:8}}>
                         <div style={{fontSize:'0.58rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Hunt Queries</div>
-                        {[{label:'Splunk SPL',val:structTriage.huntQueries?.splunk,c:'#65a637'},{label:'Sentinel KQL',val:structTriage.huntQueries?.sentinel,c:'#00a4ef'},{label:'Defender AH',val:structTriage.huntQueries?.defender,c:'#f97316'}].map(({label,val,c})=>val&&(
+                        {[{label:'Splunk SPL',val:structTriage.huntQueries?.splunk,c:'#65a637'},{label:'Sentinel KQL',val:structTriage.huntQueries?.sentinel,c:'#00a4ef'},{label:'Defender AH',val:structTriage.huntQueries?.defender,c:'#f97316'},{label:'Elastic EQL',val:structTriage.huntQueries?.elastic,c:'#00bfb3'}].map(({label,val,c})=>val&&(
                           <div key={label} style={{marginBottom:8}}>
                             <div style={{fontSize:'0.52rem',fontWeight:700,color:c,marginBottom:3}}>{label}</div>
                             <div style={{display:'flex',gap:6,alignItems:'flex-start'}}>

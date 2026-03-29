@@ -23,23 +23,18 @@ const LOGO_MAP = {
 
 function ToolLogo({toolId, color, abbr}) {
   const slug = LOGO_MAP[toolId];
-  const [err, setErr] = React.useState(!slug);
-  if (!err && slug) {
-    return (
-      <span style={{width:28,height:28,borderRadius:7,background:'#0d111e',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,border:'1px solid #1a2535',overflow:'hidden'}}>
+  return (
+    <span style={{width:28,height:28,borderRadius:7,flexShrink:0,position:'relative',display:'inline-flex',alignItems:'center',justifyContent:'center',background:`linear-gradient(135deg,${color}cc,${color}44)`,fontSize:'0.5rem',fontWeight:900,color:'#fff',letterSpacing:0,overflow:'hidden'}}>
+      {abbr}
+      {slug && (
         <img
           src={`https://cdn.simpleicons.org/${slug}/ffffff`}
           alt=""
-          width={18} height={18}
-          onError={()=>setErr(true)}
-          style={{width:18,height:18,objectFit:'contain',display:'block'}}
+          aria-hidden="true"
+          style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'contain',padding:'4px',background:'#0d111e'}}
+          onError={e=>{e.currentTarget.style.display='none';}}
         />
-      </span>
-    );
-  }
-  return (
-    <span style={{width:28,height:28,borderRadius:7,background:`linear-gradient(135deg,${color}cc,${color}44)`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:'0.5rem',fontWeight:900,color:'#fff',letterSpacing:0}}>
-      {abbr}
+      )}
     </span>
   );
 }
