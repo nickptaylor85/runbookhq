@@ -199,19 +199,35 @@ function StatCard({val,label,sub,color,onClick}) {
 
 // ─── Paywall Gate ────────────────────────────────────────────────────────────
 
-function GateWall({ feature, requiredTier, children, userTier, isAdmin }) {
+function GateWall({ feature, requiredTier, children, userTier, isAdmin, demoPreview }) {
   const levels = {community:0,team:1,business:2,mssp:3};
   if (isAdmin || (levels[userTier]||0) >= levels[requiredTier]) return (<>{children}</>);
+  const blurContent = demoPreview || children;
   const tierColors = {team:'#4f8fff',business:'#22d49a',mssp:'#8b6fff'};
-  const tierPrices = {team:'£149/seat',business:'£799/mo',mssp:'£2,499/mo'};
+  const tierNames = {team:'Essentials',business:'Professional',mssp:'Enterprise'};
+  const tierPrices = {team:'£149/seat/mo',business:'£799/mo',mssp:'£2,499/mo'};
+  const featureDetails = {
+    'Threat Intelligence': ['Live threat feeds by industry','IOC matching against your alerts','ThreatFox, NCSC & CISA advisories','Hunt query generation per threat'],
+    'Incident Management': ['Group alerts into investigations','AI attack narrative & timeline','Deep Investigate — root cause analysis','Shift handover briefs'],
+    'AI Attack Narrative': ['Full attack story from raw alerts','Lateral movement mapping','Forensic command recommendations','MITRE technique chain visualisation'],
+    'Compliance Mapping': ['MITRE → ISO 27001 / NIST / CE mapping','NIS2 & DORA export reports','Board-ready PDF generation','SLA reporting by severity'],
+  };
+  const bullets = featureDetails[feature] || [`Unlock ${feature}`,'Available on paid plans'];
   return (
     <div style={{position:'relative',overflow:'hidden',borderRadius:12}}>
-      <div style={{filter:'blur(3px)',opacity:0.3,pointerEvents:'none',userSelect:'none'}}>{children}</div>
-      <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'rgba(5,5,8,0.85)',backdropFilter:'blur(2px)',borderRadius:12,border:`1px solid ${tierColors[requiredTier]}20`}}>
-        <div style={{fontSize:'1.4rem',marginBottom:8}}>🔒</div>
-        <div style={{fontSize:'0.82rem',fontWeight:700,marginBottom:4}}>{feature}</div>
-        <div style={{fontSize:'0.72rem',color:'var(--wt-muted)',marginBottom:14,textAlign:'center',maxWidth:260}}>Available on {requiredTier.charAt(0).toUpperCase()+requiredTier.slice(1)} plan and above</div>
-        <a href='/pricing' style={{padding:'8px 20px',borderRadius:8,background:tierColors[requiredTier],color:'#fff',fontSize:'0.76rem',fontWeight:700,textDecoration:'none',display:'inline-block'}}>Upgrade to {requiredTier.charAt(0).toUpperCase()+requiredTier.slice(1)} — {tierPrices[requiredTier]}</a>
+      <div style={{filter:'blur(4px)',opacity:0.25,pointerEvents:'none',userSelect:'none'}}>{blurContent}</div>
+      <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'rgba(5,5,8,0.88)',backdropFilter:'blur(4px)',borderRadius:12,border:`1px solid ${tierColors[requiredTier]}25`,padding:'24px 20px'}}>
+        <div style={{width:36,height:36,borderRadius:10,background:`${tierColors[requiredTier]}15`,border:`1px solid ${tierColors[requiredTier]}30`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.1rem',marginBottom:12}}>🔒</div>
+        <div style={{fontSize:'0.86rem',fontWeight:800,marginBottom:6,color:'var(--wt-text)'}}>{feature}</div>
+        <div style={{display:'flex',flexDirection:'column',gap:4,marginBottom:16,maxWidth:280,width:'100%'}}>
+          {bullets.map((b,i)=>(
+            <div key={i} style={{display:'flex',alignItems:'center',gap:7,fontSize:'0.68rem',color:'var(--wt-muted)'}}>
+              <span style={{color:tierColors[requiredTier],flexShrink:0,fontSize:'0.6rem'}}>✓</span>{b}
+            </div>
+          ))}
+        </div>
+        <a href='/pricing' style={{padding:'9px 22px',borderRadius:8,background:tierColors[requiredTier],color:'#fff',fontSize:'0.76rem',fontWeight:700,textDecoration:'none',display:'inline-block',marginBottom:6}}>Unlock with {tierNames[requiredTier]} — {tierPrices[requiredTier]}</a>
+        <div style={{fontSize:'0.6rem',color:'var(--wt-dim)'}}>14-day free trial · No card required</div>
       </div>
     </div>
   );
@@ -977,6 +993,9 @@ export default function DashboardPage() {
           <a href='/changelog' title='Changelog' style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem',color:'inherit',textDecoration:'none'}}>📝</a>
           <a href='/guide' title='User Guide' style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem',color:'inherit',textDecoration:'none'}}>📖</a>
           <a href='/settings' title='Settings' style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.85rem',color:'inherit',textDecoration:'none'}}>⚙️</a>
+          <button onClick={async()=>{await fetch('/api/auth/logout',{method:'POST'});window.location.href='/login';}} title='Sign out' style={{width:34,height:34,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:8,fontSize:'0.8rem',border:'none',cursor:'pointer',background:'transparent',color:'var(--wt-dim)',transition:'color .15s',opacity:0.6}} onMouseEnter={e=>e.currentTarget.style.opacity='1'} onMouseLeave={e=>e.currentTarget.style.opacity='0.6'}>
+            ↩
+          </button>
         </div>
       </div>
 

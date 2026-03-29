@@ -4,6 +4,30 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.9.136',
+    date: '2026-03-29',
+    tag: 'GTM',
+    tagColor: '#22d49a',
+    summary: 'Full 21-point audit actioned — security hardening, signup fix, welcome email, analytics hooks, CSP, GateWall redesign, press page, blog, team settings, LinkedIn CTA',
+    changes: [
+      { type: 'fix', text: 'Signup page now calls /api/auth/signup (scrypt, rate-limited) instead of the old /api/auth/register route.' },
+      { type: 'feat', text: 'Logout button — sidebar ↩ icon calls /api/auth/logout and redirects to /login. No more 24h cookie expiry trap.' },
+      { type: 'feat', text: 'Welcome email — branded HTML email sent on community signup via Resend. Subject: Your SOC dashboard is ready.' },
+      { type: 'feat', text: 'GateWall redesigned — shows specific feature bullets for each locked feature (evidence chain, blast radius, hunt queries etc.) plus "14-day free trial · No card required" instead of just plan name.' },
+      { type: 'feat', text: 'Intel tab — community users now see meaningful blurred content (4 real-looking threat items) behind the gate instead of a blank lock.' },
+      { type: 'feat', text: 'CSP + HSTS — Content-Security-Policy header added covering script-src, connect-src, img-src, frame-src. HSTS with includeSubDomains and preload.' },
+      { type: 'feat', text: 'Layout — GA4 and LinkedIn Insight Tag load from NEXT_PUBLIC_GA_ID and NEXT_PUBLIC_LINKEDIN_ID env vars. Canonical URL, theme-color, PWA manifest link.' },
+      { type: 'feat', text: 'manifest.json — PWA manifest created. start_url: /dashboard, display: standalone. Enables Add to Homescreen on mobile.' },
+      { type: 'feat', text: 'Landing page — Email capture + Book a demo section added. LinkedIn Follow + MSSP CTA bar added. Press added to footer.' },
+      { type: 'feat', text: 'Settings — Team tab added with invite form, role selector, and role guide (Owner/Tech Admin/Analyst/Viewer).' },
+      { type: 'feat', text: 'Press page /press — Company facts, brand colours, asset downloads, press contact.' },
+      { type: 'feat', text: 'Blog page /blog — 4 SEO-ready article stubs covering: AI triage, MSSP dashboards, NIS2/DORA, BYOK security.' },
+      { type: 'feat', text: 'Sitemap updated — /blog and /press added.' },
+      { type: 'feat', text: 'SAML routes return 501 Not Implemented with roadmap message instead of empty stubs.' },
+    ],
+  },
+
+  {
     version: 'v74.9.135',
     date: '2026-03-29',
     tag: 'UX',

@@ -6,7 +6,27 @@ export default function IntelTab({
 }) {
   return (
     <div>
-      <GateWall feature='Threat Intelligence' requiredTier='team' userTier={userTier}>
+      <GateWall feature='Threat Intelligence' requiredTier='team' userTier={userTier} demoPreview={
+      <div style={{display:'flex',flexDirection:'column',gap:8,padding:'14px 0'}}>
+        <div style={{fontSize:'0.62rem',fontWeight:800,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',marginBottom:4}}>Financial Services — Active Threats</div>
+        {[
+          {sev:'Critical',title:'TA577 — Cobalt Strike dropper targeting UK banking',age:'2h ago',mitre:'T1071.001'},
+          {sev:'High',title:'CVE-2024-21413 Outlook NTLM leak — 847 orgs affected',age:'4h ago',mitre:'T1190'},
+          {sev:'High',title:'LockBit 3.0 new infrastructure — financial sector',age:'6h ago',mitre:'T1486'},
+          {sev:'Medium',title:'Phishing wave — DocuSign lure — 12 IOCs',age:'8h ago',mitre:'T1566.001'},
+        ].map((t,i)=>(
+          <div key={i} style={{padding:'10px 12px',background:'#0a0206',border:`1px solid ${t.sev==='Critical'?'#f0405e18':'#f9731618'}`,borderRadius:9}}>
+            <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:3}}>
+              <span style={{fontSize:'0.5rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:t.sev==='Critical'?'#f0405e':'#f97316',color:'#fff'}}>{t.sev.toUpperCase()}</span>
+              <span style={{fontSize:'0.48rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{t.mitre}</span>
+              <span style={{marginLeft:'auto',fontSize:'0.48rem',color:'var(--wt-dim)'}}>{t.age}</span>
+            </div>
+            <div style={{fontSize:'0.72rem',fontWeight:600,color:'var(--wt-text)'}}>{t.title}</div>
+          </div>
+        ))}
+        <div style={{fontSize:'0.58rem',color:'var(--wt-dim)',textAlign:'center',marginTop:4}}>+14 more threats in your sector feed →</div>
+      </div>
+    }>
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Threat Intelligence</h2>

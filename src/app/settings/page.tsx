@@ -182,7 +182,7 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState<'general'|'account'|'notifications'|'api-keys'>('general');
+  const [activeTab, setActiveTab] = useState<'general'|'account'|'team'|'notifications'|'api-keys'>('general');
   const [apiKeys, setApiKeys] = useState<any[]>([]);
   const [newKeyName, setNewKeyName] = useState('');
   const [newKey, setNewKey] = useState<string|null>(null);
@@ -221,6 +221,7 @@ export default function SettingsPage() {
   const tabs = [
     { id: 'general', label: 'General' },
     { id: 'account', label: 'Account' },
+    { id: 'team', label: 'Team' },
     { id: 'notifications', label: 'Notifications' },
     { id: 'api-keys', label: 'API Keys' },
   ] as const;
@@ -432,6 +433,53 @@ export default function SettingsPage() {
           </div>
         )}
 
+
+      {activeTab === 'team' && (
+        <div>
+          <h2 style={{ fontSize: '0.96rem', fontWeight: 700, marginBottom: 4 }}>Team Members</h2>
+          <p style={{ fontSize: '0.78rem', color: '#6b7a94', marginBottom: 20, lineHeight: 1.6 }}>Invite analysts and set their roles. Essentials requires minimum 2 seats.</p>
+          {/* Invite form */}
+          <div style={{ background: '#0a0d18', border: '1px solid #1d2535', borderRadius: 10, padding: '16px', marginBottom: 20 }}>
+            <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#4f8fff', marginBottom: 12 }}>Invite a team member</div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <input placeholder="colleague@company.com" style={{ flex: 1, minWidth: 180, padding: '9px 12px', background: '#070a14', border: '1px solid #263044', borderRadius: 8, color: '#e8ecf4', fontSize: '0.84rem', fontFamily: 'Inter,sans-serif', outline: 'none' }} />
+              <select style={{ padding: '9px 12px', background: '#070a14', border: '1px solid #263044', borderRadius: 8, color: '#e8ecf4', fontSize: '0.84rem', fontFamily: 'Inter,sans-serif', cursor: 'pointer' }}>
+                <option value="analyst">Analyst</option>
+                <option value="tech_admin">Tech Admin</option>
+                <option value="viewer">Viewer (read-only)</option>
+                <option value="sales">Sales</option>
+              </select>
+              <button onClick={async () => {
+                const emailEl = document.querySelector('input[placeholder="colleague@company.com"]') as HTMLInputElement;
+                if (!emailEl?.value) return;
+                const r = await fetch('/api/auth/invite', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: emailEl.value, role: 'analyst' }) });
+                const d = await r.json();
+                if (d.ok) { emailEl.value = ''; alert('Invite sent to ' + emailEl.value); }
+                else alert(d.error || 'Failed to send invite');
+              }} style={{ padding: '9px 18px', borderRadius: 8, border: 'none', background: '#4f8fff', color: '#fff', fontSize: '0.84rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'Inter,sans-serif', flexShrink: 0 }}>
+                Send Invite
+              </button>
+            </div>
+            <div style={{ marginTop: 10, fontSize: '0.66rem', color: '#3a4050' }}>
+              Analyst — full triage access · Tech Admin — tool configuration · Viewer — read-only · Sales — GTM dashboard only
+            </div>
+          </div>
+          {/* Role guide */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8 }}>
+            {[
+              { role: 'Owner', color: '#8b6fff', desc: 'Full access, billing, team management' },
+              { role: 'Tech Admin', color: '#4f8fff', desc: 'Tool configuration, BYOK keys, no billing' },
+              { role: 'Analyst', color: '#22d49a', desc: 'Alert triage, incidents, co-pilot' },
+              { role: 'Viewer', color: '#6b7a94', desc: 'Read-only — alerts, coverage, vulns' },
+            ].map(r => (
+              <div key={r.role} style={{ padding: '10px 14px', background: '#0a0d18', border: `1px solid ${r.color}20`, borderRadius: 8 }}>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: r.color, marginBottom: 3 }}>{r.role}</div>
+                <div style={{ fontSize: '0.66rem', color: '#6b7a94' }}>{r.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {activeTab === 'api-keys' && (
         <div>

@@ -32,7 +32,7 @@ export default function SignupPage() {
     try {
       // Community plan — create account directly
       if (plan === 'community') {
-        const res = await fetch('/api/auth/register', {
+        const res = await fetch('/api/auth/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, email, password, plan }),
@@ -50,7 +50,7 @@ export default function SignupPage() {
         setError(data.error || 'Signup failed');
       } else {
         // Paid plans — create account then redirect to Stripe checkout
-        const res = await fetch('/api/auth/register', {
+        const res = await fetch('/api/auth/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, email, password, plan }),

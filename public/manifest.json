@@ -1,0 +1,15 @@
+{
+  "name": "Watchtower SOC Dashboard",
+  "short_name": "Watchtower",
+  "description": "AI-powered SOC dashboard — single pane of glass for security operations",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#050508",
+  "theme_color": "#4f8fff",
+  "orientation": "landscape-primary",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "categories": ["security", "productivity", "business"],
+  "lang": "en-GB"
+}
