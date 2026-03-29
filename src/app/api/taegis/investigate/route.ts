@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Load Taegis credentials for this tenant
-    const credsRaw = await redisGet(KEYS.TENANT_CREDENTIALS(tenantId));
+    const credsRaw = await redisGet(KEYS.TOOL_CREDS(tenantId));
     if (!credsRaw) {
       return NextResponse.json({ ok: false, error: 'No credentials configured for tenant' }, { status: 503 });
     }

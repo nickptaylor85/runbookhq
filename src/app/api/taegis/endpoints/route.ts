@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const credsRaw = await redisGet(KEYS.TENANT_CREDENTIALS(tenantId));
+    const credsRaw = await redisGet(KEYS.TOOL_CREDS(tenantId));
     if (!credsRaw) return NextResponse.json({ ok: false, error: 'No credentials' }, { status: 503 });
 
     const creds = JSON.parse(credsRaw) as Record<string, Record<string, string>>;
