@@ -472,7 +472,7 @@ export default function AlertsTab({
                     style={{padding:'4px 12px',borderRadius:6,border:'1px solid #f0405e30',background:effectiveVerdict==='TP'?'#f0405e':'#f0405e10',color:effectiveVerdict==='TP'?'#fff':'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                     {effectiveVerdict==='TP'?'✓ Marked TP':'Mark TP'}
                   </button>}
-                  {!canVote && <span style={{fontSize:'0.7rem',color:'#4f8fff',padding:'4px 10px',borderRadius:6,background:'#4f8fff10',border:'1px solid #4f8fff20'}}>🔒 Upgrade to Team to triage</span>}
+                  {!canVote && <span style={{fontSize:'0.7rem',color:'#4f8fff',padding:'4px 10px',borderRadius:6,background:'#4f8fff10',border:'1px solid #4f8fff20'}}>🔒 Upgrade to Essentials to triage</span>}
                   {setAlertSnoozes && <button onClick={()=>{
                     const dur=2*60*60*1000;
                     setAlertSnoozes(prev=>prev[alert.id]&&prev[alert.id]>Date.now()?{...prev,[alert.id]:undefined}:{...prev,[alert.id]:Date.now()+dur});

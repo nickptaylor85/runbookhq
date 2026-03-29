@@ -350,11 +350,11 @@ export default function SettingsPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#070a14', borderRadius: 9, border: '1px solid #263044', marginBottom: 14 }}>
                 <div style={{ width: 36, height: 36, borderRadius: 9, background: '#8b6fff15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>🛡</div>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.86rem', textTransform: 'capitalize' }}>
-                    {settings.userTier || 'Community'} Plan
+                  <div style={{ fontWeight: 700, fontSize: '0.86rem' }}>
+                    {settings.userTier === 'team' ? 'Essentials' : settings.userTier === 'business' ? 'Professional' : settings.userTier === 'mssp' ? 'Enterprise' : 'Community'} Plan
                   </div>
                   <div style={{ fontSize: '0.68rem', color: '#6b7a94', marginTop: 2 }}>
-                    {settings.userTier === 'team' ? '£49/seat/mo' : settings.userTier === 'business' ? '£199/mo' : settings.userTier === 'mssp' ? '£799/mo' : 'Free forever'}
+                    {settings.userTier === 'team' ? '£149/seat/mo' : settings.userTier === 'business' ? '£799/mo' : settings.userTier === 'mssp' ? '£2,499/mo' : 'Free forever'}
                   </div>
                 </div>
                 <a href="/pricing" style={{ marginLeft: 'auto', padding: '7px 16px', background: '#4f8fff', borderRadius: 8, color: '#fff', fontWeight: 700, fontSize: '0.76rem', textDecoration: 'none' }}>

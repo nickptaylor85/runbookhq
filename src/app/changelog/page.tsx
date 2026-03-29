@@ -4,6 +4,20 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.9.126',
+    date: '2026-03-29',
+    tag: 'Polish',
+    tagColor: '#22d49a',
+    summary: 'Internal pricing labels updated, admin permanently unlocked, user guide rewritten, landing page and changelog current',
+    changes: [
+      { type: 'fix', text: 'Settings page Plan & Billing now shows correct pricing: Essentials £149/seat/mo, Professional £799/mo, Enterprise £2,499/mo. Plan names updated from Team/Business/MSSP to Essentials/Professional/Enterprise.' },
+      { type: 'fix', text: 'Admin tier selector dropdown updated from old names (Team/Business/MSSP) to new names (Essentials/Professional/Enterprise). All "Upgrade to Team" prompts in the UI now say "Upgrade to Essentials".' },
+      { type: 'fix', text: 'Admin accounts are permanently unlocked for all features via both canUse() and GateWall — confirmed working through isAdmin bypass in both functions. No feature gate applies to admin.' },
+      { type: 'feat', text: 'User Guide completely rewritten: new pricing tiers, new plan names, Evidence Chain, Blast Radius, Co-Pilot with institutional knowledge, Deep Investigation (Tier 2/3), Hunt Query Generator, Shift Handover, MSSP cross-client correlation, automated weekly reports. All 11 sections updated.' },
+    ],
+  },
+
+  {
     version: 'v74.9.125',
     date: '2026-03-29',
     tag: 'AI Features',
