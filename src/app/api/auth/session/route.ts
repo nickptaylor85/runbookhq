@@ -28,7 +28,5 @@ export async function GET(req: NextRequest) {
     const session = verifyToken(token);
     if (session) return NextResponse.json({ authenticated: true, ...session });
   }
-  const hasAuth = !!(process.env.WATCHTOWER_ADMIN_EMAIL && process.env.WATCHTOWER_ADMIN_PASS);
-  if (!hasAuth) return NextResponse.json({ authenticated: true, userId: 'dev-admin', tenantId: 'global', isAdmin: true, role: 'owner' });
   return NextResponse.json({ authenticated: false, isAdmin: false }, { status: 401 });
 }

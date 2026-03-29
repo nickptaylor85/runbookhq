@@ -15,7 +15,13 @@ async function verifySessionToken(token: string): Promise<{ userId: string; tena
     const expectedSig = btoa(String.fromCharCode(...new Uint8Array(signature)))
       .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 
-    if (sig !== expectedSig) return null;
+    // Timing-safe comparison to prevent timing attacks
+    const sigBuf = new TextEncoder().encode(sig);
+    const expBuf = new TextEncoder().encode(expectedSig);
+    if (sigBuf.length !== expBuf.length) return null;
+    let diff = 0;
+    for (let i = 0; i < sigBuf.length; i++) diff |= sigBuf[i] ^ expBuf[i];
+    if (diff !== 0) return null;
     const payload = JSON.parse(atob(encoded.replace(/-/g, '+').replace(/_/g, '/')));
     if (Date.now() - payload.iat > 86400000) return null;
     return payload;
@@ -31,9 +37,17 @@ const PUBLIC_PATHS = ['/', '/demo', '/pricing', '/guide', '/login', '/signup',
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // Always strip spoofable identity headers from incoming requests
+  // These are set by middleware from verified session — never trust client-supplied values
+  const cleanHeaders = new Headers(req.headers);
+  cleanHeaders.delete('x-is-admin');
+  cleanHeaders.delete('x-user-id');
+  cleanHeaders.delete('x-user-tier');
+  // Note: x-tenant-id from client is overridden by session in authenticated routes
+
   // Allow public paths and dashboard (client-side auth)
   if (PUBLIC_PATHS.some(p => pathname.startsWith(p)) || pathname === '/dashboard') {
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: cleanHeaders } });
   }
 
   // All /api/* routes require authentication
@@ -66,6 +80,9 @@ export async function middleware(req: NextRequest) {
     headers.set('x-user-id', session.userId);
     headers.set('x-tenant-id', session.tenantId);
     headers.set('x-is-admin', String(session.isAdmin));
+    // Inject tier: admins get full access; read wt_tier cookie if present
+    const tierCookie = req.cookies.get('wt_tier')?.value;
+    headers.set('x-user-tier', session.isAdmin ? 'mssp' : (tierCookie || 'community'));
     return NextResponse.next({ request: { headers } });
   }
 

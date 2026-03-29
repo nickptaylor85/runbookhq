@@ -4,6 +4,26 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.9.133',
+    date: '2026-03-29',
+    tag: 'Security',
+    tagColor: '#f0405e',
+    summary: 'Military-grade security hardening — scrypt passwords, rate-limited login, timing-safe comparison, header stripping, dev bypass removed, signup route built',
+    changes: [
+      { type: 'fix', text: 'PASSWORD HASHING: Replaced SHA-256 with scrypt (N=32768, r=8, p=1) via Node.js built-in crypto.scryptSync. Backward-compatible: old SHA-256 hashes verified on login then re-hashed with scrypt on next save. GPU brute-force cost increased by ~100,000x.' },
+      { type: 'fix', text: 'TIMING ATTACK: Middleware session token comparison now uses constant-time XOR byte comparison instead of string !== comparison. Eliminates token prefix oracle timing attack.' },
+      { type: 'fix', text: 'HEADER SPOOFING: Middleware now strips x-is-admin, x-user-id, x-user-tier from ALL incoming requests before processing — including public routes. Prevents identity header injection attacks.' },
+      { type: 'fix', text: 'DEV ADMIN BYPASS: Removed the code path in /api/auth/session that returned isAdmin:true if WATCHTOWER_ADMIN_EMAIL/PASS env vars were unset. Now returns 401 unconditionally without a valid session.' },
+      { type: 'fix', text: 'HARDCODED DEFAULT REMOVED: Login route no longer falls back to password "changeme" if WATCHTOWER_ADMIN_PASS is unset — returns 503 Server Configuration Error instead.' },
+      { type: 'fix', text: 'LOGIN RATE LIMITING: Added checkRateLimit("login:{email}", 5, 300) — 5 attempts per 5 minutes per email address. Parallel brute-force attacks now fail at the rate limiter, not just the 300ms delay.' },
+      { type: 'fix', text: 'ACCOUNT LOCKOUT: Failed logins tracked in Redis. After 10 failures in 15 minutes, further attempts are blocked by the rate limiter.' },
+      { type: 'fix', text: 'ADMIN PASSWORD TIMING: Admin password comparison now uses crypto.timingSafeEqual() preventing timing attacks on the hardcoded admin credential check.' },
+      { type: 'fix', text: 'ADMIN CHECK ON AUDIT ROUTE: /api/audit GET was missing requireAdmin check — any authenticated user could read all tenant audit entries. Fixed.' },
+      { type: 'feat', text: 'SIGNUP ROUTE BUILT: /api/auth/signup now exists with: scrypt password hashing, email format validation, rate limiting (3/hour per IP), platform signup_enabled flag check, unique tenant ID creation, Community auto-verification, Redis user storage.' },
+    ],
+  },
+
+  {
     version: 'v74.9.132',
     date: '2026-03-29',
     tag: 'Audit',

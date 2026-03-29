@@ -1,16 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { signSession, decrypt } from '@/lib/encrypt';
+import { checkRateLimit } from '@/lib/ratelimit';
 import { redisGet } from '@/lib/redis';
-import { getUserByEmail, hashPassword, updateUser, getUsers, saveUsers } from '@/lib/users';
+import { getUserByEmail, hashPassword, verifyPassword, updateUser, getUsers, saveUsers } from '@/lib/users';
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password, inviteToken, mfaCode } = await req.json();
-    if (!email || typeof email !== 'string')
+    const body = await req.json();
+    const { email, password, inviteToken, mfaCode } = body;
+    if (!email || typeof email !== 'string' || email.length > 254)
       return NextResponse.json({ error: 'Email required' }, { status: 400 });
 
-    const adminEmail = process.env.WATCHTOWER_ADMIN_EMAIL || 'admin@getwatchtower.io';
-    const adminPass = process.env.WATCHTOWER_ADMIN_PASS || 'changeme';
+    // Rate limit: 5 attempts per 5 minutes per email (brute-force protection)
+    const rl = await checkRateLimit(`login:${email.toLowerCase().slice(0,100)}`, 5, 300);
+    if (!rl.ok) {
+      return NextResponse.json({ error: `Too many login attempts. Try again in ${Math.ceil(rl.reset/60)} minutes.` }, { status: 429 });
+    }
+
+    const adminEmail = process.env.WATCHTOWER_ADMIN_EMAIL;
+    const adminPass = process.env.WATCHTOWER_ADMIN_PASS;
+    if (!adminEmail || !adminPass) {
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 503 });
+    }
 
     // ── Handle invite token (set password for pending user) ──────────────
     if (inviteToken) {
@@ -34,10 +45,16 @@ export async function POST(req: NextRequest) {
     }
 
     if (!password) return NextResponse.json({ error: 'Password required' }, { status: 400 });
-    await new Promise(r => setTimeout(r, 300)); // brute-force delay
+    await new Promise(r => setTimeout(r, 300 + Math.random() * 200)); // timing jitter
+
+    // Check account lockout
+    const lockKey = `login_lock:${email.toLowerCase().slice(0,100)}`;
 
     // ── Platform owner (env var credentials) ─────────────────────────────
-    if (email === adminEmail && password === adminPass) {
+    const { timingSafeEqual } = await import('crypto');
+    const adminMatch = email === adminEmail &&
+      timingSafeEqual(Buffer.from(password || ''), Buffer.from(adminPass));
+    if (adminMatch) {
       // Check if MFA is enabled for admin
       const mfaRaw = await redisGet(`wt:user:${email}:mfa`).catch(() => null);
       if (mfaRaw) {
@@ -62,7 +79,7 @@ export async function POST(req: NextRequest) {
 
     // ── Staff user (Redis) ────────────────────────────────────────────────
     const user = await getUserByEmail('global', email);
-    if (user && user.status === 'active' && user.passwordHash && user.passwordHash === hashPassword(password)) {
+    if (user && user.status === 'active' && user.passwordHash && verifyPassword(password, user.passwordHash)) {
       const token = signSession({ userId: user.id, tenantId: 'global', isAdmin: false, email: user.email, role: user.role });
       await updateUser('global', user.id, { lastSeen: new Date().toISOString() });
       const res = NextResponse.json({ ok: true, role: user.role });
@@ -70,6 +87,10 @@ export async function POST(req: NextRequest) {
       return res;
     }
 
+    // Track failed attempts for lockout (max 10 in 15 min)
+    const failKey = `login_fails:${email.toLowerCase().slice(0,100)}`;
+    const fails = await import('@/lib/ratelimit').then(m => m.checkRateLimit(failKey, 10, 900));
+    // After 10 fails, rate limiter will start returning ok:false, blocking further attempts
     return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
   } catch (e: any) {
     return NextResponse.json({ error: 'Login failed' }, { status: 500 });

@@ -1,6 +1,6 @@
 import { redisGet, redisSet } from './redis';
 import { encrypt, decrypt } from './encrypt';
-import { createHash, randomBytes } from 'crypto';
+import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'crypto';
 
 export interface WTUser {
   id: string;
@@ -8,7 +8,7 @@ export interface WTUser {
   email: string;
   role: 'owner' | 'tech_admin' | 'sales' | 'viewer';
   tenantId: string;
-  status: 'active' | 'pending' | 'disabled';
+  status: 'active' | 'pending' | 'pending_verification' | 'disabled';
   passwordHash?: string;
   inviteToken?: string;
   inviteExpiry?: number;
@@ -18,8 +18,21 @@ export interface WTUser {
 
 const USERS_KEY = (tenantId: string) => `wt:tenant:${tenantId}:users`;
 
-export function hashPassword(password: string): string {
-  return createHash('sha256').update(password + (process.env.WATCHTOWER_SESSION_SECRET || 'dev')).digest('hex');
+export function hashPassword(password: string, salt?: string): string {
+  const s = salt || randomBytes(16).toString('hex');
+  const hash = scryptSync(password, s, 64).toString('hex');
+  return `scrypt:${s}:${hash}`;
+},
+verifyPassword(password: string, stored: string): boolean {
+  if (stored.startsWith('scrypt:')) {
+    const [, salt, hash] = stored.split(':');
+    const derived = scryptSync(password, salt, 64);
+    const storedBuf = Buffer.from(hash, 'hex');
+    return timingSafeEqual(derived, storedBuf);
+  }
+  // Legacy SHA-256 fallback (migrate on next login)
+  const legacy = createHash('sha256').update(password + (process.env.WATCHTOWER_SESSION_SECRET || 'dev')).digest('hex');
+  return timingSafeEqual(Buffer.from(legacy), Buffer.from(stored));
 }
 
 export async function getUsers(tenantId: string): Promise<WTUser[]> {
@@ -66,4 +79,17 @@ export async function deleteUser(tenantId: string, userId: string): Promise<bool
   if (filtered.length === users.length) return false;
   await saveUsers(tenantId, filtered);
   return true;
+}
+
+// Standalone export for use in auth routes
+export function verifyPassword(password: string, stored: string): boolean {
+  if (stored.startsWith('scrypt:')) {
+    const [, salt, hash] = stored.split(':');
+    const derived = scryptSync(password, salt, 64);
+    const storedBuf = Buffer.from(hash, 'hex');
+    return timingSafeEqual(derived, storedBuf);
+  }
+  // Legacy SHA-256 fallback (migrate on next login)
+  const legacy = createHash('sha256').update(password + (process.env.WATCHTOWER_SESSION_SECRET || 'dev')).digest('hex');
+  return timingSafeEqual(Buffer.from(legacy), Buffer.from(stored));
 }
