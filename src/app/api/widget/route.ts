@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Map slug to tenant ID
-    const slugMapRaw = await redisGet('wt:global:slug_map');
+    const slugMapRaw = await redisGet('wt:mssp:slug_map');
     const slugMap: Record<string, string> = slugMapRaw ? JSON.parse(slugMapRaw) : {};
     const tenantId = slugMap[slug];
 

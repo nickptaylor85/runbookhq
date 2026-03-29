@@ -4,6 +4,19 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.9.132',
+    date: '2026-03-29',
+    tag: 'Audit',
+    tagColor: '#22d49a',
+    summary: 'Live audit fixes: widget slug_map key mismatch, admin/tenants key mismatch, pricing FAQ duplicate word',
+    changes: [
+      { type: 'fix', text: '/api/widget was returning 404 Invalid slug for all slugs — it read from wt:global:slug_map but slug-map API writes to wt:mssp:slug_map. Now aligned.' },
+      { type: 'fix', text: '/api/admin/tenants had the same key mismatch — now reads wt:mssp:slug_map.' },
+      { type: 'fix', text: 'Pricing FAQ MSSP question said "Enterprise/Enterprise/MSSP plan" — duplicate from find-replace. Fixed to "Enterprise/MSSP plan".' },
+    ],
+  },
+
+  {
     version: 'v74.9.131',
     date: '2026-03-29',
     tag: 'GTM',
