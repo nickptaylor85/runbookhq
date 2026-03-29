@@ -219,7 +219,7 @@ export async function POST(req: NextRequest) {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model, max_tokens: 1200, system: SYSTEM_PROMPT, messages: [{ role: 'user', content: prompt }] }),
+      body: JSON.stringify({ model, max_tokens: 2000, system: SYSTEM_PROMPT, messages: [{ role: 'user', content: prompt }] }),
     });
 
     if (!resp.ok) {
@@ -230,14 +230,24 @@ export async function POST(req: NextRequest) {
     const data = await resp.json();
 
     const text = (data.content || []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('');
+    console.log(`[triage] raw response first 500 chars: ${text.slice(0, 500)}`);
     let parsed: any;
     try {
       const clean = text.replace(/^```json\s*/m, '').replace(/^```\s*/m, '').replace(/```\s*$/m, '').trim();
       parsed = JSON.parse(clean);
     } catch {
+      // Try extracting JSON object from anywhere in response
       const match = text.match(/\{[\s\S]+\}/);
-      if (match) { try { parsed = JSON.parse(match[0]); } catch { return NextResponse.json({ ok: false, error: 'Malformed AI response', raw: text.slice(0, 300) }, { status: 502 }); } }
-      else return NextResponse.json({ ok: false, error: 'Malformed AI response', raw: text.slice(0, 300) }, { status: 502 });
+      if (match) {
+        try { parsed = JSON.parse(match[0]); }
+        catch {
+          console.error(`[triage] JSON parse failed. Full text: ${text.slice(0, 800)}`);
+          return NextResponse.json({ ok: false, error: 'Malformed AI response', raw: text.slice(0, 300) }, { status: 502 });
+        }
+      } else {
+        console.error(`[triage] No JSON found in response. Full text: ${text.slice(0, 800)}`);
+        return NextResponse.json({ ok: false, error: 'Malformed AI response', raw: text.slice(0, 300) }, { status: 502 });
+      }
     }
 
     const result: TriageResult = {
