@@ -212,26 +212,33 @@ export async function POST(req: NextRequest) {
     const tenantContext = await getTenantContext(tenantId);
     const prompt = buildPrompt(alertContext, tenantContext, isHighSeverity);
 
-    // Try opus first, fall back to haiku
-    let data: any;
-    let modelVersion = 'opus';
-    const opusResp = await fetch('https://api.anthropic.com/v1/messages', {
+    // Model selection: haiku for speed (<2s), sonnet for complex high/critical cases
+    // Opus reserved for future premium tier — too slow for real-time SOC use
+    const hasRichContext = !!(body.relatedAlerts?.length || body.iocMatches?.length || body.deviceVulns?.length);
+    const useHigherModel = isHighSeverity && hasRichContext;
+    const model = useHigherModel ? 'claude-sonnet-4-6' : 'claude-haiku-4-5-20251001';
+    const modelVersion = useHigherModel ? 'sonnet' : 'haiku';
+
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-opus-4-6', max_tokens: 2000, system: SYSTEM_PROMPT, messages: [{ role: 'user', content: prompt }] }),
+      body: JSON.stringify({ model, max_tokens: 2000, system: SYSTEM_PROMPT, messages: [{ role: 'user', content: prompt }] }),
     });
-    if (opusResp.ok) {
-      data = await opusResp.json();
-    } else {
-      modelVersion = 'haiku';
-      const haikuResp = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-        body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 1600, system: SYSTEM_PROMPT, messages: [{ role: 'user', content: prompt }] }),
-      });
-      if (!haikuResp.ok) return NextResponse.json({ ok: false, error: `AI error: ${opusResp.status}` }, { status: 502 });
-      data = await haikuResp.json();
+    if (!resp.ok) {
+      // Fallback to haiku if sonnet unavailable
+      if (useHigherModel) {
+        const fb = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+          body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 1600, system: SYSTEM_PROMPT, messages: [{ role: 'user', content: prompt }] }),
+        });
+        if (!fb.ok) return NextResponse.json({ ok: false, error: `AI error: ${resp.status}` }, { status: 502 });
+        const data = await fb.json();
+        return processResponse(data, body, tenantId, cacheKey, 'haiku-fallback');
+      }
+      return NextResponse.json({ ok: false, error: `AI error: ${resp.status}` }, { status: 502 });
     }
+    const data = await resp.json();
 
     const text = (data.content || []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('');
     let parsed: any;
@@ -263,6 +270,15 @@ export async function POST(req: NextRequest) {
     };
 
     await redisSet(cacheKey, JSON.stringify(result)).catch(() => {});
+
+    // Non-blocking AI log
+    const logOrigin = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000');
+    fetch(`${logOrigin}/api/ai/ailog`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-internal-key': process.env.WATCHTOWER_API_KEY || '' },
+      body: JSON.stringify({ ts: Date.now(), userId: body.alertId, tenantId, type: 'deep-triage', promptPreview: body.title?.slice(0,100) || '', promptLength: JSON.stringify(body).length, responseLength: JSON.stringify(result).length, model: modelVersion, durationMs: 0, ok: true, alertId: body.alertId, alertTitle: body.title, alertVerdict: result.verdict }),
+    }).catch(() => {});
+
     return NextResponse.json({ ok: true, result, cached: false, modelVersion });
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: e.message }, { status: 500 });

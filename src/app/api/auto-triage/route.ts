@@ -136,24 +136,14 @@ Respond ONLY with a JSON array (one object per alert, same order):
 urgency guide: IMMEDIATE=TP high/critical, SOON=TP medium or SUS high/critical, ROUTINE=SUS medium/low, CLOSE=FP
 confidence guide: 90+=textbook IOC, 75-89=strong indicator one gap, 60-74=moderate, 45-59=ambiguous SUS, 30-44=likely FP, 0-29=clear FP`;
 
-    // Try opus, fall back to haiku
-    let data: any;
-    const opusResp = await fetch('https://api.anthropic.com/v1/messages', {
+    // Haiku for batch triage — 5-10x faster than opus, excellent for SOC analysis
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-opus-4-6', max_tokens: 1200, system: BATCH_SYSTEM, messages: [{ role: 'user', content: prompt }] }),
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 1200, system: BATCH_SYSTEM, messages: [{ role: 'user', content: prompt }] }),
     });
-    if (opusResp.ok) {
-      data = await opusResp.json();
-    } else {
-      const haikuResp = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-        body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 1000, system: BATCH_SYSTEM, messages: [{ role: 'user', content: prompt }] }),
-      });
-      if (!haikuResp.ok) return NextResponse.json({ ok: false, error: `AI error: ${opusResp.status}` }, { status: 502 });
-      data = await haikuResp.json();
-    }
+    if (!resp.ok) return NextResponse.json({ ok: false, error: `AI error: ${resp.status}` }, { status: 502 });
+    const data = await resp.json();
 
     const text = (data.content || []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('') || '[]';
 

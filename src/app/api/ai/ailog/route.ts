@@ -25,14 +25,25 @@ export interface AILogEntry {
 }
 
 function requireAdmin(req: NextRequest): boolean {
-  // Middleware injects x-is-admin from the verified session cookie on every API request
-  // It also sets x-user-id to indicate a valid authenticated session
+  // Admin session (middleware-injected from verified JWT)
   if (req.headers.get('x-is-admin') === 'true') return true;
-  // Internal server-side calls (from copilot route) also pass x-is-admin: true
-  // If x-user-id is set but x-is-admin is 'false', still allow dev mode (no env vars set)
+  // Internal server-to-server calls use the WATCHTOWER_API_KEY header
+  const internalKey = req.headers.get('x-internal-key');
+  if (internalKey && internalKey === process.env.WATCHTOWER_API_KEY) return true;
+  // Dev fallback when no admin creds configured
   const hasSession = !!req.headers.get('x-user-id');
   const isDev = !process.env.WATCHTOWER_ADMIN_EMAIL;
   return hasSession && isDev;
+}
+
+// Allow any authenticated session to POST logs (internal writes)
+function allowLog(req: NextRequest): boolean {
+  if (requireAdmin(req)) return true;
+  // Any valid session can write logs (not just admin)
+  if (req.headers.get('x-user-id')) return true;
+  const internalKey = req.headers.get('x-internal-key');
+  if (internalKey && internalKey === process.env.WATCHTOWER_API_KEY) return true;
+  return false;
 }
 
 // GET — admin only
@@ -64,9 +75,9 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST — internal server-side calls only
+// POST — any authenticated session or internal key
 export async function POST(req: NextRequest) {
-  if (!requireAdmin(req)) {
+  if (!allowLog(req)) {
     return NextResponse.json({ error: 'Unauthorised' }, { status: 403 });
   }
   try {
