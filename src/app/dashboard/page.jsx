@@ -719,6 +719,26 @@ export default function DashboardPage() {
 
   // Automation: uses autoFiredRef to prevent re-firing without writing to alertOverrides
   // (writing to alertOverrides would recompute alerts→actedAlerts→re-fire this effect)
+  const critVulns = vulns.filter(v=>v.severity==='Critical');
+  const kevVulns = vulns.filter(v=>v.kev);
+  const posture = Math.max(0, Math.min(100,
+    100
+    - critAlerts.filter(a=>!(alertOverrides[a.id]?.fpMarked)).length * 5
+    - kevVulns.length * 3
+    - gapDevices.length * 2
+    + (fpAlerts.length > 0 && fpAlerts.length / Math.max(1,alerts.length) < 0.15 ? 4 : 0)
+  ));
+  const postureColor = posture >= 85 ? '#22d49a' : posture >= 65 ? '#f0a030' : '#f0405e';
+
+  const autLabel = ['Recommend Only','Auto + Notify','Full Auto'][automation];
+  const autColor = ['#6b7a94','#f0a030','#22d49a'][automation];
+  // Automation effects: filter what's "acted on" based on level
+  const actedAlerts = alerts.filter(a => {
+    if (automation === 0) return false;
+    if (automation === 1) return a.verdict === 'FP' && a.confidence >= 90;
+    return a.confidence >= 80;
+  });
+  // autoFiredRef effect — declared AFTER actedAlerts to avoid temporal dead zone
   const autoFiredRef = React.useRef(new Set());
   React.useEffect(()=>{
     if(automation===0||demoMode) return;
@@ -742,26 +762,6 @@ export default function DashboardPage() {
       });
     }
   },[actedAlerts.length,automation,demoMode]);
-  const critVulns = vulns.filter(v=>v.severity==='Critical');
-  const kevVulns = vulns.filter(v=>v.kev);
-  const posture = Math.max(0, Math.min(100,
-    100
-    - critAlerts.filter(a=>!(alertOverrides[a.id]?.fpMarked)).length * 5
-    - kevVulns.length * 3
-    - gapDevices.length * 2
-    + (fpAlerts.length > 0 && fpAlerts.length / Math.max(1,alerts.length) < 0.15 ? 4 : 0)
-  ));
-  const postureColor = posture >= 85 ? '#22d49a' : posture >= 65 ? '#f0a030' : '#f0405e';
-
-  const autLabel = ['Recommend Only','Auto + Notify','Full Auto'][automation];
-  const autColor = ['#6b7a94','#f0a030','#22d49a'][automation];
-  // Automation effects: filter what's "acted on" based on level
-  const actedAlerts = alerts.filter(a => {
-    if (automation === 0) return false;
-    if (automation === 1) return a.verdict === 'FP' && a.confidence >= 90;
-    return a.confidence >= 80;
-  });
-  // autoFiredRef-based useEffect above handles both Auto+Notify and Full Auto
   const automationBannerText = automation === 0
     ? 'AI is recommending only — all actions require analyst approval.'
     : automation === 1
