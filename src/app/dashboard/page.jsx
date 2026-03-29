@@ -701,13 +701,11 @@ export default function DashboardPage() {
     critAlerts.forEach(a=>{
       if(lastNotifiedRef.current.has(a.id)) return;
       lastNotifiedRef.current.add(a.id);
-      // Slack webhook
       fetch('/api/settings/user',{headers:{'x-tenant-id':tenantRef.current}}).then(r=>r.json()).then(d=>{
         const webhook=d.settings?.slack_webhook;
         if(webhook) fetch('/api/slack-webhook',{method:'POST',headers:{'Content-Type':'application/json'},
           body:JSON.stringify({webhook,alert:{title:a.title,severity:a.severity,source:a.source,device:a.device,verdict:a.verdict,confidence:a.confidence}})
         }).catch(()=>{});
-        // Email notification if enabled and email set
         const notifCrit = d.settings?.notif_critical !== 'false';
         const userEmail = d.settings?.email;
         if(notifCrit && userEmail) {
@@ -717,34 +715,29 @@ export default function DashboardPage() {
         }
       }).catch(()=>{});
     });
-  },[critAlerts,demoMode]);
+  },[critAlerts.length,demoMode]);
 
-  // Auto+Notify: close high-confidence FPs and notify; Full Auto: isolate TPs
+  // Automation: uses autoFiredRef to prevent re-firing without writing to alertOverrides
+  // (writing to alertOverrides would recompute alerts→actedAlerts→re-fire this effect)
   const autoFiredRef = React.useRef(new Set());
   React.useEffect(()=>{
     if(automation===0||demoMode) return;
-    // Auto+Notify (level 1): auto-close high-confidence FPs + notify
     if(automation>=1) {
       const fpCandidates = alerts.filter(a=>a.verdict==='FP'&&a.confidence>=90&&!autoFiredRef.current.has('fp_'+a.id));
       fpCandidates.forEach(a=>{
         autoFiredRef.current.add('fp_'+a.id);
-        setAlertOverrides(prev=>({...prev,[a.id]:{...(prev[a.id]||{}),verdict:'FP',acknowledged:true,autoClosed:true}}));
         fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({type:'auto_close_fp',alertId:a.id,alertTitle:a.title,confidence:a.confidence,automation,analyst:'AI'})}).catch(()=>{});
-        // Notify via Slack if webhook configured
         fetch('/api/settings/user',{headers:{'x-tenant-id':tenantRef.current}}).then(r=>r.json()).then(d=>{
           const webhook=d.settings?.slack_webhook;
           if(webhook) fetch('/api/slack-webhook',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({webhook,alert:{title:`[Auto-closed FP] ${a.title}`,severity:a.severity,source:a.source,verdict:'FP',confidence:a.confidence}})}).catch(()=>{});
         }).catch(()=>{});
       });
     }
-    // Full Auto (level 2): isolate Critical TP devices
     if(automation===2) {
       const tpCandidates = alerts.filter(a=>a.verdict==='TP'&&a.severity==='Critical'&&a.device&&a.confidence>=80&&!autoFiredRef.current.has('tp_'+a.id));
       tpCandidates.forEach(a=>{
         autoFiredRef.current.add('tp_'+a.id);
-        fetch('/api/response-actions',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({action:'isolate_device',device:a.device,alertId:a.id,analyst:'AI Auto'})}).then(r=>r.json()).then(d=>{
-          if(d.ok) setAlertOverrides(prev=>({...prev,[a.id]:{...(prev[a.id]||{}),actionFired:true}}));
-        }).catch(()=>{});
+        fetch('/api/response-actions',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({action:'isolate_device',device:a.device,alertId:a.id,analyst:'AI Auto'})}).catch(()=>{});
         fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({type:'auto_response',action:'isolate_device',device:a.device,alertId:a.id,alertTitle:a.title,automation,analyst:'AI'})}).catch(()=>{});
       });
     }
