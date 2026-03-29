@@ -132,50 +132,10 @@ INVESTIGATION TASK:
 4. What is the strongest case for FP? Be honest about uncertainty.
 5. How does organisational context (past decisions, noisy sources) affect your confidence?
 
-Respond ONLY with this JSON (no markdown, no prose):
-{
-  "verdict": "TP" | "FP" | "SUS",
-  "confidence": <0-100, see calibration guide>,
-  "analystNarrative": "<2-4 sentences. Write like briefing a CISO. Reference specific indicators. State what makes this verdict confident or uncertain.>",
-  "evidenceChain": [
-    "<what this specific indicator means and why it matters>",
-    "<cross-source correlation or absence of expected benign context>",
-    "<attacker TTP match or benign explanation with reasoning>",
-    "<risk context — consequence if TP and missed>",
-    "<optional: additional corroborating or contradicting signal>"
-  ],
-  "counterarguments": [
-    "<strongest reason this verdict could be wrong, and what evidence would flip it>"
-  ],
-  "mitreMapping": {
-    "tactic": "<exact MITRE tactic>",
-    "technique": "<exact technique name>",
-    "id": "<T1XXX.XXX>",
-    "subtechnique": "<optional>"
-  },
-  "huntQueries": {
-    "splunk": "<specific SPL using real field names — not generic>",
-    "sentinel": "<specific KQL>",
-    "defender": "<specific Advanced Hunting KQL>",
-    "elastic": "<specific EQL or KQL>"
-  },
-  "immediateActions": [
-    { "priority": "CRITICAL", "action": "<specific, concrete action>", "timeframe": "<e.g. within 15 minutes>", "owner": "SOC L2" },
-    { "priority": "HIGH", "action": "...", "timeframe": "...", "owner": "..." }
-  ],
-  "blastRadius": "<what attacker in this position could reach — specific not generic>",
-  "attackerObjective": "<most likely goal: ransomware staging / credential theft / data exfiltration / persistence / C2 establishment / recon>",
-  "campaignIndicators": ["<signal suggesting coordinated campaign vs isolated event>"],
-  "escalationTriggers": ["<specific observable that would immediately upgrade this to Critical P1>"]
-}
+Respond ONLY with JSON (no markdown):
+{"verdict":"TP"|"FP"|"SUS","confidence":0-100,"analystNarrative":"<2-3 sentences briefing a CISO — specific indicators, why confident/uncertain>","evidenceChain":["<indicator + meaning>","<correlation or absence of benign context>","<TTP match or benign explanation>","<risk if TP missed>"],"counterarguments":["<strongest FP case + what would flip verdict>"],"mitreMapping":{"tactic":"<exact>","technique":"<exact>","id":"<T1XXX.XXX>"},"huntQueries":{"splunk":"<specific SPL>","sentinel":"<specific KQL>","defender":"<specific AH query>","elastic":"<specific EQL>"},"immediateActions":[{"priority":"CRITICAL"|"HIGH"|"MEDIUM","action":"<specific action>","timeframe":"<e.g. 15 min>","owner":"SOC L2"}],"blastRadius":"<specific reach from this position>","attackerObjective":"<ransomware staging|credential theft|data exfil|persistence|C2|recon>","campaignIndicators":["<campaign signal>"],"escalationTriggers":["<what triggers P1 upgrade>"]}
 
-CONFIDENCE CALIBRATION:
-95-100: Textbook IOC, multiple independent corroborating signals, known hash/IOC in threat intel
-85-94: Strong indicator, high-fidelity source (EDR process injection), no benign explanation
-70-84: Good indicator but evidence gap, or plausible benign explanation exists
-55-69: Ambiguous — verdict SUS, not TP or FP
-40-54: More likely FP, but concerning enough to flag
-0-39: High-confidence FP based on known-good patterns in this environment`;
+Confidence: 90+=textbook IOC multiple signals | 75-89=strong indicator | 60-74=moderate | 45-59=SUS | 30-44=likely FP | <30=clear FP`;
 }
 
 export async function POST(req: NextRequest) {
@@ -214,37 +174,23 @@ export async function POST(req: NextRequest) {
     const tenantContext = await getTenantContext(tenantId);
     const prompt = buildPrompt(alertContext, tenantContext, isHighSeverity);
 
-    // Model selection: haiku for speed (<2s), sonnet for complex high/critical cases
-    // Opus reserved for future premium tier — too slow for real-time SOC use
-    const hasRichContext = !!(body.relatedAlerts?.length || body.iocMatches?.length || body.deviceVulns?.length);
-    const useHigherModel = isHighSeverity && hasRichContext;
-    const model = useHigherModel ? 'claude-sonnet-4-6' : 'claude-haiku-4-5-20251001';
-    const modelVersion = useHigherModel ? 'sonnet' : 'haiku';
+    // Always haiku — fast, capable, widely available across all API tiers
+    // Sonnet/Opus reserved for future premium tier
+    const model = 'claude-haiku-4-5-20251001';
+    const modelVersion = 'haiku';
+
+    console.log(`[triage] alert=${body.alertId} severity=${body.severity} model=${model} promptLen=${prompt.length}`);
 
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model, max_tokens: 2000, system: SYSTEM_PROMPT, messages: [{ role: 'user', content: prompt }] }),
+      body: JSON.stringify({ model, max_tokens: 1200, system: SYSTEM_PROMPT, messages: [{ role: 'user', content: prompt }] }),
     });
+
     if (!resp.ok) {
-      // Fallback to haiku if sonnet unavailable
-      if (useHigherModel) {
-        const fb = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-          body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 1600, system: SYSTEM_PROMPT, messages: [{ role: 'user', content: prompt }] }),
-        });
-        if (!fb.ok) return NextResponse.json({ ok: false, error: `AI error: ${resp.status}` }, { status: 502 });
-        const data = await fb.json();
-        const fbText = (data.content || []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('');
-        let fbParsed: any;
-        try { fbParsed = JSON.parse(fbText.replace(/^```json\s*/m,'').replace(/^```\s*/m,'').replace(/```\s*$/m,'').trim()); }
-        catch { const m = fbText.match(/\{[\s\S]+\}/); if (m) { try { fbParsed = JSON.parse(m[0]); } catch { return NextResponse.json({ ok: false, error: 'Malformed AI response' }, { status: 502 }); } } else return NextResponse.json({ ok: false, error: 'Malformed AI response' }, { status: 502 }); }
-        const fbResult: TriageResult = { alertId: body.alertId, verdict: ['TP','FP','SUS'].includes(fbParsed.verdict) ? fbParsed.verdict : 'SUS', confidence: typeof fbParsed.confidence === 'number' ? Math.min(100,Math.max(0,fbParsed.confidence)) : 50, analystNarrative: fbParsed.analystNarrative || fbParsed.reasoning || '', evidenceChain: Array.isArray(fbParsed.evidenceChain) ? fbParsed.evidenceChain : [], counterarguments: Array.isArray(fbParsed.counterarguments) ? fbParsed.counterarguments : [], mitreMapping: fbParsed.mitreMapping || { tactic:'', technique:'', id:'' }, huntQueries: { splunk:'', sentinel:'', defender:'', elastic:'', ...fbParsed.huntQueries }, immediateActions: Array.isArray(fbParsed.immediateActions) ? fbParsed.immediateActions : [], blastRadius: fbParsed.blastRadius || '', attackerObjective: fbParsed.attackerObjective || '', campaignIndicators: Array.isArray(fbParsed.campaignIndicators) ? fbParsed.campaignIndicators : [], escalationTriggers: Array.isArray(fbParsed.escalationTriggers) ? fbParsed.escalationTriggers : [], cachedAt: Date.now(), modelVersion: 'haiku-fallback' };
-        await redisSet(cacheKey, JSON.stringify(fbResult)).catch(() => {});
-        return NextResponse.json({ ok: true, result: fbResult, cached: false, modelVersion: 'haiku-fallback' });
-      }
-      return NextResponse.json({ ok: false, error: `AI error: ${resp.status}` }, { status: 502 });
+      const errBody = await resp.text().catch(() => '');
+      console.error(`[triage] Anthropic error ${resp.status}: ${errBody.slice(0, 300)}`);
+      return NextResponse.json({ ok: false, error: `AI error: ${resp.status}`, detail: errBody.slice(0, 200) }, { status: 502 });
     }
     const data = await resp.json();
 
