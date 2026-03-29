@@ -53,6 +53,8 @@ function LoginPageInner() {
         setUserId(data.userId);
         setStep('mfa');
       } else if (res.ok && data.ok) {
+        // Nuke any stale MFA-pending cookie before entering dashboard
+        document.cookie = 'wt_mfa_pending=; max-age=0; path=/';
         router.push('/dashboard');
       } else {
         setError(data.error || 'Invalid credentials');
@@ -71,7 +73,7 @@ function LoginPageInner() {
         body: JSON.stringify({ email, password, mfaCode }),
       });
       const data = await res.json() as { ok?: boolean; error?: string };
-      if (res.ok && data.ok) { router.push('/dashboard'); }
+      if (res.ok && data.ok) { document.cookie = 'wt_mfa_pending=; max-age=0; path=/'; router.push('/dashboard'); }
       else { setError(data.error || 'Invalid MFA code'); }
     } catch { setError('Network error'); }
     setLoading(false);

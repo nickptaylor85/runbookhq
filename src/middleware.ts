@@ -61,7 +61,11 @@ export async function middleware(req: NextRequest) {
       if (sessionToken) {
         try {
           const encoded = sessionToken.split('.')[0];
-          const payload = JSON.parse(atob(encoded.replace(/-/g, '+').replace(/_/g, '/')));
+          // Add padding for base64url → base64 conversion
+          const padded = encoded.replace(/-/g, '+').replace(/_/g, '/').padEnd(
+            encoded.length + (4 - (encoded.length % 4)) % 4, '='
+          );
+          const payload = JSON.parse(atob(padded));
           isAdminSession = payload.isAdmin === true;
         } catch {}
       }
