@@ -272,6 +272,5 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
       </div>
 
     </div>
-  </div>
   );
 }
