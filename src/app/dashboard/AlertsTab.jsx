@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 
 const SEV_COLOR = { Critical:'#f0405e', High:'#f97316', Medium:'#f0a030', Low:'#4f8fff' };
 const VERDICT_STYLE = {
@@ -55,8 +56,81 @@ export default function AlertsTab({
   autoClosedIds,
 }) {
   const canVote = userTier !== 'community';
+  const canTeam = userTier !== 'community';
+
+  // Structured triage results (evidence chain, hunt queries) — fetched from /api/triage
+  const [triageResults, setTriageResults] = React.useState({});
+  const [triageLoading, setTriageLoading] = React.useState(new Set());
+  const [blastResults, setBlastResults] = React.useState({});
+  const [blastLoading, setBlastLoading] = React.useState(new Set());
+  const [showBlast, setShowBlast] = React.useState(new Set());
+  const [showHuntQuery, setShowHuntQuery] = React.useState(new Set());
+
+  // Write analyst verdict to institutional knowledge store
+  function writeKnowledge(alert, verdict, note) {
+    if (demoMode) return;
+    fetch('/api/tenant-knowledge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ts: Date.now(),
+        alertTitle: alert.title,
+        source: alert.source,
+        severity: alert.severity,
+        device: alert.device,
+        mitre: alert.mitre,
+        verdict,
+        analystNote: note || undefined,
+      }),
+    }).catch(() => {});
+  }
+
+  // Fetch structured triage for a live alert when it expands
+  function fetchTriage(alert) {
+    if (demoMode || triageResults[alert.id] || triageLoading.has(alert.id)) return;
+    setTriageLoading(prev => new Set([...prev, alert.id]));
+    fetch('/api/triage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        alertId: alert.id, title: alert.title, severity: alert.severity,
+        source: alert.source, device: alert.device, mitre: alert.mitre,
+        description: alert.description, ip: alert.ip, user: alert.user,
+        confidence: alert.confidence,
+      }),
+    }).then(r => r.json()).then(d => {
+      if (d.ok && d.result) setTriageResults(prev => ({ ...prev, [alert.id]: d.result }));
+    }).catch(() => {}).finally(() => {
+      setTriageLoading(prev => { const n = new Set(prev); n.delete(alert.id); return n; });
+    });
+  }
+
+  // Fetch blast radius when analyst confirms TP
+  function fetchBlastRadius(alert) {
+    if (blastResults[alert.id] || blastLoading.has(alert.id)) return;
+    setBlastLoading(prev => new Set([...prev, alert.id]));
+    fetch('/api/blast-radius', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        alertId: alert.id, title: alert.title, severity: alert.severity,
+        source: alert.source, device: alert.device, mitre: alert.mitre,
+        user: alert.user, ip: alert.ip, description: alert.description,
+      }),
+    }).then(r => r.json()).then(d => {
+      if (d.ok && d.result) setBlastResults(prev => ({ ...prev, [alert.id]: d.result }));
+    }).catch(() => {}).finally(() => {
+      setBlastLoading(prev => { const n = new Set(prev); n.delete(alert.id); return n; });
+    });
+  }
+
   function toggleAlertExpand(id) {
     setExpandedAlerts(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  }
+
+  function handleExpand(alert) {
+    toggleAlertExpand(alert.id);
+    if (!expandedAlerts.has(alert.id)) fetchTriage(alert);
   }
 
   // Generate AI auto-response timeline entries based on alert content
@@ -243,10 +317,17 @@ export default function AlertsTab({
         const ageStr = relTime(alert.rawTime, alert.time);
         const isFresh = alert.rawTime && (Date.now() - new Date(alert.rawTime).getTime()) < 15*60*1000;
         const isStale = alert.rawTime && (Date.now() - new Date(alert.rawTime).getTime()) > 4*60*60*1000;
-        // SLA breach indicator on alert card: Critical unacked >1h, High unacked >4h
         const alertAgeMs = alert.rawTime ? Date.now() - new Date(alert.rawTime).getTime() : 0;
         const alertSlaMs = alert.severity==='Critical' ? 3600000 : alert.severity==='High' ? 14400000 : 0;
         const isSlaBreach = !isAcknowledged && alertSlaMs > 0 && alertAgeMs > alertSlaMs && effectiveVerdict === 'Pending';
+        // Structured triage result (evidence chain, hunt queries)
+        const structTriage = triageResults[alert.id];
+        const structLoading = triageLoading.has(alert.id);
+        const isTP = effectiveVerdict === 'TP';
+        const blastResult = blastResults[alert.id];
+        const blastIsLoading = blastLoading.has(alert.id);
+        const showingBlast = showBlast.has(alert.id);
+        const showingHunt = showHuntQuery.has(alert.id);
 
         return (
           <div key={alert.id} style={{padding:0,overflow:'hidden',background:'var(--wt-card)',
@@ -255,7 +336,7 @@ export default function AlertsTab({
             transition:'border-color .15s,opacity .15s'}}>
 
             {/* Collapsed row */}
-            <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px',cursor:'pointer'}} onClick={()=>toggleAlertExpand(alert.id)}>
+            <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px',cursor:'pointer'}} onClick={()=>handleExpand(alert)}>
               {/* Checkbox */}
               <div onClick={e=>{e.stopPropagation();setSelectedAlerts(prev=>{const n=new Set(prev);n.has(alert.id)?n.delete(alert.id):n.add(alert.id);return n;})}}
                 style={{width:15,height:15,borderRadius:3,border:`1px solid ${isSelected?'#4f8fff':'var(--wt-border2)'}`,background:isSelected?'#4f8fff':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,cursor:'pointer'}}>
@@ -292,11 +373,11 @@ export default function AlertsTab({
                 {/* Quick FP/TP — no expand needed */}
                 <div onClick={e=>e.stopPropagation()} style={{display:'flex',gap:3}}>
                   {canVote ? (<>
-                  <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'FP',confidence:99}}));onAudit&&onAudit({type:'verdict',verdict:'FP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});}}
+                  <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'FP',confidence:99}}));onAudit&&onAudit({type:'verdict',verdict:'FP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});writeKnowledge(alert,'FP');}}
                     style={{padding:'2px 7px',borderRadius:4,border:'1px solid #22d49a40',background:effectiveVerdict==='FP'?'#22d49a':'transparent',color:effectiveVerdict==='FP'?'#fff':'#22d49a',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',lineHeight:1.4}}>
                     FP
                   </button>
-                  <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'TP',acknowledged:true}}));onAudit&&onAudit({type:'verdict',verdict:'TP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});}}
+                  <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'TP',acknowledged:true}}));onAudit&&onAudit({type:'verdict',verdict:'TP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});writeKnowledge(alert,'TP');if(!demoMode)fetchBlastRadius(alert);}}
                     style={{padding:'2px 7px',borderRadius:4,border:'1px solid #f0405e40',background:effectiveVerdict==='TP'?'#f0405e':'transparent',color:effectiveVerdict==='TP'?'#fff':'#f0405e',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',lineHeight:1.4}}>
                     TP
                   </button>
@@ -383,11 +464,11 @@ export default function AlertsTab({
 
                 {/* Action buttons */}
                 <div style={{display:'flex',gap:6,flexWrap:'wrap',marginTop:12}}>
-                    {canVote && <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'FP',confidence:99}}));onAudit&&onAudit({type:'verdict',verdict:'FP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});}}
+                    {canVote && <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'FP',confidence:99}}));onAudit&&onAudit({type:'verdict',verdict:'FP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});writeKnowledge(alert,'FP',alertNotes[alert.id]);}}
                     style={{padding:'4px 12px',borderRadius:6,border:'1px solid #22d49a30',background:effectiveVerdict==='FP'?'#22d49a':'#22d49a10',color:effectiveVerdict==='FP'?'#fff':'#22d49a',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                     {effectiveVerdict==='FP'?'✓ Marked FP':'Mark FP'}
                   </button>}
-                  {canVote && <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'TP',acknowledged:true}}));onAudit&&onAudit({type:'verdict',verdict:'TP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});}}
+                  {canVote && <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'TP',acknowledged:true}}));onAudit&&onAudit({type:'verdict',verdict:'TP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});writeKnowledge(alert,'TP',alertNotes[alert.id]);if(!demoMode){fetchBlastRadius(alert);setShowBlast(prev=>{const n=new Set(prev);n.add(alert.id);return n;});}}}
                     style={{padding:'4px 12px',borderRadius:6,border:'1px solid #f0405e30',background:effectiveVerdict==='TP'?'#f0405e':'#f0405e10',color:effectiveVerdict==='TP'?'#fff':'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                     {effectiveVerdict==='TP'?'✓ Marked TP':'Mark TP'}
                   </button>}
@@ -409,7 +490,118 @@ export default function AlertsTab({
                   }} style={{padding:'4px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                     Create Case
                   </button>
+                  {canTeam && !demoMode && <button onClick={()=>setShowHuntQuery(prev=>{const n=new Set(prev);n.has(alert.id)?n.delete(alert.id):n.add(alert.id);return n;})}
+                    style={{padding:'4px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:showingHunt?'#4f8fff':'#4f8fff10',color:showingHunt?'#fff':'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                    🔍 Hunt Queries
+                  </button>}
                 </div>
+
+                {/* STRUCTURED TRIAGE — Evidence Chain + Hunt Queries (live mode, Team+) */}
+                {!demoMode && canTeam && (
+                  <div style={{marginTop:12}}>
+                    {/* Loading spinner */}
+                    {structLoading && (
+                      <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 0',fontSize:'0.72rem',color:'var(--wt-muted)'}}>
+                        <span style={{width:10,height:10,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>
+                        Running structured triage…
+                      </div>
+                    )}
+                    {/* Evidence Chain */}
+                    {structTriage && (
+                      <div style={{background:'linear-gradient(135deg,rgba(79,143,255,0.04),rgba(34,201,146,0.03))',border:'1px solid #4f8fff20',borderRadius:10,overflow:'hidden',marginBottom:8}}>
+                        <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',borderBottom:'1px solid #4f8fff15'}}>
+                          <span style={{fontSize:'0.6rem',fontWeight:800,color:'#4f8fff',letterSpacing:'0.5px'}}>✦ EVIDENCE CHAIN</span>
+                          <span style={{fontSize:'0.6rem',fontWeight:800,padding:'1px 8px',borderRadius:4,background:(structTriage.verdict==='TP'?'#f0405e':structTriage.verdict==='FP'?'#22d49a':'#f0a030')+'18',color:structTriage.verdict==='TP'?'#f0405e':structTriage.verdict==='FP'?'#22d49a':'#f0a030'}}>{structTriage.verdict} · {structTriage.confidence}%</span>
+                          {structTriage.mitreMapping?.id && <span style={{fontSize:'0.52rem',color:'#8b6fff',fontFamily:'JetBrains Mono,monospace',marginLeft:'auto'}}>{structTriage.mitreMapping.id} — {structTriage.mitreMapping.tactic}</span>}
+                        </div>
+                        <div style={{padding:'10px 12px'}}>
+                          <div style={{fontSize:'0.72rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:10}}>{structTriage.reasoning}</div>
+                          {structTriage.evidenceChain?.length > 0 && (
+                            <div style={{marginBottom:10}}>
+                              {structTriage.evidenceChain.map((step,i)=>(
+                                <div key={i} style={{display:'flex',gap:8,padding:'4px 0',borderBottom:'1px solid var(--wt-border)',alignItems:'flex-start'}}>
+                                  <span style={{fontSize:'0.52rem',fontWeight:900,color:'#4f8fff',flexShrink:0,marginTop:2,fontFamily:'JetBrains Mono,monospace'}}>#{i+1}</span>
+                                  <span style={{fontSize:'0.68rem',color:'var(--wt-secondary)',lineHeight:1.55}}>{step}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {structTriage.immediateActions?.length > 0 && (
+                            <div>
+                              <div style={{fontSize:'0.56rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Immediate Actions</div>
+                              {structTriage.immediateActions.map((a,i)=>(
+                                <div key={i} style={{fontSize:'0.66rem',color:'#f0a030',display:'flex',gap:6,marginBottom:2}}><span>⚡</span>{a}</div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {/* Hunt Queries */}
+                    {structTriage && showingHunt && (
+                      <div style={{background:'#080a12',border:'1px solid #1e2536',borderRadius:10,padding:'10px 12px',marginBottom:8}}>
+                        <div style={{fontSize:'0.58rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Hunt Queries</div>
+                        {[{label:'Splunk SPL',val:structTriage.huntQueries?.splunk,c:'#65a637'},{label:'Sentinel KQL',val:structTriage.huntQueries?.sentinel,c:'#00a4ef'},{label:'Defender AH',val:structTriage.huntQueries?.defender,c:'#f97316'}].map(({label,val,c})=>val&&(
+                          <div key={label} style={{marginBottom:8}}>
+                            <div style={{fontSize:'0.52rem',fontWeight:700,color:c,marginBottom:3}}>{label}</div>
+                            <div style={{display:'flex',gap:6,alignItems:'flex-start'}}>
+                              <code style={{flex:1,fontSize:'0.6rem',fontFamily:'JetBrains Mono,monospace',color:'#22c992',background:'#050810',padding:'6px 8px',borderRadius:5,display:'block',wordBreak:'break-all',lineHeight:1.5}}>{val}</code>
+                              <button onClick={()=>navigator.clipboard?.writeText(val)} style={{padding:'4px 8px',borderRadius:4,border:`1px solid ${c}30`,background:`${c}12`,color:c,fontSize:'0.52rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Copy</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* BLAST RADIUS — shows when TP is confirmed */}
+                {isTP && !demoMode && canTeam && (showingBlast || blastIsLoading || blastResult) && (
+                  <div style={{marginTop:10,border:'1px solid #f0405e30',borderRadius:10,overflow:'hidden',background:'linear-gradient(135deg,rgba(240,64,94,0.04),rgba(139,111,255,0.03))'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',borderBottom:'1px solid #f0405e20'}}>
+                      <span style={{fontSize:'0.6rem',fontWeight:800,color:'#f0405e',letterSpacing:'0.5px'}}>💥 BLAST RADIUS ANALYSIS</span>
+                      {blastResult && <span style={{fontSize:'0.58rem',fontWeight:700,padding:'1px 7px',borderRadius:3,background:(blastResult.estimatedSeverity==='Critical'?'#f0405e':blastResult.estimatedSeverity==='Expanding'?'#f97316':'#22d49a')+'20',color:blastResult.estimatedSeverity==='Critical'?'#f0405e':blastResult.estimatedSeverity==='Expanding'?'#f97316':'#22d49a'}}>{blastResult.estimatedSeverity}</span>}
+                      {!blastResult && <button onClick={()=>fetchBlastRadius(alert)} style={{marginLeft:'auto',padding:'3px 10px',borderRadius:4,border:'1px solid #f0405e30',background:'#f0405e12',color:'#f0405e',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Run Analysis</button>}
+                    </div>
+                    {blastIsLoading && <div style={{padding:'10px 12px',fontSize:'0.72rem',color:'var(--wt-muted)',display:'flex',alignItems:'center',gap:8}}><span style={{width:10,height:10,borderRadius:'50%',border:'2px solid #f0405e',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>Mapping blast radius…</div>}
+                    {blastResult && (
+                      <div style={{padding:'10px 12px',display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+                        {blastResult.affectedScope && (
+                          <div>
+                            <div style={{fontSize:'0.54rem',fontWeight:700,color:'#f0405e',marginBottom:4,textTransform:'uppercase',letterSpacing:'0.5px'}}>Affected Scope</div>
+                            {blastResult.affectedScope.users?.length>0&&<div style={{fontSize:'0.64rem',color:'var(--wt-secondary)',marginBottom:2}}>👤 {blastResult.affectedScope.users.join(', ')}</div>}
+                            {blastResult.affectedScope.devices?.length>0&&<div style={{fontSize:'0.64rem',color:'var(--wt-secondary)',marginBottom:2}}>💻 {blastResult.affectedScope.devices.join(', ')}</div>}
+                            {blastResult.affectedScope.services?.length>0&&<div style={{fontSize:'0.64rem',color:'var(--wt-secondary)',marginBottom:2}}>⚙️ {blastResult.affectedScope.services.join(', ')}</div>}
+                            {blastResult.affectedScope.dataStores?.length>0&&<div style={{fontSize:'0.64rem',color:'var(--wt-secondary)',marginBottom:2}}>🗄️ {blastResult.affectedScope.dataStores.join(', ')}</div>}
+                          </div>
+                        )}
+                        {blastResult.lateralRisk?.paths?.length>0 && (
+                          <div>
+                            <div style={{fontSize:'0.54rem',fontWeight:700,color:'#f97316',marginBottom:4,textTransform:'uppercase',letterSpacing:'0.5px'}}>Lateral Movement Risk</div>
+                            {blastResult.lateralRisk.paths.map((p,i)=><div key={i} style={{fontSize:'0.62rem',color:'#f97316',marginBottom:2}}>→ {p}</div>)}
+                          </div>
+                        )}
+                        {blastResult.immediateContainment?.length>0 && (
+                          <div style={{gridColumn:'1 / -1'}}>
+                            <div style={{fontSize:'0.54rem',fontWeight:700,color:'#22d49a',marginBottom:4,textTransform:'uppercase',letterSpacing:'0.5px'}}>Immediate Containment</div>
+                            {blastResult.immediateContainment.map((a,i)=><div key={i} style={{fontSize:'0.64rem',color:'#22d49a',marginBottom:2}}>⚡ {a}</div>)}
+                          </div>
+                        )}
+                        {blastResult.forensicCommands?.length>0 && (
+                          <div style={{gridColumn:'1 / -1'}}>
+                            <div style={{fontSize:'0.54rem',fontWeight:700,color:'#4f8fff',marginBottom:4,textTransform:'uppercase',letterSpacing:'0.5px'}}>Forensic Commands</div>
+                            {blastResult.forensicCommands.map((cmd,i)=>(
+                              <div key={i} style={{display:'flex',gap:6,alignItems:'flex-start',marginBottom:4}}>
+                                <code style={{flex:1,fontSize:'0.58rem',fontFamily:'JetBrains Mono,monospace',color:'#22c992',background:'#050810',padding:'4px 7px',borderRadius:4,display:'block',wordBreak:'break-all'}}>{cmd}</code>
+                                <button onClick={()=>navigator.clipboard?.writeText(cmd)} style={{padding:'3px 7px',borderRadius:3,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.5rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Copy</button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Analyst Notes */}
                 <div style={{marginTop:12}}>

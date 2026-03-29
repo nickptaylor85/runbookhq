@@ -151,6 +151,19 @@ export async function POST(req: NextRequest) {
       systemWithContext += '\n--- END CONTEXT ---';
     }
 
+    // Inject institutional knowledge (last 25 analyst decisions) as context
+    try {
+      const knowledgeResp = await fetch(`${req.nextUrl.origin}/api/tenant-knowledge?limit=25`, {
+        headers: { 'x-tenant-id': tenantId },
+      });
+      if (knowledgeResp.ok) {
+        const kd = await knowledgeResp.json() as { summary?: string; counts?: { tp: number; fp: number } };
+        if (kd.summary && (kd.counts?.tp || kd.counts?.fp)) {
+          systemWithContext += `\n\n--- INSTITUTIONAL KNOWLEDGE (learn from analyst decisions) ---\n${kd.summary}\n--- END KNOWLEDGE ---`;
+        }
+      }
+    } catch {}
+
     // Build messages — use conversation history if provided
     let messages: Array<{role: string; content: string}>;
     if (body.messages && body.messages.length > 0) {

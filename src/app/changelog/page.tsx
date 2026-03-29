@@ -4,6 +4,21 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.9.125',
+    date: '2026-03-29',
+    tag: 'AI Features',
+    tagColor: '#8b6fff',
+    summary: '5 core differentiating AI features: evidence chain, blast radius, institutional knowledge, Tier 2/3 investigation, hunt query generator',
+    changes: [
+      { type: 'feat', text: 'Evidence Chain Transparency — every alert that expands now runs /api/triage to get a structured verdict with numbered evidence steps, MITRE mapping, and reasoning. Analyst can see exactly why the AI reached its verdict. Results cached 24h per alert.' },
+      { type: 'feat', text: 'Blast Radius Analysis — confirming a TP immediately triggers /api/blast-radius. AI maps affected users, devices, services, lateral movement paths, and forensic commands to run. Panel appears in the alert expand with copy buttons.' },
+      { type: 'feat', text: 'Institutional Knowledge — every FP/TP verdict is written to /api/tenant-knowledge (Redis list, last 100). Co-Pilot now injects the last 25 analyst decisions as context on every call, learning your environment over time.' },
+      { type: 'feat', text: 'Tier 2/3 Deep Investigation — Incidents tab has a new "Deep Investigate" button (Team+). Calls /api/investigate with all grouped alerts, returns: reconstructed attack timeline, root cause, attacker objective, lateral movement paths, remediation plan (Critical/High/Medium), forensic commands, extracted IOCs, and detection gaps.' },
+      { type: 'feat', text: 'Hunt Query Generator — structured triage now auto-generates Splunk SPL, Sentinel KQL, and Defender Advanced Hunting queries for every live alert. Hunt Queries button in expanded alert view shows all three with copy buttons.' },
+    ],
+  },
+
+  {
     version: 'v74.9.124',
     date: '2026-03-29',
     tag: 'Strategy',
