@@ -4,6 +4,24 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.9.123',
+    date: '2026-03-29',
+    tag: 'Quality',
+    tagColor: '#22d49a',
+    summary: '8 audit fixes: viewport, FP/TP gate, auto-notify UI, SLA display, audit log tab, demo link, dynamic slug map, client report cron',
+    changes: [
+      { type: 'fix', text: 'Mobile viewport meta tag — added export const viewport to layout.tsx. All mobile visitors now render at device width instead of desktop-scaled 1200px.' },
+      { type: 'fix', text: 'FP/TP verdict buttons now gated for Community tier. Community users see the current verdict badge and a locked upgrade prompt instead of clickable buttons. Pricing promise (read-only) now enforced.' },
+      { type: 'feat', text: 'Auto+Notify UI feedback — alerts auto-closed by the automation slider now show an "AI CLOSED" badge in the alert card. Uses separate autoClosedIds state to avoid the alertOverrides→actedAlerts re-render loop.' },
+      { type: 'feat', text: 'SLA stats displayed in Shift Metrics — the bottom-right "Tools Live" card switches to show MTTA (Critical) in minutes when in live mode and SLA data is available from /api/sla.' },
+      { type: 'feat', text: 'Audit Log tab in Admin Portal — fetches last 100 entries from /api/audit with type badges, verdict colour-coding, analyst name, timestamp, and affected alert/incident title.' },
+      { type: 'feat', text: 'Demo page linked from landing page — hero CTA "See features" replaced with "See live demo" linking to /demo. Also added Demo to footer nav.' },
+      { type: 'feat', text: 'Dynamic MSSP slug mapping — /api/mssp/slug-map stores slug→tenantId mapping in Redis. Branded login page at /login/[slug] now fetches mapping dynamically. New clients can be added without a code deploy.' },
+      { type: 'feat', text: 'Per-client weekly reports in cron — /api/cron now reads client list from slug map, generates exec summary for each client, and sends it to their configured email address. Runs Monday 08:00 UTC.' },
+    ],
+  },
+
+  {
     version: 'v74.9.119',
     date: '2026-03-29',
     tag: 'Security + UX',

@@ -35,6 +35,36 @@ function SignupToggle() {
   );
 }
 
+
+function AuditLogView({ tenantId }) {
+  const [entries, setEntries] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  React.useEffect(()=>{
+    fetch('/api/audit?limit=100',{headers:{'x-tenant-id':tenantId}}).then(r=>r.json()).then(d=>{if(d.entries)setEntries(d.entries);setLoading(false);}).catch(()=>setLoading(false));
+  },[tenantId]);
+  if(loading) return <div style={{fontSize:'0.72rem',color:'var(--wt-muted)'}}>Loading…</div>;
+  if(entries.length===0) return <div style={{fontSize:'0.72rem',color:'var(--wt-muted)',padding:'16px 0'}}>No audit entries yet. FP/TP verdicts and incident changes will appear here.</div>;
+  const typeColors = {verdict:'#4f8fff',incident_status:'#f0a030',auto_close_fp:'#22d49a',auto_response:'#f0405e'};
+  return (
+    <div style={{display:'flex',flexDirection:'column',gap:4,maxHeight:400,overflowY:'auto'}}>
+      {entries.map((e,i)=>(
+        <div key={i} style={{display:'flex',alignItems:'flex-start',gap:8,padding:'8px 12px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:8}}>
+          <div style={{width:6,height:6,borderRadius:'50%',background:typeColors[e.type]||'#6b7a94',flexShrink:0,marginTop:5}} />
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{display:'flex',gap:6,alignItems:'center',marginBottom:2,flexWrap:'wrap'}}>
+              <span style={{fontSize:'0.64rem',fontWeight:700,color:typeColors[e.type]||'#6b7a94'}}>{e.type}</span>
+              {e.verdict&&<span style={{fontSize:'0.6rem',padding:'0 5px',borderRadius:3,background:(e.verdict==='FP'?'#22d49a':'#f0405e')+'18',color:e.verdict==='FP'?'#22d49a':'#f0405e',fontWeight:700}}>{e.verdict}</span>}
+              {e.analyst&&<span style={{fontSize:'0.58rem',color:'var(--wt-muted)'}}>{e.analyst}</span>}
+              <span style={{fontSize:'0.56rem',color:'var(--wt-dim)',marginLeft:'auto',fontFamily:'JetBrains Mono,monospace'}}>{e.ts?new Date(e.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):''}</span>
+            </div>
+            <div style={{fontSize:'0.66rem',color:'var(--wt-secondary)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{e.alertTitle||e.incidentId||e.action||''}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBanner, setClientBanner, adminBannerInput, setAdminBannerInput, userRole, setUserRole, currentTenant }) {
   const WTC_SUBSCRIBERS = [
     {id:'mssp-cyberguard', name:'CyberGuard Solutions',  type:'MSSP',     plan:'MSSP',     seats:0,  mrr:1115, clients:4,  status:'Active',  posture:84, alerts:36, incidents:7,  coverage:93, joined:'2024-01-10', billing:'Paid'},
@@ -113,12 +143,15 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
           </h2>
           <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginTop:3}}>All organisations subscribed to Watchtower · Impersonate any tenant to view their dashboard</div>
         </div>
-        <div style={{marginLeft:'auto',display:'flex',gap:4,background:'var(--wt-card2)',borderRadius:7,padding:3,overflowX:'auto',maxWidth:'100%',flexShrink:0}}>
-          {['subscribers','users','platform','stripe','saml','broadcast','ailog'].map(v=>(
-            <button key={v} onClick={()=>{setAdminView(v);if(v==='ailog')fetchAiLog();}} style={{padding:'5px 14px',borderRadius:5,border:'none',background:adminView===v?'#f0a030':'transparent',color:adminView===v?'#fff':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',whiteSpace:'nowrap',flexShrink:0}}>{v==='ailog'?'✦ AI Log':v.charAt(0).toUpperCase()+v.slice(1)}</button>
+        <div style={{marginLeft:'auto',display:'flex',gap:4,background:'var(--wt-card2)',borderRadius:7,padding:3,overflowX:'auto',flexShrink:0}}>
+          {['subscribers','users','platform','stripe','saml','broadcast','ailog','audit'].map(v=>(
+            <button key={v} onClick={()=>{setAdminView(v);if(v==='ailog')fetchAiLog();}} style={{padding:'5px 11px',borderRadius:5,border:'none',background:adminView===v?'#f0a030':'transparent',color:adminView===v?'#fff':'var(--wt-muted)',fontSize:'0.64rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',whiteSpace:'nowrap',flexShrink:0}}>{v==='ailog'?'✦ AI Log':v.charAt(0).toUpperCase()+v.slice(1)}</button>
           ))}
         </div>
       </div>
+
+      {/* Signup toggle — always visible at the top of admin portal */}
+      <SignupToggle />
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
         {[
@@ -134,9 +167,6 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
           </div>
         ))}
       </div>
-      {/* Signup toggle — always visible regardless of sub-tab */}
-      <SignupToggle />
-
       {adminView==='subscribers' && (
         <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14,flexWrap:'wrap'}}>
@@ -336,8 +366,6 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
 
       {adminView==='platform' && (
         <div style={{display:'flex',flexDirection:'column',gap:14}}>
-          {/* Platform controls */}
-          <SignupToggle />
           {/* Stats grid */}
         <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}}>
           {[
@@ -629,4 +657,12 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
       )}
     </div>
   );
+
+        {adminView==='audit' && (
+          <div style={{display:'flex',flexDirection:'column',gap:12}}>
+            <div style={{fontSize:'0.82rem',fontWeight:700}}>Analyst Audit Log</div>
+            <div style={{fontSize:'0.72rem',color:'var(--wt-muted)',marginBottom:4}}>FP/TP verdicts, incident status changes, auto-responses. Last 100 entries.</div>
+            <AuditLogView tenantId='global' />
+          </div>
+        )}
 }

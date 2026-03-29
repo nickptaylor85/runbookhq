@@ -52,7 +52,9 @@ export default function AlertsTab({
   userTier,
   alertAssignees, setAlertAssignees,
   onAudit,
+  autoClosedIds,
 }) {
+  const canVote = userTier !== 'community';
   function toggleAlertExpand(id) {
     setExpandedAlerts(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   }
@@ -235,6 +237,7 @@ export default function AlertsTab({
         const cached = aiTriageCache[alert.id];
         const isAcknowledged = !!(ov.acknowledged || alert.acknowledged);
         const isSnoozed = alertSnoozes && alertSnoozes[alert.id] && alertSnoozes[alert.id] > Date.now();
+        const isAutoClosed = autoClosedIds && autoClosedIds.has(alert.id);
         const deviceAlertCount = deviceCounts[alert.device] || 0;
         const isHotDevice = deviceAlertCount >= 3;
         const ageStr = relTime(alert.rawTime, alert.time);
@@ -272,7 +275,8 @@ export default function AlertsTab({
                   {alertAssignees&&alertAssignees[alert.id]&&<span style={{fontSize:'0.46rem',fontWeight:700,padding:'1px 4px',borderRadius:3,background:'#4f8fff18',color:'#4f8fff',border:'1px solid #4f8fff30',flexShrink:0}}>→ {alertAssignees[alert.id]}</span>}
                   {isHotDevice && <span style={{fontSize:'0.46rem',fontWeight:800,padding:'1px 4px',borderRadius:3,background:'#f0405e20',color:'#f0405e',border:'1px solid #f0405e30',flexShrink:0}}>🔥 {deviceAlertCount}</span>}
                   {hasNote && <span style={{fontSize:'0.46rem',color:'#f0a030',background:'#f0a03012',border:'1px solid #f0a03025',padding:'1px 4px',borderRadius:3,flexShrink:0}}>note</span>}
-                  {isAcknowledged && <span style={{fontSize:'0.46rem',color:'#22d49a',background:'#22d49a12',padding:'1px 4px',borderRadius:3,flexShrink:0,fontWeight:800}}>ACK</span>}
+                  {isAutoClosed && <span style={{fontSize:'0.46rem',color:'#22d49a',background:'#22d49a15',padding:'1px 4px',borderRadius:3,flexShrink:0,fontWeight:800,border:'1px solid #22d49a30'}}>AI CLOSED</span>}
+                  {isAcknowledged && !isAutoClosed && <span style={{fontSize:'0.46rem',color:'#22d49a',background:'#22d49a12',padding:'1px 4px',borderRadius:3,flexShrink:0,fontWeight:800}}>ACK</span>}
                   {isSnoozed && <span style={{fontSize:'0.46rem',color:'#8b6fff',padding:'1px 4px',borderRadius:3,background:'#8b6fff15',flexShrink:0}}>💤</span>}
                 </div>
                 <div style={{display:'flex',gap:5,flexWrap:'wrap',alignItems:'center'}}>
@@ -287,6 +291,7 @@ export default function AlertsTab({
               <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
                 {/* Quick FP/TP — no expand needed */}
                 <div onClick={e=>e.stopPropagation()} style={{display:'flex',gap:3}}>
+                  {canVote ? (<>
                   <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'FP',confidence:99}}));onAudit&&onAudit({type:'verdict',verdict:'FP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});}}
                     style={{padding:'2px 7px',borderRadius:4,border:'1px solid #22d49a40',background:effectiveVerdict==='FP'?'#22d49a':'transparent',color:effectiveVerdict==='FP'?'#fff':'#22d49a',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',lineHeight:1.4}}>
                     FP
@@ -295,6 +300,7 @@ export default function AlertsTab({
                     style={{padding:'2px 7px',borderRadius:4,border:'1px solid #f0405e40',background:effectiveVerdict==='TP'?'#f0405e':'transparent',color:effectiveVerdict==='TP'?'#fff':'#f0405e',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',lineHeight:1.4}}>
                     TP
                   </button>
+                  </>) : (<span style={{fontSize:'0.5rem',padding:'1px 6px',borderRadius:3,background:effectiveVerdict&&effectiveVerdict!=='Pending'?'#4f8fff18':'transparent',color:'#4f8fff',border:effectiveVerdict&&effectiveVerdict!=='Pending'?'1px solid #4f8fff30':'none',fontWeight:700}}>{effectiveVerdict&&effectiveVerdict!=='Pending'?effectiveVerdict:'🔒'}</span>)}
                 </div>
                 {aiVerdict && !demoMode && <span style={{fontSize:'0.5rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:`${aiVC}15`,color:aiVC}}>AI: {aiVerdict.split(' ')[0]}</span>}
                 {alert.confidence && !aiVerdict && <span style={{fontSize:'0.5rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{alert.confidence}%</span>}
@@ -377,14 +383,15 @@ export default function AlertsTab({
 
                 {/* Action buttons */}
                 <div style={{display:'flex',gap:6,flexWrap:'wrap',marginTop:12}}>
-                  <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'FP',confidence:99}}));onAudit&&onAudit({type:'verdict',verdict:'FP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});}}
+                    {canVote && <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'FP',confidence:99}}));onAudit&&onAudit({type:'verdict',verdict:'FP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});}}
                     style={{padding:'4px 12px',borderRadius:6,border:'1px solid #22d49a30',background:effectiveVerdict==='FP'?'#22d49a':'#22d49a10',color:effectiveVerdict==='FP'?'#fff':'#22d49a',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                     {effectiveVerdict==='FP'?'✓ Marked FP':'Mark FP'}
-                  </button>
-                  <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'TP',acknowledged:true}}));onAudit&&onAudit({type:'verdict',verdict:'TP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});}}
+                  </button>}
+                  {canVote && <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'TP',acknowledged:true}}));onAudit&&onAudit({type:'verdict',verdict:'TP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});}}
                     style={{padding:'4px 12px',borderRadius:6,border:'1px solid #f0405e30',background:effectiveVerdict==='TP'?'#f0405e':'#f0405e10',color:effectiveVerdict==='TP'?'#fff':'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                     {effectiveVerdict==='TP'?'✓ Marked TP':'Mark TP'}
-                  </button>
+                  </button>}
+                  {!canVote && <span style={{fontSize:'0.7rem',color:'#4f8fff',padding:'4px 10px',borderRadius:6,background:'#4f8fff10',border:'1px solid #4f8fff20'}}>🔒 Upgrade to Team to triage</span>}
                   {setAlertSnoozes && <button onClick={()=>{
                     const dur=2*60*60*1000;
                     setAlertSnoozes(prev=>prev[alert.id]&&prev[alert.id]>Date.now()?{...prev,[alert.id]:undefined}:{...prev,[alert.id]:Date.now()+dur});

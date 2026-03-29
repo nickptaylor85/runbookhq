@@ -4,19 +4,12 @@ import { useRouter, useParams } from 'next/navigation';
 
 interface Branding { name?: string; primaryColor?: string; tagline?: string; }
 
-const SLUG_TO_TENANT: Record<string, string> = {
-  'acme-financial': 'client-acme',
-  'nhs-trust': 'client-nhs',
-  'retailco': 'client-retail',
-  'gov-dept': 'client-gov',
-};
-
 export default function BrandedLoginPage() {
   const router = useRouter();
   const params = useParams();
   const slug = params?.slug as string || '';
-  const tenantId = SLUG_TO_TENANT[slug] || slug;
 
+  const [tenantId, setTenantId] = useState('');
   const [branding, setBranding] = useState<Branding>({});
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,12 +17,20 @@ export default function BrandedLoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!tenantId) return;
-    fetch('/api/mssp/branding', { headers: { 'x-tenant-id': tenantId } })
+    if (!slug) return;
+    // Resolve slug → tenantId from Redis via API
+    fetch('/api/mssp/slug-map')
       .then(r => r.json())
-      .then(d => { if (d.branding && d.branding.name) setBranding(d.branding); })
-      .catch(() => {});
-  }, [tenantId]);
+      .then(d => {
+        const tid = d.map?.[slug] || slug;
+        setTenantId(tid);
+        // Load branding for resolved tenant
+        return fetch('/api/mssp/branding', { headers: { 'x-tenant-id': tid } });
+      })
+      .then(r => r.json())
+      .then(d => { if (d.branding?.name) setBranding(d.branding); })
+      .catch(() => { setTenantId(slug); });
+  }, [slug]);
 
   const accent = branding.primaryColor || '#4f8fff';
   const orgName = branding.name || 'Security Portal';
@@ -54,7 +55,6 @@ export default function BrandedLoginPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#050508', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', color: '#e8ecf4', padding: '20px' }}>
       <div style={{ width: '100%', maxWidth: 420 }}>
-        {/* Branded header */}
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ width: 52, height: 52, background: `linear-gradient(135deg, ${accent}, ${accent}99)`, borderRadius: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', fontSize: '1.4rem', fontWeight: 900, color: '#fff' }}>
             {orgName.charAt(0).toUpperCase()}
@@ -62,7 +62,6 @@ export default function BrandedLoginPage() {
           <div style={{ fontSize: '1.3rem', fontWeight: 800, letterSpacing: '-0.3px', marginBottom: 4 }}>{orgName}</div>
           <div style={{ fontSize: '0.8rem', color: '#6b7a94' }}>{tagline}</div>
         </div>
-
         <form onSubmit={handleLogin} style={{ background: '#0a0d18', border: '1px solid #1d2535', borderRadius: 14, padding: '28px 24px' }}>
           <div style={{ fontSize: '0.96rem', fontWeight: 700, marginBottom: 20, color: '#e8ecf4' }}>Sign in to your account</div>
           <div style={{ marginBottom: 14 }}>

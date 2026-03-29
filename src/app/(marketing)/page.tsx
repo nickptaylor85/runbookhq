@@ -253,7 +253,7 @@ export default function LandingPage() {
           </p>
           <div className='hero-btns' style={{ display:'flex', justifyContent:'center', gap:12, flexWrap:'wrap' }}>
             <a href='/signup' className='btn-primary' style={{fontSize:'0.9rem',padding:'13px 28px'}}>Start free — no card needed →</a>
-            <a href='#features' className='btn-outline' style={{fontSize:'0.9rem',padding:'13px 24px'}}>See features</a>
+            <a href='/demo' className='btn-outline' style={{fontSize:'0.9rem',padding:'13px 24px'}}>See live demo</a>
           </div>
           <div style={{ marginTop:16, fontSize:'0.72rem', color:'#3a4a60' }}>Community plan free forever · Team from £49/seat/mo</div>
         </div>
@@ -446,7 +446,7 @@ export default function LandingPage() {
           <span style={{ color:'#2a3448', marginLeft:8, fontSize:'0.72rem' }}>© 2026 Watchtower Ltd</span>
         </div>
         <div style={{ display:'flex', gap:20 }}>
-          {[{l:'Privacy',h:'/privacy'},{l:'Terms',h:'/terms'},{l:'Security',h:'/security'},{l:'Docs',h:'/docs'}].map(({l,h})=><a key={l} href={h} style={{color:'#4a5568',fontSize:'0.76rem',textDecoration:'none'}} onMouseEnter={e=>{(e.target as HTMLElement).style.color='#8a9ab0';}} onMouseLeave={e=>{(e.target as HTMLElement).style.color='#4a5568';}}>{l}</a>)}
+          {[{l:'Privacy',h:'/privacy'},{l:'Terms',h:'/terms'},{l:'Security',h:'/security'},{l:'Docs',h:'/docs'},{l:'Demo',h:'/demo'}].map(({l,h})=><a key={l} href={h} style={{color:'#4a5568',fontSize:'0.76rem',textDecoration:'none'}} onMouseEnter={e=>{(e.target as HTMLElement).style.color='#8a9ab0';}} onMouseLeave={e=>{(e.target as HTMLElement).style.color='#4a5568';}}>{l}</a>)}
         </div>
       </footer>
     </main>
