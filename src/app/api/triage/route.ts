@@ -140,18 +140,42 @@ Confidence: 90+=textbook IOC multiple signals | 75-89=strong indicator | 60-74=m
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
-    const rl = await checkRateLimit(`ai:${userId}`, 30, 60);
+    // Read session directly — don't rely solely on middleware-injected headers
+    // This handles edge cases where middleware headers aren't forwarded correctly
+    const sessionToken = req.cookies.get('wt_session')?.value;
+    let sessionIsAdmin = false;
+    let sessionTier = 'community';
+    let sessionUserId = req.headers.get('x-user-id') || 'anon';
+    if (sessionToken) {
+      try {
+        const secret = process.env.WATCHTOWER_SESSION_SECRET || 'watchtower-dev-session-secret';
+        const [encoded, sig] = sessionToken.split('.');
+        if (encoded && sig) {
+          const { createHmac } = await import('crypto');
+          const expectedSig = createHmac('sha256', secret).update(encoded).digest('base64url');
+          if (sig === expectedSig) {
+            const payload = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8'));
+            if (Date.now() - payload.iat <= 86400000) {
+              sessionIsAdmin = payload.isAdmin === true;
+              sessionTier = payload.tier || 'community';
+              sessionUserId = payload.userId || sessionUserId;
+            }
+          }
+        }
+      } catch {}
+    }
+    // Merge: middleware headers take precedence when present, fall back to session decode
+    const isAdminReq = req.headers.get('x-is-admin') === 'true' || sessionIsAdmin;
+    const userTier = req.headers.get('x-user-tier') || sessionTier;
+    const effectiveUserId = req.headers.get('x-user-id') || sessionUserId;
+    console.log(`[triage] userId=${effectiveUserId} tier=${userTier} isAdmin=${isAdminReq} sessionIsAdmin=${sessionIsAdmin} sessionTier=${sessionTier}`);
+
+    const rl = await checkRateLimit(`ai:${effectiveUserId}`, 30, 60);
     if (!rl.ok) return NextResponse.json({ ok: false, error: `Rate limit exceeded. Resets in ${rl.reset}s.` }, { status: 429 });
 
-    // Tier gate: APEX requires Essentials+, but bypass for admin and mssp-tier accounts
-    const userTier = req.headers.get('x-user-tier') || 'community';
-    const isAdminReq = req.headers.get('x-is-admin') === 'true';
-    const userId2 = req.headers.get('x-user-id') || 'none';
-    console.log(`[triage gate] userId=${userId2} tier=${userTier} isAdmin=${isAdminReq}`);
+    // Tier gate: APEX requires Essentials+ (bypass for admin and mssp)
     const tierLevels: Record<string, number> = { community: 0, team: 1, business: 2, mssp: 3 };
     if (!isAdminReq && userTier !== 'mssp' && (tierLevels[userTier] || 0) < 1) {
-      console.error(`[triage] BLOCKED userId=${userId2} tier=${userTier} isAdmin=${isAdminReq}`);
       return NextResponse.json({ ok: false, error: 'APEX deep analysis requires Essentials plan or above.' }, { status: 403 });
     }
     const tenantId = req.headers.get('x-tenant-id') || (await cookies()).get('wt_tenant')?.value || 'global';
