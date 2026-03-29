@@ -11,61 +11,87 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
   const [brandingSaved, setBrandingSaved] = React.useState(false);
   const [selectedClient, setSelectedClient] = React.useState(null);
 
-  // The MSSP's own managed clients — organisations they provide SOC services to
-  // In production this would load from /api/portfolio based on the MSSP's tenant ID
   const MY_CLIENTS = [
-    {id:'client-acme',  name:'Acme Financial',  sector:'Financial Services', seats:8,  mrr:199, contractStart:'2024-01-15', renewalDate:'2025-01-15', billingStatus:'Paid',    posture:82, alerts:8,  critAlerts:3, incidents:2, coverage:94, kevVulns:3,  lastSeen:'2m ago',  toolsConnected:4},
-    {id:'client-nhs',   name:'NHS Trust Alpha',  sector:'Healthcare',         seats:14, mrr:199, contractStart:'2024-03-01', renewalDate:'2025-03-01', billingStatus:'Paid',    posture:71, alerts:15, critAlerts:5, incidents:3, coverage:88, kevVulns:7,  lastSeen:'1m ago',  toolsConnected:6},
-    {id:'client-retail',name:'RetailCo UK',      sector:'Retail',             seats:6,  mrr:294, contractStart:'2024-06-10', renewalDate:'2025-06-10', billingStatus:'Paid',    posture:91, alerts:4,  critAlerts:1, incidents:1, coverage:97, kevVulns:4,  lastSeen:'5m ago',  toolsConnected:5},
-    {id:'client-gov',   name:'Gov Dept Beta',   sector:'Government',         seats:10, mrr:199, contractStart:'2024-09-20', renewalDate:'2025-09-20', billingStatus:'Overdue', posture:78, alerts:9,  critAlerts:3, incidents:1, coverage:92, kevVulns:5,  lastSeen:'8m ago',  toolsConnected:3},
+    {id:'client-acme',  name:'Acme Financial',  sector:'Financial Services', seats:8,  mrr:799, contractStart:'2024-01-15', renewalDate:'2025-01-15', billingStatus:'Paid',    posture:82, alerts:8,  critAlerts:3, incidents:2, coverage:94, kevVulns:3,  lastSeen:'2m ago',  toolsConnected:4},
+    {id:'client-nhs',   name:'NHS Trust Alpha',  sector:'Healthcare',         seats:14, mrr:799, contractStart:'2024-03-01', renewalDate:'2025-03-01', billingStatus:'Paid',    posture:71, alerts:15, critAlerts:5, incidents:3, coverage:88, kevVulns:7,  lastSeen:'1m ago',  toolsConnected:6},
+    {id:'client-retail',name:'RetailCo UK',      sector:'Retail',             seats:6,  mrr:447, contractStart:'2024-06-10', renewalDate:'2025-06-10', billingStatus:'Paid',    posture:91, alerts:4,  critAlerts:1, incidents:1, coverage:97, kevVulns:4,  lastSeen:'5m ago',  toolsConnected:5},
+    {id:'client-gov',   name:'Gov Dept Beta',   sector:'Government',         seats:10, mrr:799, contractStart:'2024-09-20', renewalDate:'2025-09-20', billingStatus:'Overdue', posture:78, alerts:9,  critAlerts:3, incidents:1, coverage:92, kevVulns:5,  lastSeen:'8m ago',  toolsConnected:3},
   ];
 
   const totalMRR = MY_CLIENTS.reduce((s,c)=>s+c.mrr, 0);
   const totalSeats = MY_CLIENTS.reduce((s,c)=>s+c.seats, 0);
   const overdueMRR = MY_CLIENTS.filter(c=>c.billingStatus==='Overdue').reduce((s,c)=>s+c.mrr, 0);
+  const totalCrits = MY_CLIENTS.reduce((s,c)=>s+c.critAlerts, 0);
+  const needsAttention = MY_CLIENTS.filter(c=>c.critAlerts>=3||c.billingStatus==='Overdue'||c.posture<75);
 
   return (
     <div style={{display:'flex',flexDirection:'column',gap:14}}>
 
-      {/* Header */}
+      {/* ── WAR ROOM HEADER ── */}
       <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
-        <div>
-          <h2 style={{fontSize:'0.88rem',fontWeight:700,display:'flex',alignItems:'center',gap:8}}>
-            My Client Portfolio
-            <span style={{fontSize:'0.62rem',color:'#8b6fff',background:'#8b6fff12',padding:'2px 8px',borderRadius:4,border:'1px solid #8b6fff25',fontWeight:700}}>MSSP</span>
+        <div style={{flex:1}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3}}>
+            <h2 style={{fontSize:'0.88rem',fontWeight:700,margin:0}}>Client Portfolio</h2>
+            <span style={{fontSize:'0.58rem',color:'#8b6fff',background:'#8b6fff12',padding:'2px 8px',borderRadius:4,border:'1px solid #8b6fff25',fontWeight:700}}>MSSP</span>
             {msspBranding?.name&&<span style={{fontSize:'0.58rem',color:'#8b6fff',opacity:0.7}}>· {msspBranding.name}</span>}
-            <button onClick={()=>setShowBrandingConfig(s=>!s)} title='Configure white-label branding' style={{fontSize:'0.56rem',padding:'1px 6px',borderRadius:3,border:'1px solid #8b6fff25',background:'#8b6fff0a',color:'#8b6fff',cursor:'pointer',fontFamily:'Inter,sans-serif',marginLeft:4}}>🎨 Branding</button>
-          </h2>
-          <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginTop:2}}>Organisations you manage security for · {MY_CLIENTS.length} active clients</div>
-        {/* White-label branding config */}
-        {showBrandingConfig && (
-          <div style={{marginTop:10,padding:'14px 16px',background:'var(--wt-card)',border:'1px solid #8b6fff25',borderRadius:10}}>
-            <div style={{fontSize:'0.7rem',fontWeight:700,marginBottom:10,color:'#8b6fff'}}>🎨 White-Label Branding</div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,marginBottom:10}}>
-              {[{k:'name',label:'Product Name',ph:'CyberGuard SOC'},{k:'tagline',label:'Tagline',ph:'Powered by AI'},{k:'primaryColor',label:'Brand Colour',ph:'#8b6fff'}].map(f=>(
-                <div key={f.k}>
-                  <div style={{fontSize:'0.6rem',color:'var(--wt-muted)',marginBottom:3}}>{f.label}</div>
-                  <input value={brandingDraft[f.k]||''} onChange={e=>setBrandingDraft(prev=>({...prev,[f.k]:e.target.value}))} placeholder={f.ph} style={{width:'100%',padding:'6px 9px',background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:6,color:'var(--wt-text)',fontSize:'0.74rem',fontFamily:'Inter,sans-serif',outline:'none',boxSizing:'border-box'}} />
-                </div>
-              ))}
-            </div>
-            <div style={{display:'flex',gap:8,alignItems:'center'}}>
-              <button onClick={async()=>{try{await fetch('/api/mssp/branding',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(brandingDraft)});if(setMsspBranding)setMsspBranding(brandingDraft);setBrandingSaved(true);setTimeout(()=>setBrandingSaved(false),3000);}catch(e){}}} style={{padding:'6px 14px',borderRadius:6,border:'none',background:'#8b6fff',color:'#fff',fontSize:'0.7rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Save Branding</button>
-              {brandingSaved&&<span style={{fontSize:'0.66rem',color:'#22d49a',fontWeight:600}}>✓ Saved</span>}
-              <button onClick={()=>setShowBrandingConfig(false)} style={{marginLeft:'auto',fontSize:'0.64rem',color:'var(--wt-muted)',background:'none',border:'none',cursor:'pointer'}}>Close</button>
-            </div>
-            <div style={{marginTop:8,fontSize:'0.6rem',color:'var(--wt-dim)'}}>Your clients see your brand name, not Watchtower. Custom domain support available on Enterprise plan.</div>
+            <button onClick={()=>setShowBrandingConfig(s=>!s)} style={{fontSize:'0.54rem',padding:'1px 6px',borderRadius:3,border:'1px solid #8b6fff25',background:'#8b6fff0a',color:'#8b6fff',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🎨 Branding</button>
           </div>
-        )}
+          <div style={{display:'flex',gap:16,alignItems:'center'}}>
+            <span style={{fontSize:'0.66rem',color:'var(--wt-muted)'}}>{MY_CLIENTS.length} clients · £{totalMRR.toLocaleString()}/mo MRR</span>
+            {totalCrits>0&&<span style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',display:'flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#f0405e',boxShadow:'0 0 6px #f0405e',display:'block',animation:'pulse 1.5s ease infinite'}} />{totalCrits} active critical alerts across portfolio</span>}
+            {overdueMRR>0&&<span style={{fontSize:'0.62rem',fontWeight:700,color:'#f97316'}}>⚠ £{overdueMRR}/mo overdue</span>}
+          </div>
         </div>
-        <div style={{display:'flex',gap:3,background:'var(--wt-card2)',borderRadius:7,padding:3,marginLeft:'auto'}}>
+        <div style={{display:'flex',gap:3,background:'var(--wt-card2)',borderRadius:7,padding:3}}>
           {['security','revenue','usage'].map(v=>(
             <button key={v} onClick={()=>setPortfolioView(v)} style={{padding:'5px 14px',borderRadius:5,border:'none',background:portfolioView===v?'#8b6fff':'transparent',color:portfolioView===v?'#fff':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',textTransform:'capitalize'}}>{v}</button>
           ))}
         </div>
       </div>
 
-      {/* Security summary */}
+      {/* Branding config */}
+      {showBrandingConfig && (
+        <div style={{padding:'14px 16px',background:'var(--wt-card)',border:'1px solid #8b6fff25',borderRadius:10}}>
+          <div style={{fontSize:'0.7rem',fontWeight:700,marginBottom:10,color:'#8b6fff'}}>🎨 White-Label Branding</div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,marginBottom:10}}>
+            {[{k:'name',label:'Product Name',ph:'CyberGuard SOC'},{k:'tagline',label:'Tagline',ph:'Powered by AI'},{k:'primaryColor',label:'Brand Colour',ph:'#8b6fff'}].map(f=>(
+              <div key={f.k}>
+                <div style={{fontSize:'0.6rem',color:'var(--wt-muted)',marginBottom:3}}>{f.label}</div>
+                <input value={brandingDraft[f.k]||''} onChange={e=>setBrandingDraft(prev=>({...prev,[f.k]:e.target.value}))} placeholder={f.ph} style={{width:'100%',padding:'6px 9px',background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:6,color:'var(--wt-text)',fontSize:'0.74rem',fontFamily:'Inter,sans-serif',outline:'none',boxSizing:'border-box'}} />
+              </div>
+            ))}
+          </div>
+          <div style={{display:'flex',gap:8,alignItems:'center'}}>
+            <button onClick={async()=>{try{await fetch('/api/mssp/branding',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(brandingDraft)});if(setMsspBranding)setMsspBranding(brandingDraft);setBrandingSaved(true);setTimeout(()=>setBrandingSaved(false),3000);}catch(e){}}} style={{padding:'6px 14px',borderRadius:6,border:'none',background:'#8b6fff',color:'#fff',fontSize:'0.7rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Save</button>
+            {brandingSaved&&<span style={{fontSize:'0.66rem',color:'#22d49a',fontWeight:600}}>✓ Saved</span>}
+            <button onClick={()=>setShowBrandingConfig(false)} style={{marginLeft:'auto',fontSize:'0.64rem',color:'var(--wt-muted)',background:'none',border:'none',cursor:'pointer'}}>Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── NEEDS ATTENTION STRIP ── */}
+      {needsAttention.length > 0 && portfolioView==='security' && (
+        <div style={{background:'rgba(240,64,94,0.04)',border:'1px solid #f0405e25',borderRadius:10,padding:'10px 14px'}}>
+          <div style={{fontSize:'0.58rem',fontWeight:800,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>⚡ Needs Attention — {needsAttention.length} client{needsAttention.length!==1?'s':''}</div>
+          <div style={{display:'flex',flexDirection:'column',gap:6}}>
+            {needsAttention.map(c=>(
+              <div key={c.id} onClick={()=>setSelectedClient(selectedClient===c.id?null:c.id)} style={{display:'flex',alignItems:'center',gap:10,padding:'6px 10px',borderRadius:7,background:'var(--wt-card)',border:'1px solid #f0405e20',cursor:'pointer',transition:'border-color .15s'}}
+                onMouseEnter={e=>e.currentTarget.style.borderColor='#f0405e50'} onMouseLeave={e=>e.currentTarget.style.borderColor='#f0405e20'}>
+                <div style={{width:6,height:6,borderRadius:'50%',background:c.critAlerts>=3?'#f0405e':'#f97316',boxShadow:`0 0 5px ${c.critAlerts>=3?'#f0405e':'#f97316'}`,flexShrink:0}} />
+                <span style={{fontSize:'0.76rem',fontWeight:700,flex:1}}>{c.name}</span>
+                <div style={{display:'flex',gap:6}}>
+                  {c.critAlerts>0&&<span style={{fontSize:'0.58rem',fontWeight:800,padding:'1px 6px',borderRadius:4,background:'#f0405e15',color:'#f0405e',border:'1px solid #f0405e25'}}>{c.critAlerts} critical</span>}
+                  {c.billingStatus==='Overdue'&&<span style={{fontSize:'0.58rem',fontWeight:800,padding:'1px 6px',borderRadius:4,background:'#f9731615',color:'#f97316',border:'1px solid #f9731625'}}>overdue</span>}
+                  {c.posture<75&&<span style={{fontSize:'0.58rem',fontWeight:700,padding:'1px 6px',borderRadius:4,background:'#f0a03012',color:'#f0a030'}}>posture {c.posture}%</span>}
+                </div>
+                <button onClick={e=>{e.stopPropagation();setCurrentTenant(c.id);if(setActiveTab)setActiveTab('alerts');}} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #f0405e30',background:'#f0405e10',color:'#f0405e',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>View alerts →</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Security summary stats */}
       {portfolioView==='security' && (
         <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
           {[
@@ -123,20 +149,55 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
       {MY_CLIENTS.map(client=>{
         const isSel = selectedClient===client.id;
         const postureColor = client.posture>=85?'#22d49a':client.posture>=70?'#f0a030':'#f0405e';
+        const threatColor = client.critAlerts>=4?'#f0405e':client.critAlerts>=2?'#f97316':client.posture<75?'#f0a030':'#22d49a';
         const daysToRenewal = Math.round((new Date(client.renewalDate).getTime()-Date.now())/(86400000));
         const renewalColor = daysToRenewal<30?'#f0405e':daysToRenewal<90?'#f0a030':'#22d49a';
 
         return (
-          <div key={client.id} style={{background:currentTenant===client.id?'#080d18':'var(--wt-card)',border:`1px solid ${currentTenant===client.id?'#8b6fff40':client.billingStatus==='Overdue'?'#f0405e20':'var(--wt-border)'}`,borderRadius:12,overflow:'hidden'}}>
+          <div key={client.id} style={{background:currentTenant===client.id?'#080d18':'var(--wt-card)',border:`1px solid ${currentTenant===client.id?'#8b6fff40':isSel?'#8b6fff30':'var(--wt-border)'}`,borderRadius:12,overflow:'hidden',transition:'border-color .15s',borderLeft:`3px solid ${threatColor}`}}>
 
             {/* Client header row */}
-            <div style={{padding:'12px 16px',display:'flex',alignItems:'center',gap:12,cursor:'pointer'}} onClick={()=>setSelectedClient(isSel?null:client.id)}>
-              <div style={{width:9,height:9,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',flexShrink:0}} />
-              <div style={{flex:1}}>
-                <div style={{display:'flex',alignItems:'center',gap:7,flexWrap:'wrap'}}>
-                  <span style={{fontSize:'0.86rem',fontWeight:700}}>{client.name}</span>
-                  <span style={{fontSize:'0.56rem',color:'var(--wt-dim)'}}>{client.sector}</span>
-                  {client.billingStatus==='Overdue' && <span style={{fontSize:'0.54rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#f0405e12',color:'#f0405e',border:'1px solid #f0405e20'}}>⚠ OVERDUE</span>}
+            <div style={{padding:'12px 14px',display:'flex',alignItems:'center',gap:10,cursor:'pointer'}} onClick={()=>setSelectedClient(isSel?null:client.id)}>
+              {/* Live status dot */}
+              <div style={{width:8,height:8,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 5px #22c992',flexShrink:0,animation:'pulse 3s ease infinite'}} />
+              {/* Name + sector */}
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:2}}>
+                  <span style={{fontSize:'0.84rem',fontWeight:700}}>{client.name}</span>
+                  <span style={{fontSize:'0.54rem',color:'var(--wt-dim)',background:'var(--wt-card2)',padding:'1px 5px',borderRadius:3}}>{client.sector}</span>
+                  {client.billingStatus==='Overdue' && <span style={{fontSize:'0.54rem',fontWeight:800,padding:'1px 6px',borderRadius:3,background:'#f97316',color:'#fff'}}>⚠ OVERDUE</span>}
+                </div>
+                <div style={{fontSize:'0.56rem',color:'var(--wt-dim)'}}>Last seen {client.lastSeen} · {client.toolsConnected} tools</div>
+              </div>
+              {/* Posture ring */}
+              <div style={{display:'flex',flex:'0 0 auto',alignItems:'center',gap:4}}>
+                <svg width="36" height="36" viewBox="0 0 36 36">
+                  <circle cx="18" cy="18" r="15" fill="none" stroke="var(--wt-border)" strokeWidth="3"/>
+                  <circle cx="18" cy="18" r="15" fill="none" stroke={postureColor} strokeWidth="3" strokeDasharray={`${(client.posture/100)*94.2} 94.2`} strokeLinecap="round" transform="rotate(-90 18 18)" style={{transition:'stroke-dasharray 1s'}}/>
+                  <text x="18" y="22" textAnchor="middle" style={{fontSize:'9px',fontWeight:900,fontFamily:'JetBrains Mono,monospace',fill:postureColor}}>{client.posture}</text>
+                </svg>
+              </div>
+              {/* Key metrics */}
+              <div style={{display:'flex',gap:6,flex:'0 0 auto'}}>
+                <div style={{textAlign:'center',padding:'4px 8px',background:client.critAlerts>0?'#f0405e08':'var(--wt-card2)',borderRadius:6,border:client.critAlerts>0?'1px solid #f0405e20':'1px solid var(--wt-border)',minWidth:42}}>
+                  <div style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:client.critAlerts>0?'#f0405e':'var(--wt-muted)',lineHeight:1}}>{client.critAlerts}</div>
+                  <div style={{fontSize:'0.46rem',color:'var(--wt-dim)',fontWeight:700}}>CRIT</div>
+                </div>
+                <div style={{textAlign:'center',padding:'4px 8px',background:'var(--wt-card2)',borderRadius:6,border:'1px solid var(--wt-border)',minWidth:42}}>
+                  <div style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:'#f0a030',lineHeight:1}}>{client.incidents}</div>
+                  <div style={{fontSize:'0.46rem',color:'var(--wt-dim)',fontWeight:700}}>CASES</div>
+                </div>
+                <div style={{textAlign:'center',padding:'4px 8px',background:'var(--wt-card2)',borderRadius:6,border:'1px solid var(--wt-border)',minWidth:42}}>
+                  <div style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:'#22d49a',lineHeight:1}}>{client.coverage}%</div>
+                  <div style={{fontSize:'0.46rem',color:'var(--wt-dim)',fontWeight:700}}>COV</div>
+                </div>
+              </div>
+              {/* Actions */}
+              <div style={{display:'flex',gap:5,flex:'0 0 auto'}} onClick={e=>e.stopPropagation()}>
+                <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('overview');}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.66rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Open →</button>
+              </div>
+              <span style={{fontSize:'0.54rem',color:'var(--wt-dim)',flexShrink:0}}>{isSel?'▲':'▼'}</span>
+            </div>
                   {currentTenant===client.id && <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#8b6fff15',color:'#8b6fff',border:'1px solid #8b6fff25'}}>VIEWING</span>}
                 </div>
                 <div style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginTop:1}}>Last active {client.lastSeen} · {client.seats} seats · {client.toolsConnected} tools</div>
@@ -144,48 +205,7 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
               {/* Quick stats */}
               {portfolioView==='security' && (
                 <div style={{display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:5}}>
-                    <div style={{width:28,height:28,borderRadius:'50%',background:`conic-gradient(${postureColor} ${client.posture}%,var(--wt-border) 0)`,display:'flex',alignItems:'center',justifyContent:'center'}}>
-                      <div style={{width:20,height:20,borderRadius:'50%',background:'var(--wt-card)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.46rem',fontWeight:900,color:postureColor}}>{client.posture}</div>
-                    </div>
-                  </div>
-                  {[{label:'Alerts',val:client.alerts,c:client.critAlerts>0?'#f0a030':'var(--wt-secondary)'},{label:'Critical',val:client.critAlerts,c:client.critAlerts>0?'#f0405e':'var(--wt-secondary)'},{label:'Incidents',val:client.incidents,c:client.incidents>0?'#f0405e':'var(--wt-secondary)'},{label:'Coverage',val:client.coverage+'%',c:client.coverage>=95?'#22d49a':client.coverage>=85?'#f0a030':'#f0405e'}].map(s=>(
-                    <div key={s.label} style={{textAlign:'center',minWidth:46}}>
-                      <div style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.c,letterSpacing:-1}}>{s.val}</div>
-                      <div style={{fontSize:'0.5rem',color:'var(--wt-dim)'}}>{s.label}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {portfolioView==='revenue' && (
-                <div style={{display:'flex',gap:14}}>
-                  {[{label:'MRR',val:`£${client.mrr}`,c:'#22d49a'},{label:'Renewal',val:`${daysToRenewal}d`,c:renewalColor},{label:'Billing',val:client.billingStatus,c:client.billingStatus==='Paid'?'#22d49a':'#f0405e'}].map(s=>(
-                    <div key={s.label} style={{textAlign:'center',minWidth:52}}>
-                      <div style={{fontSize:'0.9rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:s.c,letterSpacing:-0.5}}>{s.val}</div>
-                      <div style={{fontSize:'0.5rem',color:'var(--wt-dim)'}}>{s.label}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {portfolioView==='usage' && (
-                <div style={{display:'flex',gap:14}}>
-                  {[{label:'Alerts',val:client.alerts,c:'#4f8fff'},{label:'AI Closed',val:Math.round(client.alerts*0.68),c:'#22d49a'},{label:'Tools',val:client.toolsConnected,c:'#8b6fff'}].map(s=>(
-                    <div key={s.label} style={{textAlign:'center',minWidth:46}}>
-                      <div style={{fontSize:'0.9rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:s.c}}>{s.val}</div>
-                      <div style={{fontSize:'0.5rem',color:'var(--wt-dim)'}}>{s.label}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {/* Action buttons */}
-              <div style={{display:'flex',gap:5,flexShrink:0,marginLeft:8}}>
-                <button onClick={e=>{e.stopPropagation();setCurrentTenant(client.id);if(setActiveTab)setActiveTab('overview');}} style={{padding:'5px 12px',borderRadius:7,border:'1px solid #8b6fff30',background:currentTenant===client.id?'#8b6fff20':'#8b6fff10',color:'#8b6fff',fontSize:'0.66rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
-                  {currentTenant===client.id?'● Viewing':'View →'}
-                </button>
-                <button onClick={e=>{e.stopPropagation();if(setAdminBannerInput)setAdminBannerInput('['+client.name+'] ');}} style={{padding:'5px 9px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.66rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}} title='Send message to this client'>📢</button>
-              </div>
-              <span style={{fontSize:'0.7rem',color:'var(--wt-dim)',flexShrink:0}}>{isSel?'▲':'▼'}</span>
-            </div>
+
 
             {/* Expanded detail */}
             {isSel && (
@@ -255,8 +275,8 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
 
       {/* MSSP billing footer */}
       <div style={{padding:'12px 16px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
-        <div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>Your Watchtower MSSP subscription: <strong style={{color:'#8b6fff'}}>£{799 + Math.max(0,(MY_CLIENTS.length-5)*79)}/mo</strong> · {MY_CLIENTS.length} clients ({MY_CLIENTS.length<=5?'included':MY_CLIENTS.length-5+' extra × £79'})</div>
-        <div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>Your MRR from clients: <strong style={{color:'#22d49a'}}>£{totalMRR}/mo</strong> · Margin: <strong style={{color:'#22d49a'}}>£{totalMRR-(799+Math.max(0,(MY_CLIENTS.length-5)*79))}/mo</strong></div>
+        <div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>Your Watchtower MSSP subscription: <strong style={{color:'#8b6fff'}}>£{2499 + Math.max(0,(MY_CLIENTS.length-10)*199)}/mo</strong> · {MY_CLIENTS.length} clients ({MY_CLIENTS.length<=5?'included':MY_CLIENTS.length-5+' extra × £79'})</div>
+        <div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>Your MRR from clients: <strong style={{color:'#22d49a'}}>£{totalMRR}/mo</strong> · Margin: <strong style={{color:'#22d49a'}}>£{totalMRR-(2499+Math.max(0,(MY_CLIENTS.length-10)*199))}/mo</strong></div>
       </div>
 
     </div>

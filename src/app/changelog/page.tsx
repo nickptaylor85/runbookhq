@@ -4,6 +4,24 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.9.135',
+    date: '2026-03-29',
+    tag: 'UX',
+    tagColor: '#8b6fff',
+    summary: 'UX redesign sprint — Threat Level bar on overview, priority actions, clean alert cards with confidence bars, MSSP war room portfolio',
+    changes: [
+      { type: 'feat', text: 'OVERVIEW: Replaced verbose AI brief with a live Threat Level bar (CRITICAL/HIGH/ELEVATED/GUARDED) that dynamically calculates your current risk posture and shows up to 3 Priority Actions — specific, clickable items the analyst should address right now.' },
+      { type: 'feat', text: 'OVERVIEW: Threat Level drives visual theming — pulsing red dot for CRITICAL, amber for HIGH, steady green for GUARDED. All priority actions are tappable and navigate directly to the relevant tab.' },
+      { type: 'feat', text: 'ALERTS: Collapsed card redesigned — removed 6 badge types from the title row (NEW, SLA BREACH, hot device, assignee, note, ACK). Cleaner read: title + source + device + MITRE + time + FP/TP + AI verdict. SLA breach now shown via severity bar glow.' },
+      { type: 'feat', text: 'ALERTS: AI confidence gradient bar — a 2px coloured strip at the bottom of each collapsed card shows AI verdict confidence at a glance. Red = TP lean, green = FP lean, amber = uncertain. Width scales with confidence %. No click required.' },
+      { type: 'feat', text: 'ALERTS: Community upgrade CTA redesigned — instead of a blunt lock icon, community users see an evidence-chain preview panel with specific features listed (Evidence chain · Blast radius · Hunt queries · FP/TP verdict · MITRE mapping) and an Upgrade button.' },
+      { type: 'feat', text: 'MSSP: Needs Attention strip at top of portfolio — surfaces clients with 3+ critical alerts, overdue billing, or posture below 75. Each row has a direct "View alerts →" button. Critical count pulses red.' },
+      { type: 'feat', text: 'MSSP: Client cards redesigned with coloured left border (red = critical threat, amber = elevated, green = guarded), posture SVG ring with number inside, prominent CRIT/CASES/COV stat boxes, and live status dot.' },
+      { type: 'feat', text: 'MSSP: War room header — shows total critical alerts across all clients with pulsing red dot, overdue MRR in amber, total MRR inline.' },
+    ],
+  },
+
+  {
     version: 'v74.9.133',
     date: '2026-03-29',
     tag: 'Security',

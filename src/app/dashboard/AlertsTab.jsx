@@ -347,53 +347,41 @@ export default function AlertsTab({
                 style={{width:15,height:15,borderRadius:3,border:`1px solid ${isSelected?'#4f8fff':'var(--wt-border2)'}`,background:isSelected?'#4f8fff':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,cursor:'pointer'}}>
                 {isSelected && <span style={{color:'#fff',fontSize:'0.5rem',fontWeight:900}}>✓</span>}
               </div>
-              {/* Severity bar */}
-              <div style={{width:3,height:32,borderRadius:2,background:SEV_COLOR[alert.severity]||'#6b7a94',flexShrink:0}}/>
-              {/* Main content */}
+              {/* Severity bar — glows on SLA breach */}
+              <div style={{width:3,height:32,borderRadius:2,background:SEV_COLOR[alert.severity]||'#6b7a94',flexShrink:0,boxShadow:isSlaBreach?`0 0 5px ${SEV_COLOR[alert.severity]}`:undefined}}/>
+              {/* Title + meta */}
               <div style={{flex:1,minWidth:0}}>
-                <div style={{display:'flex',alignItems:'center',gap:5,marginBottom:2,flexWrap:'wrap'}}>
-                  <span style={{fontSize:'0.78rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',
-                    textDecoration:isAcknowledged?'line-through':undefined,
-                    color:isAcknowledged?'var(--wt-muted)':undefined,
-                    maxWidth:'60vw'}}>{alert.title}</span>
-                  {isFresh && <span style={{fontSize:'0.46rem',fontWeight:800,padding:'1px 4px',borderRadius:3,background:'#22d49a',color:'#fff',flexShrink:0}}>NEW</span>}
-                  {isSlaBreach && <span style={{fontSize:'0.46rem',fontWeight:800,padding:'1px 4px',borderRadius:3,background:'#f0405e',color:'#fff',flexShrink:0}}>SLA BREACH</span>}
-                  {alertAssignees&&alertAssignees[alert.id]&&<span style={{fontSize:'0.46rem',fontWeight:700,padding:'1px 4px',borderRadius:3,background:'#4f8fff18',color:'#4f8fff',border:'1px solid #4f8fff30',flexShrink:0}}>→ {alertAssignees[alert.id]}</span>}
-                  {isHotDevice && <span style={{fontSize:'0.46rem',fontWeight:800,padding:'1px 4px',borderRadius:3,background:'#f0405e20',color:'#f0405e',border:'1px solid #f0405e30',flexShrink:0}}>🔥 {deviceAlertCount}</span>}
-                  {hasNote && <span style={{fontSize:'0.46rem',color:'#f0a030',background:'#f0a03012',border:'1px solid #f0a03025',padding:'1px 4px',borderRadius:3,flexShrink:0}}>note</span>}
-                  {isAutoClosed && <span style={{fontSize:'0.46rem',color:'#22d49a',background:'#22d49a15',padding:'1px 4px',borderRadius:3,flexShrink:0,fontWeight:800,border:'1px solid #22d49a30'}}>AI CLOSED</span>}
-                  {isAcknowledged && !isAutoClosed && <span style={{fontSize:'0.46rem',color:'#22d49a',background:'#22d49a12',padding:'1px 4px',borderRadius:3,flexShrink:0,fontWeight:800}}>ACK</span>}
-                  {isSnoozed && <span style={{fontSize:'0.46rem',color:'#8b6fff',padding:'1px 4px',borderRadius:3,background:'#8b6fff15',flexShrink:0}}>💤</span>}
+                <div style={{display:'flex',alignItems:'center',gap:5,marginBottom:2}}>
+                  <span style={{fontSize:'0.78rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',textDecoration:isAcknowledged?'line-through':undefined,color:isAcknowledged?'var(--wt-muted)':undefined,maxWidth:'55vw'}}>{alert.title}</span>
+                  {isAutoClosed && <span style={{fontSize:'0.44rem',fontWeight:800,padding:'1px 4px',borderRadius:3,background:'#22d49a',color:'#fff',flexShrink:0}}>AI CLOSED</span>}
+                  {isSnoozed && <span style={{fontSize:'0.44rem',padding:'1px 4px',borderRadius:3,background:'#8b6fff15',color:'#8b6fff',flexShrink:0}}>💤</span>}
                 </div>
-                <div style={{display:'flex',gap:5,flexWrap:'wrap',alignItems:'center'}}>
+                <div style={{display:'flex',gap:5,alignItems:'center',flexWrap:'wrap'}}>
                   <SevBadge sev={alert.severity}/>
                   <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff20'}}>{alert.source}</span>
                   {alert.device && <span style={{fontSize:'0.52rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{alert.device}</span>}
-                  <span style={{fontSize:'0.52rem',color:isFresh?'#22d49a':isStale?'var(--wt-dim)':'var(--wt-muted)',fontWeight:isFresh?700:400}}>{ageStr}</span>
                   {alert.mitre && <span style={{fontSize:'0.48rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{alert.mitre}</span>}
                 </div>
               </div>
-              {/* Right side: verdict + quick actions */}
-              <div style={{display:'flex',alignItems:'center',gap:6,flexShrink:0}}>
-                {/* Quick FP/TP — no expand needed */}
+              {/* Right: time + verdict + FP/TP + chevron */}
+              <div style={{display:'flex',alignItems:'center',gap:5,flexShrink:0}}>
+                <span style={{fontSize:'0.5rem',color:isFresh?'#22d49a':isStale?'var(--wt-dim)':'var(--wt-muted)',fontWeight:isFresh?700:400,flexShrink:0}}>{ageStr}</span>
                 <div onClick={e=>e.stopPropagation()} style={{display:'flex',gap:3}}>
                   {canVote ? (<>
-                  <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'FP',confidence:99}}));onAudit&&onAudit({type:'verdict',verdict:'FP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});writeKnowledge(alert,'FP');}}
-                    style={{padding:'2px 7px',borderRadius:4,border:'1px solid #22d49a40',background:effectiveVerdict==='FP'?'#22d49a':'transparent',color:effectiveVerdict==='FP'?'#fff':'#22d49a',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',lineHeight:1.4}}>
-                    FP
-                  </button>
-                  <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'TP',acknowledged:true}}));onAudit&&onAudit({type:'verdict',verdict:'TP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});writeKnowledge(alert,'TP');if(!demoMode)fetchBlastRadius(alert);}}
-                    style={{padding:'2px 7px',borderRadius:4,border:'1px solid #f0405e40',background:effectiveVerdict==='TP'?'#f0405e':'transparent',color:effectiveVerdict==='TP'?'#fff':'#f0405e',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',lineHeight:1.4}}>
-                    TP
-                  </button>
-                  </>) : (<span style={{fontSize:'0.5rem',padding:'1px 6px',borderRadius:3,background:effectiveVerdict&&effectiveVerdict!=='Pending'?'#4f8fff18':'transparent',color:'#4f8fff',border:effectiveVerdict&&effectiveVerdict!=='Pending'?'1px solid #4f8fff30':'none',fontWeight:700}}>{effectiveVerdict&&effectiveVerdict!=='Pending'?effectiveVerdict:'🔒'}</span>)}
+                    <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'FP',confidence:99}}));onAudit&&onAudit({type:'verdict',verdict:'FP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});writeKnowledge(alert,'FP');}}
+                      style={{padding:'2px 7px',borderRadius:4,border:'1px solid #22d49a40',background:effectiveVerdict==='FP'?'#22d49a':'transparent',color:effectiveVerdict==='FP'?'#fff':'#22d49a',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',lineHeight:1.4}}>FP</button>
+                    <button onClick={()=>{setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),verdict:'TP',acknowledged:true}}));onAudit&&onAudit({type:'verdict',verdict:'TP',alertId:alert.id,alertTitle:alert.title,alertSev:alert.severity,analyst:'Analyst'});writeKnowledge(alert,'TP');if(!demoMode)fetchBlastRadius(alert);}}
+                      style={{padding:'2px 7px',borderRadius:4,border:'1px solid #f0405e40',background:effectiveVerdict==='TP'?'#f0405e':'transparent',color:effectiveVerdict==='TP'?'#fff':'#f0405e',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',lineHeight:1.4}}>TP</button>
+                  </>) : (<span style={{fontSize:'0.54rem',padding:'2px 6px',borderRadius:4,background:effectiveVerdict&&effectiveVerdict!=='Pending'?vStyle.bg:'transparent',color:effectiveVerdict&&effectiveVerdict!=='Pending'?vStyle.c:'var(--wt-dim)',fontWeight:700,border:effectiveVerdict&&effectiveVerdict!=='Pending'?`1px solid ${vStyle.c}30`:'none'}}>{effectiveVerdict&&effectiveVerdict!=='Pending'?effectiveVerdict:'—'}</span>)}
                 </div>
-                {aiVerdict && !demoMode && <span style={{fontSize:'0.5rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:`${aiVC}15`,color:aiVC}}>AI: {aiVerdict.split(' ')[0]}</span>}
-                {alert.confidence && !aiVerdict && <span style={{fontSize:'0.5rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{alert.confidence}%</span>}
-                {setAlertAssignees&&<button onClick={e=>{e.stopPropagation();const me=alertAssignees&&alertAssignees[alert.id]?null:'Me';setAlertAssignees(prev=>({...prev,[alert.id]:me}));}} title={alertAssignees&&alertAssignees[alert.id]?'Unassign':'Assign to me'} style={{padding:'2px 6px',borderRadius:4,border:`1px solid ${alertAssignees&&alertAssignees[alert.id]?'#4f8fff40':'var(--wt-border2)'}`,background:alertAssignees&&alertAssignees[alert.id]?'#4f8fff15':'transparent',color:alertAssignees&&alertAssignees[alert.id]?'#4f8fff':'var(--wt-dim)',fontSize:'0.52rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',lineHeight:1.4}}>{alertAssignees&&alertAssignees[alert.id]?'✓ Me':'Claim'}</button>}
-                <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{expanded?'▲':'▼'}</span>
+                {aiVerdict && !demoMode && <span style={{fontSize:'0.48rem',fontWeight:800,padding:'1px 4px',borderRadius:3,background:`${aiVC}15`,color:aiVC,flexShrink:0}}>AI {aiVerdict.includes('True')?'TP':aiVerdict.includes('False')?'FP':'?'}</span>}
+                <span style={{fontSize:'0.56rem',color:'var(--wt-dim)',flexShrink:0}}>{expanded?'▲':'▼'}</span>
               </div>
             </div>
+            {/* AI confidence gradient bar — thin strip at bottom of collapsed card */}
+            {(effectiveVerdict!=='Pending'||aiVerdict||(alert.confidence&&alert.confidence>0)) && !expanded && (
+              <div style={{height:2,background:`linear-gradient(90deg,${effectiveVerdict==='TP'||aiVerdict.includes('True')?'#f0405e':effectiveVerdict==='FP'||aiVerdict.includes('False')?'#22d49a':'#f0a030'},transparent)`,width:`${Math.min(100,alert.confidence||60)}%`,transition:'width .5s ease',borderRadius:'0 0 0 0'}} />
+            )}
 
             {/* Expanded detail */}
             {expanded && (
@@ -488,7 +476,15 @@ export default function AlertsTab({
                     style={{padding:'4px 12px',borderRadius:6,border:'1px solid #f0405e30',background:effectiveVerdict==='TP'?'#f0405e':'#f0405e10',color:effectiveVerdict==='TP'?'#fff':'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                     {effectiveVerdict==='TP'?'✓ Marked TP':'Mark TP'}
                   </button>}
-                  {!canVote && <span style={{fontSize:'0.7rem',color:'#4f8fff',padding:'4px 10px',borderRadius:6,background:'#4f8fff10',border:'1px solid #4f8fff20'}}>🔒 Upgrade to Essentials to triage</span>}
+                  {!canVote && (
+                    <div style={{padding:'10px 14px',borderRadius:8,background:'linear-gradient(135deg,rgba(79,143,255,0.06),rgba(139,111,255,0.04))',border:'1px solid #4f8fff20',display:'flex',alignItems:'center',gap:12}}>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:'0.68rem',fontWeight:700,color:'#4f8fff',marginBottom:3}}>AI Triage — Essentials+</div>
+                        <div style={{fontSize:'0.62rem',color:'var(--wt-muted)',lineHeight:1.5}}>Evidence chain · Blast radius · Hunt queries · FP/TP verdict · MITRE mapping</div>
+                      </div>
+                      <a href='/pricing' style={{padding:'6px 14px',borderRadius:7,background:'#4f8fff',color:'#fff',fontSize:'0.68rem',fontWeight:700,textDecoration:'none',flexShrink:0,whiteSpace:'nowrap'}}>Upgrade →</a>
+                    </div>
+                  )}
                   {setAlertSnoozes && <button onClick={()=>{
                     const dur=2*60*60*1000;
                     setAlertSnoozes(prev=>prev[alert.id]&&prev[alert.id]>Date.now()?{...prev,[alert.id]:undefined}:{...prev,[alert.id]:Date.now()+dur});
