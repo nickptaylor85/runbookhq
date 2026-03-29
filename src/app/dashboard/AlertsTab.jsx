@@ -37,6 +37,7 @@ export default function AlertsTab({
   alertSearch, setAlertSearch,
   alertSevFilter, setAlertSevFilter,
   alertSrcFilter, setAlertSrcFilter,
+  liveVulns, liveAlerts, customIntel,
   alertSort, setAlertSort,
   alertPage, setAlertPage,
   alertTotalPages, alertPageClamped, alertsSorted, alertsFiltered, alertsPaged, ALERT_PAGE_SIZE,
@@ -62,6 +63,7 @@ export default function AlertsTab({
   // Structured triage results (evidence chain, hunt queries) — fetched from /api/triage
   const [triageResults, setTriageResults] = React.useState({});
   const [triageLoading, setTriageLoading] = React.useState(new Set());
+  const [autoExecutedActions, setAutoExecutedActions] = React.useState({});
   const [blastResults, setBlastResults] = React.useState({});
   const [blastLoading, setBlastLoading] = React.useState(new Set());
   const [showBlast, setShowBlast] = React.useState(new Set());
@@ -88,8 +90,43 @@ export default function AlertsTab({
 
   // Fetch structured triage for a live alert when it expands
   function fetchTriage(alert) {
-    if (demoMode || triageResults[alert.id] || triageLoading.has(alert.id)) return;
+    if (demoMode || triageLoading.has(alert.id)) return;
+    // Clear stale cached result so re-analyse works
+    if (triageResults[alert.id] && !alert._forceRefresh) return;
     setTriageLoading(prev => new Set([...prev, alert.id]));
+
+    // Enrich with context from connected tools
+    // 1. Device vulns from Tenable/Qualys/etc for this specific device
+    const deviceVulns = alert.device && alert.device !== 'Unknown'
+      ? (liveVulns||[]).filter(v =>
+          (v.affectedAssets||[]).includes(alert.device) ||
+          v.device === alert.device
+        ).slice(0,5).map(v => ({ cve: v.cve, title: v.title, cvss: v.cvss, kev: v.kev }))
+      : [];
+
+    // 2. Co-occurring alerts on same device/user in last 24h
+    const relatedAlerts = (liveAlerts||[]).filter(a =>
+      a.id !== alert.id &&
+      ((alert.device && a.device === alert.device) ||
+       (alert.user && alert.user !== 'Unknown' && a.user === alert.user) ||
+       (alert.ip && a.ip === alert.ip))
+    ).slice(0,8).map(a => ({
+      title: a.title, source: a.source, severity: a.severity, verdict: a.verdict || a.aiVerdict,
+    }));
+
+    // 3. IOC matches from Intel tab data
+    const iocMatches = alert.ip
+      ? (customIntel||[]).flatMap(i => (i.iocs||[]).includes(alert.ip) ? [{ indicator: alert.ip, source: i.source, threatActor: i.title }] : []).slice(0,3)
+      : [];
+
+    // 4. Asset criticality hints
+    const assetContext = {
+      isDomainController: alert.device?.toLowerCase().includes('dc') || alert.title?.toLowerCase().includes('domain controller'),
+      isServer: alert.device?.toLowerCase().startsWith('srv-') || alert.device?.toLowerCase().startsWith('server'),
+      isExecutive: alert.user?.toLowerCase().includes('cfo') || alert.user?.toLowerCase().includes('ceo') || alert.user?.toLowerCase().includes('ciso'),
+      hasPrivilegedAccess: alert.user?.toLowerCase().includes('admin') || alert.title?.toLowerCase().includes('admin'),
+    };
+
     fetch('/api/triage', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -97,10 +134,44 @@ export default function AlertsTab({
         alertId: alert.id, title: alert.title, severity: alert.severity,
         source: alert.source, device: alert.device, mitre: alert.mitre,
         description: alert.description, ip: alert.ip, user: alert.user,
-        confidence: alert.confidence,
+        confidence: alert.confidence, tags: alert.tags, rawTime: alert.rawTime,
+        // Rich context from connected tools
+        relatedAlerts: relatedAlerts.length > 0 ? relatedAlerts : undefined,
+        deviceVulns: deviceVulns.length > 0 ? deviceVulns : undefined,
+        iocMatches: iocMatches.length > 0 ? iocMatches : undefined,
+        assetContext: (assetContext.isDomainController || assetContext.isServer || assetContext.isExecutive || assetContext.hasPrivilegedAccess) ? assetContext : undefined,
       }),
     }).then(r => r.json()).then(d => {
-      if (d.ok && d.result) setTriageResults(prev => ({ ...prev, [alert.id]: d.result }));
+      if (d.ok && d.result) {
+        setTriageResults(prev => ({ ...prev, [alert.id]: d.result }));
+        // Full Auto: if APEX confirms TP, execute remediation actions automatically
+        if (automation === 2 && d.result.verdict === 'TP' && d.result.confidence >= 75 && d.result.immediateActions?.length) {
+          const actionablePriorities = ['CRITICAL', 'HIGH'];
+          const autoActions = d.result.immediateActions.filter(a => actionablePriorities.includes(a.priority));
+          if (autoActions.length > 0) {
+            fetch('/api/response-actions', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'x-tenant-id': alert.source || 'global' },
+              body: JSON.stringify({
+                action: 'full_auto_batch',
+                immediateActions: autoActions,
+                alertId: alert.id,
+                alertTitle: alert.title,
+                verdict: d.result.verdict,
+                confidence: d.result.confidence,
+                device: alert.device,
+                ip: alert.ip,
+                user: alert.user,
+                analyst: 'APEX Full Auto',
+              }),
+            }).then(r => r.json()).then(res => {
+              if (res.ok && res.executedActions?.length) {
+                setAutoExecutedActions(prev => ({ ...prev, [alert.id]: res.executedActions }));
+              }
+            }).catch(() => {});
+          }
+        }
+      }
     }).catch(() => {}).finally(() => {
       setTriageLoading(prev => { const n = new Set(prev); n.delete(alert.id); return n; });
     });
@@ -603,6 +674,21 @@ export default function AlertsTab({
                       </div>
                     )}
                     {/* Hunt Queries */}
+                    {/* Full Auto execution banner */}
+                    {automation === 2 && autoExecutedActions[alert.id]?.length > 0 && (
+                      <div style={{marginBottom:8,padding:'10px 14px',background:'linear-gradient(135deg,rgba(34,212,154,0.06),rgba(79,143,255,0.04))',border:'1px solid #22d49a25',borderRadius:10}}>
+                        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+                          <span style={{fontSize:'0.58rem',fontWeight:800,color:'#22d49a',letterSpacing:'0.5px',textTransform:'uppercase'}}>⚡ APEX AUTO-RESPONSE EXECUTED</span>
+                          <span style={{fontSize:'0.52rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',marginLeft:'auto'}}>Full Auto Mode</span>
+                        </div>
+                        {autoExecutedActions[alert.id].map((action, i) => (
+                          <div key={i} style={{display:'flex',alignItems:'center',gap:8,padding:'3px 0',fontSize:'0.68rem',color:'#22d49a'}}>
+                            <span style={{flexShrink:0}}>✓</span>
+                            <span>{action}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     {structTriage && showingHunt && (
                       <div style={{background:'#080a12',border:'1px solid #1e2536',borderRadius:10,padding:'10px 12px',marginBottom:8}}>
                         <div style={{fontSize:'0.58rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Hunt Queries</div>

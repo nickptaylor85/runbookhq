@@ -449,6 +449,7 @@ export default function DashboardPage() {
   const [credentialsLoaded, setCredentialsLoaded] = useState(false);
   const [liveAlerts, setLiveAlerts] = useState([]);
   const [liveVulns, setLiveVulns] = useState([]);
+  const [liveCoverageDevices, setLiveCoverageDevices] = useState([]);
   const [aiTriageCache, setAiTriageCache] = useState({}); // alertId → {loading, result}
   const [syncStatus, setSyncStatus] = useState('idle'); // idle | syncing | ok | error
   const [syncError, setSyncError] = useState(null);
@@ -494,18 +495,44 @@ export default function DashboardPage() {
         });
         // Append to rolling sync log (last 50 entries)
         setSyncLog(prev=>[...d.results.map(r=>({ts:now,toolId:r.toolId,count:r.count||0,error:r.error||null,durationMs:r.durationMs||null})), ...prev].slice(0,50));
-        const VULN_SOURCES = new Set(['tenable','nessus','qualys','wiz']);
-        const allItems = d.results.flatMap(r => r.alerts || []);
-        const vulnItems = allItems.filter(a => VULN_SOURCES.has((a.source||'').toLowerCase().replace(/[^a-z]/g,'')));
-        const alertItems = allItems.filter(a => !VULN_SOURCES.has((a.source||'').toLowerCase().replace(/[^a-z]/g,'')));
+        // ── Comprehensive tool-to-tab routing ───────────────────────────────
+        // Vuln/CSPM/AppSec/Cloud → Vulns tab
+        const VULN_SOURCES = new Set(['tenable','nessus','qualys','wiz','snyk','prismacloud','prisma_cloud','lacework','orca','aquasecurity','aqua','githubadvancedsecurity','github_advanced','checkmarx','awssecurityhub','aws_security_hub','gcpsecuritycommandcenter','gcp_scc','microsoftdefenderforcloud','azure_defender','rapid7','rapid7insightidr']);
+        // Threat Intel tools → Intel tab
+        const INTEL_SOURCES = new Set(['virustotal','recordedfuture','recorded_future','alienvault','alienvaultotx','threatconnect','misp','mandiant']);
+        // MDM/Asset/Coverage tools → Coverage tab
+        const COVERAGE_SOURCES = new Set(['intune','microsoftintune','axonius','tanium','huntress','jumpcloud']);
+        const normalise = s => (s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+        const allItems = d.results.flatMap(r => (r.alerts||[]).map(a => ({...a, _toolId: r.toolId})));
+        const vulnItems     = allItems.filter(a => VULN_SOURCES.has(normalise(a.source))     || VULN_SOURCES.has(a._toolId));
+        const intelItems    = allItems.filter(a => INTEL_SOURCES.has(normalise(a.source))    || INTEL_SOURCES.has(a._toolId));
+        const coverageItems = allItems.filter(a => COVERAGE_SOURCES.has(normalise(a.source)) || COVERAGE_SOURCES.has(a._toolId));
+        const alertItems    = allItems.filter(a => {
+          const id = a._toolId; const src = normalise(a.source);
+          return !VULN_SOURCES.has(src) && !VULN_SOURCES.has(id) && !INTEL_SOURCES.has(src) && !INTEL_SOURCES.has(id) && !COVERAGE_SOURCES.has(src) && !COVERAGE_SOURCES.has(id);
+        });
         if (!toolIds) {
-          // Merge new alerts with existing — preserve analyst overrides by not discarding known alerts
+          // Alerts (EDR, SIEM, XDR, NDR, Identity, Email, Firewall, OT/ICS)
           setLiveAlerts(prev => {
             const merged = new Map(prev.map(a => [a.id, a]));
-            alertItems.forEach(a => merged.set(a.id, a)); // update or add
+            alertItems.forEach(a => merged.set(a.id, a));
             return Array.from(merged.values()).sort((a,b) => (b.rawTime||0)-(a.rawTime||0));
           });
+          // Vulns tab
           if (vulnItems.length > 0) setLiveVulns(vulnItems.map(v=>{const cveTag=(v.tags||[]).find(t=>t&&/^CVE-\d{4}-\d+$/i.test(t))||(v.tags||[]).find(t=>t?.toUpperCase?.().startsWith('CVE-'))||null;return({id:v.id,cve:cveTag,title:v.title,severity:v.severity,cvss:v.confidence?(v.confidence/10).toFixed(1):'N/A',kev:(v.tags||[]).includes('kev'),affected:v.affectedAssets?.length||1,affectedAssets:v.affectedAssets||[],affectedDevices:v.affectedAssets||(v.device?[v.device]:[]),description:v.description||v.title,source:v.source,rawTime:v.rawTime,prevalence:null,remediation:[v.description||'See NVD for remediation details.'],patch:null});}));
+          // Intel tab — convert tool data to intel item shape
+          if (intelItems.length > 0) {
+            const intelForTab = intelItems.slice(0,20).map((item,i) => ({id:item.id||`live-intel-${i}`,title:item.title||'Threat Intelligence',summary:item.description||item.title||'',severity:item.severity||'Medium',source:item.source||'Connected Intel Tool',url:item.url||'',time:`${Math.max(1,Math.floor((Date.now()-(item.rawTime||Date.now()))/3600000))}h ago`,iocs:(item.tags||[]).filter(t=>t?.match(/^(CVE-|T1|\d{1,3}\.\d)/i))||[],mitre:item.mitre||item.tags?.find(t=>t?.startsWith('T1'))||'',industrySpecific:false,fromConnectedTool:true}));
+            setCustomIntel(prev => { const existing=prev||[]; const ids=new Set(existing.map(x=>x.id)); return [...existing,...intelForTab.filter(x=>!ids.has(x.id))]; });
+          }
+          // Coverage tab — MDM/Asset device records
+          if (coverageItems.length > 0) {
+            setLiveCoverageDevices(prev => {
+              const merged = new Map((prev||[]).map(d => [d.hostname, d]));
+              coverageItems.forEach(item => { if (item.device&&item.device!=='Unknown') merged.set(item.device, {hostname:item.device,ip:item.ip||'',os:item.raw?.operatingSystem||item.raw?.os||'Unknown',source:item.source,lastSeen:item.time||new Date().toISOString(),lastSeenDays:0,complianceState:item.raw?.complianceState||'unknown',user:item.user||'',missing:[],reason:`Managed by ${item.source}`}); });
+              return Array.from(merged.values());
+            });
+          }
         }
         const errors = d.results.filter(r=>r.error).map(r=>`${r.toolId}: ${r.error}`);
         if (!toolIds) {
@@ -731,16 +758,39 @@ export default function DashboardPage() {
     .filter(id=>!!connectedTools[id])
     .map(id=>({crowdstrike:'CrowdStrike Falcon',defender:'Microsoft Defender',sentinelone:'SentinelOne',carbonblack:'Carbon Black Cloud'}[id]||id));
   const missingEdr = connectedEdrNames.length > 0 ? [] : ['No EDR connected'];
-  const liveKnownDevices = !demoMode && liveVulns.length > 0
-    ? [...new Map(liveVulns.flatMap(v => {
-        const assets = v.affectedAssets || (v.device && v.device !== 'Unknown' ? [v.device] : []);
-        return assets.map(hostname => [hostname, {
-          hostname, ip: v.ip||'', os: v.raw?.os || 'Unknown',
-          missing: connectedEdrNames.length > 0 ? connectedEdrNames.map(n=>`Verify: ${n}`) : [],
-          reason: connectedEdrNames.length > 0 ? `Scanned by Tenable — verify ${connectedEdrNames.join('/')} coverage` : 'Scanned by Tenable — no EDR configured to evaluate',
-          lastSeen: 'via Tenable', lastSeenDays: 0,
-        }]);
-      })).values()]
+  // Merge devices from Tenable scans + MDM/asset tools (Intune, Axonius, Tanium, etc.)
+  const liveKnownDevices = !demoMode && (liveVulns.length > 0 || liveCoverageDevices.length > 0)
+    ? (() => {
+        const deviceMap = new Map();
+        // Tenable-scanned devices
+        liveVulns.forEach(v => {
+          const assets = v.affectedAssets || (v.device && v.device !== 'Unknown' ? [v.device] : []);
+          assets.forEach(hostname => {
+            if (!deviceMap.has(hostname)) deviceMap.set(hostname, {
+              hostname, ip: v.ip||'', os: v.raw?.os || 'Unknown',
+              missing: connectedEdrNames.length > 0 ? connectedEdrNames.map(n=>`Verify: ${n}`) : [],
+              reason: `Scanned by Tenable${connectedEdrNames.length > 0 ? ` — verify ${connectedEdrNames.join('/')} coverage` : ''}`,
+              lastSeen: 'via Tenable', lastSeenDays: 0,
+            });
+          });
+        });
+        // MDM/Asset tool devices — enrich or add
+        liveCoverageDevices.forEach(dev => {
+          if (deviceMap.has(dev.hostname)) {
+            const existing = deviceMap.get(dev.hostname);
+            deviceMap.set(dev.hostname, { ...existing, ip: dev.ip || existing.ip, os: dev.os !== 'Unknown' ? dev.os : existing.os, source: dev.source, complianceState: dev.complianceState });
+          } else {
+            deviceMap.set(dev.hostname, {
+              hostname: dev.hostname, ip: dev.ip || '', os: dev.os || 'Unknown',
+              missing: connectedEdrNames.length > 0 ? connectedEdrNames.map(n=>`Verify: ${n}`) : [],
+              reason: `Managed by ${dev.source}${connectedEdrNames.length > 0 ? ` — verify ${connectedEdrNames.join('/')} coverage` : ''}`,
+              lastSeen: dev.lastSeen || 'via MDM', lastSeenDays: 0,
+              complianceState: dev.complianceState,
+            });
+          }
+        });
+        return Array.from(deviceMap.values());
+      })()
     : [];
   const osBreakdown = (demoMode?DEMO_GAP_DEVICES:liveKnownDevices.length>0?liveKnownDevices:DEMO_GAP_DEVICES).reduce((acc,d)=>{const os=d.os?.split(' ')[0]||'Unknown';acc[os]=(acc[os]||0)+1;return acc;},{});
   // In live mode: gap devices = only those with actual missing connected tools
@@ -827,11 +877,29 @@ export default function DashboardPage() {
       });
     }
     if(automation===2) {
-      const tpCandidates = alerts.filter(a=>a.verdict==='TP'&&a.severity==='Critical'&&a.device&&a.confidence>=80&&!autoFiredRef.current.has('tp_'+a.id));
+      // Full Auto: isolate high-confidence Critical/High TPs + disable accounts where applicable
+      const tpCandidates = alerts.filter(a=>a.verdict==='TP'&&['Critical','High'].includes(a.severity)&&a.confidence>=80&&!autoFiredRef.current.has('tp_'+a.id));
       tpCandidates.forEach(a=>{
         autoFiredRef.current.add('tp_'+a.id);
-        fetch('/api/response-actions',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({action:'isolate_device',device:a.device,alertId:a.id,analyst:'AI Auto'})}).catch(()=>{});
-        fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({type:'auto_response',action:'isolate_device',device:a.device,alertId:a.id,alertTitle:a.title,automation,analyst:'AI'})}).catch(()=>{});
+        // Build immediate actions based on alert context
+        const immediateActions = [];
+        if(a.device) immediateActions.push({priority:'CRITICAL',action:`Isolate host ${a.device} from network`,timeframe:'immediately',owner:'SOC L2'});
+        if(a.ip) immediateActions.push({priority:'HIGH',action:`Block IP ${a.ip} at perimeter`,timeframe:'within 5 minutes',owner:'SOC L2'});
+        if(a.user&&a.verdict==='TP') immediateActions.push({priority:'HIGH',action:`Disable account ${a.user} pending investigation`,timeframe:'within 10 minutes',owner:'SOC L2'});
+        immediateActions.push({priority:'HIGH',action:`Create incident ticket for ${a.title}`,timeframe:'within 15 minutes',owner:'SOC L2'});
+        fetch('/api/response-actions',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},
+          body:JSON.stringify({
+            action:'full_auto_batch',
+            immediateActions,
+            alertId:a.id,alertTitle:a.title,
+            verdict:a.verdict,confidence:a.confidence,
+            device:a.device,ip:a.ip,user:a.user,
+            analyst:'APEX Full Auto',
+          }),
+        }).catch(()=>{});
+        fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({type:'auto_response_full',alertId:a.id,alertTitle:a.title,automation,analyst:'AI',actionsCount:immediateActions.length})}).catch(()=>{});
       });
     }
   },[actedAlerts.length,automation,demoMode]);
@@ -1466,7 +1534,7 @@ Generated by Watchtower`;
 
           {/* ═══════════════════════════════ ALERTS ══════════════════════════════════ */}{activeTab==='alerts' && (
               <AlertsTab
-                alerts={alerts} demoMode={demoMode} automation={automation}
+                alerts={alerts} demoMode={demoMode} automation={automation} liveVulns={liveVulns} liveAlerts={liveAlerts} customIntel={customIntel}
                 autColor={autColor} autLabel={autLabel}
                 fpAlerts={fpAlerts} tpAlerts={tpAlerts}
                 alertSearch={alertSearch} setAlertSearch={setAlertSearch}
@@ -1500,7 +1568,7 @@ Generated by Watchtower`;
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4,flexWrap:'wrap'}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Coverage</h2>
                 <span style={{fontSize:'0.62rem',color:coveredPct>=90?'#22d49a':'#f0a030',background:coveredPct>=90?'#22d49a12':'#f0a03012',padding:'2px 8px',borderRadius:4,fontWeight:600,border:`1px solid ${coveredPct>=90?'#22d49a25':'#f0a03025'}`}}>{coveredPct}% covered</span>
-                {!demoMode&&liveKnownDevices.length>0&&<span style={{fontSize:'0.6rem',color:'#00b3e3',background:'#00b3e310',padding:'2px 8px',borderRadius:4,border:'1px solid #00b3e325',fontWeight:600}}>✦ {liveKnownDevices.length} devices from Tenable</span>}
+                {!demoMode&&liveKnownDevices.length>0&&<span style={{fontSize:'0.6rem',color:'#00b3e3',background:'#00b3e310',padding:'2px 8px',borderRadius:4,border:'1px solid #00b3e325',fontWeight:600}}>✦ {liveKnownDevices.length} devices{liveCoverageDevices.length>0?` (${liveCoverageDevices.length} from MDM)`:' from Tenable'}</span>}
                 <div style={{display:'flex',gap:5,flexWrap:'wrap',marginLeft:'auto',alignItems:'center'}}>
                   <span style={{fontSize:'0.58rem',color:'var(--wt-dim)',marginRight:2}}>OS:</span>
                   {Object.entries(osBreakdown).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([os,n])=>(
@@ -1759,7 +1827,7 @@ Generated by Watchtower`;
                   }
                   {customIntel && !demoMode && (
                     <span style={{fontSize:'0.6rem',color:'#22d49a',background:'#22d49a0a',padding:'2px 8px',borderRadius:4,border:'1px solid #22d49a25',fontWeight:600}}>
-                      ✦ LIVE{intelFetchedAt ? ` · ${Math.floor((Date.now()-new Date(intelFetchedAt).getTime())/60000)}m ago` : ''}
+                      ✦ LIVE · {customIntel.length} items{intelFetchedAt ? ` · ${Math.floor((Date.now()-new Date(intelFetchedAt).getTime())/60000)}m ago` : ''}{customIntel.some(i=>i.fromConnectedTool)?' · from connected tools':''}
                     </span>
                   )}
                   {!customIntel && !demoMode && !intelLoading && (
