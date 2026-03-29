@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUsers, createUser, updateUser, saveUsers } from '@/lib/users';
 import { sendEmail, inviteEmailHtml } from '@/lib/email';
 import { randomBytes } from 'crypto';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 function requireAuth(req: NextRequest) {
   const userId = req.headers.get('x-user-id');
@@ -13,7 +14,10 @@ function requireAuth(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const authError = requireAuth(req);
   if (authError) return authError;
+  // Rate limit: 10 invites per hour per tenant (prevents spam)
   const tenantId = req.headers.get('x-tenant-id') || 'global';
+  const rl = await checkRateLimit(`invite:${tenantId}`, 10, 3600);
+  if (!rl.ok) return NextResponse.json({ error: 'Too many invite attempts. Try again later.' }, { status: 429 });
   const inviterId = req.headers.get('x-user-id') || 'admin';
 
   try {

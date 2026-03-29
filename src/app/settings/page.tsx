@@ -28,6 +28,79 @@ const INDUSTRIES = [
 ];
 
 
+
+function ChangePasswordForm() {
+  const [current, setCurrent] = React.useState('');
+  const [next, setNext] = React.useState('');
+  const [confirm, setConfirm] = React.useState('');
+  const [status, setStatus] = React.useState<'idle'|'saving'|'ok'|'error'>('idle');
+  const [msg, setMsg] = React.useState('');
+  const INPUT_S: React.CSSProperties = { width: '100%', padding: '9px 12px', background: '#070a14', border: '1px solid #263044', borderRadius: 8, color: '#e8ecf4', fontSize: '0.84rem', fontFamily: 'Inter,sans-serif', outline: 'none', boxSizing: 'border-box' };
+
+  async function submit() {
+    if (!current || !next || !confirm) { setMsg('All fields required'); setStatus('error'); return; }
+    if (next.length < 8) { setMsg('New password must be at least 8 characters'); setStatus('error'); return; }
+    if (next !== confirm) { setMsg('New passwords do not match'); setStatus('error'); return; }
+    setStatus('saving'); setMsg('');
+    try {
+      const r = await fetch('/api/settings/user', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ currentPassword: current, newPassword: next }) });
+      const d = await r.json();
+      if (d.ok) { setStatus('ok'); setMsg('Password updated'); setCurrent(''); setNext(''); setConfirm(''); setTimeout(() => setStatus('idle'), 3000); }
+      else { setStatus('error'); setMsg(d.error || 'Update failed'); }
+    } catch { setStatus('error'); setMsg('Network error'); }
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <input type="password" placeholder="Current password" value={current} onChange={e => setCurrent(e.target.value)} style={INPUT_S} />
+      <input type="password" placeholder="New password (min 8 chars)" value={next} onChange={e => setNext(e.target.value)} style={INPUT_S} />
+      <input type="password" placeholder="Confirm new password" value={confirm} onChange={e => setConfirm(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} style={INPUT_S} />
+      {msg && <div style={{ fontSize: '0.72rem', color: status === 'ok' ? '#22d49a' : '#f0405e', fontWeight: 600 }}>{status === 'ok' ? '✓ ' : ''}{msg}</div>}
+      <button onClick={submit} disabled={status === 'saving'} style={{ alignSelf: 'flex-start', padding: '8px 18px', borderRadius: 8, border: 'none', background: '#4f8fff', color: '#fff', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
+        {status === 'saving' ? 'Updating…' : 'Update Password'}
+      </button>
+    </div>
+  );
+}
+
+function DeleteAccountButton() {
+  const [step, setStep] = React.useState<'idle'|'confirm'|'deleting'>('idle');
+  const [typed, setTyped] = React.useState('');
+
+  async function doDelete() {
+    if (typed !== 'DELETE') return;
+    setStep('deleting');
+    try {
+      await fetch('/api/settings/user', { method: 'DELETE' });
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.href = '/?deleted=1';
+    } catch { setStep('confirm'); }
+  }
+
+  if (step === 'idle') return (
+    <button onClick={() => setStep('confirm')} style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #f0405e40', borderRadius: 8, color: '#f0405e', fontSize: '0.76rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
+      Delete Account
+    </button>
+  );
+
+  return (
+    <div style={{ padding: '14px', background: '#f0405e08', border: '1px solid #f0405e30', borderRadius: 8, width: '100%', marginTop: 8 }}>
+      <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#f0405e', marginBottom: 6 }}>Permanently delete your account?</div>
+      <div style={{ fontSize: '0.7rem', color: '#6b7a94', marginBottom: 10, lineHeight: 1.6 }}>
+        This will permanently erase your account, all alerts, incidents, and configuration. This action cannot be undone and complies with GDPR Art.17 right to erasure.
+      </div>
+      <div style={{ fontSize: '0.7rem', color: '#6b7a94', marginBottom: 8 }}>Type <strong style={{ color: '#e8ecf4' }}>DELETE</strong> to confirm:</div>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <input value={typed} onChange={e => setTyped(e.target.value)} placeholder="DELETE" style={{ flex: 1, padding: '7px 10px', background: '#070a14', border: '1px solid #f0405e40', borderRadius: 7, color: '#e8ecf4', fontSize: '0.8rem', fontFamily: 'Inter,sans-serif', outline: 'none' }} />
+        <button onClick={doDelete} disabled={typed !== 'DELETE' || step === 'deleting'} style={{ padding: '7px 14px', borderRadius: 7, border: 'none', background: typed === 'DELETE' ? '#f0405e' : '#1d2535', color: '#fff', fontSize: '0.76rem', fontWeight: 700, cursor: typed === 'DELETE' ? 'pointer' : 'not-allowed', fontFamily: 'Inter,sans-serif' }}>
+          {step === 'deleting' ? 'Deleting…' : 'Delete Forever'}
+        </button>
+        <button onClick={() => { setStep('idle'); setTyped(''); }} style={{ padding: '7px 12px', borderRadius: 7, border: '1px solid #1d2535', background: 'transparent', color: '#6b7a94', fontSize: '0.76rem', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
 function MfaSetup() {
   const [mfaStatus, setMfaStatus] = React.useState<{enabled:boolean}|null>(null);
   const [step, setStep] = React.useState<'idle'|'setup'|'verify'|'disable'>('idle');
@@ -372,24 +445,21 @@ export default function SettingsPage() {
               <MfaSetup />
             </div>
             <div style={CARD}>
-              <div style={{ fontSize: '0.82rem', fontWeight: 700, marginBottom: 8, color: '#e8ecf4' }}>Password</div>
-              <div style={{ fontSize: '0.74rem', color: '#6b7a94', marginBottom: 14 }}>
-                Change your login password.
-              </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <a href="/login" style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #263044', borderRadius: 8, color: '#6b7a94', fontSize: '0.76rem', fontWeight: 600, textDecoration: 'none' }}>
-                  Change Password
-                </a>
-              </div>
+              <div style={{ fontSize: '0.82rem', fontWeight: 700, marginBottom: 8, color: '#e8ecf4' }}>Change Password</div>
+              <div style={{ fontSize: '0.74rem', color: '#6b7a94', marginBottom: 14 }}>Update your login password. You'll remain signed in on this device.</div>
+              <ChangePasswordForm />
             </div>
 
             <div style={{ padding: '14px 18px', background: '#f0405e08', border: '1px solid #f0405e20', borderRadius: 10 }}>
               <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#f0405e', marginBottom: 4 }}>Danger Zone</div>
               <div style={{ fontSize: '0.72rem', color: '#6b7a94', marginBottom: 12 }}>These actions are irreversible. Please be certain.</div>
-              <button style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #f0405e40', borderRadius: 8, color: '#f0405e', fontSize: '0.76rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}
-                onClick={() => confirm('Are you sure? This cannot be undone.') && fetch('/api/auth/logout', { method: 'POST' }).then(() => window.location.href = '/login')}>
-                Sign Out
-              </button>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #f0405e40', borderRadius: 8, color: '#f0405e', fontSize: '0.76rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}
+                  onClick={() => confirm('Sign out of this session?') && fetch('/api/auth/logout', { method: 'POST' }).then(() => window.location.href = '/login')}>
+                  Sign Out
+                </button>
+                <DeleteAccountButton />
+              </div>
             </div>
           </div>
         )}

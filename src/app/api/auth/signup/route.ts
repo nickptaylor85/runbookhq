@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
       // Mark 2FA setup as required — enforced by middleware on first dashboard visit
       await redisSet(`wt:user:${userId}:mfa_setup_required`, '1');
 
-      const token = signSession({ userId, tenantId, isAdmin: false, email, role: 'owner' });
+      const token = signSession({ userId, tenantId, isAdmin: false, email, role: 'owner', tier: plan });
       // Send welcome email (non-blocking)
       sendEmail({
         to: email,
@@ -149,7 +149,7 @@ export async function POST(req: NextRequest) {
     // Mark 2FA setup as required
     await redisSet(`wt:user:${userId}:mfa_setup_required`, '1');
 
-    const token = signSession({ userId, tenantId, isAdmin: false, email, role: 'owner' });
+    const token = signSession({ userId, tenantId, isAdmin: false, email, role: 'owner', tier: plan });
     const res = NextResponse.json({ ok: true, role: 'owner', plan, pendingVerification: true, redirect: '/setup-2fa' });
     res.cookies.set('wt_session', token, {
       httpOnly: true, secure: process.env.NODE_ENV === 'production',

@@ -15,7 +15,10 @@ function SuccessContent() {
 
   useEffect(() => {
     const interval = setInterval(() => setDots(d => d.length >= 3 ? '' : d + '.'), 500);
-    const redirect = setTimeout(() => { window.location.href = '/dashboard'; }, 4000);
+    // Check if 2FA setup is still pending (cookie survives Stripe redirect)
+    const mfaPending = document.cookie.split(';').some(c => c.trim().startsWith('wt_mfa_pending=1'));
+    const dest = mfaPending ? '/setup-2fa' : '/dashboard';
+    const redirect = setTimeout(() => { window.location.href = dest; }, 4000);
     return () => { clearInterval(interval); clearTimeout(redirect); };
   }, []);
 
@@ -31,7 +34,7 @@ function SuccessContent() {
         Connect your first security tool → Your alerts start flowing → AI begins triaging immediately
       </div>
       <div style={{ fontSize: '0.76rem', color: '#3a4050' }}>Redirecting to your dashboard{dots}</div>
-      <a href='/dashboard' style={{ display: 'inline-block', marginTop: 16, padding: '10px 28px', borderRadius: 9, background: '#4f8fff', color: '#fff', fontSize: '0.84rem', fontWeight: 700, textDecoration: 'none' }}>Go to Dashboard →</a>
+      <a href='/dashboard' onClick={e => { e.preventDefault(); const p = document.cookie.split(';').some(c => c.trim().startsWith('wt_mfa_pending=1')); window.location.href = p ? '/setup-2fa' : '/dashboard'; }} style={{ display: 'inline-block', marginTop: 16, padding: '10px 28px', borderRadius: 9, background: '#4f8fff', color: '#fff', fontSize: '0.84rem', fontWeight: 700, textDecoration: 'none', cursor: 'pointer' }}>Go to Dashboard →</a>
     </div>
   );
 }

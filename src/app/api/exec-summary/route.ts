@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAnthropicKey } from '@/lib/redis';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 export async function POST(req: NextRequest) {
   try {
+    const userId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+    const rl = await checkRateLimit(`ai:${userId}`, 30, 60);
+    if (!rl.ok) return NextResponse.json({ ok: false, error: `Rate limit exceeded. Resets in ${rl.reset}s.` }, { status: 429 });
+  // Tier enforcement: requires Professional (business) or above
+  const userTier = req.headers.get('x-user-tier') || 'community';
+  const tierLevels: Record<string, number> = { community: 0, team: 1, business: 2, mssp: 3 };
+  if ((tierLevels[userTier] || 0) < 2) {
+    return NextResponse.json({ ok: false, error: 'Executive reports require Professional plan or above. Upgrade at /pricing.' }, { status: 403 });
+  }
     const tenantId = req.headers.get('x-tenant-id') || 'global';
     const body = await req.json() as Record<string, unknown>;
     const apiKey = await getAnthropicKey(tenantId);

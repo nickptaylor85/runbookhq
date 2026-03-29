@@ -38,9 +38,13 @@ export async function POST(req: NextRequest) {
         inviteToken: undefined,
         inviteExpiry: undefined,
       });
-      const token = signSession({ userId: user.id, tenantId: 'global', isAdmin: false, email: user.email, role: user.role });
-      const res = NextResponse.json({ ok: true, role: user.role });
+      const token = signSession({ userId: user.id, tenantId: 'global', isAdmin: false, email: user.email, role: user.role, tier: 'community' });
+      // Mark invited user as requiring 2FA setup on first login
+      const { redisSet: rSet } = await import('@/lib/redis');
+      await rSet(`wt:user:${user.id}:mfa_setup_required`, '1').catch(() => {});
+      const res = NextResponse.json({ ok: true, role: user.role, redirect: '/setup-2fa' });
       res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 604800, path: '/' });
+      res.cookies.set('wt_mfa_pending', '1', { httpOnly: false, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 3600, path: '/' });
       return res;
     }
 
@@ -71,7 +75,7 @@ export async function POST(req: NextRequest) {
           }
         } catch {}
       }
-      const token = signSession({ userId: email, tenantId: 'global', isAdmin: true, email, role: 'owner' });
+      const token = signSession({ userId: email, tenantId: 'global', isAdmin: true, email, role: 'owner', tier: 'mssp' });
       const res = NextResponse.json({ ok: true, role: 'owner' });
       res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 86400, path: '/' });
       return res;
@@ -80,10 +84,16 @@ export async function POST(req: NextRequest) {
     // ── Staff user (Redis) ────────────────────────────────────────────────
     const user = await getUserByEmail('global', email);
     if (user && user.status === 'active' && user.passwordHash && verifyPassword(password, user.passwordHash)) {
-      const token = signSession({ userId: user.id, tenantId: 'global', isAdmin: false, email: user.email, role: user.role });
+      // Read tier from tenant settings (authoritative server-side store)
+      const settingsRaw = await redisGet(`wt:${user.tenantId || 'global'}:settings`).catch(() => null);
+      const tenantSettings = settingsRaw ? JSON.parse(settingsRaw) : {};
+      const userTier = (user as any).plan || tenantSettings.userTier || 'community';
+
+      const token = signSession({ userId: user.id, tenantId: user.tenantId || 'global', isAdmin: false, email: user.email, role: user.role, tier: userTier });
       await updateUser('global', user.id, { lastSeen: new Date().toISOString() });
       const res = NextResponse.json({ ok: true, role: user.role });
       res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 86400, path: '/' });
+      res.cookies.set('wt_tier', userTier, { httpOnly: false, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 86400, path: '/' });
       return res;
     }
 

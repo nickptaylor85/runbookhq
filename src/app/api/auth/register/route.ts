@@ -1,44 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createUser, getUserByEmail, hashPassword } from '@/lib/users';
-import { redisSet, redisGet } from '@/lib/redis';
-
-export async function POST(req: NextRequest) {
-  try {
-    // Check if signups are enabled (default: true)
-    const platformRaw = await redisGet('wt:platform:settings').catch(() => null);
-    const platformSettings = platformRaw ? JSON.parse(platformRaw) : {};
-    if (platformSettings.signup_enabled === false) {
-      return NextResponse.json({ error: 'Sign-ups are currently disabled. Contact your administrator.' }, { status: 403 });
-    }
-
-    const { name, email, password, plan } = await req.json();
-    if (!name || !email || !password)
-      return NextResponse.json({ error: 'Name, email and password required' }, { status: 400 });
-    if (password.length < 8)
-      return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 });
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-      return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
-
-    // Check if email already exists
-    const existing = await getUserByEmail('global', email);
-    if (existing) return NextResponse.json({ error: 'An account with this email already exists' }, { status: 409 });
-
-    // Create user account
-    const user = await createUser('global', {
-      name, email,
-      role: 'owner', // First user of their org gets owner role
-      tenantId: 'global',
-      status: 'active',
-      passwordHash: hashPassword(password),
-    });
-
-    // Set initial plan tier
-    const validPlans = ['community','team','business','mssp'];
-    const tier = validPlans.includes(plan) ? plan : 'community';
-    await redisSet(`wt:tenant:global:settings`, JSON.stringify({ userTier: tier, demoMode: 'true', automation: '0' }));
-
-    return NextResponse.json({ ok: true, userId: user.id });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
-  }
+import { NextResponse } from 'next/server';
+// This endpoint has been superseded by /api/auth/signup which includes
+// scrypt hashing, rate limiting, 2FA enrollment, and welcome email.
+export async function POST() {
+  return NextResponse.json(
+    { error: 'This endpoint is no longer active. Use /api/auth/signup.' },
+    { status: 410 }
+  );
+}
+export async function GET() {
+  return NextResponse.json({ error: 'Gone' }, { status: 410 });
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 // Session verification using Web Crypto API (Edge Runtime compatible)
-async function verifySessionToken(token: string): Promise<{ userId: string; tenantId: string; isAdmin: boolean } | null> {
+async function verifySessionToken(token: string): Promise<{ userId: string; tenantId: string; isAdmin: boolean; tier?: string } | null> {
   try {
     const secret = process.env.WATCHTOWER_SESSION_SECRET || 'watchtower-dev-session-secret';
     const [encoded, sig] = token.split('.');
@@ -90,9 +90,10 @@ export async function middleware(req: NextRequest) {
     headers.set('x-user-id', session.userId);
     headers.set('x-tenant-id', session.tenantId);
     headers.set('x-is-admin', String(session.isAdmin));
-    // Inject tier: admins get full access; read wt_tier cookie if present
-    const tierCookie = req.cookies.get('wt_tier')?.value;
-    headers.set('x-user-tier', session.isAdmin ? 'mssp' : (tierCookie || 'community'));
+    // Inject tier: admins get full access; read from signed JWT payload (not cookie)
+    // The tier in the JWT is set at login/signup and is tamper-proof
+    const jwtTier = (session as any).tier as string | undefined;
+    headers.set('x-user-tier', session.isAdmin ? 'mssp' : (jwtTier || 'community'));
     return NextResponse.next({ request: { headers } });
   }
 

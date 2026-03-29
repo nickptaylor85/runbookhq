@@ -2,11 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { redisSet, redisGet } from '@/lib/redis';
 import { sendEmail, resetEmailHtml } from '@/lib/email';
 import { randomBytes } from 'crypto';
+import { checkRateLimit } from '@/lib/ratelimit';
 import { hashPassword, getUsers, updateUser } from '@/lib/users';
 
 export async function POST(req: NextRequest) {
   try {
-    const { action, email, token, newPassword } = await req.json();
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
+    const body = await req.json();
+    const { action, email, token, newPassword } = body;
+    // Rate limit: 5 reset attempts per hour per IP
+    const rl = await checkRateLimit(`reset:${ip}`, 5, 3600);
+    if (!rl.ok) return NextResponse.json({ error: 'Too many attempts. Try again later.' }, { status: 429 });
 
     if (action === 'request') {
       if (!email) return NextResponse.json({ error: 'Email required' }, { status: 400 });

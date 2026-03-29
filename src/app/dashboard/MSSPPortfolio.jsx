@@ -4,19 +4,56 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
   const [portfolioView, setPortfolioView] = React.useState('security');
   const [showBrandingConfig, setShowBrandingConfig] = React.useState(false);
   const [liveCorrelations, setLiveCorrelations] = React.useState([]);
+  const [clients, setClients] = React.useState(null); // null = loading
+  const [clientsError, setClientsError] = React.useState(false);
+
   React.useEffect(()=>{
     fetch('/api/mssp/correlation',{headers:{'x-tenant-id':'global'}}).then(r=>r.json()).then(d=>{if(d.correlations?.length>0)setLiveCorrelations(d.correlations);}).catch(()=>{});
   },[]);
-  const [brandingDraft, setBrandingDraft] = React.useState({name:'', primaryColor:'#8b6fff', tagline:''});
-  const [brandingSaved, setBrandingSaved] = React.useState(false);
-  const [selectedClient, setSelectedClient] = React.useState(null);
 
-  const MY_CLIENTS = [
+  // Load live client data from tenant registry
+  React.useEffect(()=>{
+    fetch('/api/admin/tenants').then(r=>r.json()).then(d=>{
+      if(d.tenants && Array.isArray(d.tenants) && d.tenants.length > 0) {
+        // Map tenant data to client card format
+        const mapped = d.tenants.map(t=>({
+          id: t.id || t.tenantId,
+          name: t.name || t.id,
+          sector: t.sector || t.industry || 'Technology',
+          seats: t.seats || 1,
+          mrr: t.mrr || 0,
+          contractStart: t.contractStart || t.createdAt?.slice(0,10) || '2025-01-01',
+          renewalDate: t.renewalDate || '2026-01-01',
+          billingStatus: t.billingStatus || 'Paid',
+          posture: t.posture ?? 80,
+          alerts: t.alerts ?? 0,
+          critAlerts: t.critAlerts ?? 0,
+          incidents: t.incidents ?? 0,
+          coverage: t.coverage ?? 90,
+          kevVulns: t.kevVulns ?? 0,
+          lastSeen: t.lastSeen || 'recently',
+          toolsConnected: t.toolsConnected ?? 0,
+        }));
+        setClients(mapped);
+      } else {
+        setClientsError(true);
+      }
+    }).catch(()=>setClientsError(true));
+  },[]);
+
+  const DEMO_CLIENTS = [
     {id:'client-acme',  name:'Acme Financial',  sector:'Financial Services', seats:8,  mrr:799, contractStart:'2024-01-15', renewalDate:'2025-01-15', billingStatus:'Paid',    posture:82, alerts:8,  critAlerts:3, incidents:2, coverage:94, kevVulns:3,  lastSeen:'2m ago',  toolsConnected:4},
     {id:'client-nhs',   name:'NHS Trust Alpha',  sector:'Healthcare',         seats:14, mrr:799, contractStart:'2024-03-01', renewalDate:'2025-03-01', billingStatus:'Paid',    posture:71, alerts:15, critAlerts:5, incidents:3, coverage:88, kevVulns:7,  lastSeen:'1m ago',  toolsConnected:6},
     {id:'client-retail',name:'RetailCo UK',      sector:'Retail',             seats:6,  mrr:447, contractStart:'2024-06-10', renewalDate:'2025-06-10', billingStatus:'Paid',    posture:91, alerts:4,  critAlerts:1, incidents:1, coverage:97, kevVulns:4,  lastSeen:'5m ago',  toolsConnected:5},
     {id:'client-gov',   name:'Gov Dept Beta',   sector:'Government',         seats:10, mrr:799, contractStart:'2024-09-20', renewalDate:'2025-09-20', billingStatus:'Overdue', posture:78, alerts:9,  critAlerts:3, incidents:1, coverage:92, kevVulns:5,  lastSeen:'8m ago',  toolsConnected:3},
   ];
+
+  // Use live data if available, otherwise show demo data with banner
+  const MY_CLIENTS = (clients && clients.length > 0) ? clients : DEMO_CLIENTS;
+  const isDemo = !clients || clients.length === 0;
+  const [brandingDraft, setBrandingDraft] = React.useState({name:'', primaryColor:'#8b6fff', tagline:''});
+  const [brandingSaved, setBrandingSaved] = React.useState(false);
+  const [selectedClient, setSelectedClient] = React.useState(null);
 
   const totalMRR = MY_CLIENTS.reduce((s,c)=>s+c.mrr, 0);
   const totalSeats = MY_CLIENTS.reduce((s,c)=>s+c.seats, 0);
@@ -37,6 +74,7 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
             <button onClick={()=>setShowBrandingConfig(s=>!s)} style={{fontSize:'0.54rem',padding:'1px 6px',borderRadius:3,border:'1px solid #8b6fff25',background:'#8b6fff0a',color:'#8b6fff',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🎨 Branding</button>
           </div>
           <div style={{display:'flex',gap:16,alignItems:'center'}}>
+            {isDemo && <span style={{fontSize:'0.6rem',color:'#f0a030',background:'#f0a03012',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025',fontWeight:700}}>⚡ Demo data — add clients via Admin → Tenants</span>}
             <span style={{fontSize:'0.66rem',color:'var(--wt-muted)'}}>{MY_CLIENTS.length} clients · £{totalMRR.toLocaleString()}/mo MRR</span>
             {totalCrits>0&&<span style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',display:'flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#f0405e',boxShadow:'0 0 6px #f0405e',display:'block',animation:'pulse 1.5s ease infinite'}} />{totalCrits} active critical alerts across portfolio</span>}
             {overdueMRR>0&&<span style={{fontSize:'0.62rem',fontWeight:700,color:'#f97316'}}>⚠ £{overdueMRR}/mo overdue</span>}
@@ -272,5 +310,6 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
       </div>
 
     </div>
+  </div>
   );
 }
