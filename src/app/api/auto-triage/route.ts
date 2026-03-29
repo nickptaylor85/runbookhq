@@ -169,7 +169,7 @@ confidence guide: 90+=textbook IOC, 75-89=strong indicator one gap, 60-74=modera
 
     const results = { ...cached };
     for (let i = 0; i < toTriage.length; i++) {
-      const ai = parsed[i] || { verdict: 'SUS', confidence: 50, reasoning: 'Requires manual review', urgency: 'ROUTINE' };
+      const ai = parsed[i] || { verdict: 'SUS', confidence: 50, reasoning: 'Requires manual review', urgency: 'ROUTINE', mitreId: null };
       const result: BatchResult = {
         id: toTriage[i].id,
         verdict: ['TP', 'FP', 'SUS'].includes(ai.verdict) ? ai.verdict as 'TP' | 'FP' | 'SUS' : 'SUS',
