@@ -24,7 +24,8 @@ export async function POST(req: NextRequest) {
   // Tier enforcement: requires Essentials (team) or above
   const userTier = req.headers.get('x-user-tier') || 'community';
   const tierLevels: Record<string, number> = { community: 0, team: 1, business: 2, mssp: 3 };
-  if ((tierLevels[userTier] || 0) < 1) {
+  const isAdminReq = req.headers.get('x-is-admin') === 'true';
+  if (!isAdminReq && (tierLevels[userTier] || 0) < 1) {
     return NextResponse.json({ ok: false, error: 'This feature requires Essentials plan or above. Upgrade at /pricing.' }, { status: 403 });
   }
     const tenantId = req.headers.get('x-tenant-id') ||
