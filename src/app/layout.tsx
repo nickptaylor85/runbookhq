@@ -1,6 +1,5 @@
 import React from 'react';
 import type { Metadata, Viewport } from 'next';
-import React from 'react';
 import Script from 'next/script';
 
 export const viewport: Viewport = {
