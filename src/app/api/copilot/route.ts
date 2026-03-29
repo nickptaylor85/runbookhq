@@ -53,7 +53,7 @@ async function logAiCall(req: NextRequest, entry: Record<string, unknown>) {
     const origin = req.nextUrl?.origin || 'https://getwatchtower.io';
     await fetch(`${origin}/api/ai/ailog`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-is-admin': 'true' },
+      headers: { 'Content-Type': 'application/json', 'x-internal-key': process.env.WATCHTOWER_API_KEY || '' },
       body: JSON.stringify(entry),
     });
   } catch { /* non-blocking */ }

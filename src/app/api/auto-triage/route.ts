@@ -3,6 +3,8 @@ import { getAnthropicKey, redisGet, redisSet, redisLRange } from '@/lib/redis';
 import { checkRateLimit } from '@/lib/ratelimit';
 import { cookies } from 'next/headers';
 
+export const maxDuration = 30;
+
 // Batch triage: processes up to 20 alerts in a single call
 // Uses the same expert analyst persona as /api/triage but optimised for throughput
 // Each alert gets: verdict + confidence + 1-sentence narrative (full investigation via /api/triage)

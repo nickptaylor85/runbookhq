@@ -3,6 +3,8 @@ import { getAnthropicKey, redisGet, redisSet, redisLRange } from '@/lib/redis';
 import { cookies } from 'next/headers';
 import { checkRateLimit } from '@/lib/ratelimit';
 
+export const maxDuration = 60; // Allow up to 60s for Redis + Anthropic API
+
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
 const triageCacheKey = (t: string, a: string) => `wt:${t}:triage:${a}`;
 const knowledgeKey = (t: string) => `wt:${t}:knowledge`;

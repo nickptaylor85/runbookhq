@@ -736,11 +736,13 @@ export default function DashboardPage() {
     };
   }).filter(t => demoMode ? DEMO_TOOLS.find(d=>d.id===t.id) : t.active);
 
-  // DEMO: always use demo data. LIVE: use live data if available, else empty (not demo)
+  // DEMO: always use demo data. LIVE: live if available, else show demo alerts as baseline
   const ALERT_LIMIT = !demoMode && userTier === 'community' ? 250 : Infinity;
   const rawAlerts = demoMode
     ? (TENANT_ALERTS[currentTenant] || DEMO_ALERTS)
-    : liveAlerts.slice(0, ALERT_LIMIT);
+    : liveAlerts.length > 0
+      ? liveAlerts.slice(0, ALERT_LIMIT)
+      : (TENANT_ALERTS[currentTenant] || DEMO_ALERTS); // Show demo as baseline until live data arrives
   const alerts = rawAlerts.map(a => alertOverrides[a.id] ? {...a, ...alertOverrides[a.id]} : a);
   const vulns = demoMode
     ? (TENANT_VULNS[currentTenant] || DEMO_VULNS)

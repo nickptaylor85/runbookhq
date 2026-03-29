@@ -75,7 +75,7 @@ Make the intel feel genuinely current and specific — named threat groups (APT4
     const text = data.content?.find((b: any) => b.type === 'text')?.text?.trim() || '';
     const durationMs = Date.now() - t0Intel;
     fetch(`${req.nextUrl.origin}/api/ai/ailog`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-is-admin': 'true' },
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'x-internal-key': process.env.WATCHTOWER_API_KEY || '' },
       body: JSON.stringify({ ts: Date.now(), userId, tenantId, type: 'intel',
         promptPreview: `Threat intel: ${industry}`, promptLength: prompt.length,
         responseLength: text.length, model: 'claude-haiku-4-5-20251001', durationMs, ok: true }),
