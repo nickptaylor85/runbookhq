@@ -51,11 +51,27 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next({ request: { headers: cleanHeaders } });
   }
 
-  // Dashboard and settings: allow through but check 2FA setup cookie
+  // Dashboard and settings: allow through, but redirect to 2FA setup if pending
   if (pathname === '/dashboard' || pathname.startsWith('/settings')) {
     const mfaPending = req.cookies.get('wt_mfa_pending')?.value;
     if (mfaPending === '1') {
-      return NextResponse.redirect(new URL('/setup-2fa', req.url));
+      // Check if this is an admin session — admin never needs 2FA setup
+      const sessionToken = req.cookies.get('wt_session')?.value;
+      let isAdminSession = false;
+      if (sessionToken) {
+        try {
+          const encoded = sessionToken.split('.')[0];
+          const payload = JSON.parse(atob(encoded.replace(/-/g, '+').replace(/_/g, '/')));
+          isAdminSession = payload.isAdmin === true;
+        } catch {}
+      }
+      if (!isAdminSession) {
+        return NextResponse.redirect(new URL('/setup-2fa', req.url));
+      }
+      // Admin: clear stale cookie and proceed
+      const res = NextResponse.next({ request: { headers: cleanHeaders } });
+      res.cookies.set('wt_mfa_pending', '', { maxAge: 0, path: '/' });
+      return res;
     }
     return NextResponse.next({ request: { headers: cleanHeaders } });
   }

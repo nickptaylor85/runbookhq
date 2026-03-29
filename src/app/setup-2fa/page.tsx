@@ -23,7 +23,12 @@ export default function Setup2FAPage() {
   useEffect(() => {
     fetch('/api/auth/session').then(r => r.json()).then(d => {
       if (!d.authenticated) { router.replace('/login'); return; }
-      if (!d.mfaSetupRequired) { router.replace('/dashboard'); return; }
+      if (!d.mfaSetupRequired) {
+        // Clear stale cookie before redirecting
+        document.cookie = 'wt_mfa_pending=; max-age=0; path=/';
+        router.replace('/dashboard');
+        return;
+      }
       setStep('intro');
     }).catch(() => router.replace('/login'));
   }, [router]);
