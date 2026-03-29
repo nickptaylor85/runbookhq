@@ -4,6 +4,49 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.9.130',
+    date: '2026-03-29',
+    tag: 'Routes',
+    tagColor: '#8b6fff',
+    summary: 'Implemented 17 stub API routes — posture scoring, incidents CRUD, batch auto-triage, NL query, runbooks, Taegis isolate/endpoints, MSSP client reports, widget, admin analytics, noise reduction, AI insights',
+    changes: [
+      { type: 'feat', text: '/api/posture — Weighted posture score (0-100) from coverage 30% + critical alerts 30% + KEV vulns 20% + FP rate 20%. POST to update from dashboard data, GET to retrieve cached score.' },
+      { type: 'feat', text: '/api/unified-alerts — Merges alerts from all connected tools post-sync with deduplication by title+device. Filter by severity and source. 60s Redis cache.' },
+      { type: 'feat', text: '/api/incidents — Full CRUD for incidents in Redis (GET list, POST upsert/replace, DELETE by ID). Enables cross-session incident persistence.' },
+      { type: 'feat', text: '/api/auto-triage — Batch triage up to 20 alerts in one AI call. Returns TP/FP/SUS verdict + confidence + reasoning per alert. 24h Redis cache per alert.' },
+      { type: 'feat', text: '/api/nl-query — Natural language to Splunk SPL + Sentinel KQL + Defender Advanced Hunting. Pass device/IP/user context for targeted queries.' },
+      { type: 'feat', text: '/api/runbooks — Runbook CRUD with 4 pre-built SOC runbooks: Ransomware, Phishing/BEC, Credential Theft, Data Exfiltration. Each has steps/containment/eradication/recovery sections.' },
+      { type: 'feat', text: '/api/taegis/isolate — Real Taegis GraphQL device isolation. Finds endpoint by hostname, runs isolateEndpoint mutation, audit-logs the action.' },
+      { type: 'feat', text: '/api/taegis/endpoints — Lists all Taegis endpoints via GraphQL with OS, isolation status, sensor version, and network interfaces. 5-min cache.' },
+      { type: 'feat', text: '/api/mssp/client-reports — On-demand HTML security report generated and emailed to client. Uses last exec summary from Redis for metrics.' },
+      { type: 'feat', text: '/api/widget — Public embeddable status widget (CORS enabled). Returns sanitised posture score and org branding for a client slug. No auth required.' },
+      { type: 'feat', text: '/api/admin/analytics — Usage analytics: AI call count/success rate/avg duration, FP/TP verdict breakdown, posture score, SLA event count.' },
+      { type: 'feat', text: '/api/admin/tenants — Lists all tenant IDs from slug map. Admin only.' },
+      { type: 'feat', text: '/api/admin/reset-password — Admin-triggered password reset email via Resend with signed token. Token stored in Redis with 24h TTL.' },
+      { type: 'feat', text: '/api/admin/seed-demos — Seeds demo posture and settings data for a tenant. Admin only.' },
+      { type: 'feat', text: '/api/noise-reduction — AI analysis of alert patterns to identify top FP sources and generate suppression rules (Splunk/KQL). 1h cache.' },
+      { type: 'feat', text: '/api/ai-insights — Daily contextual security insight with headline, priority, action item and trend direction. 6h cache per tenant.' },
+      { type: 'fix', text: 'AdminPortal subscriber data updated to new pricing: Enterprise £2,499, Professional £799, Essentials £149/seat. Filter tabs updated to match.' },
+    ],
+  },
+
+  {
+    version: 'v74.9.129',
+    date: '2026-03-29',
+    tag: 'Audit',
+    tagColor: '#f0a030',
+    summary: 'Full code audit — rate limiting, SWC line length fix, connectedTools dep, slug-map cast, 40 stub routes catalogued',
+    changes: [
+      { type: 'fix', text: 'Added rate limiting to all AI API routes that were missing it: /api/triage, /api/blast-radius, /api/investigate, /api/exec-summary, /api/shift-handover. 30 requests/60s per user.' },
+      { type: 'fix', text: 'DASHBOARD_CSS constant on L34 was 4,995 chars — split into two concatenated strings. SWC parser crashes on lines > ~5,000 chars.' },
+      { type: 'fix', text: 'connectedTools object used as useEffect dependency caused sync effect to re-fire on every render (object reference changes). Changed to Object.keys(connectedTools).join(",") — a stable string.' },
+      { type: 'fix', text: 'api/mssp/slug-map DELETE handler used "as any" cast — replaced with proper Record<string,unknown> type guard.' },
+      { type: 'audit', text: '40 stub API routes identified (10L stubs returning ok:true). These are intentional stubs for future expansion — no functional gap as they are not called by the UI. Security: all production-relevant routes (copilot, triage, blast-radius, investigate, audit, sla, email, response-actions, stripe, cron) are real and fully implemented.' },
+      { type: 'audit', text: 'Auth: no cross-tenant data leakage detected. Tenant ID is injected by middleware from verified session cookie — cannot be spoofed. All Redis keys are namespaced wt:{tenantId}:. Rate limiting keyed by x-user-id from session.' },
+    ],
+  },
+
+  {
     version: 'v74.9.127',
     date: '2026-03-29',
     tag: 'Polish',

@@ -67,13 +67,13 @@ function AuditLogView({ tenantId }) {
 
 export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBanner, setClientBanner, adminBannerInput, setAdminBannerInput, userRole, setUserRole, currentTenant }) {
   const WTC_SUBSCRIBERS = [
-    {id:'mssp-cyberguard', name:'CyberGuard Solutions',  type:'MSSP',     plan:'MSSP',     seats:0,  mrr:1115, clients:4,  status:'Active',  posture:84, alerts:36, incidents:7,  coverage:93, joined:'2024-01-10', billing:'Paid'},
-    {id:'mssp-secureops',  name:'SecureOps Ltd',         type:'MSSP',     plan:'MSSP',     seats:0,  mrr:957,  clients:2,  status:'Active',  posture:79, alerts:22, incidents:4,  coverage:90, joined:'2024-03-15', billing:'Paid'},
-    {id:'org-fintech',     name:'FinTech Global',        type:'Business', plan:'Business', seats:10, mrr:199,  clients:0,  status:'Active',  posture:88, alerts:12, incidents:2,  coverage:96, joined:'2024-02-01', billing:'Paid'},
-    {id:'org-healthco',    name:'HealthCo Systems',      type:'Business', plan:'Business', seats:10, mrr:199,  clients:0,  status:'Active',  posture:72, alerts:19, incidents:3,  coverage:87, joined:'2024-04-20', billing:'Overdue'},
-    {id:'org-logistics',   name:'Logistics UK Ltd',      type:'Business', plan:'Business', seats:10, mrr:199,  clients:0,  status:'Churned', posture:0,  alerts:0,  incidents:0,  coverage:0,  joined:'2023-11-01', billing:'Churned'},
-    {id:'org-startup1',    name:'DevStack Inc',          type:'Team',     plan:'Team',     seats:4,  mrr:196,  clients:0,  status:'Active',  posture:91, alerts:5,  incidents:1,  coverage:98, joined:'2024-05-01', billing:'Paid'},
-    {id:'org-startup2',    name:'CloudBase Ltd',         type:'Team',     plan:'Team',     seats:3,  mrr:147,  clients:0,  status:'Trial',   posture:65, alerts:8,  incidents:0,  coverage:78, joined:'2024-03-28', billing:'Trial'},
+    {id:'mssp-cyberguard', name:'CyberGuard Solutions',  type:'Enterprise', plan:'Enterprise', seats:0, mrr:2499, clients:4,  status:'Active',  posture:84, alerts:36, incidents:7,  coverage:93, joined:'2024-01-10', billing:'Paid'},
+    {id:'mssp-secureops',  name:'SecureOps Ltd',         type:'Enterprise', plan:'Enterprise', seats:0, mrr:2499, clients:2,  status:'Active',  posture:79, alerts:22, incidents:4,  coverage:90, joined:'2024-03-15', billing:'Paid'},
+    {id:'org-fintech',     name:'FinTech Global',        type:'Professional', plan:'Professional', seats:15, mrr:799,  clients:0,  status:'Active',  posture:88, alerts:12, incidents:2,  coverage:96, joined:'2024-02-01', billing:'Paid'},
+    {id:'org-healthco',    name:'HealthCo Systems',      type:'Professional', plan:'Professional', seats:10, mrr:799,  clients:0,  status:'Active',  posture:72, alerts:19, incidents:3,  coverage:87, joined:'2024-04-20', billing:'Overdue'},
+    {id:'org-logistics',   name:'Logistics UK Ltd',      type:'Professional', plan:'Professional', seats:10, mrr:799,  clients:0,  status:'Churned', posture:0,  alerts:0,  incidents:0,  coverage:0,  joined:'2023-11-01', billing:'Churned'},
+    {id:'org-startup1',    name:'DevStack Inc',          type:'Essentials', plan:'Essentials', seats:4, mrr:596,  clients:0,  status:'Active',  posture:91, alerts:5,  incidents:1,  coverage:98, joined:'2024-05-01', billing:'Paid'},
+    {id:'org-startup2',    name:'CloudBase Ltd',         type:'Essentials', plan:'Essentials', seats:3, mrr:447,  clients:0,  status:'Trial',   posture:65, alerts:8,  incidents:0,  coverage:78, joined:'2024-03-28', billing:'Trial'},
     {id:'org-free1',       name:'TestOrg Alpha',         type:'Community',plan:'Community',seats:1,  mrr:0,    clients:0,  status:'Active',  posture:55, alerts:2,  incidents:0,  coverage:60, joined:'2024-06-01', billing:'Free'},
   ];
   const [adminView, setAdminView] = useState('subscribers');
@@ -172,7 +172,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:14,flexWrap:'wrap'}}>
             <span style={{fontSize:'0.72rem',fontWeight:700}}>All Subscribers</span>
             <div style={{display:'flex',gap:4,marginLeft:'auto',flexWrap:'wrap'}}>
-              {['All','MSSP','Business','Team','Community'].map(p=>(
+              {['All','Enterprise','Professional','Essentials','Community'].map(p=>(
                 <button key={p} onClick={()=>setFilterPlan(p)} style={{padding:'3px 9px',borderRadius:5,border:`1px solid ${filterPlan===p?planColor[p]||'#4f8fff':'var(--wt-border2)'}`,background:filterPlan===p?(planColor[p]||'#4f8fff')+'15':'transparent',color:filterPlan===p?planColor[p]||'#4f8fff':'var(--wt-muted)',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{p}</button>
               ))}
               <span style={{width:1,background:'var(--wt-border)',margin:'0 2px'}}/>
@@ -198,14 +198,17 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
               <div style={{textAlign:'center'}}><span style={{fontSize:'0.56rem',fontWeight:700,padding:'2px 6px',borderRadius:3,background:(statusColor[sub.status]||'#6b7a94')+'15',color:statusColor[sub.status]||'#6b7a94'}}>{sub.status}</span></div>
               <div style={{textAlign:'center',fontSize:'0.74rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:sub.posture>=85?'#22d49a':sub.posture>=70?'#f0a030':sub.posture>0?'#f0405e':'var(--wt-dim)'}}>{sub.posture>0?sub.posture+'%':'—'}</div>
               <div style={{display:'flex',gap:4,justifyContent:'flex-end'}}>
-                {sub.status!=='Churned' && <button onClick={()=>{setCurrentTenant(sub.id);setActiveTab('overview');}} style={{padding:'4px 8px',borderRadius:5,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Impersonate →</button>}
+                {sub.status!=='Churned' && <button onClick={async()=>{
+                    await fetch('/api/admin/impersonate',{method:'POST',headers:{'Content-Type':'application/json','x-is-admin':'true','x-user-id':'admin','x-tenant-id':currentTenant||'global'},body:JSON.stringify({targetTenantId:sub.id,targetTenantName:sub.name})}).catch(()=>{});
+                    setCurrentTenant(sub.id);setActiveTab('overview');
+                  }} style={{padding:'4px 8px',borderRadius:5,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Impersonate →</button>}
                 <button onClick={()=>setAdminBannerInput(`[${sub.name}] `)} style={{padding:'4px 7px',borderRadius:5,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.58rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📢</button>
                 {sub.billing==='Overdue' && <button onClick={()=>window.open(`mailto:billing@example.com?subject=Overdue Invoice — ${sub.name}&body=Hi,%0A%0AYour Watchtower subscription payment is overdue. Please settle at your earliest convenience.`,'_blank')} style={{padding:'4px 7px',borderRadius:5,border:'1px solid #f97316',background:'#f9731610',color:'#f97316',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>£ Chase</button>}
               </div>
             </div>
           ))}
           <div style={{marginTop:12,padding:'10px 12px',background:'var(--wt-card2)',borderRadius:8,display:'flex',gap:16,flexWrap:'wrap'}}>
-            {['MSSP','Business','Team'].map(p=>{
+            {['Enterprise','Professional','Essentials'].map(p=>{
               const subs=WTC_SUBSCRIBERS.filter(s=>s.plan===p&&s.status!=='Churned');
               const mrr=subs.reduce((s,c)=>s+c.mrr,0);
               return mrr>0?(<div key={p} style={{display:'flex',alignItems:'center',gap:5}}><div style={{width:7,height:7,borderRadius:2,background:planColor[p],flexShrink:0}}/><span style={{fontSize:'0.66rem',color:'var(--wt-muted)'}}>{p}: <strong style={{color:planColor[p]}}>£{mrr}/mo</strong> · {subs.length} org{subs.length!==1?'s':''}</span></div>):null;

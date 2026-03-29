@@ -31,7 +31,8 @@ const ALL_TOOLS = [
 ];
 
 
-const DASHBOARD_CSS = '*{margin:0;padding:0;box-sizing:border-box}\n        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}\n        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}\n\n        /* ── Dark theme (default) ── */\n        .wt-root {\n          --wt-bg: #090d18;\n          --wt-sidebar: #0c1122;\n          --wt-card: #0f1526;\n          --wt-card2: #131929;\n          --wt-border: #1d2535;\n          --wt-border2: #263044;\n          --wt-text: #e8ecf4;\n          --wt-muted: #7a8aa4;\n          --wt-secondary: #96a6bc;\n          --wt-dim: #4a5568;\n        }\n        /* ── Light theme ── */\n        .wt-root.light {\n          --wt-bg: #f5f6fa;\n          --wt-sidebar: #ffffff;\n          --wt-card: #ffffff;\n          --wt-card2: #f0f2f8;\n          --wt-border: #e2e5ef;\n          --wt-border2: #c8cedd;\n          --wt-text: #0f1117;\n          --wt-muted: #5a6580;\n          --wt-secondary: #4a5568;\n          --wt-dim: #8090a8;\n        }\n\n        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap;color:var(--wt-muted)}\n        .tab-btn.active{background:#4f8fff18;color:#4f8fff}\n        .tab-btn:not(.active) {color:var(--wt-secondary);background:var(--wt-card2)}\n        .row-hover{transition:background .12s}\n        .row-hover:hover{background:var(--wt-card2)!important}\n        .vuln-row:hover{background:var(--wt-card2)!important;cursor:pointer}\n        .alert-card{border-radius:10px;border:1px solid var(--wt-border);background:var(--wt-card);transition:border-color .15s}\n        .alert-card:hover{border-color:#4f8fff28}\n        .skeleton{background:linear-gradient(90deg,var(--wt-card) 25%,var(--wt-card2) 50%,var(--wt-card) 75%);background-size:200% 100%;animation:skeleton-shimmer 1.4s ease infinite}\n        @keyframes skeleton-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}\n        .wt-tab-content{animation:tab-fade 0.15s ease}\n        @keyframes tab-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}\n\n        /* ── Mobile layout ── */\n        .wt-sidebar-desktop{display:flex}\n        .wt-bottom-nav{display:none}\n        .wt-topbar-controls-full{display:flex}\n        .wt-topbar-controls-mobile{display:none}\n\n        @media(max-width:640px){\n          /* Hide desktop sidebar, show bottom nav */\n          .wt-sidebar-desktop{display:none!important}\n          .wt-bottom-nav{\n            display:flex;position:fixed;bottom:0;left:0;right:0;z-index:100;\n            background:var(--wt-sidebar);border-top:1px solid var(--wt-border2);\n            padding:6px 0 env(safe-area-inset-bottom,6px);justify-content:space-around;align-items:center;\n          }\n          .wt-bottom-nav button,.wt-bottom-nav a{\n            display:flex;flex-direction:column;align-items:center;gap:2px;\n            background:none;border:none;cursor:pointer;color:var(--wt-muted);\n            font-size:0.42rem;font-weight:700;font-family:Inter,sans-serif;\n            padding:4px 6px;border-radius:6px;text-decoration:none;min-width:44px;\n          }\n          .wt-bottom-nav button.active,.wt-bottom-nav a.active{color:#4f8fff}\n          .wt-bottom-nav .bnav-icon{font-size:1.1rem;line-height:1}\n          /* Main content gets bottom padding for nav */\n          .wt-main{padding-bottom:72px!important}\n          /* Tab bar: hide text tabs on mobile (using bottom nav instead) */\n          .wt-tabbar{display:none!important}\n          /* Top bar: collapse controls */\n          .wt-topbar{padding:6px 12px!important;gap:8px!important}\n          .wt-topbar-controls-full{display:none!important}\n          .wt-topbar-controls-mobile{display:flex!important;gap:6px;align-items:center;margin-left:auto}\n          /* Content padding */\n          .wt-content{padding:10px 10px!important}\n          /* Alert cards */\n          .alert-card{border-radius:8px}\n          /* Grid cols -> single col */\n          .wt-stat-grid{grid-template-columns:1fr 1fr!important}\n          .wt-two-col{grid-template-columns:1fr!important}\n          .wt-three-col{grid-template-columns:1fr!important}\n          .wt-four-col{grid-template-columns:1fr 1fr!important}\n          /* Filter row stack */\n          .wt-filter-row{flex-direction:column!important;gap:6px!important}\n          .wt-filter-row>*{width:100%!important}\n          /* Bulk action bar */\n          .wt-bulk-bar{flex-wrap:wrap!important;gap:6px!important}\n        }\n\n        @media(min-width:641px) and (max-width:900px){\n          .wt-sidebar-desktop{width:42px!important}\n          .wt-content{padding:12px 14px!important}\n          .wt-stat-grid{grid-template-columns:1fr 1fr!important}\n          .wt-four-col{grid-template-columns:1fr 1fr!important}\n          .wt-three-col{grid-template-columns:1fr 1fr!important}\n        }';
+const DASHBOARD_CSS = '*{margin:0;padding:0;box-sizing:border-box}\n        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}\n        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}\n\n        /* ── Dark theme (default) ── */\n        .wt-root {\n          --wt-bg: #090d18;\n          --wt-sidebar: #0c1122;\n          --wt-card: #0f1526;\n          --wt-card2: #131929;\n          --wt-border: #1d2535;\n          --wt-border2: #263044;\n          --wt-text: #e8ecf4;\n          --wt-muted: #7a8aa4;\n          --wt-secondary: #96a6bc;\n          --wt-dim: #4a5568;\n        }\n        /* ── Light theme ── */\n        .wt-root.light {\n          --wt-bg: #f5f6fa;\n          --wt-sidebar: #ffffff;\n          --wt-card: #ffffff;\n          --wt-card2: #f0f2f8;\n          --wt-border: #e2e5ef;\n          --wt-border2: #c8cedd;\n          --wt-text: #0f1117;\n          --wt-muted: #5a6580;\n          --wt-secondary: #4a5568;\n          --wt-dim: #8090a8;\n        }\n\n        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap;color:var(--wt-muted)}\n        .tab-btn.active{background:#4f8fff18;color:#4f8fff}\n        .tab-btn:not(.active) {color:var(--wt-secondary);background:var(--wt-card2)}\n        .row-hover{transition:background .12s}\n        .row-hover:hover{background:var(--wt-card2)!important}\n        .vuln-row:hover{background:var(--wt-card2)!important;cursor:pointer}\n        .alert-card{border-radius:10px;border:1px solid var(--wt-border);background:var(--wt-card);transition:border-color .15s}\n        .alert-card:hover{border-color:#4f8fff28}\n        .skeleton{background:linear-gradient(90deg,var(--wt-card) 25%,var(--wt-card2) 50%,var(--wt-card) 75%);background-size:200% 100%;animation:skeleton-shimmer 1.4s ease infinite}\n        @keyframes skeleton-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}\n        .wt-tab-content{animation:tab-fade 0.15s ease}\n        @keyframes tab-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}\n\n        /* ── Mobile layout ── */\n        .wt-sidebar-desktop{display:flex}\n        .wt-bottom-nav{display:none}\n        .wt-topbar-controls-full{display:flex}\n        .wt-topbar-controls-mobile{display:none}\n\n'
+  + '                @media(max-width:640px){\n          /* Hide desktop sidebar, show bottom nav */\n          .wt-sidebar-desktop{display:none!important}\n          .wt-bottom-nav{\n            display:flex;position:fixed;bottom:0;left:0;right:0;z-index:100;\n            background:var(--wt-sidebar);border-top:1px solid var(--wt-border2);\n            padding:6px 0 env(safe-area-inset-bottom,6px);justify-content:space-around;align-items:center;\n          }\n          .wt-bottom-nav button,.wt-bottom-nav a{\n            display:flex;flex-direction:column;align-items:center;gap:2px;\n            background:none;border:none;cursor:pointer;color:var(--wt-muted);\n            font-size:0.42rem;font-weight:700;font-family:Inter,sans-serif;\n            padding:4px 6px;border-radius:6px;text-decoration:none;min-width:44px;\n          }\n          .wt-bottom-nav button.active,.wt-bottom-nav a.active{color:#4f8fff}\n          .wt-bottom-nav .bnav-icon{font-size:1.1rem;line-height:1}\n          /* Main content gets bottom padding for nav */\n          .wt-main{padding-bottom:72px!important}\n          /* Tab bar: hide text tabs on mobile (using bottom nav instead) */\n          .wt-tabbar{display:none!important}\n          /* Top bar: collapse controls */\n          .wt-topbar{padding:6px 12px!important;gap:8px!important}\n          .wt-topbar-controls-full{display:none!important}\n          .wt-topbar-controls-mobile{display:flex!important;gap:6px;align-items:center;margin-left:auto}\n          /* Content padding */\n          .wt-content{padding:10px 10px!important}\n          /* Alert cards */\n          .alert-card{border-radius:8px}\n          /* Grid cols -> single col */\n          .wt-stat-grid{grid-template-columns:1fr 1fr!important}\n          .wt-two-col{grid-template-columns:1fr!important}\n          .wt-three-col{grid-template-columns:1fr!important}\n          .wt-four-col{grid-template-columns:1fr 1fr!important}\n          /* Filter row stack */\n          .wt-filter-row{flex-direction:column!important;gap:6px!important}\n          .wt-filter-row>*{width:100%!important}\n          /* Bulk action bar */\n          .wt-bulk-bar{flex-wrap:wrap!important;gap:6px!important}\n        }\n\n        @media(min-width:641px) and (max-width:900px){\n          .wt-sidebar-desktop{width:42px!important}\n          .wt-content{padding:12px 14px!important}\n          .wt-stat-grid{grid-template-columns:1fr 1fr!important}\n          .wt-four-col{grid-template-columns:1fr 1fr!important}\n          .wt-three-col{grid-template-columns:1fr 1fr!important}\n        }';
 
 const CRED_FIELDS = {
   crowdstrike:[{key:'client_id',label:'Client ID'},{key:'client_secret',label:'Client Secret',secret:true},{key:'base_url',label:'Base URL (optional)',placeholder:'https://api.crowdstrike.com'}],
@@ -294,7 +295,6 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [automation, setAutomation] = useState(1);
   const [modal, setModal] = useState(null);
-  const [selectedAlert, setSelectedAlert] = useState(null);
   const [selectedVuln, setSelectedVuln] = useState(null);
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [vulnAiLoading, setVulnAiLoading] = useState(null);
@@ -350,7 +350,6 @@ export default function DashboardPage() {
   const [alertPage, setAlertPage] = useState(0);
   const [selectedAlerts, setSelectedAlerts] = useState(new Set());
   const [alertNotes, setAlertNotes] = useState({});
-  const [notesDirty, setNotesDirty] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
   const [createdIncidents, setCreatedIncidents] = useState([]);
   const [alertOverrides, setAlertOverrides] = useState({});
@@ -372,6 +371,9 @@ export default function DashboardPage() {
   const [deletedIncidents, setDeletedIncidents] = useState(new Set());
   function deleteIncident(id) { setDeletedIncidents(prev=>new Set([...prev,id])); setSelectedIncident(null); }
   const [incidentNotes, setIncidentNotes] = useState({});
+  const [investResults, setInvestResults] = React.useState({});
+  const [investLoading, setInvestLoading] = React.useState(new Set());
+  const [showInvest, setShowInvest] = React.useState(new Set());
   const [incidentAssignees, setIncidentAssignees] = useState({}); // {incidentId: analystName}
   const [noteInput, setNoteInput] = useState('');
   const [addingNoteTo, setAddingNoteTo] = useState(null);
@@ -477,7 +479,7 @@ export default function DashboardPage() {
     doSync();
     const interval = setInterval(()=>doSync(), 60000);
     return () => clearInterval(interval);
-  },[demoMode, connectedTools, credentialsLoaded]);
+  },[demoMode, Object.keys(connectedTools).join(','), credentialsLoaded]);  // eslint-disable-line
 
   // When switching to live mode, auto-fetch fresh intel; refresh every 30 min
   useEffect(()=>{
@@ -843,6 +845,20 @@ export default function DashboardPage() {
       setVulnAiTexts(prev=>({...prev,[loadKey]:'Request failed — check your Anthropic API key in the Tools tab.'}));
     }
     setVulnAiLoading(null);
+  }
+
+  function runInvestigation(inc) {
+    if (investResults[inc.id] || investLoading.has(inc.id)) return;
+    setInvestLoading(prev => new Set([...prev, inc.id]));
+    const incAlerts = alerts.filter(a => inc.alerts?.includes(a.id));
+    fetch('/api/investigate', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({incidentId:inc.id,title:inc.title,severity:inc.severity,alerts:incAlerts.map(a=>({title:a.title,source:a.source,device:a.device,mitre:a.mitre,verdict:a.verdict,time:a.time})),devices:inc.devices,mitreTactics:inc.mitreTactics,aiSummary:inc.aiSummary}),
+    }).then(r=>r.json()).then(d=>{
+      if(d.ok&&d.result)setInvestResults(prev=>({...prev,[inc.id]:d.result}));
+    }).catch(()=>{}).finally(()=>{
+      setInvestLoading(prev=>{const n=new Set(prev);n.delete(inc.id);return n;});
+    });
   }
 
   function closeIncident(id) {
@@ -1943,6 +1959,7 @@ Generated by Watchtower`;
                         )}
                         <div style={{display:'flex',gap:6,marginTop:10,flexWrap:'wrap'}}>
                           <button onClick={()=>setAddingNoteTo(addingNoteTo===inc.id?null:inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid var(--wt-border2)',background:addingNoteTo===inc.id?'#4f8fff12':'transparent',color:'#8a9ab0',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📝 Add Note</button>
+                          {canUse('team')&&<button onClick={()=>{const si=showInvest;const n=new Set(si);if(!n.has(inc.id)){n.add(inc.id);setShowInvest(n);runInvestigation(inc);}else{n.delete(inc.id);setShowInvest(n);}}} style={{padding:'5px 12px',borderRadius:6,border:`1px solid ${showInvest.has(inc.id)?'#8b6fff':'#8b6fff30'}`,background:showInvest.has(inc.id)?'#8b6fff20':'#8b6fff0a',color:'#8b6fff',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✦ {investLoading.has(inc.id)?'Investigating…':'Deep Investigate'}</button>}
                           <button onClick={()=>{setIncidentStatuses(prev=>({...prev,[inc.id]:'Escalated'}));fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({type:'incident_status',incidentId:inc.id,status:'Escalated',analyst:'Analyst'})}).catch(()=>{});}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0a03030',background:'#f0a03008',color:'#f0a030',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>⬆ Escalate</button>
                           <button onClick={()=>closeIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✓ Close</button>
                           <button onClick={()=>deleteIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0405e25',background:'#f0405e0a',color:'#f0405e',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🗑 Delete</button>
@@ -1962,6 +1979,29 @@ Generated by Watchtower`;
                                 <span>{n.text}</span><span style={{color:'var(--wt-dim)',flexShrink:0,fontSize:'0.6rem'}}>{n.time}</span>
                               </div>
                             ))}
+                          </div>
+                        )}
+                        {/* DEEP INVESTIGATION PANEL */}
+                        {showInvest.has(inc.id) && (
+                          <div style={{marginTop:14,background:'linear-gradient(135deg,rgba(139,111,255,0.05),rgba(79,143,255,0.03))',border:'1px solid #8b6fff25',borderRadius:12,overflow:'hidden'}}>
+                            <div style={{padding:'10px 14px',borderBottom:'1px solid #8b6fff15',display:'flex',alignItems:'center',gap:8}}>
+                              <span style={{fontSize:'0.64rem',fontWeight:800,color:'#8b6fff',letterSpacing:'0.5px'}}>✦ TIER 2/3 DEEP INVESTIGATION</span>
+                              {investResults[inc.id] && <span style={{fontSize:'0.56rem',color:'var(--wt-muted)',marginLeft:'auto'}}>AI-generated · verify with your tools</span>}
+                            </div>
+                            {investLoading.has(inc.id) && <div style={{padding:'14px',fontSize:'0.72rem',color:'var(--wt-muted)',display:'flex',alignItems:'center',gap:8}}><span style={{width:10,height:10,borderRadius:'50%',border:'2px solid #8b6fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>Running deep investigation…</div>}
+                            {investResults[inc.id] && (()=>{const inv=investResults[inc.id];return(
+                              <div style={{padding:'14px',display:'flex',flexDirection:'column',gap:14}}>
+                                {inv.rootCause&&<div><div style={{fontSize:'0.56rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Root Cause</div><div style={{fontSize:'0.72rem',color:'var(--wt-secondary)',lineHeight:1.65}}>{inv.rootCause}</div></div>}
+                                {inv.attackerObjective&&<div><div style={{fontSize:'0.56rem',fontWeight:700,color:'#f97316',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>Attacker Objective</div><div style={{fontSize:'0.72rem',color:'#f97316',padding:'5px 10px',background:'#f9731612',borderRadius:6}}>{inv.attackerObjective}</div></div>}
+                                {inv.affectedScope&&<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}><div><div style={{fontSize:'0.56rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Users at Risk</div>{(inv.affectedScope.users||[]).map((u,i)=><div key={i} style={{fontSize:'0.64rem',color:'var(--wt-secondary)',marginBottom:1}}>👤 {u}</div>)}</div><div><div style={{fontSize:'0.56rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Devices at Risk</div>{(inv.affectedScope.devices||[]).map((d,i)=><div key={i} style={{fontSize:'0.64rem',color:'var(--wt-secondary)',marginBottom:1}}>💻 {d}</div>)}</div></div>}
+                                {inv.attackTimeline?.length>0&&<div><div style={{fontSize:'0.56rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',marginBottom:6}}>Reconstructed Timeline</div>{inv.attackTimeline.map((ev,i)=>(<div key={i} style={{display:'flex',gap:8,padding:'5px 0',borderBottom:'1px solid var(--wt-border)',alignItems:'flex-start'}}><span style={{fontSize:'0.6rem',fontFamily:'JetBrains Mono,monospace',color:'#4f8fff',flexShrink:0,minWidth:36}}>{ev.time}</span><div style={{flex:1}}><div style={{fontSize:'0.66rem',fontWeight:600,color:'var(--wt-text)',marginBottom:1}}>{ev.event}</div><div style={{fontSize:'0.6rem',color:'var(--wt-dim)'}}>{ev.significance}</div></div><span style={{fontSize:'0.52rem',color:'#4f8fff',fontWeight:700,flexShrink:0,padding:'1px 5px',background:'#4f8fff12',borderRadius:3}}>{ev.source}</span></div>))}</div>}
+                                {inv.lateralMovementPaths?.length>0&&<div><div style={{fontSize:'0.56rem',fontWeight:700,color:'#f97316',textTransform:'uppercase',marginBottom:4}}>Lateral Movement Paths</div>{inv.lateralMovementPaths.map((path,i)=><div key={i} style={{fontSize:'0.64rem',color:'#f97316',marginBottom:2}}>→ {path}</div>)}</div>}
+                                {inv.remediationSteps?.length>0&&<div><div style={{fontSize:'0.56rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',marginBottom:6}}>Remediation Plan</div>{inv.remediationSteps.map((s,i)=>{const pc=s.priority==='Critical'?'#f0405e':s.priority==='High'?'#f97316':'#f0a030';return(<div key={i} style={{display:'flex',gap:8,padding:'5px 8px',background:`${pc}08`,borderRadius:6,border:`1px solid ${pc}20`,marginBottom:4}}><span style={{fontSize:'0.52rem',fontWeight:700,color:pc,padding:'1px 5px',background:`${pc}15`,borderRadius:3,flexShrink:0,marginTop:2}}>{s.priority}</span><div><div style={{fontSize:'0.66rem',color:'var(--wt-text)',fontWeight:600}}>{s.action}</div><div style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>Owner: {s.owner}</div></div></div>);})}</div>}
+                                {inv.forensicCommands?.length>0&&<div><div style={{fontSize:'0.56rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',marginBottom:6}}>Forensic Commands</div>{inv.forensicCommands.map((fc,i)=>(<div key={i} style={{marginBottom:8}}><div style={{display:'flex',justifyContent:'space-between',marginBottom:2}}><span style={{fontSize:'0.56rem',color:'var(--wt-dim)',fontWeight:700}}>{fc.tool} — {fc.purpose}</span><button onClick={()=>navigator.clipboard?.writeText(fc.command)} style={{padding:'2px 7px',borderRadius:3,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.5rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Copy</button></div><code style={{display:'block',fontSize:'0.6rem',fontFamily:'JetBrains Mono,monospace',color:'#22c992',background:'#050810',padding:'6px 8px',borderRadius:5,wordBreak:'break-all',lineHeight:1.5}}>{fc.command}</code></div>))}</div>}
+                                {inv.iocs?.length>0&&<div><div style={{fontSize:'0.56rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',marginBottom:4}}>Extracted IOCs</div><div style={{display:'flex',flexWrap:'wrap',gap:4}}>{inv.iocs.map((ioc,i)=>(<span key={i} style={{fontSize:'0.62rem',fontFamily:'JetBrains Mono,monospace',padding:'2px 7px',background:'#f0a03010',border:'1px solid #f0a03025',borderRadius:4,color:'#f0a030'}}>{ioc}</span>))}</div></div>}
+                                {inv.detectionGaps?.length>0&&<div><div style={{fontSize:'0.56rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Detection Gaps Found</div>{inv.detectionGaps.map((g,i)=><div key={i} style={{fontSize:'0.62rem',color:'var(--wt-muted)',marginBottom:2}}>⚠️ {g}</div>)}</div>}
+                              </div>
+                            );})()}
                           </div>
                         )}
                       </div>
@@ -2033,31 +2073,56 @@ Generated by Watchtower`;
                 </div>
               </div>
 
-              {/* Posture by framework */}
-              <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
-                {[
-                  {name:'ISO 27001',score:74,gaps:['A.8.8 Patch management','A.8.3 Config mgmt','A.17.1 Business continuity'],color:'#4f8fff'},
-                  {name:'Cyber Essentials',score:81,gaps:['Patch management','Network firewalls — gaps in VLAN isolation','MFA not enforced on all VPN users'],color:'#22d49a'},
-                  {name:'NIST CSF',score:69,gaps:['DE.CM-4 Malware detection coverage','PR.IP-12 Vuln management process','RS.CO-3 Escalation path documentation'],color:'#8b6fff'},
-                ].map(fw=>(
-                  <div key={fw.name} style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px'}}>
-                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
-                      <span style={{fontSize:'0.8rem',fontWeight:800}}>{fw.name}</span>
-                      <span style={{fontSize:'1.2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:fw.color}}>{fw.score}<span style={{fontSize:'0.6rem',fontWeight:600,color:'var(--wt-muted)'}}>%</span></span>
-                    </div>
-                    <div style={{height:4,background:'var(--wt-border)',borderRadius:2,marginBottom:12}}>
-                      <div style={{height:'100%',width:`${fw.score}%`,background:fw.color,borderRadius:2,transition:'width 1s'}} />
-                    </div>
-                    <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',marginBottom:6}}>Gaps to address</div>
-                    {fw.gaps.map(g=>(
-                      <div key={g} style={{display:'flex',gap:6,marginBottom:4,alignItems:'flex-start'}}>
-                        <span style={{color:'#f0405e',fontSize:'0.6rem',flexShrink:0,marginTop:2}}>✗</span>
-                        <span style={{fontSize:'0.72rem',color:'var(--wt-secondary)',lineHeight:1.5}}>{g}</span>
+              {/* Posture by framework — fetched from /api/compliance-map using live alert MITRE data */}
+              {(()=>{
+                const mitreTechs = alerts.filter(a=>a.mitre).map(a=>a.mitre);
+                const uniqueTechs = [...new Set(mitreTechs)].join(',');
+                // Framework scores are derived inline from alert MITRE data using the same mapping as the API
+                const MITRE_FW = {'T1003.001':{iso:'A.8.3',ce:'Malware protection',nist:'DE'},'T1071.001':{iso:'A.8.20',ce:'Network firewalls',nist:'DE'},'T1053.005':{iso:'A.8.8',ce:'Secure configuration',nist:'DE'},'T1059.001':{iso:'A.8.19',ce:'Malware protection',nist:'PR'},'T1078':{iso:'A.8.5',ce:'Access control',nist:'PR'},'T1567.002':{iso:'A.8.24',ce:'Network firewalls',nist:'PR'},'T1486':{iso:'A.8.7',ce:'Malware protection',nist:'RS'},'T1566.001':{iso:'A.8.23',ce:'Malware protection',nist:'PR'},'T1528':{iso:'A.8.2',ce:'Access control',nist:'PR'},'T1190':{iso:'A.8.8',ce:'Patch management',nist:'PR'},'T1055.002':{iso:'A.8.19',ce:'Malware protection',nist:'DE'},'T1055':{iso:'A.8.19',ce:'Malware protection',nist:'DE'},'T1059':{iso:'A.8.9',ce:'Malware protection',nist:'PR'},'T1003':{iso:'A.8.5',ce:'Access control',nist:'PR'},'T1027':{iso:'A.8.16',ce:'Malware protection',nist:'DE'}};
+                const isoFail=new Set(); const ceFail=new Set(); const nistFail=new Set();
+                const NIST_FUNCS=['ID','PR','DE','RS','RC'];
+                const CE_CONTROLS=['Firewalls','Secure configuration','Access control','Malware protection','Patch management'];
+                const ISO_FAMILIES=['A.5','A.6','A.7','A.8','A.9','A.10'];
+                mitreTechs.forEach(t=>{
+                  const m=MITRE_FW[t]||MITRE_FW[t?.split('.')[0]];
+                  if(!m) return;
+                  isoFail.add(m.iso.split('.').slice(0,2).join('.'));
+                  ceFail.add(m.ce);
+                  nistFail.add(m.nist);
+                });
+                const isoScore = Math.max(0,Math.round(100-(isoFail.size/ISO_FAMILIES.length)*100));
+                const ceScore  = Math.max(0,Math.round(100-(ceFail.size/CE_CONTROLS.length)*100));
+                const nistScore= Math.max(0,Math.round(100-(nistFail.size/NIST_FUNCS.length)*100));
+                const hasLiveData = !demoMode && mitreTechs.length > 0;
+                const fws=[
+                  {name:'ISO 27001',  score:hasLiveData?isoScore:74,  gaps:hasLiveData?[...isoFail].map(f=>`${f} control failing`):['A.8.8 Patch management','A.8.3 Config mgmt','A.17.1 Business continuity'],  color:'#4f8fff'},
+                  {name:'Cyber Essentials', score:hasLiveData?ceScore:81,  gaps:hasLiveData?[...ceFail]:['Patch management','Network firewalls — VLAN isolation','MFA on all VPN users'],  color:'#22d49a'},
+                  {name:'NIST CSF',   score:hasLiveData?nistScore:69, gaps:hasLiveData?[...nistFail].map(f=>`${f} function — alerts map here`):['DE.CM-4 Malware detection coverage','PR.IP-12 Vuln management','RS.CO-3 Escalation docs'], color:'#8b6fff'},
+                ];
+                return (
+                  <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
+                    {fws.map(fw=>(
+                      <div key={fw.name} style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px'}}>
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+                          <span style={{fontSize:'0.8rem',fontWeight:800}}>{fw.name}</span>
+                          <span style={{fontSize:'1.2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:fw.color}}>{fw.score}<span style={{fontSize:'0.6rem',fontWeight:600,color:'var(--wt-muted)'}}>%</span></span>
+                        </div>
+                        <div style={{height:4,background:'var(--wt-border)',borderRadius:2,marginBottom:12}}>
+                          <div style={{height:'100%',width:`${fw.score}%`,background:fw.color,borderRadius:2,transition:'width 1s'}} />
+                        </div>
+                        <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',marginBottom:6}}>{hasLiveData?`${fw.gaps.length} failing controls`:'Gaps to address (demo)'}</div>
+                        {fw.gaps.slice(0,4).map(g=>(
+                          <div key={g} style={{display:'flex',gap:6,marginBottom:4,alignItems:'flex-start'}}>
+                            <span style={{color:'#f0405e',fontSize:'0.6rem',flexShrink:0,marginTop:2}}>✗</span>
+                            <span style={{fontSize:'0.72rem',color:'var(--wt-secondary)',lineHeight:1.5}}>{g}</span>
+                          </div>
+                        ))}
+                        {fw.gaps.length === 0 && <div style={{fontSize:'0.72rem',color:'#22d49a'}}>✓ No failing controls from current alerts</div>}
                       </div>
                     ))}
                   </div>
-                ))}
-              </div>
+                );
+              })()}
 
               {/* Vuln CVE → framework mapping */}
               <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px'}}>
