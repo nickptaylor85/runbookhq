@@ -37,7 +37,7 @@ export default function SignupPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, email, password, plan }),
         });
-        const data = await res.json() as { ok?: boolean; error?: string };
+        const data = await res.json() as { ok?: boolean; error?: string; redirect?: string };
         if (res.ok && data.ok) {
           // Auto-login
           const loginRes = await fetch('/api/auth/login', {
@@ -55,7 +55,7 @@ export default function SignupPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, email, password, plan }),
         });
-        const data = await res.json() as { ok?: boolean; error?: string };
+        const data = await res.json() as { ok?: boolean; error?: string; redirect?: string };
         if (res.ok && data.ok) {
           // Get checkout URL
           const checkoutRes = await fetch('/api/stripe/checkout', {
