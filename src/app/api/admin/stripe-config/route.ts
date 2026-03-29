@@ -5,7 +5,7 @@ import { encrypt, decrypt } from '@/lib/encrypt';
 const STRIPE_CONFIG_KEY = 'wt:platform:stripe_config';
 
 function requireAdmin(req: NextRequest) {
-  if (req.headers.get('x-is-admin') !== 'true') return NextResponse.json({ error: 'Admin only' }, { status: 403 });
+  if ((req.headers.get('x-is-admin') !== 'true' && req.headers.get('x-user-tier') !== 'mssp')) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
   return null;
 }
 

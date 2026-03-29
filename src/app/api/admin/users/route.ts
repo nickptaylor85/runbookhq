@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUsers, createUser, updateUser, deleteUser } from '@/lib/users';
 
 function requireAdmin(req: NextRequest) {
-  if (req.headers.get('x-is-admin') !== 'true') return NextResponse.json({ error: 'Admin only' }, { status: 403 });
+  if ((req.headers.get('x-is-admin') !== 'true' && req.headers.get('x-user-tier') !== 'mssp')) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
   return null;
 }
 

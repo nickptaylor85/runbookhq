@@ -27,10 +27,12 @@ export interface AILogEntry {
 function requireAdmin(req: NextRequest): boolean {
   // Admin session (middleware-injected from verified JWT)
   if (req.headers.get('x-is-admin') === 'true') return true;
+  // MSSP tier = platform-level access (accounts that signed up before isAdmin flag was set)
+  if (req.headers.get('x-user-tier') === 'mssp') return true;
   // Internal server-to-server calls use the WATCHTOWER_API_KEY header
   const internalKey = req.headers.get('x-internal-key');
   if (internalKey && internalKey === process.env.WATCHTOWER_API_KEY) return true;
-  // Dev fallback when no admin creds configured
+  // Authenticated session in dev (no admin email env var configured)
   const hasSession = !!req.headers.get('x-user-id');
   const isDev = !process.env.WATCHTOWER_ADMIN_EMAIL;
   return hasSession && isDev;

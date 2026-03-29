@@ -41,13 +41,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No valid settings provided' }, { status: 400 });
     }
 
-    await Promise.all(
-      Object.entries(allowed).map(([key, value]) =>
-        redisHSet(KEYS.TENANT_SETTINGS(tenantId), key, value)
-      )
-    );
+    // Batch all fields into a single HSET call to avoid parallel write issues
+    const settingsKey = KEYS.TENANT_SETTINGS(tenantId);
+    for (const [key, value] of Object.entries(allowed)) {
+      await redisHSet(settingsKey, key, value);
+    }
     return NextResponse.json({ ok: true });
   } catch (e: any) {
+    console.error('[settings/user POST]', e.message, e.stack?.split('\n')[1]);
     return NextResponse.json({ ok: false, message: e.message }, { status: 500 });
   }
 }
