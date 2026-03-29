@@ -8,80 +8,101 @@ const ALERTS = [
   { sev:'low', title:'Windows Update triggered PowerShell', verdict:'FP', conf:99, action:'Auto-closed, suppressed', time:'09:31' },
 ];
 
+// Simple Icons CDN: https://cdn.simpleicons.org/{slug}/ffffff
+const LOGO_MAP: Record<string,string|null> = {
+  crowdstrike:'crowdstrike',defender:'microsoftdefender',sentinelone:'sentinelone',carbonblack:'vmware',
+  sophos:'sophos',tanium:null,intune:'microsoftintune',splunk:'splunk',sentinel:'microsoftazure',
+  qradar:'ibm',elastic:'elastic',chronicle:'googlecloud',logrhythm:null,rapid7:'rapid7',exabeam:null,
+  sumo_logic:'sumologic',datadog:'datadog',panther:null,darktrace:'darktrace',vectra:null,taegis:null,
+  cortex:'paloaltonetworks',aws_security_hub:'amazonaws',azure_defender:'microsoftazure',
+  google_workspace:'google',gcp_scc:'googlecloud',tenable:'tenable',nessus:'tenable',qualys:'qualys',
+  wiz:'wiz',prisma_cloud:'prismacloud',lacework:'lacework',orca:null,aqua:'aquasecurity',snyk:'snyk',
+  checkmarx:'checkmarx',github_advanced:'github',proofpoint:'proofpoint',mimecast:'mimecast',
+  abnormal:null,m365_defender:'microsoft',barracuda:'barracuda',zscaler:'zscaler',fortigate:'fortinet',
+  palo_ngfw:'paloaltonetworks',cisco_firepower:'cisco',checkpoint:null,okta:'okta',
+  entra:'microsoftentra',duo:'cisco',jumpcloud:'jumpcloud',cyberark:'cyberark',beyondtrust:'beyondtrust',
+  sailpoint:'sailpoint',active_directory:'microsoftactivedirectory',servicenow:'servicenow',
+  pagerduty:'pagerduty',jira:'jira',freshservice:'freshworks',zendesk:'zendesk',connectwise:'connectwise',
+  halopsa:null,autotask:null,huntress:null,xsoar:'paloaltonetworks',swimlane:null,tines:'tines',torq:null,
+  virustotal:'virustotal',recorded_future:'recordedfuture',alienvault:'alienvault',threatconnect:null,
+  misp:null,mandiant:'mandiant',claroty:null,nozomi:null,dragos:null,axonius:null,
+  slack:'slack',teams:'microsoftteams',
+};
+
 // Inline SVG tool icons — no external dependency, always renders
 const TOOLS = [
-  { name:'CrowdStrike',        color:'#f0405e', abbr:'CS' },
-  { name:'Defender',           color:'#00a4ef', abbr:'DF' },
-  { name:'Taegis XDR',        color:'#e8172c', abbr:'TX' },
-  { name:'Tenable',            color:'#00b3e3', abbr:'TN' },
-  { name:'SentinelOne',        color:'#8c2be2', abbr:'S1' },
-  { name:'Splunk',             color:'#65a637', abbr:'SP' },
-  { name:'Sentinel',           color:'#0078d4', abbr:'MS' },
-  { name:'Darktrace',          color:'#6b4fbd', abbr:'DT' },
-  { name:'Zscaler',            color:'#00aae7', abbr:'ZS' },
-  { name:'Elastic',            color:'#00bfb3', abbr:'EL' },
-  { name:'QRadar',             color:'#006699', abbr:'QR' },
-  { name:'Okta',               color:'#007dc1', abbr:'OK' },
-  { name:'Proofpoint',         color:'#007dba', abbr:'PP' },
-  { name:'Nessus',             color:'#00b3e3', abbr:'NS' },
-  { name:'Wiz',                color:'#10b981', abbr:'WZ' },
-  { name:'Palo Alto Cortex',   color:'#fa582d', abbr:'PA' },
-  { name:'AWS Security Hub',   color:'#ff9900', abbr:'AW' },
-  { name:'Defender for Cloud', color:'#0078d4', abbr:'DC' },
-  { name:'ServiceNow',         color:'#62d84e', abbr:'SN' },
-  { name:'PagerDuty',          color:'#06ac38', abbr:'PD' },
-  { name:'Jira',               color:'#0052cc', abbr:'JR' },
-  { name:'Chronicle',          color:'#4285f4', abbr:'GC' },
-  { name:'LogRhythm',          color:'#e31837', abbr:'LR' },
-  { name:'Rapid7',             color:'#e53935', abbr:'R7' },
-  { name:'Exabeam',            color:'#1565c0', abbr:'EX' },
-  { name:'Vectra AI',          color:'#3f51b5', abbr:'VA' },
-  { name:'Entra ID',           color:'#0078d4', abbr:'EN' },
-  { name:'Cisco Duo',          color:'#6dc037', abbr:'DU' },
-  { name:'JumpCloud',          color:'#0066ff', abbr:'JC' },
-  { name:'CyberArk',           color:'#e31837', abbr:'CA' },
-  { name:'Sophos',             color:'#005cb9', abbr:'SX' },
-  { name:'Abnormal',           color:'#1976d2', abbr:'AB' },
-  { name:'FortiGate',          color:'#da291c', abbr:'FG' },
-  { name:'VirusTotal',         color:'#3949ab', abbr:'VT' },
-  { name:'Recorded Future',    color:'#e53935', abbr:'RF' },
-  { name:'Axonius',            color:'#4caf50', abbr:'AX' },
-  { name:'ConnectWise',        color:'#e31837', abbr:'CW' },
-  { name:'Mimecast',           color:'#0078d4', abbr:'MC' },
-  { name:'Qualys',             color:'#c8102e', abbr:'QL' },
-  { name:'Carbon Black',       color:'#ff5722', abbr:'CB' },
-  { name:'Google Workspace',   color:'#4285f4', abbr:'GW' },
-  { name:'Cortex XSOAR',       color:'#fa582d', abbr:'XS' },
-  { name:'Swimlane',           color:'#1976d2', abbr:'SW' },
-  { name:'Tines',              color:'#00bcd4', abbr:'TI' },
-  { name:'Prisma Cloud',       color:'#fa582d', abbr:'PC' },
-  { name:'Lacework',           color:'#00897b', abbr:'LW' },
-  { name:'Orca Security',      color:'#43a047', abbr:'OR' },
-  { name:'Snyk',               color:'#4c4a73', abbr:'SN' },
-  { name:'Halo PSA',           color:'#1565c0', abbr:'HP' },
-  { name:'Autotask',           color:'#ff6f00', abbr:'AT' },
-  { name:'Huntress',           color:'#e53935', abbr:'HU' },
-  { name:'BeyondTrust',        color:'#6a1b9a', abbr:'BT' },
-  { name:'Active Directory',   color:'#0078d4', abbr:'AD' },
-  { name:'Palo Alto NGFW',     color:'#fa582d', abbr:'PN' },
-  { name:'Cisco Firepower',    color:'#049fd9', abbr:'CF' },
-  { name:'Check Point',        color:'#cc0000', abbr:'CP' },
-  { name:'AlienVault OTX',     color:'#546e7a', abbr:'OT' },
-  { name:'ThreatConnect',      color:'#1a237e', abbr:'TC' },
-  { name:'MISP',               color:'#388e3c', abbr:'MI' },
-  { name:'Mandiant',           color:'#d32f2f', abbr:'MA' },
-  { name:'Tanium',             color:'#00acc1', abbr:'TM' },
-  { name:'Claroty',            color:'#00695c', abbr:'CL' },
-  { name:'Nozomi',             color:'#1565c0', abbr:'NZ' },
-  { name:'GCP Security Cmd',   color:'#4285f4', abbr:'GS' },
-  { name:'Sumo Logic',         color:'#00a1e0', abbr:'SU' },
-  { name:'Datadog Security',   color:'#632ca6', abbr:'DD' },
-  { name:'Panther',            color:'#ffb300', abbr:'PT' },
-  { name:'M365 Defender',      color:'#0078d4', abbr:'MD' },
-  { name:'Slack',              color:'#4a154b', abbr:'SL' },
-  { name:'Teams',              color:'#6264a7', abbr:'MT' },
-  { name:'Freshservice',       color:'#00b388', abbr:'FS' },
-  { name:'Zendesk',            color:'#03363d', abbr:'ZD' },
+  { name:'CrowdStrike',        color:'#f0405e', abbr:'CS', id:'crowdstrike' },
+  { name:'Defender',           color:'#00a4ef', abbr:'DF', id:'defender' },
+  { name:'Taegis XDR',        color:'#e8172c', abbr:'TX', id:'taegis' },
+  { name:'Tenable',            color:'#00b3e3', abbr:'TN', id:'tenable' },
+  { name:'SentinelOne',        color:'#8c2be2', abbr:'S1', id:'sentinelone' },
+  { name:'Splunk',             color:'#65a637', abbr:'SP', id:'splunk' },
+  { name:'Sentinel',           color:'#0078d4', abbr:'MS', id:'sentinel' },
+  { name:'Darktrace',          color:'#6b4fbd', abbr:'DT', id:'darktrace' },
+  { name:'Zscaler',            color:'#00aae7', abbr:'ZS', id:'zscaler' },
+  { name:'Elastic',            color:'#00bfb3', abbr:'EL', id:'elastic' },
+  { name:'QRadar',             color:'#006699', abbr:'QR', id:'qradar' },
+  { name:'Okta',               color:'#007dc1', abbr:'OK', id:'okta' },
+  { name:'Proofpoint',         color:'#007dba', abbr:'PP', id:'proofpoint' },
+  { name:'Nessus',             color:'#00b3e3', abbr:'NS', id:'nessus' },
+  { name:'Wiz',                color:'#10b981', abbr:'WZ', id:'wiz' },
+  { name:'Palo Alto Cortex',   color:'#fa582d', abbr:'PA', id:'cortex' },
+  { name:'AWS Security Hub',   color:'#ff9900', abbr:'AW', id:'aws_security_hub' },
+  { name:'Defender for Cloud', color:'#0078d4', abbr:'DC', id:'azure_defender' },
+  { name:'ServiceNow',         color:'#62d84e', abbr:'SN', id:'servicenow' },
+  { name:'PagerDuty',          color:'#06ac38', abbr:'PD', id:'pagerduty' },
+  { name:'Jira',               color:'#0052cc', abbr:'JR', id:'jira' },
+  { name:'Chronicle',          color:'#4285f4', abbr:'GC', id:'chronicle' },
+  { name:'LogRhythm',          color:'#e31837', abbr:'LR', id:'logrhythm' },
+  { name:'Rapid7',             color:'#e53935', abbr:'R7', id:'rapid7' },
+  { name:'Exabeam',            color:'#1565c0', abbr:'EX', id:'exabeam' },
+  { name:'Vectra AI',          color:'#3f51b5', abbr:'VA', id:'vectra' },
+  { name:'Entra ID',           color:'#0078d4', abbr:'EN', id:'entra' },
+  { name:'Cisco Duo',          color:'#6dc037', abbr:'DU', id:'duo' },
+  { name:'JumpCloud',          color:'#0066ff', abbr:'JC', id:'jumpcloud' },
+  { name:'CyberArk',           color:'#e31837', abbr:'CA', id:'cyberark' },
+  { name:'Sophos',             color:'#005cb9', abbr:'SX', id:'sophos' },
+  { name:'Abnormal',           color:'#1976d2', abbr:'AB', id:'abnormal' },
+  { name:'FortiGate',          color:'#da291c', abbr:'FG', id:'fortigate' },
+  { name:'VirusTotal',         color:'#3949ab', abbr:'VT', id:'virustotal' },
+  { name:'Recorded Future',    color:'#e53935', abbr:'RF', id:'recorded_future' },
+  { name:'Axonius',            color:'#4caf50', abbr:'AX', id:'axonius' },
+  { name:'ConnectWise',        color:'#e31837', abbr:'CW', id:'connectwise' },
+  { name:'Mimecast',           color:'#0078d4', abbr:'MC', id:'mimecast' },
+  { name:'Qualys',             color:'#c8102e', abbr:'QL', id:'qualys' },
+  { name:'Carbon Black',       color:'#ff5722', abbr:'CB', id:'carbonblack' },
+  { name:'Google Workspace',   color:'#4285f4', abbr:'GW', id:'google_workspace' },
+  { name:'Cortex XSOAR',       color:'#fa582d', abbr:'XS', id:'xsoar' },
+  { name:'Swimlane',           color:'#1976d2', abbr:'SW', id:'swimlane' },
+  { name:'Tines',              color:'#00bcd4', abbr:'TI', id:'tines' },
+  { name:'Prisma Cloud',       color:'#fa582d', abbr:'PC', id:'prisma_cloud' },
+  { name:'Lacework',           color:'#00897b', abbr:'LW', id:'lacework' },
+  { name:'Orca Security',      color:'#43a047', abbr:'OR', id:'orca' },
+  { name:'Snyk',               color:'#4c4a73', abbr:'SN', id:'snyk' },
+  { name:'Halo PSA',           color:'#1565c0', abbr:'HP', id:'halopsa' },
+  { name:'Autotask',           color:'#ff6f00', abbr:'AT', id:'autotask' },
+  { name:'Huntress',           color:'#e53935', abbr:'HU', id:'huntress' },
+  { name:'BeyondTrust',        color:'#6a1b9a', abbr:'BT', id:'beyondtrust' },
+  { name:'Active Directory',   color:'#0078d4', abbr:'AD', id:'active_directory' },
+  { name:'Palo Alto NGFW',     color:'#fa582d', abbr:'PN', id:'palo_ngfw' },
+  { name:'Cisco Firepower',    color:'#049fd9', abbr:'CF', id:'cisco_firepower' },
+  { name:'Check Point',        color:'#cc0000', abbr:'CP', id:'checkpoint' },
+  { name:'AlienVault OTX',     color:'#546e7a', abbr:'OT', id:'alienvault' },
+  { name:'ThreatConnect',      color:'#1a237e', abbr:'TC', id:'threatconnect' },
+  { name:'MISP',               color:'#388e3c', abbr:'MI', id:'misp' },
+  { name:'Mandiant',           color:'#d32f2f', abbr:'MA', id:'mandiant' },
+  { name:'Tanium',             color:'#00acc1', abbr:'TM', id:'tanium' },
+  { name:'Claroty',            color:'#00695c', abbr:'CL', id:'claroty' },
+  { name:'Nozomi',             color:'#1565c0', abbr:'NZ', id:'nozomi' },
+  { name:'GCP Security Cmd',   color:'#4285f4', abbr:'GS', id:'gcp_scc' },
+  { name:'Sumo Logic',         color:'#00a1e0', abbr:'SU', id:'sumo_logic' },
+  { name:'Datadog Security',   color:'#632ca6', abbr:'DD', id:'datadog' },
+  { name:'Panther',            color:'#ffb300', abbr:'PT', id:'panther' },
+  { name:'M365 Defender',      color:'#0078d4', abbr:'MD', id:'m365_defender' },
+  { name:'Slack',              color:'#4a154b', abbr:'SL', id:'slack' },
+  { name:'Teams',              color:'#6264a7', abbr:'MT', id:'teams' },
+  { name:'Freshservice',       color:'#00b388', abbr:'FS', id:'freshservice' },
+  { name:'Zendesk',            color:'#03363d', abbr:'ZD', id:'zendesk' },
 ];
 
 const FEATURES = [
@@ -112,22 +133,27 @@ const PLANS = [
   { name:'Enterprise', price:'£3,499', period:'/mo', color:'#8b6fff', badge:'MSSP', features:['Everything in Professional','Unlimited analysts & clients','White-label branding','Per-client BYOK isolation','Portfolio + cross-client AI intel','Dedicated account manager'] },
 ];
 
-function ToolChip({ name, color, abbr }: { name: string; color: string; abbr: string }) {
+function LogoBadge({ color, abbr, slug }: { color: string; abbr: string; slug?: string | null }) {
+  const [err, setErr] = useState(false);
+  if (!err && slug) {
+    return (
+      <span style={{ width:18, height:18, borderRadius:4, flexShrink:0, background:'#1a2535', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
+        <img src={`https://cdn.simpleicons.org/${slug}/ffffff`} alt="" width={12} height={12} onError={()=>setErr(true)} style={{ width:12, height:12, objectFit:'contain', display:'block' }} />
+      </span>
+    );
+  }
   return (
-    <span style={{
-      display:'inline-flex', alignItems:'center', gap:7,
-      padding:'6px 12px', background:'#131929', border:'1px solid #1a2030',
-      borderRadius:20, fontSize:'0.72rem', color:'#8a9ab0', fontWeight:600,
-      transition:'all .15s', cursor:'default',
-    }}
+    <span style={{ width:18, height:18, borderRadius:4, flexShrink:0, background:`linear-gradient(135deg,${color}cc,${color}55)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.44rem', fontWeight:900, color:'#fff', letterSpacing:0 }}>{abbr}</span>
+  );
+}
+
+function ToolChip({ name, color, abbr, id }: { name: string; color: string; abbr: string; id?: string }) {
+  const slug = id ? (LOGO_MAP[id] ?? null) : null;
+  return (
+    <span style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'6px 12px', background:'#131929', border:'1px solid #1a2030', borderRadius:20, fontSize:'0.72rem', color:'#8a9ab0', fontWeight:600, transition:'all .15s', cursor:'default' }}
     onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor=color+'40';(e.currentTarget as HTMLElement).style.color='#e8ecf4';}}
     onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor='#1a2030';(e.currentTarget as HTMLElement).style.color='#8a9ab0';}}>
-      <span style={{
-        width:16, height:16, borderRadius:4, flexShrink:0,
-        background:`linear-gradient(135deg,${color}cc,${color}55)`,
-        display:'flex', alignItems:'center', justifyContent:'center',
-        fontSize:'0.42rem', fontWeight:900, color:'#fff', letterSpacing:0,
-      }}>{abbr}</span>
+      <LogoBadge color={color} abbr={abbr} slug={slug} />
       {name}
     </span>
   );
@@ -415,7 +441,7 @@ export default function LandingPage() {
         <div style={{ display:'flex', flexWrap:'wrap', justifyContent:'center', gap:8, maxWidth:820, margin:'0 auto' }}>
           {TOOLS.map((t,i)=>(
             <span key={t.name+i} style={{ opacity:toolsVisible?1:0, transform:toolsVisible?'none':'translateY(8px)', transition:`all 0.4s ease ${i*0.04}s` }}>
-              <ToolChip name={t.name} color={t.color} abbr={t.abbr}/>
+              <ToolChip name={t.name} color={t.color} abbr={t.abbr} id={(t as any).id}/>
             </span>
           ))}
           <span style={{ opacity:toolsVisible?1:0, transition:'all 0.4s ease 0.7s', display:'inline-flex', alignItems:'center', padding:'6px 14px', background:'transparent', border:'1px dashed #4f8fff40', borderRadius:20, fontSize:'0.72rem', color:'#4f8fff', fontWeight:600 }}>

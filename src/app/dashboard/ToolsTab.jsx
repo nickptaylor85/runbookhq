@@ -1,6 +1,50 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 
+const LOGO_MAP = {
+  crowdstrike:'crowdstrike',defender:'microsoftdefender',sentinelone:'sentinelone',carbonblack:'vmware',
+  sophos:'sophos',tanium:null,intune:'microsoftintune',splunk:'splunk',sentinel:'microsoftazure',
+  qradar:'ibm',elastic:'elastic',chronicle:'googlecloud',logrhythm:null,rapid7:'rapid7',exabeam:null,
+  sumo_logic:'sumologic',datadog:'datadog',panther:null,darktrace:'darktrace',vectra:null,taegis:null,
+  cortex:'paloaltonetworks',aws_security_hub:'amazonaws',azure_defender:'microsoftazure',
+  google_workspace:'google',gcp_scc:'googlecloud',tenable:'tenable',nessus:'tenable',qualys:'qualys',
+  wiz:'wiz',prisma_cloud:'prismacloud',lacework:'lacework',orca:null,aqua:'aquasecurity',snyk:'snyk',
+  checkmarx:'checkmarx',github_advanced:'github',proofpoint:'proofpoint',mimecast:'mimecast',
+  abnormal:null,m365_defender:'microsoft',barracuda:'barracuda',zscaler:'zscaler',fortigate:'fortinet',
+  palo_ngfw:'paloaltonetworks',cisco_firepower:'cisco',checkpoint:null,okta:'okta',
+  entra:'microsoftentra',duo:'cisco',jumpcloud:'jumpcloud',cyberark:'cyberark',beyondtrust:'beyondtrust',
+  sailpoint:'sailpoint',active_directory:'microsoftactivedirectory',servicenow:'servicenow',
+  pagerduty:'pagerduty',jira:'jira',freshservice:'freshworks',zendesk:'zendesk',connectwise:'connectwise',
+  halopsa:null,autotask:null,huntress:null,xsoar:'paloaltonetworks',swimlane:null,tines:'tines',torq:null,
+  virustotal:'virustotal',recorded_future:'recordedfuture',alienvault:'alienvault',threatconnect:null,
+  misp:null,mandiant:'mandiant',claroty:null,nozomi:null,dragos:null,axonius:null,
+  slack:'slack',teams:'microsoftteams',
+};
+
+function ToolLogo({toolId, color, abbr}) {
+  const slug = LOGO_MAP[toolId];
+  const [err, setErr] = React.useState(!slug);
+  if (!err && slug) {
+    return (
+      <span style={{width:28,height:28,borderRadius:7,background:'#0d111e',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,border:'1px solid #1a2535',overflow:'hidden'}}>
+        <img
+          src={`https://cdn.simpleicons.org/${slug}/ffffff`}
+          alt=""
+          width={18} height={18}
+          onError={()=>setErr(true)}
+          style={{width:18,height:18,objectFit:'contain',display:'block'}}
+        />
+      </span>
+    );
+  }
+  return (
+    <span style={{width:28,height:28,borderRadius:7,background:`linear-gradient(135deg,${color}cc,${color}44)`,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:'0.5rem',fontWeight:900,color:'#fff',letterSpacing:0}}>
+      {abbr}
+    </span>
+  );
+}
+
+
 
 const CRED_FIELDS = {
   crowdstrike:[{key:'client_id',label:'Client ID'},{key:'client_secret',label:'Client Secret',secret:true},{key:'base_url',label:'Base URL (optional)',placeholder:'https://api.crowdstrike.com'}],
@@ -521,6 +565,7 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
             <div key={tool.id} style={{padding:'12px 16px',background:'var(--wt-card)',border:`1px solid ${hasError&&isOn?'#f0405e25':isOn?'#22c99218':'var(--wt-border)'}`,borderRadius:10}}>
               <div style={{display:'flex',alignItems:'center',gap:12}}>
                 <div style={{width:9,height:9,borderRadius:'50%',background:isOn?'#22c992':'#252e42',boxShadow:isOn?'0 0 7px #22c992':'none',flexShrink:0}} />
+                <ToolLogo toolId={tool.id} color={'#4f8fff'} abbr={tool.id.slice(0,2).toUpperCase()} />
                 <div style={{flex:1}}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:1}}>
                     <span style={{fontSize:'0.82rem',fontWeight:700}}>{tool.name}</span>
