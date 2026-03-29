@@ -119,6 +119,9 @@ export default function DemoPage() {
 
   useEffect(() => { return () => { if (intervalRef.current) clearInterval(intervalRef.current); }; }, []);
 
+  // Auto-start the first scenario on mount so visitors immediately see it in action
+  useEffect(() => { const t = setTimeout(() => startSim(), 600); return () => clearTimeout(t); }, []); // eslint-disable-line
+
   const scoreColor = postureScore >= 75 ? '#22d49a' : postureScore >= 55 ? '#f0a030' : '#f0405e';
   const scoreGrade = postureScore >= 80 ? 'A' : postureScore >= 65 ? 'B' : postureScore >= 50 ? 'C' : 'D';
   const circumference = 2 * Math.PI * 42;
@@ -134,6 +137,12 @@ export default function DemoPage() {
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
         .step-new{animation:slideIn 0.35s ease,flash 0.7s ease}
         .sev-bar{width:4px;border-radius:2px;flex-shrink:0}
+        @media(max-width:780px){
+          .demo-main{grid-template-columns:1fr!important}
+          .demo-sidebar{border-left:none!important;border-top:1px solid #141820;max-height:260px;overflow:auto}
+          .demo-metrics{grid-template-columns:repeat(4,1fr)!important}
+          .demo-tools{display:none!important}
+        }
       `}</style>
 
       {/* BANNER */}
@@ -164,7 +173,7 @@ export default function DemoPage() {
       </div>
 
       {/* MAIN */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 320px', flex:1, overflow:'hidden' }}>
+      <div className='demo-main' style={{ display:'grid', gridTemplateColumns:'1fr 320px', flex:1, overflow:'hidden' }}>
 
         {/* LEFT — Timeline */}
         <div style={{ padding:'16px 20px', overflow:'auto', borderRight:'1px solid #141820' }}>
@@ -256,7 +265,7 @@ export default function DemoPage() {
         </div>
 
         {/* RIGHT PANEL */}
-        <div style={{ padding:'14px', display:'flex', flexDirection:'column', gap:8, overflow:'auto', background:'#07080f' }}>
+        <div className='demo-sidebar' style={{ padding:'14px', display:'flex', flexDirection:'column', gap:8, overflow:'auto', background:'#07080f' }}>
 
           {/* Posture */}
           <div style={{ padding:'12px 14px', background:'#0a0d14', border:'1px solid #141820', borderRadius:12 }}>

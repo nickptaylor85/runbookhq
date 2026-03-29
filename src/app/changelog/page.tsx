@@ -4,6 +4,21 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.9.124',
+    date: '2026-03-29',
+    tag: 'Strategy',
+    tagColor: '#8b6fff',
+    summary: 'Market-realistic pricing, demo auto-play, 2025/26 AI differentiator features updated across landing, pricing, and demo pages',
+    changes: [
+      { type: 'feat', text: 'Pricing restructured to market rates: Community £0, Essentials £149/seat/mo, Professional £799/mo (up to 15 analysts), Enterprise/MSSP £2,499/mo. Previous prices were 10x below MDR market (Secureworks £60K–£320K/yr, Cortex XSIAM $250K+/yr).' },
+      { type: 'feat', text: 'Demo page now auto-starts the first simulation 600ms after load. Visitors immediately see Watchtower in action without needing to click Play. Also added mobile responsive layout — sidebar collapses below timeline on small screens.' },
+      { type: 'feat', text: 'Landing page FEATURES updated to 2025/26 AI differentiators: Agentic AI Triage, Evidence Chain Transparency, Blast Radius Analysis, Autonomous Response (no SOAR playbooks), AI Co-Pilot, SLA Intelligence, BYOK Per-Client Isolation.' },
+      { type: 'feat', text: 'Pricing page FAQ now includes market comparison context (vs Sentinel per-GB, vs XSIAM enterprise pricing) and ROI justification (analyst hours recovered, MTTA improvement).' },
+      { type: 'feat', text: 'Landing page plan names updated to Essentials/Professional/Enterprise to match new positioning and tier capabilities.' },
+    ],
+  },
+
+  {
     version: 'v74.9.123',
     date: '2026-03-29',
     tag: 'Quality',

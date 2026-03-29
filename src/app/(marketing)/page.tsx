@@ -28,18 +28,18 @@ const TOOLS = [
 ];
 
 const FEATURES = [
-  { icon:'⚡', title:'AI Triage in 3.2s', body:'Every alert assessed, scored, and actioned before your analyst opens Slack. TP, FP, or Suspicious — full evidence chain and confidence score.' },
-  { icon:'🛡', title:'Estate Visibility', body:'Devices, coverage gaps, missing agents — mapped in real time. Know exactly where you are blind before an attacker finds it first.' },
-  { icon:'🔍', title:'AI Remediation Queries', body:'Top CVEs ranked by severity. One click generates production-ready Splunk SPL, Sentinel KQL, and Defender hunting queries.' },
-  { icon:'🌐', title:'IOC Hunt Queries', body:'Industry threat feeds with one-click AI query generation. Hunt for specific IOCs across Splunk, Sentinel, and Defender instantly.' },
-  { icon:'🤖', title:'Autonomous Response', body:'Isolate a host, block an IP, disable a compromised account — automatically, in seconds. Full audit trail and one-click revert.' },
-  { icon:'📊', title:'MSSP Portfolio View', body:'Manage multiple clients from one pane. Per-client posture, alerts, revenue, and usage. White-label ready with your branding.' },
-  { icon:'👥', title:'Role-Based Access', body:'Owner, Tech Admin, Sales, Viewer — granular roles for your whole team. Invite staff, set permissions, track last-seen per user.' },
-  { icon:'📈', title:'Sales Dashboard', body:'Set MRR/ARR targets, get AI-generated go-to-market strategy. Exactly which plan mix to sell to hit your revenue goal.' },
-  { icon:'🔐', title:'BYOK — Per-Client Keys', body:'Each client\'s AI calls run under their own Anthropic key. Complete data isolation. No shared AI context across tenants.' },
-  { icon:'✦', title:'AI Co-Pilot', body:'Chat with a security-scoped AI in the dashboard. Explain MITRE techniques, generate detection queries, summarise incidents without leaving the SOC view.' },
-  { icon:'🛡', title:'Compliance Mapping', body:'Active alerts and vulnerabilities automatically mapped to ISO 27001, Cyber Essentials, and NIST CSF. Framework score cards with gap analysis.' },
-  { icon:'📋', title:'Shift Handover', body:'One-click handover brief covering alerts triaged, incidents open, posture score, and top threats. Paste into Slack or Teams at shift end.' },
+  { icon:'⚡', title:'Agentic AI Triage', body:'AI investigates every alert like a senior analyst — not just flags it. Evidence chain, MITRE mapping, confidence score, and recommended action. All in under 3.2 seconds.' },
+  { icon:'🧠', title:'Evidence Chain Transparency', body:'See exactly why the AI reached every verdict. Full audit log of sources queried, indicators evaluated, and reasoning steps — defensible to any auditor.' },
+  { icon:'🛡', title:'Estate Coverage Gaps', body:'Devices, coverage gaps, missing agents — mapped in real time from your Tenable/Nessus data. Know where you\'re blind before an attacker finds it.' },
+  { icon:'🔍', title:'Blast Radius Analysis', body:'When a breach is confirmed, AI instantly maps impact: which users, devices, and credentials are exposed. Response plan generated before a human opens a ticket.' },
+  { icon:'🤖', title:'Autonomous Response', body:'Full Auto: isolate hosts, block IPs, disable accounts — executed in seconds with a complete audit trail and one-click revert. No SOAR playbooks to write.' },
+  { icon:'📊', title:'MSSP Portfolio', body:'Manage 50 clients from one console. Per-client posture, alerts, cross-tenant threat correlation. White-label ready — your brand on every screen.' },
+  { icon:'✦', title:'AI Co-Pilot', body:'Security-scoped chat in the dashboard. Ask about MITRE techniques, generate SPL/KQL hunt queries, summarise incidents, or get a shift brief — all without leaving your SOC view.' },
+  { icon:'🔐', title:'BYOK — Per-Client Isolation', body:'Each analyst team\'s AI calls run under their own Anthropic key. No shared context between tenants. Complete data isolation that compliance teams require.' },
+  { icon:'📋', title:'Shift Handover AI', body:'One-click AI-generated handover brief: alerts triaged, incidents open, posture score, MTTA vs SLA, and recommended actions for the incoming analyst.' },
+  { icon:'🌐', title:'Live Threat Intelligence', body:'Industry-specific threat feeds with AI summarisation. One-click generates hunt queries for your SIEM. IOC matching across all connected tools automatically.' },
+  { icon:'📈', title:'Compliance Mapping', body:'Active alerts automatically mapped to ISO 27001, Cyber Essentials, and NIST CSF. Framework score cards show which controls are failing and why.' },
+  { icon:'⏱', title:'SLA Intelligence', body:'MTTA and MTTR tracked by severity. Analyst acknowledgement timestamped automatically. SLA breach alerts fire before you miss an SLA — not after.' },
 ];
 
 const TESTIMONIALS = [
@@ -49,10 +49,10 @@ const TESTIMONIALS = [
 ];
 
 const PLANS = [
-  { name:'Community', price:'£0', period:'forever', color:'#6b7a94', features:['2 tool integrations','AI alert triage (read-only)','1 seat','Community support'] },
-  { name:'Team', price:'£49', period:'/seat/mo', color:'#4f8fff', badge:'Popular', features:['Unlimited integrations','Full AI Co-Pilot','Automation (Full Auto)','BYOK required','From 3 seats'] },
-  { name:'Business', price:'£199', period:'/mo', color:'#22d49a', features:['Everything in Team','10 seats included','PDF reports & API','RBAC — full roles','Compliance mapping'] },
-  { name:'MSSP', price:'£799', period:'/mo', color:'#8b6fff', badge:'Best value', features:['Everything in Business','Unlimited clients (+£79/client)','White-label branding','Per-client BYOK','Portfolio dashboard','Sales dashboard & AI GTM'] },
+  { name:'Community', price:'£0', period:'forever', color:'#6b7a94', features:['2 tool integrations','AI alert triage (read-only)','Up to 250 alerts/day','1 seat','Community support'] },
+  { name:'Essentials', price:'£149', period:'/seat/mo', color:'#4f8fff', badge:'Most Popular', features:['Unlimited integrations','Full AI Co-Pilot + agentic triage','Automation & response actions','BYOK — your Anthropic key','SLA tracking (MTTA/MTTR)'] },
+  { name:'Professional', price:'£799', period:'/mo flat', color:'#22d49a', features:['Everything in Essentials','Up to 15 analyst seats','PDF board reports + API','RBAC & full audit trail','MITRE compliance mapping'] },
+  { name:'Enterprise', price:'£2,499', period:'/mo', color:'#8b6fff', badge:'MSSP', features:['Everything in Professional','Unlimited analysts & clients','White-label branding','Per-client BYOK isolation','Portfolio + cross-client AI intel','Dedicated account manager'] },
 ];
 
 function ToolChip({ name, color, abbr }: { name: string; color: string; abbr: string }) {
