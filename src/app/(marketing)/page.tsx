@@ -423,6 +423,39 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* EMAIL CAPTURE + BOOK DEMO */}
+      <section style={{ padding:'64px 24px', textAlign:'center' }}>
+        <div style={{ maxWidth:640, margin:'0 auto' }}>
+          <div style={{ fontSize:'0.68rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'2px', marginBottom:14 }}>Get Started</div>
+          <h2 style={{ fontSize:'2rem', fontWeight:900, letterSpacing:'-1.5px', marginBottom:12, lineHeight:1.1 }}>See it on your own alerts</h2>
+          <p style={{ fontSize:'0.9rem', color:'#6b7a94', lineHeight:1.7, marginBottom:28, maxWidth:480, margin:'0 auto 28px' }}>Connect your first tool in under 5 minutes. Community tier is free forever — no credit card, no sales call.</p>
+          <div style={{ display:'flex', gap:10, justifyContent:'center', flexWrap:'wrap' }}>
+            <a href='/signup' style={{ padding:'12px 28px', borderRadius:9, background:'#4f8fff', color:'#fff', fontWeight:700, fontSize:'0.9rem', textDecoration:'none' }}>Start free →</a>
+            <a href='mailto:hello@getwatchtower.io?subject=Demo+Request' style={{ padding:'12px 28px', borderRadius:9, border:'1px solid #263044', background:'transparent', color:'#e8ecf4', fontWeight:600, fontSize:'0.9rem', textDecoration:'none', display:'inline-flex', alignItems:'center', gap:8 }}>
+              📅 Book a live demo
+            </a>
+          </div>
+          <div style={{ marginTop:16, fontSize:'0.72rem', color:'#3a4050' }}>No credit card · Community free forever · 14-day trial on paid plans</div>
+        </div>
+      </section>
+
+      {/* LINKEDIN CTA */}
+      <section style={{ padding:'40px 24px', background:'#050a18', borderTop:'1px solid #0e1824', borderBottom:'1px solid #0e1824' }}>
+        <div style={{ maxWidth:700, margin:'0 auto', display:'flex', alignItems:'center', gap:24, flexWrap:'wrap', justifyContent:'center' }}>
+          <div style={{ flex:1, minWidth:240 }}>
+            <div style={{ fontSize:'0.86rem', fontWeight:800, marginBottom:6 }}>Follow the build on LinkedIn</div>
+            <div style={{ fontSize:'0.74rem', color:'#6b7a94', lineHeight:1.6 }}>We post SOC automation tips, product updates, and real-world alert triage examples every week.</div>
+          </div>
+          <a href='https://www.linkedin.com/company/getwatchtower' target='_blank' rel='noopener noreferrer' style={{ padding:'10px 22px', borderRadius:9, background:'#0077b5', color:'#fff', fontWeight:700, fontSize:'0.82rem', textDecoration:'none', flexShrink:0, display:'flex', alignItems:'center', gap:8, whiteSpace:'nowrap' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2zm2-3a2 2 0 100-4 2 2 0 000 4z"/></svg>
+            Follow on LinkedIn
+          </a>
+          <a href='https://www.linkedin.com/company/getwatchtower' target='_blank' rel='noopener noreferrer' style={{ padding:'10px 22px', borderRadius:9, border:'1px solid #263044', background:'transparent', color:'#e8ecf4', fontWeight:600, fontSize:'0.82rem', textDecoration:'none', flexShrink:0, whiteSpace:'nowrap' }}>
+            For MSSPs — book a call →
+          </a>
+        </div>
+      </section>
+
       {/* CTA */}
       <section style={{ padding:'70px 24px', textAlign:'center', background:'#0c1020', borderTop:'1px solid #0e1218' }}>
         <div style={{ maxWidth:580, margin:'0 auto' }}>
@@ -446,7 +479,7 @@ export default function LandingPage() {
           <span style={{ color:'#2a3448', marginLeft:8, fontSize:'0.72rem' }}>© 2026 Watchtower Ltd</span>
         </div>
         <div style={{ display:'flex', gap:20 }}>
-          {[{l:'Privacy',h:'/privacy'},{l:'Terms',h:'/terms'},{l:'Security',h:'/security'},{l:'Docs',h:'/docs'},{l:'Demo',h:'/demo'}].map(({l,h})=><a key={l} href={h} style={{color:'#4a5568',fontSize:'0.76rem',textDecoration:'none'}} onMouseEnter={e=>{(e.target as HTMLElement).style.color='#8a9ab0';}} onMouseLeave={e=>{(e.target as HTMLElement).style.color='#4a5568';}}>{l}</a>)}
+          {[{l:'Privacy',h:'/privacy'},{l:'Terms',h:'/terms'},{l:'Security',h:'/security'},{l:'Press',h:'/press'},{l:'Blog',h:'/blog'},{l:'Docs',h:'/docs'},{l:'Demo',h:'/demo'}].map(({l,h})=><a key={l} href={h} style={{color:'#4a5568',fontSize:'0.76rem',textDecoration:'none'}} onMouseEnter={e=>{(e.target as HTMLElement).style.color='#8a9ab0';}} onMouseLeave={e=>{(e.target as HTMLElement).style.color='#4a5568';}}>{l}</a>)}
         </div>
       </footer>
     </main>
