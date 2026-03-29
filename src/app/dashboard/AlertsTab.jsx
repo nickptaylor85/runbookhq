@@ -131,7 +131,7 @@ export default function AlertsTab({
 
   function handleExpand(alert) {
     toggleAlertExpand(alert.id);
-    if (!expandedAlerts.has(alert.id)) fetchTriage(alert);
+    // Triage is now on-demand — analyst clicks "Deep Analyse" button
   }
 
   // Generate AI auto-response timeline entries based on alert content
@@ -508,23 +508,39 @@ export default function AlertsTab({
                   </button>}
                 </div>
 
-                {/* STRUCTURED TRIAGE — Evidence Chain + Hunt Queries (live mode, Team+) */}
+                {/* STRUCTURED TRIAGE — on-demand deep analysis (Team+, live mode) */}
                 {!demoMode && canTeam && (
                   <div style={{marginTop:12}}>
-                    {/* Loading spinner */}
+                    {/* Button: show when no result yet and not loading */}
+                    {!structTriage && !structLoading && (
+                      <button
+                        onClick={()=>fetchTriage(alert)}
+                        style={{display:'flex',alignItems:'center',gap:8,padding:'7px 16px',borderRadius:8,border:'1px solid #4f8fff35',background:'linear-gradient(135deg,#4f8fff0a,#8b6fff08)',color:'#4f8fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'all .15s',width:'100%',justifyContent:'center',marginBottom:8}}
+                        onMouseEnter={e=>{e.currentTarget.style.borderColor='#4f8fff60';e.currentTarget.style.background='linear-gradient(135deg,#4f8fff18,#8b6fff12)';}}
+                        onMouseLeave={e=>{e.currentTarget.style.borderColor='#4f8fff35';e.currentTarget.style.background='linear-gradient(135deg,#4f8fff0a,#8b6fff08)';}}
+                      >
+                        <span style={{fontSize:'0.9rem'}}>✦</span>
+                        <span>Deep Analyse — APEX AI Investigation</span>
+                        <span style={{fontSize:'0.6rem',color:'#8b6fff',fontWeight:600,marginLeft:'auto',padding:'1px 6px',borderRadius:3,background:'#8b6fff15',border:'1px solid #8b6fff25'}}>AI</span>
+                      </button>
+                    )}
+                    {/* Loading state */}
                     {structLoading && (
-                      <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 0',fontSize:'0.72rem',color:'var(--wt-muted)'}}>
-                        <span style={{width:10,height:10,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>
-                        Running structured triage…
+                      <div style={{display:'flex',alignItems:'center',gap:10,padding:'10px 16px',borderRadius:8,border:'1px solid #4f8fff25',background:'#4f8fff08',marginBottom:8}}>
+                        <span style={{width:12,height:12,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite',flexShrink:0}}/>
+                        <span style={{fontSize:'0.72rem',color:'#4f8fff',fontWeight:600}}>APEX investigating…</span>
+                        <span style={{fontSize:'0.64rem',color:'var(--wt-muted)',marginLeft:'auto'}}>evidence chain · MITRE mapping · hunt queries</span>
                       </div>
                     )}
-                    {/* Evidence Chain */}
+                    {/* Evidence Chain — shown after analysis completes */}
                     {structTriage && (
                       <div style={{background:'linear-gradient(135deg,rgba(79,143,255,0.04),rgba(34,201,146,0.03))',border:'1px solid #4f8fff20',borderRadius:10,overflow:'hidden',marginBottom:8}}>
                         <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',borderBottom:'1px solid #4f8fff15'}}>
-                          <span style={{fontSize:'0.6rem',fontWeight:800,color:'#4f8fff',letterSpacing:'0.5px'}}>✦ EVIDENCE CHAIN</span>
+                          <span style={{fontSize:'0.6rem',fontWeight:800,color:'#4f8fff',letterSpacing:'0.5px'}}>✦ APEX ANALYSIS</span>
                           <span style={{fontSize:'0.6rem',fontWeight:800,padding:'1px 8px',borderRadius:4,background:(structTriage.verdict==='TP'?'#f0405e':structTriage.verdict==='FP'?'#22d49a':'#f0a030')+'18',color:structTriage.verdict==='TP'?'#f0405e':structTriage.verdict==='FP'?'#22d49a':'#f0a030'}}>{structTriage.verdict} · {structTriage.confidence}%</span>
-                          {structTriage.mitreMapping?.id && <span style={{fontSize:'0.52rem',color:'#8b6fff',fontFamily:'JetBrains Mono,monospace',marginLeft:'auto'}}>{structTriage.mitreMapping.id} — {structTriage.mitreMapping.tactic}</span>}
+                          {structTriage.mitreMapping?.id && <span style={{fontSize:'0.52rem',color:'#8b6fff',fontFamily:'JetBrains Mono,monospace'}}>{structTriage.mitreMapping.id} — {structTriage.mitreMapping.tactic}</span>}
+                          {structTriage.modelVersion && <span style={{fontSize:'0.5rem',color:'var(--wt-dim)',marginLeft:'auto',fontFamily:'JetBrains Mono,monospace'}}>{structTriage.modelVersion}</span>}
+                          <button onClick={()=>{setTriageResults(prev=>{const n={...prev};delete n[alert.id];return n;});fetchTriage(alert);}} style={{padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff25',background:'#4f8fff0a',color:'#4f8fff',fontSize:'0.52rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}} title="Re-run analysis">↺ Re-analyse</button>
                         </div>
                         <div style={{padding:'10px 12px'}}>
                           <div style={{fontSize:'0.72rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:10}}>{structTriage.analystNarrative || structTriage.reasoning}</div>
