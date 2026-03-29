@@ -105,6 +105,9 @@ export async function POST(req: NextRequest) {
         await saveUsers('global', finalUsers);
       }
 
+      // Mark 2FA setup as required — enforced by middleware on first dashboard visit
+      await redisSet(`wt:user:${userId}:mfa_setup_required`, '1');
+
       const token = signSession({ userId, tenantId, isAdmin: false, email, role: 'owner' });
       // Send welcome email (non-blocking)
       sendEmail({
@@ -125,7 +128,7 @@ export async function POST(req: NextRequest) {
         </div>`,
       }).catch(() => {}); // non-blocking
 
-      const res = NextResponse.json({ ok: true, role: 'owner', plan, redirect: '/dashboard' });
+      const res = NextResponse.json({ ok: true, role: 'owner', plan, redirect: '/setup-2fa' });
       res.cookies.set('wt_session', token, {
         httpOnly: true, secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax', maxAge: 86400, path: '/',
@@ -134,12 +137,20 @@ export async function POST(req: NextRequest) {
         httpOnly: false, secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax', maxAge: 86400, path: '/',
       });
+      // Signal to middleware that 2FA setup is required before dashboard access
+      res.cookies.set('wt_mfa_pending', '1', {
+        httpOnly: false, secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax', maxAge: 3600, path: '/',
+      });
       return res;
     }
 
     // Paid plans: session still created so they can proceed to connect Stripe
+    // Mark 2FA setup as required
+    await redisSet(`wt:user:${userId}:mfa_setup_required`, '1');
+
     const token = signSession({ userId, tenantId, isAdmin: false, email, role: 'owner' });
-    const res = NextResponse.json({ ok: true, role: 'owner', plan, pendingVerification: true, redirect: '/dashboard' });
+    const res = NextResponse.json({ ok: true, role: 'owner', plan, pendingVerification: true, redirect: '/setup-2fa' });
     res.cookies.set('wt_session', token, {
       httpOnly: true, secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax', maxAge: 86400, path: '/',
@@ -147,6 +158,10 @@ export async function POST(req: NextRequest) {
     res.cookies.set('wt_tier', plan, {
       httpOnly: false, secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax', maxAge: 86400, path: '/',
+    });
+    res.cookies.set('wt_mfa_pending', '1', {
+      httpOnly: false, secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax', maxAge: 3600, path: '/',
     });
     return res;
   } catch (e: any) {

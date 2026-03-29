@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateTotpSecret, totpUri, totpQrDataUri, verifyTotp } from '@/lib/totp';
-import { redisGet, redisSet } from '@/lib/redis';
+import { redisGet, redisSet, redisDel } from '@/lib/redis';
 import { encrypt, decrypt } from '@/lib/encrypt';
 import { updateUser, getUserByEmail, getUsers } from '@/lib/users';
 
@@ -47,7 +47,12 @@ export async function POST(req: NextRequest) {
       const mfa = JSON.parse(decrypt(raw));
       if (!verifyTotp(mfa.secret, code)) return NextResponse.json({ error: 'Invalid code' }, { status: 400 });
       await redisSet(MFA_KEY(userId), encrypt(JSON.stringify({ secret: mfa.secret, enabled: true })));
-      return NextResponse.json({ ok: true, message: 'TOTP enabled' });
+      // Clear forced-setup flag — user has completed 2FA enrollment
+      await redisDel(`wt:user:${userId}:mfa_setup_required`).catch(() => {});
+      const res = NextResponse.json({ ok: true, message: 'TOTP enabled', setupComplete: true });
+      // Clear the 2FA pending cookie so middleware allows dashboard access
+      res.cookies.set('wt_mfa_pending', '', { maxAge: 0, path: '/' });
+      return res;
     }
 
     if (action === 'disable') {

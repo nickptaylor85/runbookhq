@@ -31,8 +31,9 @@ async function verifySessionToken(token: string): Promise<{ userId: string; tena
 }
 
 const PUBLIC_PATHS = ['/', '/demo', '/pricing', '/guide', '/login', '/signup',
-  '/stripe/success', '/api/auth/login', '/api/auth/logout', '/api/auth/session',
-  '/api/auth/saml', '/api/stripe/webhook', '/_next/', '/favicon', '/robots.txt', '/sitemap'];
+  '/setup-2fa', '/stripe/success', '/api/auth/login', '/api/auth/logout', '/api/auth/session',
+  '/api/auth/totp', '/api/auth/saml', '/api/stripe/webhook', '/_next/', '/favicon', '/robots.txt', '/sitemap',
+  '/press', '/blog', '/security', '/privacy', '/terms', '/changelog', '/docs', '/guide'];
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -45,8 +46,17 @@ export async function middleware(req: NextRequest) {
   cleanHeaders.delete('x-user-tier');
   // Note: x-tenant-id from client is overridden by session in authenticated routes
 
-  // Allow public paths and dashboard (client-side auth)
-  if (PUBLIC_PATHS.some(p => pathname.startsWith(p)) || pathname === '/dashboard') {
+  // Allow public paths
+  if (PUBLIC_PATHS.some(p => pathname.startsWith(p))) {
+    return NextResponse.next({ request: { headers: cleanHeaders } });
+  }
+
+  // Dashboard and settings: allow through but check 2FA setup cookie
+  if (pathname === '/dashboard' || pathname.startsWith('/settings')) {
+    const mfaPending = req.cookies.get('wt_mfa_pending')?.value;
+    if (mfaPending === '1') {
+      return NextResponse.redirect(new URL('/setup-2fa', req.url));
+    }
     return NextResponse.next({ request: { headers: cleanHeaders } });
   }
 

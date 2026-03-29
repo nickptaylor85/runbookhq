@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHmac } from 'crypto';
+import { redisGet } from '@/lib/redis';
 
 function verifyToken(token: string): { userId: string; tenantId: string; isAdmin: boolean; role?: string } | null {
   try {
@@ -17,10 +18,12 @@ function verifyToken(token: string): { userId: string; tenantId: string; isAdmin
 export async function GET(req: NextRequest) {
   const userId = req.headers.get('x-user-id');
   if (userId) {
+    const mfaFlag = await redisGet(`wt:user:${userId}:mfa_setup_required`).catch(() => null);
     return NextResponse.json({
       authenticated: true, userId,
       tenantId: req.headers.get('x-tenant-id') || 'global',
       isAdmin: req.headers.get('x-is-admin') === 'true',
+      mfaSetupRequired: mfaFlag === '1',
     });
   }
   const token = req.cookies.get('wt_session')?.value;
