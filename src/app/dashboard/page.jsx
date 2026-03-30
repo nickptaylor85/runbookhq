@@ -878,12 +878,14 @@ export default function DashboardPage() {
           const assets = v.affectedAssets || (v.device && v.device !== 'Unknown' ? [v.device] : []);
           assets.forEach(hostname => {
             if (!deviceMap.has(hostname)) {
-              // Attempt OS enrichment: check alerts from EDR tools for matching hostname
-              const matchedAlert = liveAlerts.find(a => a.device === hostname && (a.raw?.device_details?.os_version || a.raw?.os_version || a.raw?.MachineName));
+              // Attempt OS enrichment: check Tenable _osMap first, then live EDR alerts
+              const tenableOsMap = (v.raw as any)?._osMap as Record<string,string> | undefined;
+              const osFromTenable = tenableOsMap ? (tenableOsMap[hostname.toLowerCase()] || '') : '';
+              const matchedAlert = liveAlerts.find(a => a.device === hostname && (a.raw?.device_details?.os_version || a.raw?.os_version));
               const osFromAlert = matchedAlert ? (matchedAlert.raw?.device_details?.os_version || matchedAlert.raw?.os_version || '') : '';
               deviceMap.set(hostname, {
                 hostname, ip: v.ip||'',
-                os: osFromAlert || v.raw?.os || v.raw?.operating_system || 'Unknown',
+                os: osFromTenable || osFromAlert || v.raw?.os || v.raw?.operating_system || 'Unknown',
                 missing: connectedEdrNames.length > 0 ? connectedEdrNames.map(n=>`Verify: ${n}`) : [],
                 reason: `Scanned by Tenable${connectedEdrNames.length > 0 ? ` — verify ${connectedEdrNames.join('/')} coverage` : ''}`,
                 lastSeen: 'via Tenable', lastSeenDays: 0,

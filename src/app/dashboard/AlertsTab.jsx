@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import WtMarkdown from './WtMarkdown';
 
 const SEV_COLOR = { Critical:'#f0405e', High:'#f97316', Medium:'#f0a030', Low:'#4f8fff' };
 const VERDICT_STYLE = {

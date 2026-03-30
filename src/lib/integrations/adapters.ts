@@ -186,6 +186,44 @@ export const tenable: IntegrationAdapter = {
       });
     }
     console.log(`[tenable] ${results.length} unique plugins, ${results.reduce((n,r)=>n+(r.affectedAssets?.length||1),0)} total asset-findings`);
+
+    // Step 3: fetch asset OS data from /workbenches/assets to enrich coverage
+    // This gives us operating_system per hostname so coverage tab shows real OS
+    try {
+      const assetRes = await fetch(
+        `https://cloud.tenable.com/workbenches/assets?date_range=90&limit=500`,
+        { headers, signal: AbortSignal.timeout(8000) }
+      );
+      if (assetRes.ok) {
+        const assetData = await assetRes.json() as { assets?: Array<{ fqdn?: string[]; hostname?: string[]; ipv4?: string[]; operating_system?: string[]; netbios_name?: string[] }> };
+        const osMap = new Map<string, string>();
+        for (const asset of (assetData.assets || [])) {
+          const os = asset.operating_system?.[0] || '';
+          if (!os) continue;
+          const names = [
+            ...(asset.fqdn || []),
+            ...(asset.hostname || []),
+            ...(asset.netbios_name || []),
+            ...(asset.ipv4 || []),
+          ];
+          for (const name of names) {
+            if (name) osMap.set(name.toLowerCase(), os);
+          }
+        }
+        // Enrich results with OS
+        for (const r of results) {
+          if (!r.raw) r.raw = {};
+          (r.raw as any)._osMap = Object.fromEntries(osMap);
+          // Set OS on the primary device if known
+          const primaryOs = osMap.get(r.device?.toLowerCase() || '');
+          if (primaryOs) (r.raw as any).os = primaryOs;
+        }
+        console.log(`[tenable] enriched with OS data for ${osMap.size} assets`);
+      }
+    } catch(e) {
+      console.log('[tenable] OS enrichment fetch failed (non-critical):', e);
+    }
+
     return results;
   },
 };
