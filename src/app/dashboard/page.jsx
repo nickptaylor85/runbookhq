@@ -32,7 +32,7 @@ const ALL_TOOLS = [
 ];
 
 
-const DASHBOARD_CSS = '*{margin:0;padding:0;box-sizing:border-box}\n        html,body{max-width:100vw;overflow-x:hidden}\n        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}\n        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}\n\n        /* ── Dark theme (default) ── */\n        .wt-root {\n          --wt-bg: #090d18;\n          --wt-sidebar: #0c1122;\n          --wt-card: #0f1526;\n          --wt-card2: #131929;\n          --wt-border: #1d2535;\n          --wt-border2: #263044;\n          --wt-text: #e8ecf4;\n          --wt-muted: #7a8aa4;\n          --wt-secondary: #96a6bc;\n          --wt-dim: #4a5568;\n        }\n        /* ── Light theme ── */\n        .wt-root.light {\n          --wt-bg: #f5f6fa;\n          --wt-sidebar: #ffffff;\n          --wt-card: #ffffff;\n          --wt-card2: #f0f2f8;\n          --wt-border: #e2e5ef;\n          --wt-border2: #c8cedd;\n          --wt-text: #0f1117;\n          --wt-muted: #5a6580;\n          --wt-secondary: #4a5568;\n          --wt-dim: #8090a8;\n        }\n\n        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap;color:var(--wt-muted)}\n        .tab-btn.active{background:#4f8fff18;color:#4f8fff}\n        .tab-btn:not(.active) {color:var(--wt-secondary);background:var(--wt-card2)}\n        .row-hover{transition:background .12s}\n        .row-hover:hover{background:var(--wt-card2)!important}\n        .vuln-row:hover{background:var(--wt-card2)!important;cursor:pointer}\n        .alert-card{border-radius:10px;border:1px solid var(--wt-border);background:var(--wt-card);transition:border-color .15s}\n        .alert-card:hover{border-color:#4f8fff28}\n        .skeleton{background:linear-gradient(90deg,var(--wt-card) 25%,var(--wt-card2) 50%,var(--wt-card) 75%);background-size:200% 100%;animation:skeleton-shimmer 1.4s ease infinite}\n        @keyframes skeleton-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}\n        .wt-tab-content{animation:tab-fade 0.15s ease}\n        @keyframes tab-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}\n        /* Focus-visible for keyboard accessibility */\n        :focus-visible{outline:2px solid #4f8fff !important;outline-offset:2px !important;border-radius:3px}\n        button:focus:not(:focus-visible),a:focus:not(:focus-visible){outline:none}\n        @media(max-width:500px){.wt-hide-xs{display:none!important}}\n\n        /* ── Mobile layout ── */\n        .wt-sidebar-desktop{display:none}\n        .wt-bottom-nav{display:none}\n        .wt-topbar-controls-full{display:flex}\n        .wt-topbar-controls-mobile{display:none}\n\n'
+const DASHBOARD_CSS = '*{margin:0;padding:0;box-sizing:border-box}\n        html,body{max-width:100vw;overflow-x:hidden}\n        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}\n        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}\n\n        /* ── Dark theme (default) ── */\n        .wt-root {\n          --wt-bg: #090d18;\n          --wt-sidebar: #0c1122;\n          --wt-card: #0f1526;\n          --wt-card2: #131929;\n          --wt-border: #1d2535;\n          --wt-border2: #263044;\n          --wt-text: #e8ecf4;\n          --wt-muted: #7a8aa4;\n          --wt-secondary: #96a6bc;\n          --wt-dim: #4a5568;\n        }\n        /* ── Light theme ── */\n        .wt-root.light {\n          --wt-bg: #f5f6fa;\n          --wt-sidebar: #ffffff;\n          --wt-card: #ffffff;\n          --wt-card2: #f0f2f8;\n          --wt-border: #e2e5ef;\n          --wt-border2: #c8cedd;\n          --wt-text: #0f1117;\n          --wt-muted: #5a6580;\n          --wt-secondary: #4a5568;\n          --wt-dim: #8090a8;\n        }\n\n        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap;color:var(--wt-muted)}\n        .tab-btn.active{background:#4f8fff18;color:#4f8fff}\n        .tab-btn:not(.active) {color:var(--wt-secondary);background:var(--wt-card2)}\n        .row-hover{transition:background .12s}\n        .row-hover:hover{background:var(--wt-card2)!important}\n        .vuln-row:hover{background:var(--wt-card2)!important;cursor:pointer}\n        .alert-card{border-radius:10px;border:1px solid var(--wt-border);background:var(--wt-card);transition:border-color .15s}\n        .alert-card:hover{border-color:#4f8fff28}\n        .skeleton{background:linear-gradient(90deg,var(--wt-card) 25%,var(--wt-card2) 50%,var(--wt-card) 75%);background-size:200% 100%;animation:skeleton-shimmer 1.4s ease infinite}\n        @keyframes skeleton-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}\n        .wt-tab-content{animation:tab-fade 0.15s ease}\n        @keyframes tab-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}\n        /* Focus-visible for keyboard accessibility */\n        :focus-visible{outline:2px solid #4f8fff !important;outline-offset:2px !important;border-radius:3px}\n        button:focus:not(:focus-visible),a:focus:not(:focus-visible){outline:none}\n        @media(max-width:500px){.wt-hide-xs{display:none!important}}\n        /* ── Digital font mode ── */\n        .wt-root.wt-digital{font-family:JetBrains Mono,Consolas,monospace!important}\n        .wt-root.wt-digital button,.wt-root.wt-digital input,.wt-root.wt-digital select,.wt-root.wt-digital a{font-family:JetBrains Mono,Consolas,monospace!important}\n        .wt-root.wt-digital .tab-btn{font-family:JetBrains Mono,Consolas,monospace!important;font-size:0.72rem!important;letter-spacing:-0.3px}\n\n        /* ── Mobile layout ── */\n        .wt-sidebar-desktop{display:none}\n        .wt-bottom-nav{display:none}\n        .wt-topbar-controls-full{display:flex}\n        .wt-topbar-controls-mobile{display:none}\n\n'
   + '@media(max-width:640px){\n          /* ── Bottom navigation ── */\n          .wt-bottom-nav{\n            display:flex!important;position:fixed;bottom:0;left:0;right:0;z-index:200;\n            background:var(--wt-sidebar);border-top:1px solid var(--wt-border2);\n            padding:4px 0 env(safe-area-inset-bottom,4px);\n            justify-content:space-around;align-items:stretch;\n          }\n          .wt-bottom-nav button,.wt-bottom-nav a{\n            display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;\n            background:none;border:none;cursor:pointer;color:var(--wt-muted);\n            font-size:0.62rem;font-weight:600;font-family:Inter,sans-serif;\n            padding:5px 4px 3px;border-radius:0;text-decoration:none;flex:1;min-width:0;\n            border-top:2px solid transparent;transition:color .12s,border-color .12s;\n          }\n          .wt-bottom-nav button.active{color:#4f8fff;border-top-color:#4f8fff;background:#4f8fff06}\n          .wt-bottom-nav a.active{color:#4f8fff;border-top-color:#4f8fff;background:#4f8fff06}\n          .wt-bottom-nav .bnav-icon{font-size:1.25rem;line-height:1;display:block}\n          /* ── Top bar ── */\n          .wt-tabbar{display:none!important}\n          .wt-topbar{padding:0 12px!important;height:44px!important}\n          .wt-topbar-controls-full{display:none!important}\n          .wt-topbar-controls-mobile{display:flex!important;gap:6px;align-items:center;margin-left:auto}\n          /* ── Content area ── */\n          .wt-content{padding:10px!important;padding-bottom:76px!important}\n          .wt-main{padding-bottom:0!important}\n          /* ── Grid breakdowns ── */\n          .wt-five-col{grid-template-columns:1fr 1fr!important}\n          .wt-four-col{grid-template-columns:1fr 1fr!important}\n          .wt-three-col{grid-template-columns:1fr!important}\n          .wt-two-col{grid-template-columns:1fr!important}\n          .wt-stat-grid{grid-template-columns:1fr 1fr!important}\n          /* ── Filters ── */\n          .wt-filter-row{flex-direction:column!important;gap:6px!important}\n          .wt-filter-row select,.wt-filter-row input,.wt-filter-row button{width:100%!important;box-sizing:border-box!important}\n          /* ── Bulk bar ── */\n          .wt-bulk-bar{flex-wrap:wrap!important;gap:6px!important}\n          /* ── Alert cards ── */\n          .alert-card{border-radius:8px}\n          /* ── Co-Pilot panel ── */\n          .wt-copilot{max-width:100%!important;width:100%!important;left:0!important;right:0!important;bottom:64px!important;border-radius:16px 16px 0 0!important}\n        }\n        @media(min-width:641px) and (max-width:900px){\n          .wt-content{padding:12px 14px!important}\n          .wt-five-col{grid-template-columns:repeat(3,1fr)!important}\n          .wt-four-col{grid-template-columns:1fr 1fr!important}\n          .wt-three-col{grid-template-columns:1fr 1fr!important}\n        }';
 
 const CRED_FIELDS = {
@@ -642,6 +642,7 @@ export default function DashboardPage() {
   const [userRole, setUserRole] = useState(null); // null=owner, 'tech_admin', 'viewer', 'sales'
   const [userTier, setUserTier] = useState('community');
   const [theme, setTheme] = useState('dark');
+  const [digitalFont, setDigitalFont] = useState(()=>typeof window!=='undefined'&&localStorage.getItem('wt_digital_font')==='1');
   // Load MSSP branding — must be after userTier and isAdmin are declared
   useEffect(()=>{
     if(userTier==='mssp'||isAdmin){fetch('/api/mssp/branding',{headers:{'x-tenant-id':tenantRef.current}}).then(r=>r.json()).then(d=>{if(d.branding?.name)setMsspBranding(d.branding);}).catch(()=>{});}
@@ -806,6 +807,11 @@ export default function DashboardPage() {
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
     if (typeof window !== 'undefined') localStorage.setItem('wt_theme', next);
+  }
+  function toggleDigitalFont() {
+    const next = !digitalFont;
+    setDigitalFont(next);
+    if (typeof window !== 'undefined') localStorage.setItem('wt_digital_font', next?'1':'0');
   }
 
   // ── Tier ─────────────────────────────────────────────────────────────────────
@@ -1348,6 +1354,7 @@ export default function DashboardPage() {
             </select>}
             {/* Utils */}
             {canUse('team')&&<button onClick={()=>setActiveTab('incidents')} style={{padding:'3px 8px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff0a',color:'#8b6fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>⇄ Handover</button>}
+            <button onClick={toggleDigitalFont} title={digitalFont?'Switch to proportional font':'Switch to digital/mono font'} style={{width:30,height:30,borderRadius:7,border:`1px solid ${digitalFont?'#4f8fff40':'var(--wt-border)'}`,background:digitalFont?'#4f8fff12':'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.72rem',fontWeight:800,color:digitalFont?'#4f8fff':'var(--wt-muted)',fontFamily:'JetBrains Mono,monospace',flexShrink:0}}>01</button>
             <button onClick={toggleTheme} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem',flexShrink:0}}>{theme==='dark'?'☀️':'🌙'}</button>
             <a href='/settings' style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.82rem',color:'inherit',textDecoration:'none',flexShrink:0}}>⚙️</a>
             {canUse('business')&&<button onClick={()=>setActiveTab('compliance')} style={{padding:'3px 8px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}} title='CISO Board Report'>📊 CISO</button>}
@@ -1889,6 +1896,80 @@ export default function DashboardPage() {
                           </div>
                         );
                       })}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Taegis vs Tenable host-by-host comparison */}
+              {!demoMode && liveCoverageDevices.length > 0 && (()=>{
+                const tenableDevs = liveCoverageDevices.filter(d=>d.source==='Tenable Assets');
+                const taegisDevs  = liveCoverageDevices.filter(d=>d.source==='Taegis Endpoints');
+                if (!tenableDevs.length || !taegisDevs.length) return null;
+                const taegisMap = new Map();
+                taegisDevs.forEach(d=>{
+                  const h = d.hostname.toLowerCase().split('.')[0]; // strip domain suffix
+                  taegisMap.set(h, d);
+                  if (d.ip) taegisMap.set(d.ip, d);
+                });
+                const rows = tenableDevs.slice(0,200).map(d=>{
+                  const h = d.hostname.toLowerCase().split('.')[0];
+                  const matched = taegisMap.get(h) || taegisMap.get(d.ip||'');
+                  return {...d, taegisPresent:!!matched, taegisVersion:matched?.sensorVersion||null};
+                });
+                const bothCount   = rows.filter(r=>r.taegisPresent).length;
+                const tenableOnly = rows.filter(r=>!r.taegisPresent);
+                const taegisOnly  = taegisDevs.filter(d=>{
+                  const h = d.hostname.toLowerCase().split('.')[0];
+                  return !tenableDevs.some(t=>t.hostname.toLowerCase().split('.')[0]===h||t.ip===d.ip);
+                });
+                const [cmpFilter,setCmpFilter] = React.useState('missing'); // 'all'|'missing'|'taegis-only'
+                const displayRows = cmpFilter==='missing'?tenableOnly:cmpFilter==='taegis-only'?taegisOnly:rows;
+                return (
+                  <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px 16px'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10,flexWrap:'wrap'}}>
+                      <span style={{fontSize:'0.86rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'1px'}}>Tenable vs Taegis — Device Coverage</span>
+                      <span style={{fontSize:'0.84rem',color:'#22d49a',background:'#22d49a0a',padding:'1px 6px',borderRadius:3,border:'1px solid #22d49a20',fontWeight:600}}>✦ live</span>
+                    </div>
+                    {/* Summary strip */}
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6,marginBottom:12}} className='wt-three-col'>
+                      {[
+                        {label:'Both tools',val:bothCount,color:'#22d49a',icon:'✓',filter:'all'},
+                        {label:'Tenable only — no XDR',val:tenableOnly.length,color:'#f0405e',icon:'⚠',filter:'missing'},
+                        {label:'Taegis only — not scanned',val:taegisOnly.length,color:'#f0a030',icon:'?',filter:'taegis-only'},
+                      ].map(s=>(
+                        <div key={s.label} onClick={()=>setCmpFilter(s.filter)} style={{padding:'10px',background:cmpFilter===s.filter?`${s.color}10`:'var(--wt-card2)',border:`1px solid ${cmpFilter===s.filter?s.color+'40':'var(--wt-border)'}`,borderRadius:8,cursor:'pointer',textAlign:'center'}}>
+                          <div style={{fontSize:'1.5rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color}}>{s.val}</div>
+                          <div style={{fontSize:'0.72rem',color:'var(--wt-muted)',marginTop:2}}>{s.label}</div>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Filter tabs */}
+                    <div style={{display:'flex',gap:6,marginBottom:10}}>
+                      {[['all','All devices'],['missing','Missing Taegis'],['taegis-only','Taegis only']].map(([f,l])=>(
+                        <button key={f} onClick={()=>setCmpFilter(f)} style={{padding:'3px 10px',borderRadius:6,border:`1px solid ${cmpFilter===f?'#4f8fff40':'var(--wt-border)'}`,background:cmpFilter===f?'#4f8fff12':'transparent',color:cmpFilter===f?'#4f8fff':'var(--wt-muted)',fontSize:'0.78rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{l}</button>
+                      ))}
+                      <span style={{marginLeft:'auto',fontSize:'0.78rem',color:'var(--wt-dim)'}}>{displayRows.length} devices</span>
+                    </div>
+                    {/* Table */}
+                    <div style={{maxHeight:320,overflowY:'auto'}}>
+                      <div style={{display:'grid',gridTemplateColumns:'1fr 90px 70px 70px',gap:0,fontSize:'0.72rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',padding:'4px 8px',borderBottom:'1px solid var(--wt-border)',position:'sticky',top:0,background:'var(--wt-card2)'}}>
+                        <span>Hostname</span><span>OS</span><span style={{textAlign:'center'}}>Tenable</span><span style={{textAlign:'center'}}>Taegis</span>
+                      </div>
+                      {displayRows.slice(0,100).map((d,i)=>{
+                        const hostname = d.hostname || 'Unknown';
+                        const hasTen = cmpFilter!=='taegis-only';
+                        const hasTae = cmpFilter==='taegis-only'||d.taegisPresent;
+                        return (
+                          <div key={hostname+i} style={{display:'grid',gridTemplateColumns:'1fr 90px 70px 70px',gap:0,padding:'5px 8px',borderBottom:'1px solid var(--wt-border)',background:i%2===0?'transparent':'var(--wt-card2)',alignItems:'center'}}>
+                            <span style={{fontSize:'0.78rem',fontWeight:600,fontFamily:'JetBrains Mono,monospace',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{hostname.split('.')[0]}</span>
+                            <span style={{fontSize:'0.72rem',color:'var(--wt-dim)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{(d.os||'').split(' ').slice(0,2).join(' ')}</span>
+                            <span style={{textAlign:'center',fontSize:'0.9rem'}}>{hasTen?<span style={{color:'#22d49a'}}>✓</span>:<span style={{color:'var(--wt-border)'}}>—</span>}</span>
+                            <span style={{textAlign:'center',fontSize:'0.9rem'}}>{hasTae?<span style={{color:'#22d49a'}}>✓</span>:<span style={{color:'#f0405e'}}>✗</span>}</span>
+                          </div>
+                        );
+                      })}
+                      {displayRows.length > 100 && <div style={{padding:'8px',textAlign:'center',fontSize:'0.78rem',color:'var(--wt-muted)'}}>Showing 100 of {displayRows.length} — export CSV for full list</div>}
                     </div>
                   </div>
                 );
