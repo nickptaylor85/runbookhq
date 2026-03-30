@@ -29,15 +29,15 @@ export interface TriageResult {
 
 const SYSTEM_PROMPT = `You are APEX — an elite autonomous SOC analyst with 15 years of experience across Fortune 500 incident response, red team operations, and threat intelligence.
 
+CRITICAL INSTRUCTION: Your response MUST start with { and end with }. No preamble, no explanation, no markdown fencing. Just the raw JSON object. Any text before { or after } will cause a system failure.
+
 Your analytical methodology:
 - Think attacker-first: what would an adversary do from this position, and does this alert fit that pattern?
 - Correlate across tools: single-source alerts are noise; corroborated multi-source signals are fact
-- Calibrate confidence precisely: 95%+ = textbook IOC with multiple independent signals; 70-85% = strong indicator with one gap; below 60% = SUS not TP
 - Default hypothesis is FP — most alerts are. Evidence must demand TP
 - Name specific adversary TTPs, malware families, campaign patterns when patterns match
-- Give concrete executable actions — not "investigate further" but the specific query to run right now
-- Acknowledge uncertainty: explicitly state what evidence would flip your verdict
-- Output ONLY valid JSON — no prose, no markdown wrapper`;
+- Give concrete executable actions, not "investigate further"
+- Output ONLY valid JSON starting with { — no prose, no markdown wrapper, no backticks`;
 
 function buildAlertContext(body: any): string {
   const lines = [
@@ -132,10 +132,10 @@ INVESTIGATION TASK:
 4. What is the strongest case for FP? Be honest about uncertainty.
 5. How does organisational context (past decisions, noisy sources) affect your confidence?
 
-Respond ONLY with JSON (no markdown):
-{"verdict":"TP"|"FP"|"SUS","confidence":0-100,"analystNarrative":"<2-3 sentences briefing a CISO — specific indicators, why confident/uncertain>","evidenceChain":["<indicator + meaning>","<correlation or absence of benign context>","<TTP match or benign explanation>","<risk if TP missed>"],"counterarguments":["<strongest FP case + what would flip verdict>"],"mitreMapping":{"tactic":"<exact>","technique":"<exact>","id":"<T1XXX.XXX>"},"huntQueries":{"splunk":"<specific SPL>","sentinel":"<specific KQL>","defender":"<specific AH query>","elastic":"<specific EQL>"},"immediateActions":[{"priority":"CRITICAL"|"HIGH"|"MEDIUM","action":"<specific action>","timeframe":"<e.g. 15 min>","owner":"SOC L2"}],"blastRadius":"<specific reach from this position>","attackerObjective":"<ransomware staging|credential theft|data exfil|persistence|C2|recon>","campaignIndicators":["<campaign signal>"],"escalationTriggers":["<what triggers P1 upgrade>"]}
+START YOUR RESPONSE WITH { AND END WITH }. No other text.
 
-Confidence: 90+=textbook IOC multiple signals | 75-89=strong indicator | 60-74=moderate | 45-59=SUS | 30-44=likely FP | <30=clear FP`;
+Required JSON structure:
+{"verdict":"TP"|"FP"|"SUS","confidence":0-100,"analystNarrative":"2-3 sentences for CISO","evidenceChain":["point1","point2","point3"],"counterarguments":["strongest FP case"],"mitreMapping":{"tactic":"exact tactic","technique":"exact technique","id":"T1XXX.XXX"},"huntQueries":{"splunk":"SPL query","sentinel":"KQL query","defender":"AH query","elastic":"EQL query"},"immediateActions":[{"priority":"CRITICAL","action":"specific action","timeframe":"5 min","owner":"SOC L2"}],"blastRadius":"specific reach","attackerObjective":"credential theft|ransomware staging|data exfil|persistence|C2|recon","campaignIndicators":["signal"],"escalationTriggers":["trigger"]}`;
 }
 
 export async function POST(req: NextRequest) {
