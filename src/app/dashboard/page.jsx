@@ -557,7 +557,7 @@ export default function DashboardPage() {
         // Threat Intel tools → Intel tab
         const INTEL_SOURCES = new Set(['virustotal','recordedfuture','recorded_future','alienvault','alienvaultotx','threatconnect','misp','mandiant']);
         // MDM/Asset/Coverage tools → Coverage tab
-        const COVERAGE_SOURCES = new Set(['intune','microsoftintune','axonius','tanium','huntress','jumpcloud']);
+        const COVERAGE_SOURCES = new Set(['intune','microsoftintune','axonius','tanium','huntress','jumpcloud','tenableassets','tenable assets','taegisendpoints','taegis endpoints']);
         const normalise = s => (s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
         const allItems = d.results.flatMap(r => (r.alerts||[]).map(a => ({...a, _toolId: r.toolId})));
         const vulnItems     = allItems.filter(a => VULN_SOURCES.has(normalise(a.source))     || VULN_SOURCES.has(a._toolId));
@@ -585,7 +585,7 @@ export default function DashboardPage() {
           if (coverageItems.length > 0) {
             setLiveCoverageDevices(prev => {
               const merged = new Map((prev||[]).map(d => [d.hostname, d]));
-              coverageItems.forEach(item => { if (item.device&&item.device!=='Unknown') merged.set(item.device, {hostname:item.device,ip:item.ip||'',os:item.raw?.operatingSystem||item.raw?.os||'Unknown',source:item.source,lastSeen:item.time||new Date().toISOString(),lastSeenDays:0,complianceState:item.raw?.complianceState||'unknown',user:item.user||'',missing:[],reason:`Managed by ${item.source}`}); });
+              coverageItems.forEach(item => { if (item.device&&item.device!=='Unknown') merged.set(item.device, {hostname:item.device,ip:item.ip||'',os:item.raw?.os||item.raw?.operatingSystem||'Unknown',source:item.source,lastSeen:item.time||new Date().toISOString(),lastSeenDays:0,complianceState:item.raw?.complianceState||'unknown',user:item.user||'',missing:[],reason:item.raw?._isCoverageDevice?`Scanned by ${item.source}`:`Managed by ${item.source}`,sensorVersion:item.raw?.sensorVersion,isolationStatus:item.raw?.isolationStatus}); });
               return Array.from(merged.values());
             });
           }
@@ -3184,11 +3184,9 @@ export default function DashboardPage() {
             {t==='alerts'&&critAlerts.length>0&&<span style={{position:'absolute',top:4,right:'calc(50% - 12px)',width:7,height:7,borderRadius:'50%',background:'#f0405e',display:'block'}} />}
           </button>
         ))}
-        {/* Settings direct link */}
-        <a href='/settings' style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:2,flex:1,minWidth:0,padding:'5px 4px 3px',textDecoration:'none',color:'var(--wt-muted)',fontSize:'0.62rem',fontWeight:600,fontFamily:'Inter,sans-serif',borderTop:'2px solid transparent',transition:'color .12s,border-color .12s'}}>
+        <a href='/settings' className={''}>
           <span className="bnav-icon">⚙️</span>Settings
         </a>
-        {/* More button — opens drawer with all other tabs */}
         <button onClick={()=>setShowMobileMore(s=>!s)} className={showMobileMore?'active':''}>
           <span className="bnav-icon">⋯</span>More
         </button>
