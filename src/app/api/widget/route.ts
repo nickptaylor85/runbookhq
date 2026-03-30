@@ -6,6 +6,11 @@ import { redisGet } from '@/lib/redis';
 // Requires a tenant slug — no auth (public, no sensitive data)
 
 export async function GET(req: NextRequest) {
+  // Rate limit: 60 requests per minute per IP to prevent tenant slug enumeration
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0] || 'anon';
+  const { checkRateLimit } = await import('@/lib/ratelimit');
+  const rl = await checkRateLimit(`widget:${ip}`, 60, 60);
+  if (!rl.ok) return NextResponse.json({ ok: false, error: 'Rate limited' }, { status: 429 });
   try {
     const url = new URL(req.url);
     const slug = url.searchParams.get('slug');

@@ -38,7 +38,7 @@ export function decrypt(ciphertext: string): string {
 
 // HMAC session token (no JWT dependency)
 export function signSession(payload: object): string {
-  const secret = process.env.WATCHTOWER_SESSION_SECRET || 'watchtower-dev-session-secret';
+  const secret = process.env.WATCHTOWER_SESSION_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('WATCHTOWER_SESSION_SECRET not set'); })() : 'watchtower-dev-session-secret');
   const { randomBytes } = require('crypto');
   const jti = randomBytes(16).toString('hex'); // unique token ID for revocation
   const data = JSON.stringify({ ...payload, iat: Date.now(), jti });
@@ -49,7 +49,7 @@ export function signSession(payload: object): string {
 
 export function verifySession(token: string): object | null {
   try {
-    const secret = process.env.WATCHTOWER_SESSION_SECRET || 'watchtower-dev-session-secret';
+    const secret = process.env.WATCHTOWER_SESSION_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('WATCHTOWER_SESSION_SECRET not set'); })() : 'watchtower-dev-session-secret');
     const [encoded, sig] = token.split('.');
     if (!encoded || !sig) return null;
     const expectedSig = createHmac('sha256', secret).update(encoded).digest('base64url');

@@ -2230,7 +2230,7 @@ export default function DashboardPage() {
                             <span style={{fontSize:'0.8rem',color:'#4f8fff'}}>{item.source}</span>
                             <span style={{fontSize:'0.8rem',color:'var(--wt-dim)'}}>{item.time}</span>
                             {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.86rem',fontWeight:700,color:'#f0a030',background:'#f0a03012',padding:'1px 5px',borderRadius:3}}>{item.iocs.length} IOCs</span>}
-                            <a href={item.url||`https://www.ncsc.gov.uk/search?q=${encodeURIComponent(item.title)}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.84rem',color:'#4f8fff',textDecoration:'none',padding:'1px 5px',border:'1px solid #4f8fff20',borderRadius:3}}>↗</a>
+                            <a href={(item.url||'').startsWith('http')?item.url:`https://www.ncsc.gov.uk/search?q=${encodeURIComponent(item.title)}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.84rem',color:'#4f8fff',textDecoration:'none',padding:'1px 5px',border:'1px solid #4f8fff20',borderRadius:3}}>↗</a>
                           </div>
                         </div>
                         <span style={{fontSize:'0.86rem',color:'var(--wt-dim)',flexShrink:0}}>{isExpanded?'▲':'▼'}</span>
@@ -2297,7 +2297,7 @@ export default function DashboardPage() {
                                   <span style={{fontSize:'0.86rem',color:'#22d49a'}}>{item.time}</span>
                                   {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.84rem',fontWeight:700,color:'#f0a030',background:'#f0a03012',padding:'1px 5px',borderRadius:3}}>{item.iocs.length} IOCs</span>}
                                   {item.mitre && <span style={{fontSize:'0.84rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{item.mitre}</span>}
-                                  {item.url && <a href={item.url} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.84rem',color:'#4f8fff',textDecoration:'none',padding:'1px 5px',border:'1px solid #4f8fff20',borderRadius:3}}>↗</a>}
+                                  {item.url && <a href={(item.url||'').startsWith('http')?item.url:'#'} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.84rem',color:'#4f8fff',textDecoration:'none',padding:'1px 5px',border:'1px solid #4f8fff20',borderRadius:3}}>↗</a>}
                                 </div>
                               </div>
                               {isExpanded && item.iocs && item.iocs.length>0 && (
@@ -2355,7 +2355,7 @@ export default function DashboardPage() {
                       <span style={{fontSize:'0.82rem',color:'var(--wt-dim)'}}>{item.time}</span>
                       {item.iocs&&item.iocs.map(cve=><span key={cve} style={{fontSize:'0.84rem',color:'#f97316',fontFamily:'JetBrains Mono,monospace',padding:'1px 5px',border:'1px solid #f9731625',borderRadius:3,background:'#f9731610'}}>{cve}</span>)}
                       {item.mitre&&<span style={{fontSize:'0.84rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{item.mitre}</span>}
-                      <a href={item.url} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.84rem',color:'#00b3e3',textDecoration:'none',padding:'1px 5px',border:'1px solid #00b3e320',borderRadius:3}}>↗ Read</a>
+                      <a href={(item.url||'').startsWith('http')?item.url:'#'} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.84rem',color:'#00b3e3',textDecoration:'none',padding:'1px 5px',border:'1px solid #00b3e320',borderRadius:3}}>↗ Read</a>
                     </div>
                   </div>
                 ))}

@@ -21,7 +21,7 @@ const USERS_KEY = (tenantId: string) => `wt:tenant:${tenantId}:users`;
 
 export function hashPassword(password: string, salt?: string): string {
   const s = salt || randomBytes(16).toString('hex');
-  const hash = scryptSync(password, s, 64).toString('hex');
+  const hash = scryptSync(password, s, 64, { N: 32768, r: 8, p: 1 }).toString('hex');
   return `scrypt:${s}:${hash}`;
 }
 
