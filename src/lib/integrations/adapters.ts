@@ -714,8 +714,8 @@ export const taegis: IntegrationAdapter = {
     // Ref: Taegis SDK — python_sdk_getting_started, allInvestigations with page/search params
     // allInvestigations — correct Taegis schema confirmed from API error hints
     // Types: PageInput for pagination, no search filter (returns open investigations)
-    const query = `query allInvestigations($page: PageInput, $orderByArgs: InvestigationsOrderByInput) {
-      allInvestigations(page: $page, orderByArgs: $orderByArgs) {
+    const query = `query allInvestigations($page: PageInput, $orderByField: InvestigationsOrderByInput) {
+      allInvestigations(page: $page, orderByField: $orderByField) {
         investigations {
           id
           description
@@ -739,7 +739,7 @@ export const taegis: IntegrationAdapter = {
 
     const variables = {
       page: { limit: 100, offset: 0 },
-      orderByArgs: { field: 'created_at', direction: 'desc' },
+      orderByField: { field: 'created_at', direction: 'desc' },
     };
 
     const res = await fetch(`https://${graphqlHost}/graphql`, {
