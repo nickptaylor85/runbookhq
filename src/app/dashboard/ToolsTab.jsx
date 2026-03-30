@@ -460,11 +460,8 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
 
   return (
     <div style={{display:'flex',flexDirection:'column',gap:14}}>
-      <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
-        <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Integrations</h2>
-        <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{Object.keys(connected).length} connected</span>
-        {isCommunity && <span style={{fontSize:'0.62rem',color:'#f0a030',background:'#f0a03012',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025'}}>{connectedCount}/2 tools — <a href='/pricing' style={{color:'#f0a030',textDecoration:'underline'}}>upgrade for unlimited</a></span>}
-      {/* Always-visible Sync Log */}
+
+      {/* Sync Log — full width at top */}
       <div style={{background:'#060b10',border:'1px solid #1a2535',borderRadius:10,overflow:'hidden'}}>
         <div style={{padding:'8px 14px',borderBottom:'1px solid #1a2535',display:'flex',alignItems:'center',gap:8}}>
           <span style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff'}}>📋 Sync Log</span>
@@ -514,6 +511,12 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
           )}
         </div>
       </div>
+
+      {/* Header row */}
+      <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+        <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Integrations</h2>
+        <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{Object.keys(connected).length} connected</span>
+        {isCommunity && <span style={{fontSize:'0.62rem',color:'#f0a030',background:'#f0a03012',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025'}}>{connectedCount}/2 tools — <a href='/pricing' style={{color:'#f0a030',textDecoration:'underline'}}>upgrade for unlimited</a></span>}
         <div style={{display:'flex',gap:6,marginLeft:'auto',flexWrap:'wrap',alignItems:'center'}}>
           <div style={{position:'relative'}}>
             <span style={{position:'absolute',left:8,top:'50%',transform:'translateY(-50%)',fontSize:'0.7rem',color:'var(--wt-muted)',pointerEvents:'none'}}>🔍</span>

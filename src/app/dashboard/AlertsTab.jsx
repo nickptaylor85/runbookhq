@@ -321,42 +321,66 @@ export default function AlertsTab({
         )}
       </div>
 
-      {/* Bulk action bar */}
-      {selectedAlerts.size > 0 && (
-        <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',background:'#4f8fff10',border:'1px solid #4f8fff25',borderRadius:8,flexWrap:'wrap'}}>
-          <span style={{fontSize:'0.76rem',fontWeight:700,color:'#4f8fff'}}>{selectedAlerts.size} selected</span>
-          <button onClick={()=>{setAlertOverrides(prev=>{const n={...prev};[...selectedAlerts].forEach(id=>{n[id]={...(n[id]||{}),verdict:'FP',confidence:99}});return n;});setSelectedAlerts(new Set());}}
-            style={{padding:'4px 12px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
-            Mark FP
-          </button>
-          <button onClick={()=>{setAlertOverrides(prev=>{const n={...prev};[...selectedAlerts].forEach(id=>{n[id]={...(n[id]||{}),verdict:'TP',acknowledged:true}});return n;});setSelectedAlerts(new Set());}}
-            style={{padding:'4px 12px',borderRadius:6,border:'1px solid #f0405e30',background:'#f0405e10',color:'#f0405e',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
-            Mark TP
-          </button>
-          <button onClick={()=>{setAlertOverrides(prev=>{const n={...prev};[...selectedAlerts].forEach(id=>{n[id]={...(n[id]||{}),acknowledged:true}});return n;});setSelectedAlerts(new Set());}}
-            style={{padding:'4px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
-            Acknowledge
-          </button>
-          <button onClick={()=>{
+      {/* Bulk action bar — always visible, lights up when alerts selected */}
+      <div className='wt-bulk-bar' style={{display:'flex',alignItems:'center',gap:6,padding:'7px 12px',background:selectedAlerts.size>0?'#4f8fff12':'var(--wt-card)',border:`1px solid ${selectedAlerts.size>0?'#4f8fff30':'var(--wt-border)'}`,borderRadius:8,transition:'all .15s'}}>
+        {/* Select-all checkbox */}
+        <label style={{display:'flex',alignItems:'center',gap:6,cursor:'pointer',flexShrink:0}}>
+          <input type='checkbox'
+            checked={alertsFiltered.length>0 && alertsFiltered.every(a=>selectedAlerts.has(a.id))}
+            ref={el=>{if(el) el.indeterminate = selectedAlerts.size>0 && !alertsFiltered.every(a=>selectedAlerts.has(a.id));}}
+            onChange={e=>{
+              if(e.target.checked) setSelectedAlerts(new Set(alertsFiltered.map(a=>a.id)));
+              else setSelectedAlerts(new Set());
+            }}
+            style={{width:14,height:14,cursor:'pointer',accentColor:'#4f8fff'}}
+          />
+          <span style={{fontSize:'0.68rem',color:selectedAlerts.size>0?'#4f8fff':'var(--wt-muted)',fontWeight:selectedAlerts.size>0?700:400,minWidth:60}}>
+            {selectedAlerts.size>0?`${selectedAlerts.size} selected`:`Select all`}
+          </span>
+        </label>
+        <div style={{width:1,height:16,background:'var(--wt-border)',flexShrink:0}} />
+        <button onClick={()=>{setAlertOverrides(prev=>{const n={...prev};[...selectedAlerts].forEach(id=>{n[id]={...(n[id]||{}),verdict:'FP',confidence:99}});return n;});setSelectedAlerts(new Set());}}
+          disabled={selectedAlerts.size===0}
+          style={{padding:'4px 12px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a10',color:selectedAlerts.size>0?'#22d49a':'var(--wt-dim)',fontSize:'0.7rem',fontWeight:700,cursor:selectedAlerts.size>0?'pointer':'not-allowed',fontFamily:'Inter,sans-serif',opacity:selectedAlerts.size>0?1:0.4}}>
+          ✓ Mark FP
+        </button>
+        <button onClick={()=>{setAlertOverrides(prev=>{const n={...prev};[...selectedAlerts].forEach(id=>{n[id]={...(n[id]||{}),verdict:'TP',acknowledged:true}});return n;});setSelectedAlerts(new Set());}}
+          disabled={selectedAlerts.size===0}
+          style={{padding:'4px 12px',borderRadius:6,border:'1px solid #f0405e30',background:'#f0405e10',color:selectedAlerts.size>0?'#f0405e':'var(--wt-dim)',fontSize:'0.7rem',fontWeight:700,cursor:selectedAlerts.size>0?'pointer':'not-allowed',fontFamily:'Inter,sans-serif',opacity:selectedAlerts.size>0?1:0.4}}>
+          ⚠ Mark TP
+        </button>
+        <button onClick={()=>{setAlertOverrides(prev=>{const n={...prev};[...selectedAlerts].forEach(id=>{n[id]={...(n[id]||{}),acknowledged:true}});return n;});setSelectedAlerts(new Set());}}
+          disabled={selectedAlerts.size===0}
+          style={{padding:'4px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff10',color:selectedAlerts.size>0?'#4f8fff':'var(--wt-dim)',fontSize:'0.7rem',fontWeight:700,cursor:selectedAlerts.size>0?'pointer':'not-allowed',fontFamily:'Inter,sans-serif',opacity:selectedAlerts.size>0?1:0.4}}>
+          Acknowledge
+        </button>
+        <button onClick={()=>{setAlertOverrides(prev=>{const n={...prev};[...selectedAlerts].forEach(id=>{n[id]={...(n[id]||{}),closed:true,closedAt:Date.now()}});return n;});setSelectedAlerts(new Set());}}
+          disabled={selectedAlerts.size===0}
+          style={{padding:'4px 12px',borderRadius:6,border:'1px solid #6b7a9430',background:'#6b7a9410',color:selectedAlerts.size>0?'#6b7a94':'var(--wt-dim)',fontSize:'0.7rem',fontWeight:700,cursor:selectedAlerts.size>0?'pointer':'not-allowed',fontFamily:'Inter,sans-serif',opacity:selectedAlerts.size>0?1:0.4}}>
+          Close
+        </button>
+        {setAlertSnoozes && <button onClick={()=>{const until=Date.now()+(2*60*60*1000);setAlertSnoozes(prev=>{const n={...prev};[...selectedAlerts].forEach(id=>{n[id]=until;});return n;});setSelectedAlerts(new Set());}}
+          disabled={selectedAlerts.size===0}
+          style={{padding:'4px 12px',borderRadius:6,border:'1px solid #f0a03030',background:'#f0a03010',color:selectedAlerts.size>0?'#f0a030':'var(--wt-dim)',fontSize:'0.7rem',fontWeight:700,cursor:selectedAlerts.size>0?'pointer':'not-allowed',fontFamily:'Inter,sans-serif',opacity:selectedAlerts.size>0?1:0.4}}>
+          Snooze 2h
+        </button>}
+        <button onClick={()=>{
             const sel=alerts.filter(a=>selectedAlerts.has(a.id));
             const sevOrder={Critical:0,High:1,Medium:2,Low:3};
             const top=sel.sort((a,b)=>(sevOrder[a.severity]||4)-(sevOrder[b.severity]||4))[0];
             const incId='INC-'+String(Date.now()).slice(-4);
             const inc={id:incId,title:'Incident — '+(top&&top.title||'Multiple alerts'),severity:top&&top.severity||'High',status:'Active',created:new Date().toLocaleString(),updated:new Date().toLocaleString(),alertCount:sel.length,devices:[...new Set(sel.map(a=>a.device).filter(Boolean))],mitreTactics:[...new Set(sel.map(a=>a.mitre).filter(Boolean))],aiSummary:'Incident from '+sel.length+' alerts: '+sel.map(a=>a.title).join('; ').slice(0,120),alerts:sel.map(a=>a.id),timeline:buildAiTimeline(sel,incId)};
             setCreatedIncidents(prev=>[inc,...prev]);setSelectedAlerts(new Set());setActiveTab('incidents');
-          }} style={{padding:'4px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
-            Create Incident
-          </button>
-          {setAlertSnoozes && <button onClick={()=>{const until=Date.now()+(2*60*60*1000);setAlertSnoozes(prev=>{const n={...prev};[...selectedAlerts].forEach(id=>{n[id]=until;});return n;});setSelectedAlerts(new Set());}}
-            style={{padding:'4px 12px',borderRadius:6,border:'1px solid #f0a03030',background:'#f0a03010',color:'#f0a030',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
-            Snooze 2h
-          </button>}
-          <button onClick={()=>setSelectedAlerts(new Set())}
-            style={{marginLeft:'auto',padding:'4px 10px',borderRadius:6,border:'1px solid var(--wt-border)',background:'none',color:'var(--wt-muted)',fontSize:'0.68rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
-            Deselect all
-          </button>
-        </div>
-      )}
+          }}
+          disabled={selectedAlerts.size===0}
+          style={{padding:'4px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:selectedAlerts.size>0?'#8b6fff':'var(--wt-dim)',fontSize:'0.7rem',fontWeight:700,cursor:selectedAlerts.size>0?'pointer':'not-allowed',fontFamily:'Inter,sans-serif',opacity:selectedAlerts.size>0?1:0.4}}>
+          + Incident
+        </button>
+        {selectedAlerts.size>0 && <button onClick={()=>setSelectedAlerts(new Set())}
+          style={{marginLeft:'auto',padding:'4px 8px',borderRadius:6,border:'1px solid var(--wt-border)',background:'none',color:'var(--wt-muted)',fontSize:'0.66rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+          ×
+        </button>}
+      </div>
 
       {/* Empty state */}
       {alertsFiltered.length === 0 && (
