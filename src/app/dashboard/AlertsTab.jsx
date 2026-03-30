@@ -263,7 +263,7 @@ export default function AlertsTab({
   const unackedCrits = alerts.filter(a => a.severity==='Critical' && !(alertOverrides[a.id]?.acknowledged) && !(a.acknowledged)).length;
 
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:8}}>
+    <div style={{display:'flex',flexDirection:'column',gap:8,overflowX:'hidden',maxWidth:'100%'}}>
 
       {/* Header strip */}
       <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>

@@ -163,7 +163,7 @@ function AuditLogView({ tenantId }) {
         ))}
       </div>
       <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:10,overflow:'hidden'}}>
-        <div style={{display:'grid',gridTemplateColumns:'80px 120px 120px 1fr 80px',padding:'7px 14px',borderBottom:'1px solid var(--wt-border)',fontSize:'0.66rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px'}}>
+        <div style={{display:'grid',gridTemplateColumns:'55px minmax(80px,120px) minmax(80px,120px) 1fr 60px',padding:'7px 14px',borderBottom:'1px solid var(--wt-border)',fontSize:'0.66rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px'}}>
           <span>Time</span><span>Type</span><span>User</span><span>Detail</span><span>Verdict</span>
         </div>
         <div style={{maxHeight:450,overflowY:'auto'}}>
@@ -172,7 +172,7 @@ function AuditLogView({ tenantId }) {
             const user = e.analyst||e.userId||'—';
             const detail = e.alertTitle||e.incidentId||e.action||e.type||'';
             return (
-              <div key={i} style={{display:'grid',gridTemplateColumns:'80px 120px 120px 1fr 80px',padding:'7px 14px',borderBottom:'1px solid var(--wt-border)',background:i%2===0?'transparent':'var(--wt-card2)',alignItems:'center',gap:6}}>
+              <div key={i} style={{display:'grid',gridTemplateColumns:'55px minmax(80px,120px) minmax(80px,120px) 1fr 60px',padding:'7px 14px',borderBottom:'1px solid var(--wt-border)',background:i%2===0?'transparent':'var(--wt-card2)',alignItems:'center',gap:6}}>
                 <span style={{fontSize:'0.66rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{e.ts?new Date(e.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):''}</span>
                 <span style={{fontSize:'0.68rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:col+'18',color:col,border:`1px solid ${col}30`,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{typeLabels[e.type]||e.type||'action'}</span>
                 <span style={{fontSize:'0.72rem',fontWeight:600,color:'var(--wt-text)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}} title={user}>{user.length>18?user.slice(0,16)+'…':user}</span>
@@ -881,7 +881,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
           )}
           {aiLog && aiLog.entries && aiLog.entries.length > 0 && (
             <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:10,overflow:'hidden'}}>
-              <div style={{display:'grid',gridTemplateColumns:'75px 90px 110px 1fr 55px 55px',padding:'6px 12px',borderBottom:'1px solid var(--wt-border)',fontSize:'0.66rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px'}}>
+              <div style={{display:'grid',gridTemplateColumns:'60px minmax(70px,90px) minmax(80px,110px) 1fr 48px 48px',padding:'6px 12px',borderBottom:'1px solid var(--wt-border)',fontSize:'0.66rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px'}}>
                 <span>Time</span><span>Type</span><span>User / Tenant</span><span>Prompt / Context</span><span>ms</span><span>Status</span>
               </div>
               <div style={{maxHeight:500,overflowY:'auto'}}>
@@ -890,7 +890,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                   const c = tc[e.type]||'#6b7a94';
                   const ctx = e.alertTitle?'Alert: '+e.alertTitle:e.vulnCve?'Vuln: '+e.vulnCve:e.industry&&e.industry!=='ioc_hunt'?'Intel: '+e.industry:e.promptPreview||'—';
                   return (
-                    <div key={i} style={{display:'grid',gridTemplateColumns:'75px 90px 110px 1fr 55px 55px',padding:'6px 12px',borderBottom:'1px solid #1d2535',background:i%2===0?'transparent':'var(--wt-card2)',fontSize:'0.68rem',alignItems:'center',gap:4}}>
+                    <div key={i} style={{display:'grid',gridTemplateColumns:'60px minmax(70px,90px) minmax(80px,110px) 1fr 48px 48px',padding:'6px 12px',borderBottom:'1px solid #1d2535',background:i%2===0?'transparent':'var(--wt-card2)',fontSize:'0.68rem',alignItems:'center',gap:4}}>
                       <span style={{color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',fontSize:'0.64rem'}}>{new Date(e.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>
                       <span style={{padding:'1px 5px',borderRadius:3,background:c+'18',color:c,border:'1px solid '+c+'30',fontWeight:700,fontSize:'0.64rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{e.type}</span>
                       <div style={{overflow:'hidden'}}><div style={{fontWeight:600,color:'var(--wt-text)',fontSize:'0.68rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{e.userId||'anon'}</div><div style={{fontSize:'0.62rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{e.tenantId||'global'}</div></div>
