@@ -966,7 +966,20 @@ export default function DashboardPage() {
     if (!silent) setIntelLoading(true);
     try {
       const resp = await fetch('/api/intel/industry', { method:'POST', headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current}, body:JSON.stringify({industry:ind}) });
-      if (resp.ok) { const d = await resp.json(); if (d.items) { setCustomIntel(d.items); setIntelFetchedAt(new Date().toISOString()); } }
+      if (resp.ok) {
+        const d = await resp.json();
+        if (d.items) {
+          // Preserve any items that came from connected threat intel tools (VirusTotal, Recorded Future, etc.)
+          // Only replace the AI-generated industry items, not the live tool data
+          setCustomIntel(prev => {
+            const connectedItems = (prev||[]).filter(i => i.fromConnectedTool);
+            const ids = new Set(connectedItems.map(x => x.id));
+            const newItems = d.items.filter((x) => !ids.has(x.id));
+            return [...connectedItems, ...newItems];
+          });
+          setIntelFetchedAt(new Date().toISOString());
+        }
+      }
     } catch(e) {}
     if (!silent) setIntelLoading(false);
     // Also fetch Tenable news for live mode
@@ -1006,7 +1019,7 @@ export default function DashboardPage() {
     setInvestLoading(prev => new Set([...prev, inc.id]));
     const incAlerts = alerts.filter(a => inc.alerts?.includes(a.id));
     fetch('/api/investigate', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST', headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},
       body:JSON.stringify({incidentId:inc.id,title:inc.title,severity:inc.severity,alerts:incAlerts.map(a=>({title:a.title,source:a.source,device:a.device,mitre:a.mitre,verdict:a.verdict,time:a.time})),devices:inc.devices,mitreTactics:inc.mitreTactics,aiSummary:inc.aiSummary}),
     }).then(r=>r.json()).then(d=>{
       if(d.ok&&d.result)setInvestResults(prev=>({...prev,[inc.id]:d.result}));
@@ -2040,6 +2053,86 @@ export default function DashboardPage() {
                 })}
                 </div>
               </div>
+
+              {/* Live data from connected threat intel tools — only show when tools are connected */}
+              {(()=>{
+                const connectedIntelItems = !demoMode && customIntel ? customIntel.filter(i=>i.fromConnectedTool) : [];
+                if (!connectedIntelItems.length) return null;
+                // Group by source tool
+                const bySource = connectedIntelItems.reduce((acc, item) => {
+                  const src = item.source || 'Connected Tool';
+                  if (!acc[src]) acc[src] = [];
+                  acc[src].push(item);
+                  return acc;
+                }, {});
+                return (
+                  <div>
+                    <div style={{fontSize:'0.62rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
+                      <span style={{width:6,height:6,borderRadius:'50%',background:'#22d49a',boxShadow:'0 0 5px #22d49a',display:'block'}} />
+                      Live — Connected Threat Intel Tools
+                      <span style={{fontSize:'0.54rem',fontWeight:600,color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{connectedIntelItems.length} items</span>
+                    </div>
+                    {Object.entries(bySource).map(([source, items])=>(
+                      <div key={source} style={{marginBottom:12}}>
+                        <div style={{fontSize:'0.6rem',fontWeight:700,color:'#22d49a',marginBottom:6,display:'flex',alignItems:'center',gap:6}}>
+                          <span>{source}</span>
+                          <span style={{fontSize:'0.52rem',color:'var(--wt-dim)',fontWeight:400}}>{items.length} indicator{items.length!==1?'s':''}</span>
+                        </div>
+                        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}} className='wt-three-col'>
+                        {items.slice(0,6).map((item,i)=>{
+                          const isExpanded = expandedIntel.has(item.id);
+                          const c = {Critical:'#f0405e',High:'#f97316',Medium:'#f0a030',Low:'#4f8fff'}[item.severity]||'#6b7a94';
+                          return (
+                            <div key={item.id||i} style={{background:'var(--wt-card)',border:`1px solid ${isExpanded?'#22d49a30':'#22d49a12'}`,borderRadius:10,overflow:'hidden',gridColumn:isExpanded?'1 / -1':'auto'}}>
+                              <div style={{padding:'10px 14px',cursor:'pointer'}} onClick={()=>toggleIntel(item.id)}>
+                                <div style={{display:'flex',alignItems:'flex-start',gap:7,marginBottom:4}}>
+                                  <SevBadge sev={item.severity} />
+                                  <span style={{fontSize:'0.72rem',fontWeight:700,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.title}</span>
+                                  <span style={{fontSize:'0.58rem',color:'var(--wt-dim)',flexShrink:0}}>{isExpanded?'▲':'▼'}</span>
+                                </div>
+                                <div style={{fontSize:'0.68rem',color:'var(--wt-secondary)',lineHeight:1.55,marginBottom:5,display:'-webkit-box',WebkitLineClamp:isExpanded?999:2,WebkitBoxOrient:'vertical',overflow:'hidden'}}>{item.summary}</div>
+                                <div style={{display:'flex',gap:5,alignItems:'center',flexWrap:'wrap'}}>
+                                  <span style={{fontSize:'0.54rem',color:'#22d49a'}}>{item.time}</span>
+                                  {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.52rem',fontWeight:700,color:'#f0a030',background:'#f0a03012',padding:'1px 5px',borderRadius:3}}>{item.iocs.length} IOCs</span>}
+                                  {item.mitre && <span style={{fontSize:'0.5rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{item.mitre}</span>}
+                                  {item.url && <a href={item.url} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.5rem',color:'#4f8fff',textDecoration:'none',padding:'1px 5px',border:'1px solid #4f8fff20',borderRadius:3}}>↗</a>}
+                                </div>
+                              </div>
+                              {isExpanded && item.iocs && item.iocs.length>0 && (
+                                <div style={{padding:'8px 14px 12px',borderTop:'1px solid #22d49a15',background:'var(--wt-card2)'}}>
+                                  <div style={{fontSize:'0.58rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>Indicators</div>
+                                  <div style={{display:'flex',flexDirection:'column',gap:3}}>
+                                    {item.iocs.map(ioc=>(
+                                      <div key={ioc} style={{display:'flex',alignItems:'center',gap:6,padding:'3px 6px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:5}}>
+                                        <span style={{width:5,height:5,borderRadius:'50%',background:'#f0a030',flexShrink:0}} />
+                                        <code style={{fontSize:'0.66rem',fontFamily:'JetBrains Mono,monospace',color:'#f0c070',flex:1,wordBreak:'break-all'}}>{ioc}</code>
+                                        <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(ioc);}} style={{fontSize:'0.5rem',padding:'1px 6px',borderRadius:3,border:'1px solid #f0a03025',background:'transparent',color:'#f0a030',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Copy</button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                  {/* Per-tool hunt queries */}
+                                  <div style={{marginTop:8,paddingTop:8,borderTop:'1px solid var(--wt-border)'}}>
+                                    <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
+                                      {[{tool:'splunk',label:'Splunk',color:'#f97316'},{tool:'sentinel',label:'Sentinel',color:'#4f8fff'},{tool:'defender',label:'Defender',color:'#22d49a'},{tool:'elastic',label:'Elastic',color:'#00bfb3'}].map(({tool,label,color})=>{
+                                        const key=item.id+':'+tool;
+                                        const isLoading=iocQueryLoading===key;
+                                        const hasResult=!!iocQueries[key];
+                                        return (<button key={tool} onClick={e=>{e.stopPropagation();if(isLoading)return;setIocQueryLoading(key);const toolLabel={'splunk':'Splunk SPL','sentinel':'Microsoft Sentinel KQL','defender':'Microsoft Defender Advanced Hunting','elastic':'Elastic EQL'}[tool];fetch('/api/copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:'ioc_hunt',prompt:'Generate a '+toolLabel+' query to hunt for these IOCs: '+item.iocs.join(', ')+'. Provide ONLY the raw query, no preamble.'})}).then(r=>r.json()).then(d=>{setIocQueries(prev=>({...prev,[key]:d.response||''}));setIocQueryLoading(null);}).catch(()=>setIocQueryLoading(null));}} disabled={isLoading} style={{padding:'3px 8px',borderRadius:4,border:`1px solid ${color}40`,background:hasResult?`${color}20`:'transparent',color,fontSize:'0.58rem',fontWeight:700,cursor:isLoading?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:3,opacity:isLoading?0.7:1}}>{isLoading&&<span style={{display:'inline-block',width:6,height:6,borderRadius:'50%',border:`2px solid ${color}`,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />}{!isLoading&&hasResult&&'✓'}{label}</button>);
+                                      })}
+                                    </div>
+                                    {[{tool:'splunk',label:'Splunk SPL',color:'#f97316'},{tool:'sentinel',label:'Sentinel KQL',color:'#4f8fff'},{tool:'defender',label:'Defender AH',color:'#22d49a'},{tool:'elastic',label:'Elastic EQL',color:'#00bfb3'}].map(({tool,label,color})=>{const key=item.id+':'+tool;if(!iocQueries[key])return null;return(<div key={tool} style={{marginTop:6}}><div style={{fontSize:'0.52rem',fontWeight:700,color,textTransform:'uppercase',marginBottom:3}}>{label}</div><RemediationOutput text={iocQueries[key]} /></div>);})}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
 
               {/* Tenable — In The News — 3 columns */}
               <div>

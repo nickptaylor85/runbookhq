@@ -21,10 +21,11 @@ export async function POST(req: NextRequest) {
     const userId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
     const rl = await checkRateLimit(`ai:${userId}`, 30, 60);
     if (!rl.ok) return NextResponse.json({ ok: false, error: `Rate limit exceeded. Resets in ${rl.reset}s.` }, { status: 429 });
-  // Tier enforcement: requires Essentials (team) or above
+  // Tier enforcement: requires Essentials (team) or above. Admins always pass.
   const userTier = req.headers.get('x-user-tier') || 'community';
+  const isAdmin = req.headers.get('x-is-admin') === 'true';
   const tierLevels: Record<string, number> = { community: 0, team: 1, business: 2, mssp: 3 };
-  if ((tierLevels[userTier] || 0) < 1) {
+  if (!isAdmin && (tierLevels[userTier] || 0) < 1) {
     return NextResponse.json({ ok: false, error: 'This feature requires Essentials plan or above. Upgrade at /pricing.' }, { status: 403 });
   }
     const tenantId = req.headers.get('x-tenant-id') ||
@@ -40,16 +41,19 @@ export async function POST(req: NextRequest) {
       aiSummary?: string;
     };
 
-    if (!body.incidentId || !body.alerts?.length) {
-      return NextResponse.json({ ok: false, error: 'incidentId and alerts required' }, { status: 400 });
+    if (!body.incidentId) {
+      return NextResponse.json({ ok: false, error: 'incidentId required' }, { status: 400 });
     }
 
     const apiKey = await getAnthropicKey(tenantId);
     if (!apiKey) return NextResponse.json({ ok: false, error: 'No Anthropic API key configured.' }, { status: 503 });
 
-    const alertsText = body.alerts.map((a, i) =>
-      `  ${i+1}. [${a.source}] ${a.title}${a.device ? ` on ${a.device}` : ''}${a.mitre ? ` (${a.mitre})` : ''}${a.verdict ? ` — ${a.verdict}` : ''}`
-    ).join('\n');
+    const hasAlerts = Array.isArray(body.alerts) && body.alerts.length > 0;
+    const alertsText = hasAlerts
+      ? body.alerts.map((a, i) =>
+          `  ${i+1}. [${a.source}] ${a.title}${a.device ? ` on ${a.device}` : ''}${a.mitre ? ` (${a.mitre})` : ''}${a.verdict ? ` — ${a.verdict}` : ''}`
+        ).join('\n')
+      : `  1. [SOC Platform] ${body.title} — ${body.severity} severity incident`;
 
     const prompt = `You are a Tier 3 incident responder performing deep investigation. Analyse this security incident and respond ONLY with valid JSON.
 
