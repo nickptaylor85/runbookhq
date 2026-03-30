@@ -46,7 +46,14 @@ export async function POST(req: NextRequest) {
     for (const [key, value] of Object.entries(body)) {
       if (!ALLOWED_SETTINGS.has(key)) continue;
       if (typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean') continue;
-      updates[key] = String(value).slice(0, 500);
+      const strVal = String(value).slice(0, 500);
+      // Validate Slack webhook URL to prevent SSRF
+      if (key === 'slack_webhook' && strVal) {
+        if (!strVal.startsWith('https://hooks.slack.com/') && !strVal.startsWith('https://hooks.slack.com/')) {
+          return NextResponse.json({ error: 'slack_webhook must be a hooks.slack.com URL' }, { status: 400 });
+        }
+      }
+      updates[key] = strVal;
     }
 
     if (Object.keys(updates).length === 0) {

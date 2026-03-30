@@ -5,15 +5,24 @@ const BLOCKED_RANGES = [
   /^https?:\/\/localhost/i,
   /^https?:\/\/127\./,
   /^https?:\/\/0\./,
-  /^https?:\/\/169\.254\./,       // AWS metadata
-  /^https?:\/\/10\./,             // RFC1918
+  /^https?:\/\/169\.254\./,          // AWS/GCP metadata
+  /^https?:\/\/100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./,  // CGNAT 100.64/10
+  /^https?:\/\/10\./,                // RFC1918
   /^https?:\/\/172\.(1[6-9]|2[0-9]|3[01])\./,  // RFC1918
-  /^https?:\/\/192\.168\./,       // RFC1918
-  /^https?:\/\/[^/]*\.internal/i, // internal domains
+  /^https?:\/\/192\.168\./,          // RFC1918
+  /^https?:\/\/192\.0\.2\./,        // TEST-NET-1
+  /^https?:\/\/198\.51\.100\./,     // TEST-NET-2
+  /^https?:\/\/203\.0\.113\./,      // TEST-NET-3
+  /^https?:\/\/\[?::1\]?/,           // IPv6 loopback
+  /^https?:\/\/\[?fe80:/i,            // IPv6 link-local
+  /^https?:\/\/\[?fc[0-9a-f]{2}:/i,  // IPv6 ULA fc00::/7
+  /^https?:\/\/\[?fd[0-9a-f]{2}:/i,  // IPv6 ULA fd00::/8
+  /^https?:\/\/[^/]*\.internal/i,    // internal domains
   /^https?:\/\/[^/]*\.local/i,
   /^https?:\/\/metadata\./i,
   /^file:\/\//i,
   /^ftp:\/\//i,
+  /^gopher:\/\//i,
 ];
 
 // Known-good domains for each tool type (allowlist)

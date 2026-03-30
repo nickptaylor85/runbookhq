@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 // Session verification using Web Crypto API (Edge Runtime compatible)
 async function verifySessionToken(token: string): Promise<{ userId: string; tenantId: string; isAdmin: boolean; tier?: string } | null> {
   try {
-    const secret = process.env.WATCHTOWER_SESSION_SECRET || 'watchtower-dev-session-secret';
+    const secret = process.env.WATCHTOWER_SESSION_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('WATCHTOWER_SESSION_SECRET env var not set in production'); })() : 'watchtower-dev-session-secret');
     const [encoded, sig] = token.split('.');
     if (!encoded || !sig) return null;
 

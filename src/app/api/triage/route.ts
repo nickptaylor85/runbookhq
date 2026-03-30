@@ -230,7 +230,6 @@ export async function POST(req: NextRequest) {
     const data = await resp.json();
 
     const text = (data.content || []).filter((b: any) => b.type === 'text').map((b: any) => b.text).join('');
-    console.log(`[triage] raw response first 500 chars: ${text.slice(0, 500)}`);
     let parsed: any;
     try {
       const clean = text.replace(/^```json\s*/m, '').replace(/^```\s*/m, '').replace(/```\s*$/m, '').trim();

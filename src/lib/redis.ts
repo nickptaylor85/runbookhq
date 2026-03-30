@@ -69,18 +69,24 @@ export const KEYS = {
 // Resolve the Anthropic API key for a given tenant.
 // Priority: tenant BYOK key > env var > global fallback key
 export async function getAnthropicKey(tenantId?: string): Promise<string | null> {
-  // 1. Tenant-specific BYOK key from Redis
+  const { decrypt } = await import('@/lib/encrypt');
+  // 1. Tenant-specific BYOK key from Redis (stored encrypted)
   if (tenantId) {
     try {
       const tenantKey = await redisGet(KEYS.TENANT_ANTHROPIC_KEY(tenantId));
-      if (tenantKey) return tenantKey;
+      if (tenantKey) {
+        // Decrypt if encrypted (format: iv:tag:ciphertext), return raw if legacy plaintext
+        try { return decrypt(tenantKey); } catch { return tenantKey; }
+      }
     } catch(e) { /* fall through */ }
   }
-  // 2. Environment variable (Vercel dashboard)
+  // 2. Environment variable (Vercel dashboard — not encrypted, direct)
   if (process.env.ANTHROPIC_API_KEY) return process.env.ANTHROPIC_API_KEY;
   // 3. Global fallback key stored in Redis
   try {
-    return await redisGet(KEYS.ANTHROPIC_KEY);
+    const globalKey = await redisGet(KEYS.ANTHROPIC_KEY);
+    if (globalKey) { try { return decrypt(globalKey); } catch { return globalKey; } }
+    return null;
   } catch(e) {
     return null;
   }

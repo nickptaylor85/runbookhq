@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { redisSet, redisDel, setTenantAnthropicKey, KEYS } from '@/lib/redis';
+import { redisDel, setTenantAnthropicKey, KEYS } from '@/lib/redis';
+import { encrypt } from '@/lib/encrypt';
 
 function getTenantId(req: NextRequest): string {
   return req.headers.get('x-tenant-id') || 'global';
@@ -16,7 +17,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, message: 'Invalid key — must start with sk-ant-' }, { status: 400 });
     }
     const tenantId = getTenantId(req);
-    await setTenantAnthropicKey(tenantId, key.trim());
+    // Encrypt before storing in Redis
+    await setTenantAnthropicKey(tenantId, encrypt(key.trim()));
     return NextResponse.json({ ok: true, message: 'API key saved successfully.' });
   } catch (e: any) {
     return NextResponse.json({ ok: false, message: e.message }, { status: 500 });

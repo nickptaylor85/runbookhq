@@ -105,6 +105,7 @@ export async function POST(req: NextRequest) {
     const failKey = `login_fails:${email.toLowerCase().slice(0,100)}`;
     const fails = await import('@/lib/ratelimit').then(m => m.checkRateLimit(failKey, 10, 900));
     // After 10 fails, rate limiter will start returning ok:false, blocking further attempts
+    console.warn(`[auth] Failed login attempt for email=${email.toLowerCase().slice(0,50)} ip=${req.headers.get('x-forwarded-for') || 'unknown'}`);
     return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
   } catch (e: any) {
     return NextResponse.json({ error: 'Login failed' }, { status: 500 });

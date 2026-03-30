@@ -4,7 +4,7 @@ import { redisGet } from '@/lib/redis';
 
 function verifyToken(token: string): { userId: string; tenantId: string; isAdmin: boolean; role?: string } | null {
   try {
-    const secret = process.env.WATCHTOWER_SESSION_SECRET || 'watchtower-dev-session-secret';
+    const secret = process.env.WATCHTOWER_SESSION_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('WATCHTOWER_SESSION_SECRET env var not set'); })() : 'watchtower-dev-session-secret');
     const [encoded, sig] = token.split('.');
     if (!encoded || !sig) return null;
     const expectedSig = createHmac('sha256', secret).update(encoded).digest('base64url');
