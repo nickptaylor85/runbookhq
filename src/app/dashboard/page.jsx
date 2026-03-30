@@ -1144,8 +1144,8 @@ export default function DashboardPage() {
                       {t==='admin'&&<span style={{marginLeft:'auto',width:5,height:5,borderRadius:'50%',background:'#f0a030',boxShadow:'0 0 4px #f0a030',display:'block'}} />}
                     </button>
                     ))
-                })()}
-              </div>
+                  })}
+                </div>
               </div>
             );
           })()}
@@ -2032,6 +2032,13 @@ export default function DashboardPage() {
                               <code style={{fontSize:'0.68rem',fontFamily:'JetBrains Mono,monospace',color:'#f0c070',flex:1,wordBreak:'break-all'}}>{ioc}</code>
                               <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(ioc);}} style={{fontSize:'0.54rem',padding:'2px 7px',borderRadius:3,border:'1px solid #f0a03025',background:'transparent',color:'#f0a030',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Copy</button>
                             </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  );
+                })}
                 </div>
               </div>
 
