@@ -32,7 +32,10 @@ const ALL_TOOLS = [
 ];
 
 
-const DASHBOARD_CSS = '*{margin:0;padding:0;box-sizing:border-box}\n        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}\n        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}\n\n        /* ── Dark theme (default) ── */\n        .wt-root {\n          --wt-bg: #090d18;\n          --wt-sidebar: #0c1122;\n          --wt-card: #0f1526;\n          --wt-card2: #131929;\n          --wt-border: #1d2535;\n          --wt-border2: #263044;\n          --wt-text: #e8ecf4;\n          --wt-muted: #7a8aa4;\n          --wt-secondary: #96a6bc;\n          --wt-dim: #4a5568;\n        }\n        /* ── Light theme ── */\n        .wt-root.light {\n          --wt-bg: #f5f6fa;\n          --wt-sidebar: #ffffff;\n          --wt-card: #ffffff;\n          --wt-card2: #f0f2f8;\n          --wt-border: #e2e5ef;\n          --wt-border2: #c8cedd;\n          --wt-text: #0f1117;\n          --wt-muted: #5a6580;\n          --wt-secondary: #4a5568;\n          --wt-dim: #8090a8;\n        }\n\n        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap;color:var(--wt-muted)}\n        .tab-btn.active{background:#4f8fff18;color:#4f8fff}\n        .tab-btn:not(.active) {color:var(--wt-secondary);background:var(--wt-card2)}\n        .row-hover{transition:background .12s}\n        .row-hover:hover{background:var(--wt-card2)!important}\n        .vuln-row:hover{background:var(--wt-card2)!important;cursor:pointer}\n        .alert-card{border-radius:10px;border:1px solid var(--wt-border);background:var(--wt-card);transition:border-color .15s}\n        .alert-card:hover{border-color:#4f8fff28}\n        .skeleton{background:linear-gradient(90deg,var(--wt-card) 25%,var(--wt-card2) 50%,var(--wt-card) 75%);background-size:200% 100%;animation:skeleton-shimmer 1.4s ease infinite}\n        @keyframes skeleton-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}\n        .wt-tab-content{animation:tab-fade 0.15s ease}\n        @keyframes tab-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}\n\n        /* ── Mobile layout ── */\n        .wt-sidebar-desktop{display:none}\n        .wt-bottom-nav{display:none}\n        .wt-topbar-controls-full{display:flex}\n        .wt-topbar-controls-mobile{display:none}\n\n'
+const DASHBOARD_CSS = '*{margin:0;padding:0;box-sizing:border-box}\n        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}\n        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}\n\n        /* ── Dark theme (default) ── */\n        .wt-root {\n          --wt-bg: #090d18;\n          --wt-sidebar: #0c1122;\n          --wt-card: #0f1526;\n          --wt-card2: #131929;\n          --wt-border: #1d2535;\n          --wt-border2: #263044;\n          --wt-text: #e8ecf4;\n          --wt-muted: #7a8aa4;\n          --wt-secondary: #96a6bc;\n          --wt-dim: #4a5568;\n        }\n        /* ── Light theme ── */\n        .wt-root.light {\n          --wt-bg: #f5f6fa;\n          --wt-sidebar: #ffffff;\n          --wt-card: #ffffff;\n          --wt-card2: #f0f2f8;\n          --wt-border: #e2e5ef;\n          --wt-border2: #c8cedd;\n          --wt-text: #0f1117;\n          --wt-muted: #5a6580;\n          --wt-secondary: #4a5568;\n          --wt-dim: #8090a8;\n        }\n\n        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap;color:var(--wt-muted)}\n        .tab-btn.active{background:#4f8fff18;color:#4f8fff}\n        .tab-btn:not(.active) {color:var(--wt-secondary);background:var(--wt-card2)}\n        .row-hover{transition:background .12s}\n        .row-hover:hover{background:var(--wt-card2)!important}\n        .vuln-row:hover{background:var(--wt-card2)!important;cursor:pointer}\n        .alert-card{border-radius:10px;border:1px solid var(--wt-border);background:var(--wt-card);transition:border-color .15s}\n        .alert-card:hover{border-color:#4f8fff28}\n        .skeleton{background:linear-gradient(90deg,var(--wt-card) 25%,var(--wt-card2) 50%,var(--wt-card) 75%);background-size:200% 100%;animation:skeleton-shimmer 1.4s ease infinite}\n        @keyframes skeleton-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}\n        .wt-tab-content{animation:tab-fade 0.15s ease}\n        @keyframes tab-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+        /* Focus-visible for keyboard accessibility */
+        :focus-visible{outline:2px solid #4f8fff !important;outline-offset:2px !important;border-radius:3px}
+        button:focus:not(:focus-visible),a:focus:not(:focus-visible){outline:none}\n\n        /* ── Mobile layout ── */\n        .wt-sidebar-desktop{display:none}\n        .wt-bottom-nav{display:none}\n        .wt-topbar-controls-full{display:flex}\n        .wt-topbar-controls-mobile{display:none}\n\n'
   + '                @media(max-width:640px){\n          /* Hide desktop sidebar, show bottom nav */\n          .wt-sidebar-desktop{display:none!important}\n          .wt-bottom-nav{\n            display:flex;position:fixed;bottom:0;left:0;right:0;z-index:100;\n            background:var(--wt-sidebar);border-top:1px solid var(--wt-border2);\n            padding:6px 0 env(safe-area-inset-bottom,6px);justify-content:space-around;align-items:center;\n          }\n          .wt-bottom-nav button,.wt-bottom-nav a{\n            display:flex;flex-direction:column;align-items:center;gap:2px;\n            background:none;border:none;cursor:pointer;color:var(--wt-muted);\n            font-size:0.42rem;font-weight:700;font-family:Inter,sans-serif;\n            padding:4px 6px;border-radius:6px;text-decoration:none;min-width:44px;\n          }\n          .wt-bottom-nav button.active,.wt-bottom-nav a.active{color:#4f8fff}\n          .wt-bottom-nav .bnav-icon{font-size:1.1rem;line-height:1}\n          /* Main content gets bottom padding for nav */\n          .wt-main{padding-bottom:72px!important}\n          /* Tab bar: hide text tabs on mobile (using bottom nav instead) */\n          .wt-tabbar{display:flex!important;overflow-x:auto;gap:0}\n          /* Top bar: collapse controls */\n          .wt-topbar{padding:6px 12px!important;gap:8px!important}\n          .wt-topbar-controls-full{display:none!important}\n          .wt-topbar-controls-mobile{display:flex!important;gap:6px;align-items:center;margin-left:auto}\n          /* Content padding */\n          .wt-content{padding:10px 10px!important}\n          /* Alert cards */\n          .alert-card{border-radius:8px}\n          /* Grid cols -> single col */\n          .wt-stat-grid{grid-template-columns:1fr 1fr!important}\n          .wt-two-col{grid-template-columns:1fr!important}\n          .wt-three-col{grid-template-columns:1fr!important}\n          .wt-four-col{grid-template-columns:1fr 1fr!important}\n          /* Filter row stack */\n          .wt-filter-row{flex-direction:column!important;gap:6px!important}\n          .wt-filter-row>*{width:100%!important}\n          /* Bulk action bar */\n          .wt-bulk-bar{flex-wrap:wrap!important;gap:6px!important}\n        }\n\n        @media(min-width:641px) and (max-width:900px){\n          .wt-content{padding:12px 14px!important}\n          .wt-stat-grid{grid-template-columns:1fr 1fr!important}\n          .wt-four-col{grid-template-columns:1fr 1fr!important}\n          .wt-three-col{grid-template-columns:1fr 1fr!important}\n        }';
 
 const CRED_FIELDS = {
@@ -229,7 +232,8 @@ const DEMO_INTEL_BY_INDUSTRY = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function SevBadge({sev}) {
-  return <span style={{fontSize:'0.84rem',fontWeight:800,padding:'1px 6px',borderRadius:3,color:'#fff',background:SEV_COLOR[sev]}}>{sev.toUpperCase()}</span>;
+  const icons = {Critical:'▲',High:'●',Medium:'◆',Low:'▼',Info:'○'};
+  return <span title={sev} style={{fontSize:'0.84rem',fontWeight:800,padding:'1px 6px',borderRadius:3,color:'#fff',background:SEV_COLOR[sev],display:'inline-flex',alignItems:'center',gap:3}}><span style={{fontSize:'0.6rem'}}>{icons[sev]||'●'}</span>{sev.toUpperCase()}</span>;
 }
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
@@ -467,6 +471,7 @@ export default function DashboardPage() {
   const [incidentStatuses, setIncidentStatuses] = useState({});
   const [deletedIncidents, setDeletedIncidents] = useState(new Set());
   function deleteIncident(id) {
+    if (!window.confirm('Delete this case? This cannot be undone.')) return;
     setDeletedIncidents(prev=>new Set([...prev,id]));
     setSelectedIncident(null);
     // Remove from Redis (live mode)
@@ -1306,7 +1311,7 @@ export default function DashboardPage() {
             <button onClick={toggleTheme} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem',flexShrink:0}}>{theme==='dark'?'☀️':'🌙'}</button>
             <a href='/settings' style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.82rem',color:'inherit',textDecoration:'none',flexShrink:0}}>⚙️</a>
             {canUse('business')&&<button onClick={()=>setActiveTab('compliance')} style={{padding:'3px 8px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}} title='CISO Board Report'>📊 CISO</button>}
-            <button onClick={async()=>{await fetch('/api/auth/logout',{method:'POST'});window.location.href='/login';}} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.8rem',color:'var(--wt-dim)',flexShrink:0}} title='Sign out'>↩</button>
+            <button onClick={async()=>{await fetch('/api/auth/logout',{method:'POST'});window.location.href='/login';}} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.8rem',color:'var(--wt-dim)',flexShrink:0}} title='Sign out' aria-label='Sign out'>↩</button>
           </div>
           {/* Mobile: logo + demo toggle only */}
           <div className="wt-topbar-controls-mobile" style={{marginLeft:'auto',alignItems:'center',gap:6}}>
@@ -1350,7 +1355,7 @@ export default function DashboardPage() {
             </div>
           )}
           {!demoMode && automation >= 1 && (
-            <div style={{display:'flex',alignItems:'center',gap:10,padding:'7px 18px',background:automation===2?'#22d49a0c':'#f0a0300c',borderBottom:`1px solid ${automation===2?'#22d49a20':'#f0a03020'}`,flexShrink:0}}>
+            <div role='status' aria-live='polite' style={{display:'flex',alignItems:'center',gap:10,padding:'7px 18px',background:automation===2?'#22d49a0c':'#f0a0300c',borderBottom:`1px solid ${automation===2?'#22d49a20':'#f0a03020'}`,flexShrink:0}}>
               <span style={{fontSize:'0.8rem'}}>{automation===2?'🤖':'✦'}</span>
               <span style={{fontSize:'0.8rem',fontWeight:700,color:automation===2?'#22d49a':'#f0a030'}}>{autLabel} active</span>
               <span style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>—</span>
@@ -1461,7 +1466,7 @@ export default function DashboardPage() {
               {/* Shift handover panel */}
               {shiftHandover&&(
                 <div style={{background:'#06100e',border:'1px solid #22d49a25',borderRadius:10,padding:'12px 16px',position:'relative'}}>
-                  <button onClick={()=>setShiftHandover(null)} style={{position:'absolute',top:8,right:10,background:'none',border:'none',color:'var(--wt-dim)',cursor:'pointer',fontSize:'0.8rem'}}>×</button>
+                  <button onClick={()=>setShiftHandover(null)} aria-label='Close handover' style={{position:'absolute',top:8,right:10,background:'none',border:'none',color:'var(--wt-dim)',cursor:'pointer',fontSize:'0.8rem'}}>×</button>
                   <div style={{fontSize:'0.84rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>⇄ Shift Handover Brief</div>
                   <WtMarkdown text={shiftHandover.summary} accent='#22d49a' />
                   {shiftHandover.recommendation&&<div style={{marginTop:8,padding:'8px 12px',background:'#22d49a08',border:'1px solid #22d49a20',borderRadius:7,fontSize:'0.84rem',color:'#22d49a',fontWeight:600}}>🎯 Priority: {shiftHandover.recommendation}</div>}
@@ -1493,8 +1498,11 @@ export default function DashboardPage() {
                     );
                   })}
                   {(!customIntel || customIntel.length === 0) && (!DEMO_INTEL_BY_INDUSTRY[industry]||DEMO_INTEL_BY_INDUSTRY[industry].length===0) && (
-                    <div style={{fontSize:'0.84rem',color:'var(--wt-muted)',padding:'8px 0',textAlign:'center'}}>
-                      {demoMode?'Demo intel loading…':'Connect Threat Intel tools to see live feeds'}
+                    <div style={{padding:'12px 0',textAlign:'center'}}>
+                      <div style={{fontSize:'0.84rem',color:'var(--wt-muted)',marginBottom:4}}>
+                        {demoMode?'Demo intel loading…':'No threat intel yet'}
+                      </div>
+                      {!demoMode&&<div style={{fontSize:'0.78rem',color:'var(--wt-dim)'}}>Connect an intel source in <button onClick={()=>setActiveTab('tools')} style={{background:'none',border:'none',color:'#4f8fff',cursor:'pointer',fontFamily:'Inter,sans-serif',fontSize:'0.78rem',padding:0,textDecoration:'underline'}}>Tools</button> to see live threat feeds</div>}
                     </div>
                   )}
                   {livetenableNews.length>0 && (
@@ -1531,7 +1539,7 @@ export default function DashboardPage() {
                     );
                   })}
                   {incidents.filter(i=>(incidentStatuses[i.id]||i.status)!=='Resolved'&&!deletedIncidents.has(i.id)).length===0 && (
-                    <div style={{fontSize:'0.84rem',color:'#22d49a',padding:'8px 0',textAlign:'center'}}>No active incidents</div>
+                    <div style={{fontSize:'0.84rem',color:demoMode?'#22d49a':'var(--wt-muted)',padding:'8px 0',textAlign:'center'}}>{demoMode?'No active incidents':'No cases yet — alerts will auto-escalate to cases when APEX confirms TPs'}</div>
                   )}
                 </div>
               </div>
@@ -3079,7 +3087,7 @@ export default function DashboardPage() {
             </span>
             <span style={{fontSize:'0.8rem',fontWeight:800,padding:'2px 7px',borderRadius:4,background:'#4f8fff18',color:'#4f8fff',border:'1px solid #4f8fff30'}}>TEAM+</span>
             {copilotMessages.length>0&&<button onClick={()=>setCopilotMessages([])} title='Clear conversation' style={{background:'none',border:'1px solid var(--wt-border)',borderRadius:5,color:'var(--wt-dim)',fontSize:'0.86rem',cursor:'pointer',padding:'2px 7px',fontFamily:'Inter,sans-serif'}}>Clear</button>}
-            <button onClick={()=>setShowCopilot(false)} style={{background:'none',border:'none',color:'var(--wt-muted)',fontSize:'1.3rem',cursor:'pointer',lineHeight:1,padding:'0 4px'}}>×</button>
+            <button onClick={()=>setShowCopilot(false)} aria-label='Close Co-Pilot' style={{background:'none',border:'none',color:'var(--wt-muted)',fontSize:'1.3rem',cursor:'pointer',lineHeight:1,padding:'0 4px'}}>×</button>
           </div>
           {!canUse('team') ? (
             <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:32,textAlign:'center',gap:12}}>

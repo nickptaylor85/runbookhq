@@ -466,8 +466,22 @@ async function zscalerObfuscate(apiKey: string): Promise<string> {
 export async function POST(req: NextRequest) {
   try {
     const tenantId = req.headers.get('x-tenant-id') || 'global';
-    const userTier = req.headers.get('x-user-tier') || 'community';
-    const isAdminReq = req.headers.get('x-is-admin') === 'true';
+    // Auth: cookie fallback for cases where middleware headers are absent
+    let isAdminReq = req.headers.get('x-is-admin') === 'true';
+    let userTier = req.headers.get('x-user-tier') || 'community';
+    if (!isAdminReq && userTier === 'community') {
+      try {
+        const { cookies } = await import('next/headers');
+        const { verifySession } = await import('@/lib/encrypt');
+        const cookieStore = await cookies();
+        const token = req.cookies.get('wt_session')?.value || cookieStore.get('wt_session')?.value;
+        if (token) {
+          const payload = verifySession(token) as any;
+          if (payload?.isAdmin) { isAdminReq = true; userTier = 'mssp'; }
+          else if (payload?.tier) { userTier = payload.tier; }
+        }
+      } catch {}
+    }
     if (!isAdminReq && !['team','business','mssp'].includes(userTier)) {
       return NextResponse.json({ ok: false, error: 'Response actions require Essentials plan or above.' }, { status: 403 });
     }

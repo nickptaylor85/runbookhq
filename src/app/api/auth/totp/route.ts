@@ -3,6 +3,7 @@ import { generateTotpSecret, totpUri, totpQrDataUri, verifyTotp } from '@/lib/to
 import { redisGet, redisSet, redisDel } from '@/lib/redis';
 import { encrypt, decrypt } from '@/lib/encrypt';
 import { updateUser, getUserByEmail, getUsers } from '@/lib/users';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 function requireAuth(req: NextRequest) {
   if (!req.headers.get('x-user-id')) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -25,6 +26,9 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const err = requireAuth(req); if (err) return err;
   const userId = req.headers.get('x-user-id')!;
+  // Rate limit TOTP attempts: 10 per minute to prevent brute force
+  const rl = await checkRateLimit(`totp:${userId}`, 10, 60);
+  if (!rl.ok) return NextResponse.json({ error: `Too many attempts. Try again in ${rl.reset}s.` }, { status: 429 });
   const userEmail = req.headers.get('x-user-email') || userId;
 
   try {

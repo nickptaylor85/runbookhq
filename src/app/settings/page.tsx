@@ -176,7 +176,7 @@ function MfaSetup() {
 
   return (
     <div>
-      {success && <div style={{ padding: '8px 12px', background: '#22d49a12', border: '1px solid #22d49a30', borderRadius: 7, fontSize: '0.72rem', color: '#22d49a', marginBottom: 12 }}>{success}</div>}
+      {success && <div role='status' aria-live='polite' style={{ padding: '8px 12px', background: '#22d49a12', border: '1px solid #22d49a30', borderRadius: 7, fontSize: '0.72rem', color: '#22d49a', marginBottom: 12 }}>{success}</div>}
       {mfaStatus.enabled && step === 'idle' && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '4px 10px', borderRadius: 5, background: '#22d49a12', color: '#22d49a', border: '1px solid #22d49a25' }}>✓ MFA Enabled</span>

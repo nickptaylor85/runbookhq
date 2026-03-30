@@ -585,6 +585,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                     {(
                       <button onClick={async()=>{
                         if (!user.id) { console.error('[remove] user.id is undefined', user); return; }
+                        if (!window.confirm(`Remove ${user.name||user.email} from the team? This cannot be undone.`)) return;
                         // Optimistic remove
                         setStaffUsers(prev=>prev.filter(u=>u.id!==user.id));
                         try {

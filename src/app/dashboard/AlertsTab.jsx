@@ -674,7 +674,7 @@ export default function AlertsTab({
                           <div style={{fontSize:'0.72rem',fontWeight:700,color:'#f0405e'}}>APEX analysis failed</div>
                           <div style={{fontSize:'0.64rem',color:'var(--wt-muted)',marginTop:1}}>{structTriage.error}</div>
                         </div>
-                        <button onClick={()=>{setTriageResults(prev=>{const n={...prev};delete n[alert.id];return n;});fetchTriage(alert);}} style={{padding:'4px 10px',borderRadius:5,border:'1px solid #f0405e30',background:'#f0405e10',color:'#f0405e',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Retry</button>
+                        <button onClick={()=>{setTriageResults(prev=>{const n={...prev};delete n[alert.id];return n;});fetchTriage(alert);}} aria-label='Retry APEX analysis' style={{padding:'4px 10px',borderRadius:5,border:'1px solid #f0405e30',background:'#f0405e10',color:'#f0405e',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Retry</button>
                       </div>
                     )}
                     {/* Evidence Chain — shown after analysis completes */}
@@ -685,7 +685,7 @@ export default function AlertsTab({
                           <span style={{fontSize:'0.6rem',fontWeight:800,padding:'1px 8px',borderRadius:4,background:(structTriage.verdict==='TP'?'#f0405e':structTriage.verdict==='FP'?'#22d49a':'#f0a030')+'18',color:structTriage.verdict==='TP'?'#f0405e':structTriage.verdict==='FP'?'#22d49a':'#f0a030'}}>{structTriage.verdict} · {structTriage.confidence}%</span>
                           {structTriage.mitreMapping?.id && <span style={{fontSize:'0.52rem',color:'#8b6fff',fontFamily:'JetBrains Mono,monospace'}}>{structTriage.mitreMapping.id} — {structTriage.mitreMapping.tactic}</span>}
                           {structTriage.modelVersion && <span style={{fontSize:'0.5rem',color:'var(--wt-dim)',marginLeft:'auto',fontFamily:'JetBrains Mono,monospace'}}>{structTriage.modelVersion}</span>}
-                          <button onClick={()=>{setTriageResults(prev=>{const n={...prev};delete n[alert.id];return n;});fetchTriage(alert);}} style={{padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff25',background:'#4f8fff0a',color:'#4f8fff',fontSize:'0.52rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}} title="Re-run analysis">↺ Re-analyse</button>
+                          <button onClick={()=>{setTriageResults(prev=>{const n={...prev};delete n[alert.id];return n;});fetchTriage(alert);}} style={{padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff25',background:'#4f8fff0a',color:'#4f8fff',fontSize:'0.52rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}} aria-label='Re-run APEX analysis' title='Re-run analysis'>↺ Re-analyse</button>
                         </div>
                         <div style={{padding:'10px 12px'}}>
                           <div style={{padding:'10px 12px',background:'rgba(79,143,255,0.03)',border:'1px solid rgba(79,143,255,0.1)',borderRadius:7,marginBottom:12}}><WtMarkdown text={structTriage.analystNarrative || structTriage.reasoning} compact={true} /></div>
