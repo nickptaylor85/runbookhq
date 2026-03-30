@@ -712,36 +712,41 @@ export const taegis: IntegrationAdapter = {
     // Taegis Cases = analyst-worked incidents. Use allInvestigations (standard list API).
     // investigationsSearch uses different args; allInvestigations is the standard listing query.
     // Ref: Taegis SDK — python_sdk_getting_started, allInvestigations with page/search params
-    // Minimal query — scalar fields only, no nested types that could fail schema validation
-    // Once this works we can progressively add assets/assignee back
-    const query = `query investigationsSearch($page: Int, $perPage: Int, $query: String) {
-      investigationsSearch(page: $page, perPage: $perPage, query: $query) {
-        investigations {
-          id
-          description
-          created_at
-          updated_at
-          status
-          priority
-          key_findings
-          tags
+    // Step 2: Query detections via alertsServiceSearch
+    const query = `query alertsServiceSearch($in: SearchRequestInput) {
+      alertsServiceSearch(in: $in) {
+        search_id
+        status
+        alerts {
+          total_results
+          list {
+            id
+            tenant_id
+            status
+            metadata {
+              title
+              severity
+              confidence
+              description
+              created_at { seconds }
+              engine { name }
+            }
+          }
         }
-        totalCount
       }
     }`;
 
     const variables = {
-      page: 1,
-      perPage: 100,
-      query: 'WHERE status != CLOSED EARLIEST=-7d',
+      in: {
+        limit: 100,
+        offset: 0,
+        cql_query: 'FROM alert WHERE severity >= 0.6 EARLIEST=-7d',
+      }
     };
 
     const res = await fetch(`https://${graphqlHost}/graphql`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ query, variables }),
     });
     if (!res.ok) {
@@ -754,38 +759,32 @@ export const taegis: IntegrationAdapter = {
       throw new Error(`Taegis query errors: ${data.errors.map((e:any)=>e.message).join('; ')}`);
     }
 
-    const caseList = data.data?.investigationsSearch?.investigations || [];
-    const totalResults = data.data?.investigationsSearch?.totalCount || caseList.length;
-    console.log(`[taegis] cases total=${totalResults} returned=${caseList.length}`);
+    const searchResult = data.data?.alertsServiceSearch;
+    const alertList = searchResult?.alerts?.list || [];
+    const totalResults = searchResult?.alerts?.total_results || 0;
+    console.log(`[taegis] detections total=${totalResults} returned=${alertList.length}`);
 
-    // Map priority int to severity string
-    function taegisCaseSev(priority: number | undefined): 'Critical'|'High'|'Medium'|'Low' {
-      if (!priority) return 'Medium';
-      if (priority >= 4) return 'Critical';
-      if (priority >= 3) return 'High';
-      if (priority >= 2) return 'Medium';
-      return 'Low';
-    }
-
-    return caseList.map((c: any): NormalisedAlert => {
-      const createdMs = c.created_at ? new Date(c.created_at).getTime() : Date.now();
+    return alertList.map((a: any): NormalisedAlert => {
+      const meta = a.metadata || {};
+      const createdMs = meta.created_at?.seconds ? meta.created_at.seconds * 1000 : Date.now();
+      const engineName = meta.engine?.name || '';
       return {
-        id: safeId('taegis', c.id),
+        id: safeId('taegis', a.id),
         source: 'Taegis XDR',
-        sourceId: c.id,
-        title: c.description || `Taegis Case ${(c.id||'').slice(-8)}`,
-        severity: taegisCaseSev(c.priority),
-        device: 'Unknown',
+        sourceId: a.id,
+        title: meta.title || meta.description || 'Taegis Detection',
+        severity: taegisSev(meta.severity),
+        device: engineName || 'Unknown',
         ip: undefined,
         time: new Date(createdMs).toISOString(),
         rawTime: createdMs,
-        description: c.key_findings || c.description || '',
-        verdict: c.status === 'CLOSED_FALSE_POSITIVE' ? 'FP'
-          : c.status === 'CLOSED' || c.status === 'RESOLVED' ? 'TP'
+        description: meta.description || meta.title || '',
+        verdict: a.status === 'FALSE_POSITIVE' || a.status === 'CLOSED_FALSE_POSITIVE' ? 'FP'
+          : a.status === 'CLOSED' || a.status === 'RESOLVED' ? 'TP'
           : 'Pending',
-        confidence: c.status === 'ACTIVE' ? 85 : 70,
-        tags: ['taegis', 'case', c.status, ...(c.tags || [])].filter(Boolean),
-        raw: c,
+        confidence: meta.confidence ? Math.round(meta.confidence * 100) : 70,
+        tags: ['taegis', 'xdr', a.status, engineName].filter(Boolean),
+        raw: a,
       };
     });
   },
