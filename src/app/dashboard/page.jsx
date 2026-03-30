@@ -1055,15 +1055,24 @@ export default function DashboardPage() {
   }
 
   function runInvestigation(inc) {
-    if (investResults[inc.id] || investLoading.has(inc.id)) return;
+    if (investLoading.has(inc.id)) return;
+    // Clear previous result/error so re-run works
+    setInvestResults(prev=>{const n={...prev};delete n[inc.id];return n;});
     setInvestLoading(prev => new Set([...prev, inc.id]));
     const incAlerts = alerts.filter(a => inc.alerts?.includes(a.id));
     fetch('/api/investigate', {
       method:'POST', headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},
       body:JSON.stringify({incidentId:inc.id,title:inc.title,severity:inc.severity,alerts:incAlerts.map(a=>({title:a.title,source:a.source,device:a.device,mitre:a.mitre,verdict:a.verdict,time:a.time})),devices:inc.devices,mitreTactics:inc.mitreTactics,aiSummary:inc.aiSummary}),
     }).then(r=>r.json()).then(d=>{
-      if(d.ok&&d.result)setInvestResults(prev=>({...prev,[inc.id]:d.result}));
-    }).catch(()=>{}).finally(()=>{
+      if(d.ok&&d.result) {
+        setInvestResults(prev=>({...prev,[inc.id]:d.result}));
+      } else {
+        // Store error so UI can display it
+        setInvestResults(prev=>({...prev,[inc.id]:{_error: d.error||'Investigation failed. Check your Anthropic API key in the Tools tab.'}}));
+      }
+    }).catch(e=>{
+      setInvestResults(prev=>({...prev,[inc.id]:{_error:'Network error: '+e.message}}));
+    }).finally(()=>{
       setInvestLoading(prev=>{const n=new Set(prev);n.delete(inc.id);return n;});
     });
   }
@@ -1749,6 +1758,55 @@ export default function DashboardPage() {
                 )}
               </div>
 
+              {/* OS Breakdown — from connected tools */}
+              {(()=>{
+                const devices = demoMode ? DEMO_GAP_DEVICES : liveKnownDevices.length > 0 ? liveKnownDevices : DEMO_GAP_DEVICES;
+                const OS_COLORS = {'Windows':'#00a4ef','macOS':'#555','Linux':'#f97316','Ubuntu':'#e95420','RHEL':'#cc0000','iOS':'#555','Android':'#3ddc84','Unknown':'#6b7a94'};
+                const breakdown = devices.reduce((acc,d)=>{
+                  const raw = d.os || 'Unknown';
+                  // Normalise: strip version numbers, map to family
+                  const family = raw.match(/windows/i)?'Windows':raw.match(/mac|darwin/i)?'macOS':raw.match(/ubuntu/i)?'Ubuntu':raw.match(/rhel|red hat/i)?'RHEL':raw.match(/linux/i)?'Linux':raw.match(/ios/i)?'iOS':raw.match(/android/i)?'Android':'Unknown';
+                  acc[family]=(acc[family]||0)+1;
+                  return acc;
+                },{});
+                const entries = Object.entries(breakdown).sort((a,b)=>b[1]-a[1]);
+                const total = entries.reduce((s,[,n])=>s+n,0);
+                if (!entries.length) return null;
+                return (
+                  <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px 16px'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
+                      <span style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'1px'}}>OS Breakdown</span>
+                      {!demoMode&&liveKnownDevices.length>0&&<span style={{fontSize:'0.54rem',color:'#22d49a',background:'#22d49a0a',padding:'1px 6px',borderRadius:3,border:'1px solid #22d49a20',fontWeight:600}}>✦ live</span>}
+                      {demoMode&&<span style={{fontSize:'0.54rem',color:'#f0a030',padding:'1px 6px',borderRadius:3,fontWeight:600}}>demo</span>}
+                      <span style={{marginLeft:'auto',fontSize:'0.6rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{total.toLocaleString()} devices</span>
+                    </div>
+                    {/* Stacked bar */}
+                    <div style={{height:10,borderRadius:5,overflow:'hidden',display:'flex',marginBottom:10,gap:1}}>
+                      {entries.map(([os,n])=>(
+                        <div key={os} title={`${os}: ${n} (${Math.round(n/total*100)}%)`} style={{height:'100%',background:OS_COLORS[os]||'#6b7a94',flex:n,transition:'flex 0.5s'}} />
+                      ))}
+                    </div>
+                    {/* Legend rows */}
+                    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6}} className='wt-three-col'>
+                      {entries.map(([os,n])=>{
+                        const pct = Math.round(n/total*100);
+                        const col = OS_COLORS[os]||'#6b7a94';
+                        return (
+                          <div key={os} style={{display:'flex',alignItems:'center',gap:7,padding:'5px 8px',background:`${col}08`,border:`1px solid ${col}20`,borderRadius:7}}>
+                            <div style={{width:8,height:8,borderRadius:2,background:col,flexShrink:0}} />
+                            <div style={{flex:1,minWidth:0}}>
+                              <div style={{fontSize:'0.68rem',fontWeight:700,color:'var(--wt-text)'}}>{os}</div>
+                              <div style={{fontSize:'0.56rem',color:'var(--wt-dim)'}}>{n.toLocaleString()} devices</div>
+                            </div>
+                            <span style={{fontSize:'0.64rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:col}}>{pct}%</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Devices with gaps */}
               <div>
                 <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Devices with Gaps ({gapDevices.length})</div>
@@ -2411,7 +2469,8 @@ export default function DashboardPage() {
                               {investResults[inc.id] && <span style={{fontSize:'0.56rem',color:'var(--wt-muted)',marginLeft:'auto'}}>AI-generated · verify with your tools</span>}
                             </div>
                             {investLoading.has(inc.id) && <div style={{padding:'14px',fontSize:'0.72rem',color:'var(--wt-muted)',display:'flex',alignItems:'center',gap:8}}><span style={{width:10,height:10,borderRadius:'50%',border:'2px solid #8b6fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>Running deep investigation…</div>}
-                            {investResults[inc.id] && (()=>{const inv=investResults[inc.id];return(
+                            {investResults[inc.id]?._error && <div style={{padding:'12px 14px',background:'#f0405e08',border:'1px solid #f0405e25',borderRadius:8,display:'flex',alignItems:'center',gap:8}}><span style={{color:'#f0405e',fontSize:'0.8rem'}}>⚠</span><div><div style={{fontSize:'0.72rem',color:'#f0405e',fontWeight:600,marginBottom:2}}>Investigation failed</div><div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>{investResults[inc.id]._error}</div></div><button onClick={()=>{setInvestResults(prev=>{const n={...prev};delete n[inc.id];return n;});runInvestigation(inc);}} style={{marginLeft:'auto',padding:'4px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.66rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>↺ Retry</button></div>}
+                            {investResults[inc.id] && !investResults[inc.id]._error && (()=>{const inv=investResults[inc.id];return(
                               <div style={{padding:'14px',display:'flex',flexDirection:'column',gap:14}}>
                                 {inv.rootCause&&<div><div style={{fontSize:'0.56rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Root Cause</div><div style={{fontSize:'0.72rem',color:'var(--wt-secondary)',lineHeight:1.65}}>{inv.rootCause}</div></div>}
                                 {inv.attackerObjective&&<div><div style={{fontSize:'0.56rem',fontWeight:700,color:'#f97316',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>Attacker Objective</div><div style={{fontSize:'0.72rem',color:'#f97316',padding:'5px 10px',background:'#f9731612',borderRadius:6}}>{inv.attackerObjective}</div></div>}
