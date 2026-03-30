@@ -708,42 +708,41 @@ export const taegis: IntegrationAdapter = {
     const token = tokenData.access_token;
     console.log('[taegis] token obtained, querying GraphQL...');
 
-    // Step 2: Query alerts via GraphQL
-    // Per official SDK examples: https://docs.taegis.secureworks.com/sdks/python_sdk_getting_started/
-    // Fields: id, tenant_id, status, metadata { title severity confidence description created_at }
-    // Note: "Alerts" renamed to "Detections" in UI but API still uses alert terminology
-    const query = `query alertsServiceSearch($in: SearchRequestInput) {
-      alertsServiceSearch(in: $in) {
-        search_id
-        reason
-        status
-        alerts {
+    // Step 2: Query Cases (Investigations) via GraphQL
+    // Taegis Cases are analyst-triaged groupings — the correct entity for a SOC alert feed.
+    // Raw detections (alertsServiceSearch) are low-level signals; Cases are the worked incidents.
+    const query = `query investigationsSearch($in: SearchRequestInput) {
+      investigationsSearch(in: $in) {
+        investigations {
           total_results
           list {
             id
-            tenant_id
+            description
+            created_at
+            updated_at
             status
-            metadata {
-              title
-              severity
-              confidence
-              description
-              created_at { seconds }
-              engine { name }
+            priority
+            key_findings
+            assignee { name email }
+            assets {
+              id
+              hostnames
+              sensor_type
             }
+            alerts { id }
+            tags
           }
         }
       }
     }`;
 
-    // CQL: FROM alert — correct syntax per docs
-    // severity is float 0.0-1.0: >=0.9=Critical, >=0.7=High, >=0.4=Medium
-    // -7d gives a full week window to catch alerts
+    // CQL: FROM investigation — pulls Cases not raw detections
+    // priority: LOW=1, MEDIUM=2, HIGH=3, CRITICAL=4
     const variables = {
       in: {
         limit: 100,
         offset: 0,
-        cql_query: 'FROM alert WHERE severity >= 0.6 EARLIEST=-7d',
+        cql_query: 'FROM investigation WHERE status != CLOSED EARLIEST=-7d',
       }
     };
 
@@ -761,39 +760,46 @@ export const taegis: IntegrationAdapter = {
     }
     const data = await res.json();
     if (data.errors?.length) {
-      // Log all errors for diagnosis
       data.errors.forEach((e: any) => console.log(`[taegis] GraphQL error: ${e.message}`));
       throw new Error(`Taegis query errors: ${data.errors.map((e:any)=>e.message).join('; ')}`);
     }
 
-    const searchResult = data.data?.alertsServiceSearch;
-    const alertList = searchResult?.alerts?.list || [];
-    const totalResults = searchResult?.alerts?.total_results || 0;
-    console.log(`[taegis] search_id=${searchResult?.search_id} total=${totalResults} returned=${alertList.length} status=${searchResult?.status}`);
+    const investigations = data.data?.investigationsSearch?.investigations;
+    const caseList = investigations?.list || [];
+    const totalResults = investigations?.total_results || 0;
+    console.log(`[taegis] cases total=${totalResults} returned=${caseList.length}`);
 
-    return alertList.map((a: any): NormalisedAlert => {
-      const meta = a.metadata || {};
-      const createdMs = meta.created_at?.seconds ? meta.created_at.seconds * 1000 : Date.now();
-      // Taegis doesn't reliably return hostname in the alerts list query
-      // Use engine name as source context, tenant_id for MSSP scenarios
-      const engineName = meta.engine?.name || '';
+    // Map priority int to severity string
+    function taegisCaseSev(priority: number | undefined): 'Critical'|'High'|'Medium'|'Low' {
+      if (!priority) return 'Medium';
+      if (priority >= 4) return 'Critical';
+      if (priority >= 3) return 'High';
+      if (priority >= 2) return 'Medium';
+      return 'Low';
+    }
+
+    return caseList.map((c: any): NormalisedAlert => {
+      const createdMs = c.created_at ? new Date(c.created_at).getTime() : Date.now();
+      const hostname = c.assets?.[0]?.hostnames?.[0] || c.assets?.[0]?.sensor_type || 'Unknown';
+      const assigneeName = c.assignee?.name || c.assignee?.email || '';
+      const alertCount = c.alerts?.length || 0;
       return {
-        id: safeId('taegis', a.id),
+        id: safeId('taegis', c.id),
         source: 'Taegis XDR',
-        sourceId: a.id,
-        title: meta.title || meta.description || 'Taegis Detection',
-        severity: taegisSev(meta.severity),
-        device: engineName || 'Unknown',
+        sourceId: c.id,
+        title: c.description || `Taegis Case ${c.id?.slice(-8) || ''}`,
+        severity: taegisCaseSev(c.priority),
+        device: hostname,
         ip: undefined,
         time: new Date(createdMs).toISOString(),
         rawTime: createdMs,
-        description: meta.description || meta.title || '',
-        verdict: a.status === 'FALSE_POSITIVE' || a.status === 'CLOSED_FALSE_POSITIVE' ? 'FP'
-          : a.status === 'CLOSED' || a.status === 'RESOLVED' ? 'TP'
+        description: c.key_findings || c.description || '',
+        verdict: c.status === 'CLOSED_FALSE_POSITIVE' ? 'FP'
+          : c.status === 'CLOSED' || c.status === 'RESOLVED' ? 'TP'
           : 'Pending',
-        confidence: meta.confidence ? Math.round(meta.confidence * 100) : 70,
-        tags: ['taegis', 'xdr', a.status, engineName].filter(Boolean),
-        raw: a,
+        confidence: c.status === 'ACTIVE' ? 85 : 70,
+        tags: ['taegis', 'case', c.status, ...(c.tags || []), assigneeName].filter(Boolean),
+        raw: { ...c, _alertCount: alertCount },
       };
     });
   },
