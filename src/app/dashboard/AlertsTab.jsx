@@ -276,7 +276,7 @@ export default function AlertsTab({
             {unackedCrits} unacked critical{unackedCrits!==1?'s':''}
           </span>
         )}
-        <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:8}}>
+        <div style={{marginLeft:'auto',display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
           <span style={{fontSize:'0.66rem',color:'var(--wt-muted)'}}>
             {alerts.length} total · {fpAlerts.length} auto-FP · {tpAlerts.length} escalated
           </span>

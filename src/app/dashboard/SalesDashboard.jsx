@@ -134,7 +134,7 @@ QUICK WINS: [2-3 immediate actions this week that could close deals fast]`;
   const maxGrowth = Math.max(...D.growth, 1);
 
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:16}}>
+    <div style={{display:'flex',flexDirection:'column',gap:16,overflowX:'hidden',maxWidth:'100%'}}>
       <div style={{display:'flex',alignItems:'center',gap:10}}>
         <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Sales Dashboard</h2>
         <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4,border:'1px solid #22d49a25',fontWeight:700}}>SALES</span>
@@ -160,7 +160,7 @@ QUICK WINS: [2-3 immediate actions this week that could close deals fast]`;
       </div>
 
       {/* Charts row */}
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12}}>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:12}} className='wt-three-col'>
 
         {/* MRR trend */}
         <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
@@ -259,7 +259,7 @@ QUICK WINS: [2-3 immediate actions this week that could close deals fast]`;
         {mixes.length > 0 && (
           <div style={{marginBottom:16}}>
             <div style={{fontSize:'0.64rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Customer Mix Options</div>
-            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}} className='wt-four-col'>
               {mixes.map((mix,i)=>(
                 <div key={i} style={{padding:'10px 12px',background:'var(--wt-card2)',border:`1px solid ${mix.color}25`,borderRadius:10}}>
                   <div style={{fontSize:'0.68rem',marginBottom:2}}>{mix.icon} <span style={{fontWeight:700,color:mix.color}}>{mix.label}</span></div>

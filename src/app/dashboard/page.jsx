@@ -1373,7 +1373,7 @@ export default function DashboardPage() {
                 <div style={{fontSize:'0.9rem',fontWeight:700,marginBottom:2}}>Connect your first tool to see live data</div>
                 <div style={{fontSize:'0.8rem',color:'var(--wt-muted)'}}>Your SOC data from CrowdStrike, Splunk, Tenable, Okta and 76 more will appear here automatically.</div>
               </div>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:0}}>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:0}} className='wt-three-col'>
                 {[
                   {step:'01',icon:'🔌',title:'Connect a tool',desc:'Go to the Tools tab. Find your tool, click Connect, and paste your API credentials.',action:()=>setActiveTab('tools'),cta:'Open Tools tab'},
                   {step:'02',icon:'🧠',title:'Add your AI key',desc:'In the Tools tab, paste your Anthropic API key. BYOK — your key, your data, your costs.',action:()=>setActiveTab('tools'),cta:'Add Anthropic key'},
@@ -1436,13 +1436,13 @@ export default function DashboardPage() {
                 if (actions.length===0) actions.push({icon:'✓',text:'No immediate action required — monitor queue',tab:'alerts',color:'#22d49a'});
                 return (
                   <div style={{background:tlBg,border:`1px solid ${tlColor}25`,borderRadius:12,overflow:'hidden'}}>
-                    <div style={{display:'flex',alignItems:'center',gap:10,padding:'10px 16px',borderBottom:`1px solid ${tlColor}15`}}>
-                      <div style={{display:'flex',alignItems:'center',gap:6}}>
-                        <div style={{width:8,height:8,borderRadius:'50%',background:tlColor,boxShadow:`0 0 8px ${tlColor}`,animation:tlevel==='CRITICAL'?'pulse 1s ease infinite':tlevel==='HIGH'?'pulse 2s ease infinite':'none'}} />
-                        <span style={{fontSize:'0.82rem',fontWeight:900,color:tlColor,letterSpacing:'1.5px'}}>THREAT LEVEL — {tlevel}</span>
+                    <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 16px',borderBottom:`1px solid ${tlColor}15`,flexWrap:'wrap'}}>
+                      <div style={{display:'flex',alignItems:'center',gap:6,flex:1,minWidth:0}}>
+                        <div style={{width:8,height:8,borderRadius:'50%',background:tlColor,boxShadow:`0 0 8px ${tlColor}`,flexShrink:0,animation:tlevel==='CRITICAL'?'pulse 1s ease infinite':tlevel==='HIGH'?'pulse 2s ease infinite':'none'}} />
+                        <span style={{fontSize:'0.82rem',fontWeight:900,color:tlColor,letterSpacing:'1px',whiteSpace:'nowrap'}}>THREAT LEVEL — {tlevel}</span>
                       </div>
-                      <div style={{marginLeft:'auto',display:'flex',gap:6,alignItems:'center'}}>
-                        <span style={{fontSize:'0.86rem',color:'var(--wt-dim)'}}>{demoMode?'Demo':'Live'} · {new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span>
+                      <div style={{display:'flex',gap:6,alignItems:'center',flexShrink:0}}>
+                        <span style={{fontSize:'0.8rem',color:'var(--wt-dim)'}}>{demoMode?'Demo':'Live'}</span>
                         {canUse('team') ? <button onClick={()=>{setShowCopilot(s=>!s);setTimeout(()=>copilotBottomRef.current?.scrollIntoView({behavior:'auto'}),100);}} style={{fontSize:'0.82rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:`1px solid ${tlColor}30`,background:`${tlColor}0a`,color:tlColor,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✦ Co-Pilot</button> : <a href='/pricing' style={{fontSize:'0.82rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff30',background:'#4f8fff0a',color:'#4f8fff',textDecoration:'none'}}>🔒 Co-Pilot</a>}
                         <button onClick={async()=>{setHandoverLoading(true);setShiftHandover(null);try{const activeIncs=incidents.filter(i=>!deletedIncidents.has(i.id)&&(incidentStatuses[i.id]||i.status)==='Active');const r=await fetch('/api/shift-handover',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({openAlerts:totalAlerts,critAlerts:critAlerts.length,openCases,slaBreaches,tools:Object.keys(connectedTools).length,posture,topAlert:critAlerts[0]?.title||alerts[0]?.title||'',openIncidents:activeIncs.map(i=>i.title).slice(0,5),analyst:currentUserName||'Analyst'})});const d=await r.json();if(d.ok&&d.handover)setShiftHandover(d.handover);else setShiftHandover({summary:d.error||'Generation failed — check your Anthropic API key in Tools.',keyActions:[],generatedAt:new Date().toISOString()});}catch(e){setShiftHandover({summary:'Connection error: '+e.message,keyActions:[],generatedAt:new Date().toISOString()});}setHandoverLoading(false);}} disabled={handoverLoading} style={{fontSize:'0.82rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',cursor:handoverLoading?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:3}}>{handoverLoading&&<span style={{display:'inline-block',width:7,height:7,borderRadius:'50%',border:'1.5px solid #22d49a',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />}⇄ Handover</button>
                       </div>
@@ -2008,7 +2008,7 @@ export default function DashboardPage() {
                     </div>
                     {selectedVuln?.id===vuln.id && (
                       <div style={{padding:'14px 16px',background:'var(--wt-card2)',border:'1px solid #4f8fff40',borderTop:'2px solid #4f8fff',borderRadius:'0 0 10px 10px',marginBottom:0,boxShadow:'0 4px 20px rgba(0,0,0,0.3)'}}>
-                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}} className='wt-two-col'>
                           <div>
                             <div style={{fontSize:'0.86rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:10}}>{vuln.description}</div>
                             <div style={{fontSize:'0.84rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Affected Devices</div>
@@ -2125,7 +2125,7 @@ export default function DashboardPage() {
                 })()}
 
                 {/* Key metrics */}
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}} className='wt-two-col'>
                   {[
                     {label:'KEV Active',val:kevVulns.length,color:'#f97316',icon:'⚠'},
                     {label:'Avg CVSS',val:(()=>{const withCvss=vulns.filter(v=>v.cvss&&v.cvss!=='N/A'&&Number(v.cvss)>0);return withCvss.length?(withCvss.reduce((a,v)=>a+Number(v.cvss),0)/withCvss.length).toFixed(1):'—';})(),color:'#8b6fff',icon:'📊'},
@@ -2770,7 +2770,7 @@ export default function DashboardPage() {
                   {name:'NIST CSF',   score:hasLiveData?nistScore:69, gaps:hasLiveData?[...nistFail].map(f=>`${f} function — alerts map here`):['DE.CM-4 Malware detection coverage','PR.IP-12 Vuln management','RS.CO-3 Escalation docs'], color:'#8b6fff'},
                 ];
                 return (
-                  <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
+                  <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}} className='wt-three-col'>
                     {fws.map(fw=>(
                       <div key={fw.name} style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px'}}>
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
@@ -3051,7 +3051,7 @@ export default function DashboardPage() {
       {/* Alerts Ingested Modal */}
       {modal?.type==='alerts-ingested' && (
         <Modal title={`Alert Ingestion — What AI Did`} onClose={()=>setModal(null)}>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:16}}>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:16}} className='wt-three-col'>
             {[{val:alerts.length,label:'Ingested',c:'#4f8fff'},{val:fpAlerts.length,label:'Auto-Closed FPs',c:'#22d49a'},{val:tpAlerts.length,label:'Escalated TPs',c:'#f0405e'}].map(s=>(
               <div key={s.label} style={{textAlign:'center',padding:'10px',background:'var(--wt-bg)',borderRadius:8,border:'1px solid #1d2535'}}>
                 <div style={{fontSize:'1.6rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.c,letterSpacing:-1}}>{s.val}</div>
