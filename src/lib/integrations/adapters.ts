@@ -716,24 +716,21 @@ export const taegis: IntegrationAdapter = {
     // Types: PageInput for pagination, no search filter (returns open investigations)
     const query = `query allInvestigations($page: PageInput, $orderByField: InvestigationsOrderByInput) {
       allInvestigations(page: $page, orderByField: $orderByField) {
-        investigations {
+        id
+        description
+        created_at
+        updated_at
+        status
+        priority
+        key_findings
+        assignee { name email }
+        assets {
           id
-          description
-          created_at
-          updated_at
-          status
-          priority
-          key_findings
-          assignee { name email }
-          assets {
-            id
-            hostnames
-            sensor_type
-          }
-          alerts { id }
-          tags
+          hostnames
+          sensor_type
         }
-        totalCount
+        alerts { id }
+        tags
       }
     }`;
 
@@ -760,10 +757,9 @@ export const taegis: IntegrationAdapter = {
       throw new Error(`Taegis query errors: ${data.errors.map((e:any)=>e.message).join('; ')}`);
     }
 
-    const invResult = data.data?.allInvestigations;
-    const caseList = invResult?.investigations || [];
-    const totalResults = invResult?.totalCount || caseList.length;
-    console.log(`[taegis] cases total=${totalResults} returned=${caseList.length}`);
+    const caseList = data.data?.allInvestigations || [];
+    const totalResults = caseList.length;
+    console.log(`[taegis] cases returned=${caseList.length}`);
 
     // Map priority int to severity string
     function taegisCaseSev(priority: number | undefined): 'Critical'|'High'|'Medium'|'Low' {
