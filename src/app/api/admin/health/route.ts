@@ -1,12 +1,23 @@
+import { verifySession } from '@/lib/encrypt';
+import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { redisHGetAll, KEYS } from '@/lib/redis';
 
-function requireAdmin(req: NextRequest): boolean {
-  return req.headers.get('x-is-admin') === 'true';
+async function requireAdmin(req: NextRequest): Promise<boolean> {
+  if (req.headers.get('x-is-admin') === 'true') return true;
+  try {
+    const cookieStore = await cookies();
+    const token = req.cookies.get('wt_session')?.value || cookieStore.get('wt_session')?.value;
+    if (token) {
+      const payload = verifySession(token) as any;
+      if (payload?.isAdmin === true) return true;
+    }
+  } catch {}
+  return false;
 }
 
 export async function GET(req: NextRequest) {
-  if (!requireAdmin(req)) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
+  if (!(await requireAdmin(req))) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
   
   const start = Date.now();
   const checks: Record<string, unknown> = {};

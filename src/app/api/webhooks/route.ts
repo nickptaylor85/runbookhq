@@ -42,6 +42,24 @@ export async function POST(req: NextRequest) {
     if (!['https:', 'http:'].includes(parsedUrl.protocol)) {
       return NextResponse.json({ error: 'URL must be http or https' }, { status: 400 });
     }
+    // SSRF protection: block private/internal IP ranges and localhost
+    const hostname = parsedUrl.hostname.toLowerCase();
+    const isPrivate = (
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '0.0.0.0' ||
+      hostname.endsWith('.local') ||
+      /^10\./.test(hostname) ||
+      /^192\.168\./.test(hostname) ||
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname) ||
+      hostname === '169.254.169.254' || // AWS metadata
+      hostname === 'metadata.google.internal' || // GCP metadata
+      /^fd[0-9a-f]{2}:/i.test(hostname) || // IPv6 ULA
+      hostname === '::1' // IPv6 localhost
+    );
+    if (isPrivate) {
+      return NextResponse.json({ error: 'Webhook URL cannot point to internal/private addresses' }, { status: 400 });
+    }
 
     const id = body.id || `wh_${Date.now()}`;
     const events = body.events?.length ? body.events : ['alert.critical', 'incident.created'];

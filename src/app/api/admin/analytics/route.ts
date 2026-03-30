@@ -1,49 +1,89 @@
+import { verifySession } from '@/lib/encrypt';
+import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { redisGet } from '@/lib/redis';
+import { getUsers as getUsersList } from '@/lib/users';
 
-function requireAdmin(req: NextRequest) {
-  return req.headers.get('x-is-admin') === 'true';
+async function requireAdmin(req: NextRequest): Promise<boolean> {
+  if (req.headers.get('x-is-admin') === 'true') return true;
+  try {
+    const cookieStore = await cookies();
+    const token = req.cookies.get('wt_session')?.value || cookieStore.get('wt_session')?.value;
+    if (token) {
+      const payload = verifySession(token) as any;
+      if (payload?.isAdmin === true) return true;
+    }
+  } catch {}
+  return false;
 }
 
-// Returns usage analytics aggregated across a tenant
 export async function GET(req: NextRequest) {
-  if (!requireAdmin(req)) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
+  if (!(await requireAdmin(req))) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
   try {
-    const tenantId = req.headers.get('x-tenant-id') || 'global';
+    // Platform-wide user metrics
+    const users = await getUsersList('global');
 
-    const [aiLogRaw, auditRaw, postureRaw, slaRaw] = await Promise.all([
-      redisGet(`wt:${tenantId}:ailog`),
-      redisGet(`wt:${tenantId}:audit`),
-      redisGet(`wt:${tenantId}:posture`),
-      redisGet(`wt:${tenantId}:sla_events`),
-    ]);
+    const now = Date.now();
+    const weekAgo = now - 7 * 86400000;
+    const monthAgo = now - 30 * 86400000;
 
-    const aiLog = aiLogRaw ? JSON.parse(aiLogRaw) : [];
-    const audit = auditRaw ? JSON.parse(auditRaw) : [];
-    const posture = postureRaw ? JSON.parse(postureRaw) : null;
-    const sla = slaRaw ? JSON.parse(slaRaw) : [];
+    const tierBreakdown = { community: 0, team: 0, business: 0, mssp: 0 };
+    let paidCustomers = 0;
+    let weeklySignups = 0;
+    let recentSignups: any[] = [];
+    let churn30d = 0; // TODO: track cancellations
 
-    // AI usage stats
-    const aiCalls = Array.isArray(aiLog) ? aiLog : [];
-    const totalAiCalls = aiCalls.length;
-    const aiSuccessRate = totalAiCalls > 0 ? Math.round(aiCalls.filter((e: any) => e.ok).length / totalAiCalls * 100) : 100;
-    const avgDurationMs = totalAiCalls > 0 ? Math.round(aiCalls.reduce((s: number, e: any) => s + (e.durationMs || 0), 0) / totalAiCalls) : 0;
+    for (const u of users) {
+      const plan = (u as any).plan || 'community';
+      if (plan in tierBreakdown) tierBreakdown[plan as keyof typeof tierBreakdown]++;
+      if (plan !== 'community') paidCustomers++;
+      const created = new Date(u.createdAt).getTime();
+      if (created > weekAgo) weeklySignups++;
+      if (u.status === 'disabled' && created > monthAgo) churn30d++;
+    }
 
-    // Verdict breakdown from audit
-    const verdicts = Array.isArray(audit) ? audit.filter((e: any) => e.type === 'verdict') : [];
-    const tpCount = verdicts.filter((e: any) => e.verdict === 'TP').length;
-    const fpCount = verdicts.filter((e: any) => e.verdict === 'FP').length;
+    // Sort recent signups newest first
+    recentSignups = [...users]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 20)
+      .map(u => ({ email: u.email, plan: (u as any).plan || 'community', createdAt: u.createdAt }));
+
+    // Weekly signup trend — last 8 weeks
+    const weeklyTrend: { week: string; count: number; paid: number }[] = [];
+    for (let i = 7; i >= 0; i--) {
+      const weekStart = now - (i + 1) * 7 * 86400000;
+      const weekEnd   = now - i * 7 * 86400000;
+      const d = new Date(weekStart);
+      const weekLabel = `${d.getDate()}/${d.getMonth() + 1}`;
+      let count = 0; let paid = 0;
+      for (const u of users) {
+        const t = new Date(u.createdAt).getTime();
+        if (t >= weekStart && t < weekEnd) {
+          count++;
+          if ((u as any).plan && (u as any).plan !== 'community') paid++;
+        }
+      }
+      weeklyTrend.push({ week: weekLabel, count, paid });
+    }
+
+    // MRR calculation
+    const prices = { team: 149, business: 1199, mssp: 3499 };
+    const mrr = tierBreakdown.team * 149 + tierBreakdown.business * 1199 + tierBreakdown.mssp * 3499;
 
     return NextResponse.json({
       ok: true,
-      tenantId,
-      ai: { totalCalls: totalAiCalls, successRate: aiSuccessRate, avgDurationMs },
-      verdicts: { tp: tpCount, fp: fpCount, total: verdicts.length },
-      posture: posture ? { score: posture.score, updatedAt: posture.cachedAt } : null,
-      slaEvents: Array.isArray(sla) ? sla.length : 0,
-      generatedAt: Date.now(),
+      totalSignups: users.length,
+      weeklySignups,
+      paidCustomers,
+      communityUsers: tierBreakdown.community,
+      churn30d,
+      mrr,
+      tierBreakdown,
+      recentSignups,
+      weeklyTrend,
+      generatedAt: now,
     });
   } catch (e: any) {
+    console.error('Analytics error:', e.message);
     return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
   }
 }

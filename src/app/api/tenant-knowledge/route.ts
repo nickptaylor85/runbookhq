@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redisLPush, redisLRange, redisLTrim } from '@/lib/redis';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 // Stores per-tenant analyst verdict history so Co-Pilot can learn from past decisions
 // Structure: recent FP/TP decisions with alert metadata, kept to last 100 entries
@@ -19,6 +20,9 @@ export interface KnowledgeEntry {
 }
 
 export async function POST(req: NextRequest) {
+  const userId = req.headers.get(\'x-user-id\') || \'anon\';
+  const rl = await checkRateLimit(`knowledge:${userId}`, 60, 60);
+  if (!rl.ok) return NextResponse.json({ ok: false, error: `Rate limit exceeded. Resets in ${rl.reset}s.` }, { status: 429 });
   try {
     const tenantId = req.headers.get('x-tenant-id') || 'global';
     const body = await req.json() as KnowledgeEntry;
