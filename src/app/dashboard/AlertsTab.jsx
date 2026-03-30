@@ -687,20 +687,23 @@ export default function AlertsTab({
                           <button onClick={()=>{setTriageResults(prev=>{const n={...prev};delete n[alert.id];return n;});fetchTriage(alert);}} style={{padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff25',background:'#4f8fff0a',color:'#4f8fff',fontSize:'0.52rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}} title="Re-run analysis">↺ Re-analyse</button>
                         </div>
                         <div style={{padding:'10px 12px'}}>
-                          <div style={{fontSize:'0.72rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:10}}>{structTriage.analystNarrative || structTriage.reasoning}</div>
+                          <div style={{fontSize:'0.84rem',color:'var(--wt-secondary)',lineHeight:1.7,marginBottom:12,padding:'8px 10px',background:'rgba(79,143,255,0.03)',borderRadius:7,border:'1px solid rgba(79,143,255,0.1)'}}>{structTriage.analystNarrative || structTriage.reasoning}</div>
                           {structTriage.evidenceChain?.length > 0 && (
                             <div style={{marginBottom:10}}>
                               {structTriage.evidenceChain.map((step,i)=>(
-                                <div key={i} style={{display:'flex',gap:8,padding:'4px 0',borderBottom:'1px solid var(--wt-border)',alignItems:'flex-start'}}>
-                                  <span style={{fontSize:'0.52rem',fontWeight:900,color:'#4f8fff',flexShrink:0,marginTop:2,fontFamily:'JetBrains Mono,monospace'}}>#{i+1}</span>
-                                  <span style={{fontSize:'0.68rem',color:'var(--wt-secondary)',lineHeight:1.55}}>{step}</span>
+                                <div key={i} style={{display:'flex',gap:8,padding:'6px 8px',marginBottom:3,borderRadius:6,background:`rgba(79,143,255,0.04)`,border:'1px solid rgba(79,143,255,0.1)',alignItems:'flex-start'}}>
+                                  <span style={{fontSize:'0.68rem',fontWeight:900,color:'#4f8fff',flexShrink:0,fontFamily:'JetBrains Mono,monospace',minWidth:18}}>#{i+1}</span>
+                                  <span style={{fontSize:'0.76rem',color:'var(--wt-secondary)',lineHeight:1.6}}>{step}</span>
                                 </div>
                               ))}
                             </div>
                           )}
                           {structTriage.immediateActions?.length > 0 && (
                             <div style={{marginBottom:10}}>
-                              <div style={{fontSize:'0.56rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Immediate Actions</div>
+                              <div style={{fontSize:'0.7rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8,display:'flex',alignItems:'center',gap:6}}>
+                                ⚡ Immediate Actions
+                                {connectedTools&&Object.keys(connectedTools).length>0&&<span style={{fontSize:'0.62rem',fontWeight:600,color:'var(--wt-dim)',textTransform:'none',letterSpacing:0}}>— steps for your connected tools</span>}
+                              </div>
                               {structTriage.immediateActions.map((a,i)=>{
                                 const action = typeof a === 'string' ? a : a.action;
                                 const priority = typeof a === 'object' ? a.priority : null;
@@ -708,12 +711,16 @@ export default function AlertsTab({
                                 const owner = typeof a === 'object' ? a.owner : null;
                                 const pColor = priority==='CRITICAL'?'#f0405e':priority==='HIGH'?'#f97316':'#f0a030';
                                 return (
-                                  <div key={i} style={{display:'flex',gap:8,padding:'5px 0',borderBottom:'1px solid var(--wt-border)',alignItems:'flex-start'}}>
-                                    <span style={{fontSize:'0.5rem',fontWeight:800,color:pColor,flexShrink:0,marginTop:2,fontFamily:'JetBrains Mono,monospace',minWidth:16}}>{priority?priority[0]:'⚡'}</span>
+                                  <div key={i} style={{display:'flex',gap:10,padding:'8px 10px',marginBottom:4,borderRadius:7,background:`${pColor}08`,border:`1px solid ${pColor}20`,alignItems:'flex-start'}}>
+                                    <div style={{width:22,height:22,borderRadius:5,background:pColor,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:'0.7rem',fontWeight:900,color:'#fff'}}>{i+1}</div>
                                     <div style={{flex:1}}>
-                                      <span style={{fontSize:'0.68rem',color:pColor,lineHeight:1.55}}>{action}</span>
-                                      {(tf||owner)&&<div style={{fontSize:'0.58rem',color:'var(--wt-dim)',marginTop:1}}>{tf&&<span>{tf}</span>}{tf&&owner&&' · '}{owner&&<span>{owner}</span>}</div>}
+                                      <div style={{fontSize:'0.78rem',color:'var(--wt-text)',fontWeight:600,lineHeight:1.5}}>{action}</div>
+                                      {(tf||owner)&&<div style={{fontSize:'0.68rem',color:'var(--wt-dim)',marginTop:3,display:'flex',gap:8}}>
+                                        {tf&&<span style={{padding:'1px 6px',borderRadius:3,background:'rgba(255,255,255,0.05)',fontFamily:'JetBrains Mono,monospace'}}>{tf}</span>}
+                                        {owner&&<span style={{padding:'1px 6px',borderRadius:3,background:`${pColor}12`,color:pColor,fontWeight:600}}>→ {owner}</span>}
+                                      </div>}
                                     </div>
+                                    <span style={{fontSize:'0.64rem',fontWeight:800,padding:'2px 6px',borderRadius:3,background:pColor+'20',color:pColor,flexShrink:0,fontFamily:'JetBrains Mono,monospace'}}>{priority||'ACT'}</span>
                                   </div>
                                 );
                               })}

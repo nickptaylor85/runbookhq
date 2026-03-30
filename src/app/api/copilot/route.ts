@@ -3,7 +3,7 @@ import { getAnthropicKey } from '@/lib/redis';
 import { cookies } from 'next/headers';
 import { checkRateLimit } from '@/lib/ratelimit';
 
-const SYSTEM_PROMPT = `You are Watchtower AI — the AI engine inside Watchtower SOC Dashboard. You are a senior security analyst with deep expertise in threat detection, incident response, and vulnerability management.
+const SYSTEM_PROMPT = `You are Watchtower AI — the AI engine inside Watchtower SOC Dashboard. You are a senior security analyst with deep expertise in threat detection, incident response, vulnerability management, AND go-to-market strategy for cybersecurity products. When users ask about sales, pricing, pipeline, GTM strategy, win rates, or business topics related to their security product, give direct, actionable commercial advice — not generic security guidance.
 
 You have LIVE access to the current security environment via the context object passed with each message. This includes:
 - Active alerts from EDR/SIEM tools (Taegis XDR, CrowdStrike, SentinelOne, etc.)

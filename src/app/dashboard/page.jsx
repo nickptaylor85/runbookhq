@@ -228,7 +228,7 @@ const DEMO_INTEL_BY_INDUSTRY = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function SevBadge({sev}) {
-  return <span style={{fontSize:'0.5rem',fontWeight:800,padding:'1px 6px',borderRadius:3,color:'#fff',background:SEV_COLOR[sev]}}>{sev.toUpperCase()}</span>;
+  return <span style={{fontSize:'0.84rem',fontWeight:800,padding:'1px 6px',borderRadius:3,color:'#fff',background:SEV_COLOR[sev]}}>{sev.toUpperCase()}</span>;
 }
 
 // ─── Modal ────────────────────────────────────────────────────────────────────
@@ -255,9 +255,9 @@ function StatCard({val,label,sub,color,onClick}) {
       onMouseEnter={e=>{ if(onClick)(e.currentTarget).style.borderColor='#4f8fff40'; }}
       onMouseLeave={e=>{ (e.currentTarget).style.borderColor='var(--wt-border)'; }}>
       <div style={{fontSize:'1.5rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color,letterSpacing:-1}}>{val}</div>
-      <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.4px',marginTop:2}}>{label}</div>
-      {sub && <div style={{fontSize:'0.56rem',color:'var(--wt-dim)',marginTop:2}}>{sub}</div>}
-      {onClick && <div style={{fontSize:'0.48rem',color:'#4f8fff',marginTop:4}}>click to view →</div>}
+      <div style={{fontSize:'0.86rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.4px',marginTop:2}}>{label}</div>
+      {sub && <div style={{fontSize:'0.8rem',color:'var(--wt-dim)',marginTop:2}}>{sub}</div>}
+      {onClick && <div style={{fontSize:'0.58rem',color:'#4f8fff',marginTop:4}}>click to view →</div>}
     </div>
   );
 }
@@ -286,13 +286,13 @@ function GateWall({ feature, requiredTier, children, userTier, isAdmin, demoPrev
         <div style={{fontSize:'0.86rem',fontWeight:800,marginBottom:6,color:'var(--wt-text)'}}>{feature}</div>
         <div style={{display:'flex',flexDirection:'column',gap:4,marginBottom:16,maxWidth:280,width:'100%'}}>
           {bullets.map((b,i)=>(
-            <div key={i} style={{display:'flex',alignItems:'center',gap:7,fontSize:'0.68rem',color:'var(--wt-muted)'}}>
-              <span style={{color:tierColors[requiredTier],flexShrink:0,fontSize:'0.6rem'}}>✓</span>{b}
+            <div key={i} style={{display:'flex',alignItems:'center',gap:7,fontSize:'0.84rem',color:'var(--wt-muted)'}}>
+              <span style={{color:tierColors[requiredTier],flexShrink:0,fontSize:'0.84rem'}}>✓</span>{b}
             </div>
           ))}
         </div>
-        <a href='/pricing' style={{padding:'9px 22px',borderRadius:8,background:tierColors[requiredTier],color:'#fff',fontSize:'0.76rem',fontWeight:700,textDecoration:'none',display:'inline-block',marginBottom:6}}>Unlock with {tierNames[requiredTier]} — {tierPrices[requiredTier]}</a>
-        <div style={{fontSize:'0.6rem',color:'var(--wt-dim)'}}>14-day free trial · No card required</div>
+        <a href='/pricing' style={{padding:'9px 22px',borderRadius:8,background:tierColors[requiredTier],color:'#fff',fontSize:'0.84rem',fontWeight:700,textDecoration:'none',display:'inline-block',marginBottom:6}}>Unlock with {tierNames[requiredTier]} — {tierPrices[requiredTier]}</a>
+        <div style={{fontSize:'0.84rem',color:'var(--wt-dim)'}}>14-day free trial · No card required</div>
       </div>
     </div>
   );
@@ -349,16 +349,16 @@ function RemediationOutput({ text }) {
     <div style={{display:'flex',flexDirection:'column',gap:10}}>
       {blocks.map((block, i) => {
         if (block.type === 'heading') return (
-          <div key={i} style={{fontSize:'0.58rem',fontWeight:800,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1.5px',paddingTop: i>0?8:0,borderTop: i>0?'1px solid var(--wt-border)':'none',marginTop: i>0?2:0}}>{block.content}</div>
+          <div key={i} style={{fontSize:'0.82rem',fontWeight:800,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1.5px',paddingTop: i>0?8:0,borderTop: i>0?'1px solid var(--wt-border)':'none',marginTop: i>0?2:0}}>{block.content}</div>
         );
         if (block.type === 'subheading') return (
-          <div key={i} style={{fontSize:'0.68rem',fontWeight:700,color:'var(--wt-text)',marginTop:4,marginBottom:-4}}>{block.content}</div>
+          <div key={i} style={{fontSize:'0.84rem',fontWeight:700,color:'var(--wt-text)',marginTop:4,marginBottom:-4}}>{block.content}</div>
         );
         if (block.type === 'code') return (
           <div key={i} style={{position:'relative',background:'#020306',border:'1px solid #1a2235',borderRadius:8,overflow:'hidden'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'5px 10px',borderBottom:'1px solid #1a2235',background:'#060912'}}>
-              <span style={{fontSize:'0.54rem',fontWeight:700,color:'#4f8fff',letterSpacing:'0.5px',textTransform:'uppercase'}}>Query</span>
-              <button onClick={()=>copyCode(block.content, block.id||'')} style={{fontSize:'0.56rem',fontWeight:600,padding:'2px 8px',borderRadius:4,border:'1px solid #1e2536',background:'transparent',color:copied===block.id?'#22d49a':'var(--wt-muted)',cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'color .15s'}}>
+              <span style={{fontSize:'0.86rem',fontWeight:700,color:'#4f8fff',letterSpacing:'0.5px',textTransform:'uppercase'}}>Query</span>
+              <button onClick={()=>copyCode(block.content, block.id||'')} style={{fontSize:'0.8rem',fontWeight:600,padding:'2px 8px',borderRadius:4,border:'1px solid #1e2536',background:'transparent',color:copied===block.id?'#22d49a':'var(--wt-muted)',cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'color .15s'}}>
                 {copied===block.id?'✓ Copied':'Copy'}
               </button>
             </div>
@@ -366,7 +366,7 @@ function RemediationOutput({ text }) {
           </div>
         );
         return (
-          <div key={i} style={{fontSize:'0.72rem',color:'var(--wt-secondary)',lineHeight:1.7}}>{block.content}</div>
+          <div key={i} style={{fontSize:'0.8rem',color:'var(--wt-secondary)',lineHeight:1.7}}>{block.content}</div>
         );
       })}
     </div>
@@ -876,12 +876,18 @@ export default function DashboardPage() {
         liveVulns.forEach(v => {
           const assets = v.affectedAssets || (v.device && v.device !== 'Unknown' ? [v.device] : []);
           assets.forEach(hostname => {
-            if (!deviceMap.has(hostname)) deviceMap.set(hostname, {
-              hostname, ip: v.ip||'', os: v.raw?.os || 'Unknown',
-              missing: connectedEdrNames.length > 0 ? connectedEdrNames.map(n=>`Verify: ${n}`) : [],
-              reason: `Scanned by Tenable${connectedEdrNames.length > 0 ? ` — verify ${connectedEdrNames.join('/')} coverage` : ''}`,
-              lastSeen: 'via Tenable', lastSeenDays: 0,
-            });
+            if (!deviceMap.has(hostname)) {
+              // Attempt OS enrichment: check alerts from EDR tools for matching hostname
+              const matchedAlert = liveAlerts.find(a => a.device === hostname && (a.raw?.device_details?.os_version || a.raw?.os_version || a.raw?.MachineName));
+              const osFromAlert = matchedAlert ? (matchedAlert.raw?.device_details?.os_version || matchedAlert.raw?.os_version || '') : '';
+              deviceMap.set(hostname, {
+                hostname, ip: v.ip||'',
+                os: osFromAlert || v.raw?.os || v.raw?.operating_system || 'Unknown',
+                missing: connectedEdrNames.length > 0 ? connectedEdrNames.map(n=>`Verify: ${n}`) : [],
+                reason: `Scanned by Tenable${connectedEdrNames.length > 0 ? ` — verify ${connectedEdrNames.join('/')} coverage` : ''}`,
+                lastSeen: 'via Tenable', lastSeenDays: 0,
+              });
+            }
           });
         });
         // MDM/Asset tool devices — enrich or add
@@ -1201,9 +1207,9 @@ export default function DashboardPage() {
         {/* Client message banner */}
         {clientBanner && (
           <div style={{display:'flex',alignItems:'center',gap:10,padding:'8px 18px',background:'#f0a03015',borderBottom:'1px solid #f0a03030',flexShrink:0}}>
-            <span style={{fontSize:'0.78rem'}}>📢</span>
-            <span style={{fontSize:'0.74rem',color:'#f0c070',flex:1,fontWeight:500}}>{clientBanner}</span>
-            {!isAdmin && <button onClick={()=>setClientBanner(null)} style={{padding:'2px 8px',borderRadius:5,border:'1px solid #f0a03030',background:'transparent',color:'#f0a030',fontSize:'0.62rem',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Dismiss ×</button>}
+            <span style={{fontSize:'0.86rem'}}>📢</span>
+            <span style={{fontSize:'0.82rem',color:'#f0c070',flex:1,fontWeight:500}}>{clientBanner}</span>
+            {!isAdmin && <button onClick={()=>setClientBanner(null)} style={{padding:'2px 8px',borderRadius:5,border:'1px solid #f0a03030',background:'transparent',color:'#f0a030',fontSize:'0.86rem',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Dismiss ×</button>}
           </div>
         )}
 
@@ -1226,10 +1232,10 @@ export default function DashboardPage() {
               if (isViewer) return ['overview','alerts','coverage','vulns','intel','incidents'].includes(t);
               return true;
             }).map(t=>(
-              <button key={t} onClick={()=>setActiveTab(t)} style={{height:'100%',padding:'0 14px',border:'none',borderBottom:`2px solid ${activeTab===t?'#4f8fff':'transparent'}`,background:'transparent',color:activeTab===t?'#4f8fff':'var(--wt-muted)',fontSize:'0.72rem',fontWeight:activeTab===t?700:500,cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'all .15s',whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:5}}>
+              <button key={t} onClick={()=>setActiveTab(t)} style={{height:'100%',padding:'0 14px',border:'none',borderBottom:`2px solid ${activeTab===t?'#4f8fff':'transparent'}`,background:'transparent',color:activeTab===t?'#4f8fff':'var(--wt-muted)',fontSize:'0.8rem',fontWeight:activeTab===t?700:500,cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'all .15s',whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:5}}>
                 {t==='incidents'?'Cases':t.charAt(0).toUpperCase()+t.slice(1)}
-                {t==='alerts'&&critAlerts.length>0&&<span style={{fontSize:'0.48rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f0405e',color:'#fff'}}>{critAlerts.length}</span>}
-                {t==='vulns'&&kevVulns.length>0&&<span style={{fontSize:'0.48rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f97316',color:'#fff'}}>{kevVulns.length}</span>}
+                {t==='alerts'&&critAlerts.length>0&&<span style={{fontSize:'0.58rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f0405e',color:'#fff'}}>{critAlerts.length}</span>}
+                {t==='vulns'&&kevVulns.length>0&&<span style={{fontSize:'0.58rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f97316',color:'#fff'}}>{kevVulns.length}</span>}
               </button>
             ))}
           </div>
@@ -1246,12 +1252,12 @@ export default function DashboardPage() {
             const activeSecTab = secTabs.find(s=>s.t===activeTab);
             return (
               <div style={{position:'relative',height:'100%',display:'flex',alignItems:'stretch',marginLeft:2}}>
-                <button onClick={()=>{const el=document.getElementById('wt-more-menu');if(el)el.style.display=el.style.display==='none'?'flex':'none';}} style={{height:'100%',padding:'0 12px',border:'none',borderBottom:`2px solid ${activeSecTab?'#4f8fff':'transparent'}`,background:'transparent',color:activeSecTab?'#4f8fff':'var(--wt-muted)',fontSize:'0.72rem',fontWeight:activeSecTab?700:500,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4,whiteSpace:'nowrap'}}>
-                  {activeSecTab?<><span>{activeSecTab.icon}</span>{activeSecTab.label}</>:<>More <span style={{fontSize:'0.6rem'}}>▾</span></>}
+                <button onClick={()=>{const el=document.getElementById('wt-more-menu');if(el)el.style.display=el.style.display==='none'?'flex':'none';}} style={{height:'100%',padding:'0 12px',border:'none',borderBottom:`2px solid ${activeSecTab?'#4f8fff':'transparent'}`,background:'transparent',color:activeSecTab?'#4f8fff':'var(--wt-muted)',fontSize:'0.8rem',fontWeight:activeSecTab?700:500,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4,whiteSpace:'nowrap'}}>
+                  {activeSecTab?<><span>{activeSecTab.icon}</span>{activeSecTab.label}</>:<>More <span style={{fontSize:'0.84rem'}}>▾</span></>}
                 </button>
                 <div id='wt-more-menu' style={{display:'none',position:'absolute',top:'100%',left:0,background:'var(--wt-sidebar)',border:'1px solid #1d2535',borderRadius:10,boxShadow:'0 8px 32px rgba(0,0,0,0.5)',zIndex:100,flexDirection:'column',minWidth:160,padding:4,marginTop:2}} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget))e.currentTarget.style.display='none';}}>
                   {secTabs.map(({t,label,icon,color})=>(
-                    <button key={t} onClick={()=>{setActiveTab(t);const el=document.getElementById('wt-more-menu');if(el)el.style.display='none';}} style={{padding:'8px 14px',border:'none',borderRadius:7,background:activeTab===t?`${color}18`:'transparent',color:activeTab===t?color:'var(--wt-secondary)',fontSize:'0.74rem',fontWeight:activeTab===t?700:500,cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left',display:'flex',alignItems:'center',gap:8,transition:'background .12s'}} onMouseEnter={e=>e.currentTarget.style.background=`${color}10`} onMouseLeave={e=>e.currentTarget.style.background=activeTab===t?`${color}18`:'transparent'}>
+                    <button key={t} onClick={()=>{setActiveTab(t);const el=document.getElementById('wt-more-menu');if(el)el.style.display='none';}} style={{padding:'8px 14px',border:'none',borderRadius:7,background:activeTab===t?`${color}18`:'transparent',color:activeTab===t?color:'var(--wt-secondary)',fontSize:'0.82rem',fontWeight:activeTab===t?700:500,cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left',display:'flex',alignItems:'center',gap:8,transition:'background .12s'}} onMouseEnter={e=>e.currentTarget.style.background=`${color}10`} onMouseLeave={e=>e.currentTarget.style.background=activeTab===t?`${color}18`:'transparent'}>
                       <span>{icon}</span>{label}
                       {t==='admin'&&<span style={{marginLeft:'auto',width:5,height:5,borderRadius:'50%',background:'#f0a030',boxShadow:'0 0 4px #f0a030',display:'block'}} />}
                     </button>
@@ -1264,45 +1270,45 @@ export default function DashboardPage() {
           {/* Right controls */}
           <div className="wt-topbar-controls-full" style={{marginLeft:'auto',alignItems:'center',gap:8,height:'100%'}}>
             {/* Sync status */}
-            <div style={{display:'flex',alignItems:'center',gap:5,fontSize:'0.68rem',color:'var(--wt-muted)',borderRight:'1px solid #1d2535',paddingRight:10,height:'100%'}}>
+            <div style={{display:'flex',alignItems:'center',gap:5,fontSize:'0.84rem',color:'var(--wt-muted)',borderRight:'1px solid #1d2535',paddingRight:10,height:'100%'}}>
               {demoMode && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#f0a030',display:'block'}} />{tools.filter(t=>t.active).length} tools</span>}
               {!demoMode && syncStatus==='syncing' && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:8,height:8,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}} /><span style={{color:'#4f8fff'}}>Syncing</span></span>}
               {!demoMode && syncStatus==='error' && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#f0405e',display:'block'}} /><span style={{color:'#f0405e'}}>Error</span></span>}
               {!demoMode && syncStatus==='ok' && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',display:'block'}} />{tools.filter(t=>t.active).length} live</span>}
               {!demoMode && syncStatus==='idle' && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#6b7a94',display:'block'}} />{Object.keys(connectedTools).length}</span>}
-              {!demoMode && Object.keys(connectedTools).length>0 && <button onClick={()=>doSync()} disabled={syncStatus==='syncing'} style={{padding:'2px 8px',borderRadius:5,border:'1px solid #4f8fff30',background:'#4f8fff0f',color:'#4f8fff',fontSize:'0.6rem',fontWeight:700,cursor:syncStatus==='syncing'?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',opacity:syncStatus==='syncing'?0.6:1}}>⟳</button>}
+              {!demoMode && Object.keys(connectedTools).length>0 && <button onClick={()=>doSync()} disabled={syncStatus==='syncing'} style={{padding:'2px 8px',borderRadius:5,border:'1px solid #4f8fff30',background:'#4f8fff0f',color:'#4f8fff',fontSize:'0.84rem',fontWeight:700,cursor:syncStatus==='syncing'?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',opacity:syncStatus==='syncing'?0.6:1}}>⟳</button>}
             </div>
             {/* Automation */}
             {canUse('team') ? (
               <div style={{display:'flex',alignItems:'center',gap:3,padding:'3px 8px',borderRadius:7,background:'var(--wt-card2)',border:'1px solid #1d2535'}}>
-                <span style={{fontSize:'0.58rem',color:'var(--wt-muted)'}}>Auto:</span>
+                <span style={{fontSize:'0.82rem',color:'var(--wt-muted)'}}>Auto:</span>
                 {(['Rec','Notify','Full']).map((l,i)=>(
-                  <button key={l} onClick={()=>{setAutomation(i);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({automation:String(i)})}).catch(()=>{});}} style={{padding:'2px 6px',borderRadius:4,fontSize:'0.56rem',fontWeight:700,border:'none',cursor:'pointer',background:automation===i?autColor:'transparent',color:automation===i?'#fff':'#6b7a94',fontFamily:'Inter,sans-serif'}}>{l}</button>
+                  <button key={l} onClick={()=>{setAutomation(i);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({automation:String(i)})}).catch(()=>{});}} style={{padding:'2px 6px',borderRadius:4,fontSize:'0.8rem',fontWeight:700,border:'none',cursor:'pointer',background:automation===i?autColor:'transparent',color:automation===i?'#fff':'#6b7a94',fontFamily:'Inter,sans-serif'}}>{l}</button>
                 ))}
               </div>
             ) : (
-              <a href='/pricing' style={{fontSize:'0.6rem',color:'#4f8fff',fontWeight:700,textDecoration:'none',padding:'3px 8px',borderRadius:6,border:'1px solid #4f8fff20',background:'#4f8fff08'}}>🔒 Upgrade</a>
+              <a href='/pricing' style={{fontSize:'0.84rem',color:'#4f8fff',fontWeight:700,textDecoration:'none',padding:'3px 8px',borderRadius:6,border:'1px solid #4f8fff20',background:'#4f8fff08'}}>🔒 Upgrade</a>
             )}
             {/* Demo/Live toggle */}
-            <button onClick={()=>setDemoMode(d=>{const next=!d;if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode',String(next));fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});return next;})} style={{padding:'3px 10px',borderRadius:6,border:`1px solid ${demoMode?'#f0a03030':'#22d49a30'}`,background:demoMode?'#f0a03010':'#22d49a10',color:demoMode?'#f0a030':'#22d49a',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>{demoMode?'DEMO':'LIVE'}</button>
+            <button onClick={()=>setDemoMode(d=>{const next=!d;if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode',String(next));fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});return next;})} style={{padding:'3px 10px',borderRadius:6,border:`1px solid ${demoMode?'#f0a03030':'#22d49a30'}`,background:demoMode?'#f0a03010':'#22d49a10',color:demoMode?'#f0a030':'#22d49a',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>{demoMode?'DEMO':'LIVE'}</button>
             {/* Admin: tier sim + tenant */}
-            {isAdmin&&<select value={userTier} onChange={e=>{setUserTier(e.target.value);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({userTier:e.target.value})}).catch(()=>{});}} style={{padding:'3px 6px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.58rem',fontWeight:700,fontFamily:'Inter,sans-serif',cursor:'pointer',outline:'none'}}>
+            {isAdmin&&<select value={userTier} onChange={e=>{setUserTier(e.target.value);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({userTier:e.target.value})}).catch(()=>{});}} style={{padding:'3px 6px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.82rem',fontWeight:700,fontFamily:'Inter,sans-serif',cursor:'pointer',outline:'none'}}>
               {([['community','Free'],['team','Essentials'],['business','Pro'],['mssp','Enterprise']]).map(([v,l])=><option key={v} value={v}>{l}</option>)}
             </select>}
-            {isAdmin&&<select value={currentTenant} onChange={e=>setCurrentTenant(e.target.value)} style={{padding:'3px 6px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.6rem',fontFamily:'Inter,sans-serif',cursor:'pointer',outline:'none',maxWidth:120}}>
+            {isAdmin&&<select value={currentTenant} onChange={e=>setCurrentTenant(e.target.value)} style={{padding:'3px 6px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.84rem',fontFamily:'Inter,sans-serif',cursor:'pointer',outline:'none',maxWidth:120}}>
               {DEMO_TENANTS.map(t=>(<option key={t.id} value={t.id}>{t.type==='client'?'◦ ':''}{t.name}</option>))}
             </select>}
             {/* Utils */}
-            {canUse('team')&&<button onClick={()=>setActiveTab('incidents')} style={{padding:'3px 8px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff0a',color:'#8b6fff',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>⇄ Handover</button>}
+            {canUse('team')&&<button onClick={()=>setActiveTab('incidents')} style={{padding:'3px 8px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff0a',color:'#8b6fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>⇄ Handover</button>}
             <button onClick={toggleTheme} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem',flexShrink:0}}>{theme==='dark'?'☀️':'🌙'}</button>
             <a href='/settings' style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.82rem',color:'inherit',textDecoration:'none',flexShrink:0}}>⚙️</a>
-            {canUse('business')&&<button onClick={()=>setActiveTab('compliance')} style={{padding:'3px 8px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}} title='CISO Board Report'>📊 CISO</button>}
+            {canUse('business')&&<button onClick={()=>setActiveTab('compliance')} style={{padding:'3px 8px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}} title='CISO Board Report'>📊 CISO</button>}
             <button onClick={async()=>{await fetch('/api/auth/logout',{method:'POST'});window.location.href='/login';}} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.8rem',color:'var(--wt-dim)',flexShrink:0}} title='Sign out'>↩</button>
           </div>
           {/* Mobile: logo + demo toggle only */}
           <div className="wt-topbar-controls-mobile" style={{marginLeft:'auto',alignItems:'center',gap:6}}>
             <button onClick={toggleTheme} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem'}}>{theme==='dark'?'☀️':'🌙'}</button>
-            <button onClick={()=>setDemoMode(d=>{const next=!d;if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode',String(next));fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});return next;})} style={{padding:'3px 8px',borderRadius:6,border:`1px solid ${demoMode?'#f0a03030':'#22d49a30'}`,background:demoMode?'#f0a03010':'#22d49a10',color:demoMode?'#f0a030':'#22d49a',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{demoMode?'DEMO':'LIVE'}</button>
+            <button onClick={()=>setDemoMode(d=>{const next=!d;if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode',String(next));fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});return next;})} style={{padding:'3px 8px',borderRadius:6,border:`1px solid ${demoMode?'#f0a03030':'#22d49a30'}`,background:demoMode?'#f0a03010':'#22d49a10',color:demoMode?'#f0a030':'#22d49a',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{demoMode?'DEMO':'LIVE'}</button>
           </div>
         </div>
 
@@ -1314,11 +1320,11 @@ export default function DashboardPage() {
             <div style={{padding:'12px 16px',background:'#4f8fff08',border:'1px solid #4f8fff20',borderRadius:10,marginBottom:14,display:'flex',alignItems:'center',gap:10}}>
               {syncStatus==='syncing' ? <span style={{width:12,height:12,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite',flexShrink:0}} /> : <span style={{fontSize:'0.9rem'}}>📡</span>}
               <div style={{flex:1}}>
-                <div style={{fontSize:'0.74rem',fontWeight:700,color:'#4f8fff'}}>{syncStatus==='syncing'?'Fetching live data from connected tools…':'Live mode — awaiting first sync'}</div>
-                {syncError && <div style={{fontSize:'0.64rem',color:'#f0405e',marginTop:2}}>{syncError}</div>}
-                {!syncError && syncStatus!=='syncing' && <div style={{fontSize:'0.64rem',color:'var(--wt-muted)',marginTop:1}}>Connected: {Object.keys(connectedTools).slice(0,5).join(', ')}{Object.keys(connectedTools).length>5?` +${Object.keys(connectedTools).length-5} more`:''} · Syncs every 60s</div>}
+                <div style={{fontSize:'0.82rem',fontWeight:700,color:'#4f8fff'}}>{syncStatus==='syncing'?'Fetching live data from connected tools…':'Live mode — awaiting first sync'}</div>
+                {syncError && <div style={{fontSize:'0.8rem',color:'#f0405e',marginTop:2}}>{syncError}</div>}
+                {!syncError && syncStatus!=='syncing' && <div style={{fontSize:'0.8rem',color:'var(--wt-muted)',marginTop:1}}>Connected: {Object.keys(connectedTools).slice(0,5).join(', ')}{Object.keys(connectedTools).length>5?` +${Object.keys(connectedTools).length-5} more`:''} · Syncs every 60s</div>}
               </div>
-              {!syncError && syncStatus!=='syncing' && <button onClick={()=>fetch('/api/integrations/sync',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({integrations:Object.keys(connectedTools).map(id=>({id}))})}).then(r=>r.json()).then(d=>setSyncStatus('ok'))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.64rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>⟳ Sync now</button>}
+              {!syncError && syncStatus!=='syncing' && <button onClick={()=>fetch('/api/integrations/sync',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({integrations:Object.keys(connectedTools).map(id=>({id}))})}).then(r=>r.json()).then(d=>setSyncStatus('ok'))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.8rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>⟳ Sync now</button>}
             </div>
           )}
           {/* AI key prompt: shown in live mode with tools connected but before AI features used */}
@@ -1333,34 +1339,34 @@ export default function DashboardPage() {
               <div style={{padding:'12px 16px',background:'linear-gradient(135deg,rgba(139,111,255,0.06),rgba(79,143,255,0.04))',border:'1px solid #8b6fff25',borderRadius:10,marginBottom:14,display:'flex',alignItems:'center',gap:10}}>
                 <span style={{fontSize:'0.9rem'}}>🧠</span>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:'0.74rem',fontWeight:700,color:'#8b6fff'}}>Add your Anthropic API key to unlock APEX AI triage</div>
-                  <div style={{fontSize:'0.64rem',color:'var(--wt-muted)',marginTop:1}}>BYOK — your key, your data. AI costs go direct to your Anthropic account.</div>
+                  <div style={{fontSize:'0.82rem',fontWeight:700,color:'#8b6fff'}}>Add your Anthropic API key to unlock APEX AI triage</div>
+                  <div style={{fontSize:'0.8rem',color:'var(--wt-muted)',marginTop:1}}>BYOK — your key, your data. AI costs go direct to your Anthropic account.</div>
                 </div>
-                <button onClick={()=>setActiveTab('tools')} style={{padding:'5px 12px',borderRadius:6,background:'#8b6fff',color:'#fff',border:'none',fontSize:'0.66rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Add key →</button>
+                <button onClick={()=>setActiveTab('tools')} style={{padding:'5px 12px',borderRadius:6,background:'#8b6fff',color:'#fff',border:'none',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Add key →</button>
               </div>
             </div>
           )}
           {!demoMode && automation >= 1 && (
             <div style={{display:'flex',alignItems:'center',gap:10,padding:'7px 18px',background:automation===2?'#22d49a0c':'#f0a0300c',borderBottom:`1px solid ${automation===2?'#22d49a20':'#f0a03020'}`,flexShrink:0}}>
               <span style={{fontSize:'0.8rem'}}>{automation===2?'🤖':'✦'}</span>
-              <span style={{fontSize:'0.72rem',fontWeight:700,color:automation===2?'#22d49a':'#f0a030'}}>{autLabel} active</span>
-              <span style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>—</span>
-              <span style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>
+              <span style={{fontSize:'0.8rem',fontWeight:700,color:automation===2?'#22d49a':'#f0a030'}}>{autLabel} active</span>
+              <span style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>—</span>
+              <span style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>
                 {automation===1
                   ? `Auto-closing FPs ≥90% confidence · notifying team on Critical/High TPs · ${actedAlerts.length > 0 ? `${actedAlerts.length} actioned this session` : 'no actions yet this session'}`
                   : `Acting autonomously on all high-confidence alerts · ${actedAlerts.length > 0 ? `${actedAlerts.length} actioned this session` : 'no actions yet this session'}`
                 }
               </span>
-              {actedAlerts.length > 0 && <span style={{marginLeft:'auto',fontSize:'0.62rem',padding:'2px 8px',borderRadius:4,background:`${autColor}15`,color:autColor,fontWeight:700,border:`1px solid ${autColor}25`}}>{actedAlerts.length} action{actedAlerts.length!==1?'s':''}</span>}
+              {actedAlerts.length > 0 && <span style={{marginLeft:'auto',fontSize:'0.86rem',padding:'2px 8px',borderRadius:4,background:`${autColor}15`,color:autColor,fontWeight:700,border:`1px solid ${autColor}25`}}>{actedAlerts.length} action{actedAlerts.length!==1?'s':''}</span>}
             </div>
           )}
 
           {!demoMode && Object.keys(connectedTools).length === 0 && (
             <div style={{background:'linear-gradient(145deg,#0d111e,#0a0d18)',border:'1px solid #4f8fff25',borderRadius:14,marginBottom:14,overflow:'hidden'}}>
               <div style={{padding:'16px 20px',borderBottom:'1px solid #1a2535'}}>
-                <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1px',marginBottom:4}}>Getting Started</div>
+                <div style={{fontSize:'0.86rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1px',marginBottom:4}}>Getting Started</div>
                 <div style={{fontSize:'0.9rem',fontWeight:700,marginBottom:2}}>Connect your first tool to see live data</div>
-                <div style={{fontSize:'0.72rem',color:'var(--wt-muted)'}}>Your SOC data from CrowdStrike, Splunk, Tenable, Okta and 76 more will appear here automatically.</div>
+                <div style={{fontSize:'0.8rem',color:'var(--wt-muted)'}}>Your SOC data from CrowdStrike, Splunk, Tenable, Okta and 76 more will appear here automatically.</div>
               </div>
               <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:0}}>
                 {[
@@ -1369,17 +1375,17 @@ export default function DashboardPage() {
                   {step:'03',icon:'⚡',title:'See live alerts',desc:'Once connected, Watchtower syncs every 60s. Click Deep Analyse on any alert for APEX investigation.',action:null,cta:null},
                 ].map((s,i)=>(
                   <div key={s.step} style={{padding:'16px 18px',borderRight:i<2?'1px solid #1a2535':'none'}}>
-                    <div style={{fontSize:'0.52rem',fontWeight:800,color:'#4f8fff30',fontFamily:'JetBrains Mono,monospace',letterSpacing:'2px',marginBottom:4}}>{s.step}</div>
+                    <div style={{fontSize:'0.84rem',fontWeight:800,color:'#4f8fff30',fontFamily:'JetBrains Mono,monospace',letterSpacing:'2px',marginBottom:4}}>{s.step}</div>
                     <div style={{fontSize:'1rem',marginBottom:6}}>{s.icon}</div>
-                    <div style={{fontSize:'0.76rem',fontWeight:700,marginBottom:4}}>{s.title}</div>
-                    <div style={{fontSize:'0.66rem',color:'var(--wt-muted)',lineHeight:1.5,marginBottom:10}}>{s.desc}</div>
-                    {s.action && <button onClick={s.action} style={{padding:'5px 12px',borderRadius:6,background:'#4f8fff',color:'#fff',border:'none',fontSize:'0.66rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{s.cta} →</button>}
+                    <div style={{fontSize:'0.84rem',fontWeight:700,marginBottom:4}}>{s.title}</div>
+                    <div style={{fontSize:'0.82rem',color:'var(--wt-muted)',lineHeight:1.5,marginBottom:10}}>{s.desc}</div>
+                    {s.action && <button onClick={s.action} style={{padding:'5px 12px',borderRadius:6,background:'#4f8fff',color:'#fff',border:'none',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{s.cta} →</button>}
                   </div>
                 ))}
               </div>
               <div style={{padding:'10px 20px',borderTop:'1px solid #1a2535',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                <span style={{fontSize:'0.64rem',color:'var(--wt-dim)'}}>Not ready to connect? Explore with demo data first.</span>
-                <button onClick={()=>setDemoMode(true)} style={{padding:'5px 14px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.66rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Switch to Demo mode</button>
+                <span style={{fontSize:'0.8rem',color:'var(--wt-dim)'}}>Not ready to connect? Explore with demo data first.</span>
+                <button onClick={()=>setDemoMode(true)} style={{padding:'5px 14px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Switch to Demo mode</button>
               </div>
             </div>
           )}
@@ -1393,7 +1399,7 @@ export default function DashboardPage() {
                 {[
                   {val:critAlerts.length, label:'Critical Alerts', color:'#f0405e', sub:critAlerts.length>0?'Immediate action':demoMode?'Demo data':'Live', tab:'alerts', icon:'🔴', onClickExtra:()=>setAlertSevFilter('Critical')},
                   {val:totalAlerts, label:'Total Alerts', color:'#f97316', sub:(!demoMode&&liveAlerts.length>0?'Live from tools':'Today'), tab:'alerts', icon:'🔔'},
-                  {val:openCases, label:'Open Cases', color:'#f0a030', sub:slaBreaches>0?`${slaBreaches} SLA breach`:'All on track', tab:'incidents', icon:'📋'},
+                  {val:openCases, label:'Active Cases', color:'#f0a030', sub:slaBreaches>0?`${slaBreaches} SLA breach`:'All on track', tab:'incidents', icon:'📋'},
                   {val:critVulns.length, label:'Critical Vulns', color:'#8b6fff', sub:kevVulns.length>0?`${kevVulns.length} CISA KEV`:'High/Crit only', tab:'vulns', icon:'🔍'},
                   {val:posture, label:'Posture Score', color:postureColor, sub:posture>=80?'Good standing':posture>=60?'Needs attention':'At risk', tab:'overview', icon:'🛡'},
                 ].map(s=>(
@@ -1402,11 +1408,11 @@ export default function DashboardPage() {
                     onMouseLeave={e=>{e.currentTarget.style.borderColor=s.color+'25';e.currentTarget.style.transform='none';}}>
                     <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:4}}>
                       <span style={{fontSize:'0.75rem'}}>{s.icon}</span>
-                      {s.tab!=='overview'&&<span style={{fontSize:'0.5rem',color:s.color,fontWeight:700,opacity:0.7}}>↗</span>}
+                      {s.tab!=='overview'&&<span style={{fontSize:'0.84rem',color:s.color,fontWeight:700,opacity:0.7}}>↗</span>}
                     </div>
                     <div style={{fontSize:'1.8rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,lineHeight:1}}>{s.val}</div>
-                    <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-text)',marginTop:4,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{s.label}</div>
-                    <div style={{fontSize:'0.56rem',color:s.color,marginTop:2,opacity:0.8}}>{s.sub}</div>
+                    <div style={{fontSize:'0.86rem',fontWeight:700,color:'var(--wt-text)',marginTop:4,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{s.label}</div>
+                    <div style={{fontSize:'0.8rem',color:s.color,marginTop:2,opacity:0.8}}>{s.sub}</div>
                   </div>
                 ))}
               </div>
@@ -1428,12 +1434,12 @@ export default function DashboardPage() {
                     <div style={{display:'flex',alignItems:'center',gap:10,padding:'10px 16px',borderBottom:`1px solid ${tlColor}15`}}>
                       <div style={{display:'flex',alignItems:'center',gap:6}}>
                         <div style={{width:8,height:8,borderRadius:'50%',background:tlColor,boxShadow:`0 0 8px ${tlColor}`,animation:tlevel==='CRITICAL'?'pulse 1s ease infinite':tlevel==='HIGH'?'pulse 2s ease infinite':'none'}} />
-                        <span style={{fontSize:'0.58rem',fontWeight:900,color:tlColor,letterSpacing:'1.5px'}}>THREAT LEVEL — {tlevel}</span>
+                        <span style={{fontSize:'0.82rem',fontWeight:900,color:tlColor,letterSpacing:'1.5px'}}>THREAT LEVEL — {tlevel}</span>
                       </div>
                       <div style={{marginLeft:'auto',display:'flex',gap:6,alignItems:'center'}}>
-                        <span style={{fontSize:'0.54rem',color:'var(--wt-dim)'}}>{demoMode?'Demo':'Live'} · {new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span>
-                        {canUse('team') ? <button onClick={()=>{setShowCopilot(s=>!s);setTimeout(()=>copilotBottomRef.current?.scrollIntoView({behavior:'auto'}),100);}} style={{fontSize:'0.58rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:`1px solid ${tlColor}30`,background:`${tlColor}0a`,color:tlColor,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✦ Co-Pilot</button> : <a href='/pricing' style={{fontSize:'0.58rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff30',background:'#4f8fff0a',color:'#4f8fff',textDecoration:'none'}}>🔒 Co-Pilot</a>}
-                        <button onClick={async()=>{setHandoverLoading(true);setShiftHandover(null);try{const activeIncs=incidents.filter(i=>!deletedIncidents.has(i.id)&&(incidentStatuses[i.id]||i.status)==='Active');const r=await fetch('/api/shift-handover',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({openAlerts:totalAlerts,critAlerts:critAlerts.length,openCases,slaBreaches,tools:Object.keys(connectedTools).length,posture,topAlert:critAlerts[0]?.title||alerts[0]?.title||'',openIncidents:activeIncs.map(i=>i.title).slice(0,5),analyst:currentUserName||'Analyst'})});const d=await r.json();if(d.ok&&d.handover)setShiftHandover(d.handover);else setShiftHandover({summary:d.error||'Generation failed — check your Anthropic API key in Tools.',keyActions:[],generatedAt:new Date().toISOString()});}catch(e){setShiftHandover({summary:'Connection error: '+e.message,keyActions:[],generatedAt:new Date().toISOString()});}setHandoverLoading(false);}} disabled={handoverLoading} style={{fontSize:'0.58rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',cursor:handoverLoading?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:3}}>{handoverLoading&&<span style={{display:'inline-block',width:7,height:7,borderRadius:'50%',border:'1.5px solid #22d49a',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />}⇄ Handover</button>
+                        <span style={{fontSize:'0.86rem',color:'var(--wt-dim)'}}>{demoMode?'Demo':'Live'} · {new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span>
+                        {canUse('team') ? <button onClick={()=>{setShowCopilot(s=>!s);setTimeout(()=>copilotBottomRef.current?.scrollIntoView({behavior:'auto'}),100);}} style={{fontSize:'0.82rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:`1px solid ${tlColor}30`,background:`${tlColor}0a`,color:tlColor,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✦ Co-Pilot</button> : <a href='/pricing' style={{fontSize:'0.82rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff30',background:'#4f8fff0a',color:'#4f8fff',textDecoration:'none'}}>🔒 Co-Pilot</a>}
+                        <button onClick={async()=>{setHandoverLoading(true);setShiftHandover(null);try{const activeIncs=incidents.filter(i=>!deletedIncidents.has(i.id)&&(incidentStatuses[i.id]||i.status)==='Active');const r=await fetch('/api/shift-handover',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({openAlerts:totalAlerts,critAlerts:critAlerts.length,openCases,slaBreaches,tools:Object.keys(connectedTools).length,posture,topAlert:critAlerts[0]?.title||alerts[0]?.title||'',openIncidents:activeIncs.map(i=>i.title).slice(0,5),analyst:currentUserName||'Analyst'})});const d=await r.json();if(d.ok&&d.handover)setShiftHandover(d.handover);else setShiftHandover({summary:d.error||'Generation failed — check your Anthropic API key in Tools.',keyActions:[],generatedAt:new Date().toISOString()});}catch(e){setShiftHandover({summary:'Connection error: '+e.message,keyActions:[],generatedAt:new Date().toISOString()});}setHandoverLoading(false);}} disabled={handoverLoading} style={{fontSize:'0.82rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',cursor:handoverLoading?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:3}}>{handoverLoading&&<span style={{display:'inline-block',width:7,height:7,borderRadius:'50%',border:'1.5px solid #22d49a',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />}⇄ Handover</button>
                       </div>
                     </div>
                     <div style={{padding:'10px 16px',display:'flex',flexDirection:'column',gap:5}}>
@@ -1441,8 +1447,8 @@ export default function DashboardPage() {
                         <div key={i} onClick={()=>setActiveTab(a.tab)} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 8px',borderRadius:7,cursor:'pointer',transition:'background .12s',background:i===0&&tlevel!=='GUARDED'?`${a.color}08`:'transparent'}}
                           onMouseEnter={e=>e.currentTarget.style.background=`${a.color}10`} onMouseLeave={e=>e.currentTarget.style.background=i===0&&tlevel!=='GUARDED'?`${a.color}08`:'transparent'}>
                           <span style={{fontSize:'0.75rem',flexShrink:0}}>{a.icon}</span>
-                          <span style={{fontSize:'0.74rem',fontWeight:i===0?700:500,color:i===0?a.color:'var(--wt-secondary)',flex:1}}>{a.text}</span>
-                          <span style={{fontSize:'0.54rem',color:'var(--wt-dim)'}}>↗</span>
+                          <span style={{fontSize:'0.82rem',fontWeight:i===0?700:500,color:i===0?a.color:'var(--wt-secondary)',flex:1}}>{a.text}</span>
+                          <span style={{fontSize:'0.86rem',color:'var(--wt-dim)'}}>↗</span>
                         </div>
                       ))}
                     </div>
@@ -1453,13 +1459,80 @@ export default function DashboardPage() {
               {shiftHandover&&(
                 <div style={{background:'#06100e',border:'1px solid #22d49a25',borderRadius:10,padding:'12px 16px',position:'relative'}}>
                   <button onClick={()=>setShiftHandover(null)} style={{position:'absolute',top:8,right:10,background:'none',border:'none',color:'var(--wt-dim)',cursor:'pointer',fontSize:'0.8rem'}}>×</button>
-                  <div style={{fontSize:'0.6rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>⇄ Shift Handover Brief</div>
-                  <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:8}}>{shiftHandover.summary}</div>
-                  {shiftHandover.recommendation&&<div style={{fontSize:'0.68rem',color:'#22d49a',fontWeight:600,marginBottom:8}}>Priority: {shiftHandover.recommendation}</div>}
-                  {(shiftHandover.keyActions||[]).length>0&&(<div style={{marginTop:6}}><div style={{fontSize:'0.58rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Actions for incoming analyst</div>{(shiftHandover.keyActions||[]).map((a,i)=><div key={i} style={{fontSize:'0.68rem',color:'var(--wt-secondary)',padding:'2px 0 2px 12px',position:'relative',lineHeight:1.5}}><span style={{position:'absolute',left:0,top:8,width:4,height:4,borderRadius:'50%',background:'#22d49a',display:'block'}} />{a}</div>)}</div>)}
-                  <div style={{marginTop:6,fontSize:'0.54rem',color:'var(--wt-dim)'}}>Generated {new Date(shiftHandover.generatedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
+                  <div style={{fontSize:'0.84rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>⇄ Shift Handover Brief</div>
+                  <div style={{fontSize:'0.82rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:8}}>{shiftHandover.summary}</div>
+                  {shiftHandover.recommendation&&<div style={{fontSize:'0.84rem',color:'#22d49a',fontWeight:600,marginBottom:8}}>Priority: {shiftHandover.recommendation}</div>}
+                  {(shiftHandover.keyActions||[]).length>0&&(<div style={{marginTop:6}}><div style={{fontSize:'0.82rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Actions for incoming analyst</div>{(shiftHandover.keyActions||[]).map((a,i)=><div key={i} style={{fontSize:'0.84rem',color:'var(--wt-secondary)',padding:'2px 0 2px 12px',position:'relative',lineHeight:1.5}}><span style={{position:'absolute',left:0,top:8,width:4,height:4,borderRadius:'50%',background:'#22d49a',display:'block'}} />{a}</div>)}</div>)}
+                  <div style={{marginTop:6,fontSize:'0.86rem',color:'var(--wt-dim)'}}>Generated {new Date(shiftHandover.generatedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
                 </div>
               )}
+
+              {/* ── LIVE THREAT INTEL + RECENT INCIDENTS ────────────────────── */}
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}} className='wt-two-col'>
+                {/* Emerging threats */}
+                <div style={{background:'var(--wt-card)',border:'1px solid #f0405e18',borderRadius:12,padding:'14px'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                    <span style={{fontSize:'0.86rem',fontWeight:800,color:'#f0405e',textTransform:'uppercase',letterSpacing:'0.5px'}}>Emerging Threats</span>
+                    <span style={{fontSize:'0.86rem',color:'var(--wt-dim)',marginLeft:'auto'}}>for {industry}</span>
+                    <button onClick={()=>setActiveTab('intel')} style={{fontSize:'0.8rem',color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',padding:0}}>View all ↗</button>
+                  </div>
+                  {(customIntel && customIntel.length > 0 ? customIntel : (DEMO_INTEL_BY_INDUSTRY[industry]||DEMO_INTEL_BY_INDUSTRY['default']||[])).slice(0,3).map((item,i)=>{
+                    const c={Critical:'#f0405e',High:'#f97316',Medium:'#f0a030',Low:'#4f8fff'}[item.severity]||'#6b7a94';
+                    return (
+                      <div key={item.id||i} style={{padding:'8px 0',borderBottom:'1px solid var(--wt-border)',display:'flex',gap:8,alignItems:'flex-start'}}>
+                        <span style={{width:6,height:6,borderRadius:'50%',background:c,flexShrink:0,marginTop:5}} />
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:'0.86rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.title}</div>
+                          <div style={{fontSize:'0.84rem',color:'var(--wt-muted)',marginTop:1}}>{item.source} · {item.time}</div>
+                        </div>
+                        <span style={{fontSize:'0.84rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:`${c}18`,color:c,flexShrink:0}}>{item.severity}</span>
+                      </div>
+                    );
+                  })}
+                  {(!customIntel || customIntel.length === 0) && (!DEMO_INTEL_BY_INDUSTRY[industry]||DEMO_INTEL_BY_INDUSTRY[industry].length===0) && (
+                    <div style={{fontSize:'0.84rem',color:'var(--wt-muted)',padding:'8px 0',textAlign:'center'}}>
+                      {demoMode?'Demo intel loading…':'Connect Threat Intel tools to see live feeds'}
+                    </div>
+                  )}
+                  {livetenableNews.length>0 && (
+                    <div style={{marginTop:8,paddingTop:8,borderTop:'1px solid var(--wt-border)'}}>
+                      <div style={{fontSize:'0.8rem',fontWeight:700,color:'#00b3e3',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Tenable Research</div>
+                      {livetenableNews.slice(0,2).map((item,i)=>(
+                        <div key={i} style={{fontSize:'0.8rem',color:'var(--wt-secondary)',padding:'3px 0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.title}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Recent incident activity */}
+                <div style={{background:'var(--wt-card)',border:'1px solid #8b6fff18',borderRadius:12,padding:'14px'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                    <span style={{fontSize:'0.86rem',fontWeight:800,color:'#8b6fff',textTransform:'uppercase',letterSpacing:'0.5px'}}>Active Incidents</span>
+                    <button onClick={()=>setActiveTab('incidents')} style={{fontSize:'0.8rem',color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',padding:0,marginLeft:'auto'}}>View all ↗</button>
+                  </div>
+                  {incidents.filter(i=>(incidentStatuses[i.id]||i.status)!=='Resolved'&&!deletedIncidents.has(i.id)).slice(0,4).map(inc=>{
+                    const st=incidentStatuses[inc.id]||inc.status;
+                    const sc=st==='Active'?'#f0405e':st==='Escalated'?'#8b6fff':st==='Contained'?'#f0a030':'#22d49a';
+                    return (
+                      <div key={inc.id} onClick={()=>{setActiveTab('incidents');}} style={{padding:'7px 0',borderBottom:'1px solid var(--wt-border)',display:'flex',gap:8,alignItems:'center',cursor:'pointer'}}>
+                        <div style={{width:6,height:6,borderRadius:'50%',background:sc,flexShrink:0}} />
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:'0.86rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{inc.title}</div>
+                          <div style={{display:'flex',gap:6,marginTop:1}}>
+                            <span style={{fontSize:'0.86rem',fontWeight:700,color:sc}}>{st}</span>
+                            {inc.assignedTo && <span style={{fontSize:'0.86rem',color:'var(--wt-dim)'}}>{inc.assignedTo.split(' ')[0]}</span>}
+                          </div>
+                        </div>
+                        <span style={{fontSize:'0.84rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:`${SEV_COLOR[inc.severity]||'#6b7a94'}18`,color:SEV_COLOR[inc.severity]||'#6b7a94',flexShrink:0}}>{inc.severity}</span>
+                      </div>
+                    );
+                  })}
+                  {incidents.filter(i=>(incidentStatuses[i.id]||i.status)!=='Resolved'&&!deletedIncidents.has(i.id)).length===0 && (
+                    <div style={{fontSize:'0.84rem',color:'#22d49a',padding:'8px 0',textAlign:'center'}}>No active incidents</div>
+                  )}
+                </div>
+              </div>
+
 
               {/* ── FOUR QUADRANT DRILL-DOWN GRID ────────────────────────────────── */}
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}} className='wt-two-col'>
@@ -1468,8 +1541,8 @@ export default function DashboardPage() {
                 <div onClick={()=>setActiveTab('alerts')} style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px',cursor:'pointer',transition:'border-color .15s'}}
                   onMouseEnter={e=>e.currentTarget.style.borderColor='#f0405e40'} onMouseLeave={e=>e.currentTarget.style.borderColor='var(--wt-border)'}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
-                    <span style={{fontSize:'0.62rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Alerts by Severity</span>
-                    <span style={{marginLeft:'auto',fontSize:'0.56rem',color:'#f0405e'}}>View all ↗</span>
+                    <span style={{fontSize:'0.86rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Alerts by Severity</span>
+                    <span style={{marginLeft:'auto',fontSize:'0.8rem',color:'#f0405e'}}>View all ↗</span>
                   </div>
                   {(['Critical','High','Medium','Low']).map(sev=>{
                     const count = alerts.filter(a=>a.severity===sev).length;
@@ -1481,8 +1554,8 @@ export default function DashboardPage() {
                     return (
                       <div key={sev} style={{marginBottom:6}}>
                         <div style={{display:'flex',justifyContent:'space-between',marginBottom:2}}>
-                          <span style={{fontSize:'0.62rem',color:'var(--wt-secondary)',fontWeight:600}}>{sev}</span>
-                          <span style={{fontSize:'0.62rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:c}}>{shown}</span>
+                          <span style={{fontSize:'0.86rem',color:'var(--wt-secondary)',fontWeight:600}}>{sev}</span>
+                          <span style={{fontSize:'0.86rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:c}}>{shown}</span>
                         </div>
                         <div style={{height:4,background:'var(--wt-border)',borderRadius:2,overflow:'hidden'}}>
                           <div style={{height:'100%',width:`${pct}%`,background:c,borderRadius:2,transition:'width .6s ease'}} />
@@ -1490,7 +1563,7 @@ export default function DashboardPage() {
                       </div>
                     );
                   })}
-                  <div style={{marginTop:8,fontSize:'0.58rem',color:'var(--wt-muted)'}}>
+                  <div style={{marginTop:8,fontSize:'0.82rem',color:'var(--wt-muted)'}}>
                     {fpAlerts.length>0?`${fpAlerts.length} auto-closed FP${fpAlerts.length!==1?'s':''} · `:''}{tpAlerts.length>0?`${tpAlerts.length} confirmed TP${tpAlerts.length!==1?'s':''}`:demoMode?'AI triage active':'Awaiting triage'}
                   </div>
                 </div>
@@ -1499,47 +1572,47 @@ export default function DashboardPage() {
                 <div onClick={()=>setModal({type:'gaps'})} style={{background:'var(--wt-card)',border:`1px solid ${coveredPct<80?'#f0405e':'var(--wt-border)'}20`,borderRadius:12,padding:'14px',cursor:'pointer',transition:'border-color .15s'}}
                   onMouseEnter={e=>e.currentTarget.style.borderColor=(coveredPct<80?'#f0405e':'#22d49a')+'60'} onMouseLeave={e=>e.currentTarget.style.borderColor=(coveredPct<80?'#f0405e':'var(--wt-border)')+'20'}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
-                    <span style={{fontSize:'0.62rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Estate Coverage</span>
-                    <span style={{marginLeft:'auto',fontSize:'0.56rem',color:'#22d49a'}}>Details ↗</span>
+                    <span style={{fontSize:'0.86rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Estate Coverage</span>
+                    <span style={{marginLeft:'auto',fontSize:'0.8rem',color:'#22d49a'}}>Details ↗</span>
                   </div>
                   <div style={{display:'flex',alignItems:'flex-end',gap:12,marginBottom:12}}>
                     <div style={{fontSize:'3rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:coveredPct>=90?'#22d49a':coveredPct>=70?'#f0a030':'#f0405e',lineHeight:1}}>{coveredPct}%</div>
                     <div style={{paddingBottom:6}}>
-                      <div style={{fontSize:'0.7rem',fontWeight:700,color:'var(--wt-text)'}}>Agents deployed</div>
-                      <div style={{fontSize:'0.6rem',color:'var(--wt-muted)'}}>{gapDevices.length} device{gapDevices.length!==1?'s':''} unprotected</div>
+                      <div style={{fontSize:'0.86rem',fontWeight:700,color:'var(--wt-text)'}}>Agents deployed</div>
+                      <div style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>{gapDevices.length} device{gapDevices.length!==1?'s':''} unprotected</div>
                     </div>
                   </div>
                   <div style={{height:6,background:'var(--wt-border)',borderRadius:3,overflow:'hidden',marginBottom:8}}>
                     <div style={{height:'100%',width:`${coveredPct}%`,background:coveredPct>=90?'#22d49a':coveredPct>=70?'#f0a030':'#f0405e',borderRadius:3,transition:'width .8s ease'}} />
                   </div>
                   {gapDevices.slice(0,3).map(d=>(
-                    <div key={d.hostname} style={{fontSize:'0.6rem',color:'#f0405e',padding:'2px 0',borderBottom:'1px solid #f0405e10',fontFamily:'JetBrains Mono,monospace'}}>{d.hostname} — {d.os||'Unknown OS'}</div>
+                    <div key={d.hostname} style={{fontSize:'0.84rem',color:'#f0405e',padding:'2px 0',borderBottom:'1px solid #f0405e10',fontFamily:'JetBrains Mono,monospace'}}>{d.hostname} — {d.os||'Unknown OS'}</div>
                   ))}
-                  {gapDevices.length>3&&<div style={{fontSize:'0.58rem',color:'var(--wt-muted)',marginTop:4}}>+{gapDevices.length-3} more — click to view all</div>}
+                  {gapDevices.length>3&&<div style={{fontSize:'0.82rem',color:'var(--wt-muted)',marginTop:4}}>+{gapDevices.length-3} more — click to view all</div>}
                 </div>
 
                 {/* Quadrant 3: Top vulns */}
                 <div onClick={()=>setActiveTab('vulns')} style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px',cursor:'pointer',transition:'border-color .15s'}}
                   onMouseEnter={e=>e.currentTarget.style.borderColor='#8b6fff40'} onMouseLeave={e=>e.currentTarget.style.borderColor='var(--wt-border)'}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
-                    <span style={{fontSize:'0.62rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Top Vulnerabilities</span>
-                    {kevVulns.length>0&&<span style={{fontSize:'0.5rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f97316',color:'#fff'}}>{kevVulns.length} KEV</span>}
-                    <span style={{marginLeft:'auto',fontSize:'0.56rem',color:'#8b6fff'}}>View all ↗</span>
+                    <span style={{fontSize:'0.86rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Top Vulnerabilities</span>
+                    {kevVulns.length>0&&<span style={{fontSize:'0.84rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f97316',color:'#fff'}}>{kevVulns.length} KEV</span>}
+                    <span style={{marginLeft:'auto',fontSize:'0.8rem',color:'#8b6fff'}}>View all ↗</span>
                   </div>
                   {vulns.slice(0,5).map((v,i)=>(
                     <div key={v.id} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 0',borderBottom:'1px solid var(--wt-border)'}}>
-                      <span style={{fontSize:'0.56rem',fontWeight:900,color:'var(--wt-dim)',minWidth:14,fontFamily:'JetBrains Mono,monospace'}}>{i+1}</span>
+                      <span style={{fontSize:'0.8rem',fontWeight:900,color:'var(--wt-dim)',minWidth:14,fontFamily:'JetBrains Mono,monospace'}}>{i+1}</span>
                       <div style={{flex:1,minWidth:0}}>
-                        <div style={{fontSize:'0.66rem',fontWeight:600,color:'var(--wt-text)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{v.title}</div>
+                        <div style={{fontSize:'0.82rem',fontWeight:600,color:'var(--wt-text)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{v.title}</div>
                         <div style={{display:'flex',gap:5,marginTop:1}}>
-                          <span style={{fontSize:'0.52rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:v.severity==='Critical'?'#f0405e':v.severity==='High'?'#f9731620':'#f0a03020',color:v.severity==='Critical'?'#fff':v.severity==='High'?'#f97316':'#f0a030'}}>{v.severity}</span>
-                          {v.cve&&<span style={{fontSize:'0.52rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{v.cve}</span>}
-                          {v.kev&&<span style={{fontSize:'0.48rem',fontWeight:800,padding:'0 3px',borderRadius:2,background:'#f97316',color:'#fff'}}>KEV</span>}
+                          <span style={{fontSize:'0.84rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:v.severity==='Critical'?'#f0405e':v.severity==='High'?'#f9731620':'#f0a03020',color:v.severity==='Critical'?'#fff':v.severity==='High'?'#f97316':'#f0a030'}}>{v.severity}</span>
+                          {v.cve&&<span style={{fontSize:'0.84rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{v.cve}</span>}
+                          {v.kev&&<span style={{fontSize:'0.58rem',fontWeight:800,padding:'0 3px',borderRadius:2,background:'#f97316',color:'#fff'}}>KEV</span>}
                         </div>
                       </div>
                     </div>
                   ))}
-                  {vulns.length===0&&<div style={{fontSize:'0.66rem',color:'var(--wt-muted)',textAlign:'center',padding:'16px 0'}}>No High/Critical vulns · {demoMode?'Switch to Live':'Check Tenable sync'}</div>}
+                  {vulns.length===0&&<div style={{fontSize:'0.82rem',color:'var(--wt-muted)',textAlign:'center',padding:'16px 0'}}>No High/Critical vulns · {demoMode?'Switch to Live':'Check Tenable sync'}</div>}
                 </div>
 
                 {/* Quadrant 4: Open cases + tool status */}
@@ -1548,31 +1621,31 @@ export default function DashboardPage() {
                   <div onClick={()=>setActiveTab('incidents')} style={{flex:1,background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px',cursor:'pointer',transition:'border-color .15s'}}
                     onMouseEnter={e=>e.currentTarget.style.borderColor='#f0a03040'} onMouseLeave={e=>e.currentTarget.style.borderColor='var(--wt-border)'}>
                     <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:8}}>
-                      <span style={{fontSize:'0.62rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Active Cases</span>
-                      {slaBreaches>0&&<span style={{fontSize:'0.5rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f0405e',color:'#fff'}}>{slaBreaches} SLA</span>}
-                      <span style={{marginLeft:'auto',fontSize:'0.56rem',color:'#f0a030'}}>View all ↗</span>
+                      <span style={{fontSize:'0.86rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Active Cases</span>
+                      {slaBreaches>0&&<span style={{fontSize:'0.84rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f0405e',color:'#fff'}}>{slaBreaches} SLA</span>}
+                      <span style={{marginLeft:'auto',fontSize:'0.8rem',color:'#f0a030'}}>View all ↗</span>
                     </div>
                     {incidents.filter(i=>!deletedIncidents.has(i.id)&&(incidentStatuses[i.id]||i.status)==='Active').slice(0,3).map(inc=>(
                       <div key={inc.id} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 0',borderBottom:'1px solid var(--wt-border)'}}>
                         <span style={{width:6,height:6,borderRadius:'50%',background:inc.severity==='Critical'?'#f0405e':'#f97316',flexShrink:0}} />
-                        <span style={{fontSize:'0.64rem',fontWeight:600,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{inc.title}</span>
-                        <span style={{fontSize:'0.54rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',flexShrink:0}}>{inc.id}</span>
+                        <span style={{fontSize:'0.8rem',fontWeight:600,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{inc.title}</span>
+                        <span style={{fontSize:'0.86rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',flexShrink:0}}>{inc.id}</span>
                       </div>
                     ))}
-                    {openCases===0&&<div style={{fontSize:'0.66rem',color:'#22d49a',textAlign:'center',padding:'8px 0'}}>✓ No active cases</div>}
+                    {openCases===0&&<div style={{fontSize:'0.82rem',color:'#22d49a',textAlign:'center',padding:'8px 0'}}>✓ No active cases</div>}
                   </div>
                   {/* Tool health */}
                   <div onClick={()=>setModal({type:'tools'})} style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'12px 14px',cursor:'pointer',transition:'border-color .15s'}}
                     onMouseEnter={e=>e.currentTarget.style.borderColor='#4f8fff40'} onMouseLeave={e=>e.currentTarget.style.borderColor='var(--wt-border)'}>
                     <div style={{display:'flex',alignItems:'center',gap:8}}>
-                      <span style={{fontSize:'0.62rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Tools</span>
-                      <span style={{fontSize:'0.7rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:'#22d49a'}}>{Object.keys(connectedTools).length}</span>
-                      <span style={{fontSize:'0.58rem',color:'var(--wt-muted)'}}>connected</span>
-                      {lastSynced&&<span style={{marginLeft:'auto',fontSize:'0.54rem',color:'var(--wt-dim)'}}>Last sync {new Date(lastSynced).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span>}
-                      <span style={{fontSize:'0.56rem',color:'#4f8fff'}}>Details ↗</span>
+                      <span style={{fontSize:'0.86rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Tools</span>
+                      <span style={{fontSize:'0.86rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:'#22d49a'}}>{Object.keys(connectedTools).length}</span>
+                      <span style={{fontSize:'0.82rem',color:'var(--wt-muted)'}}>connected</span>
+                      {lastSynced&&<span style={{marginLeft:'auto',fontSize:'0.86rem',color:'var(--wt-dim)'}}>Last sync {new Date(lastSynced).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span>}
+                      <span style={{fontSize:'0.8rem',color:'#4f8fff'}}>Details ↗</span>
                     </div>
                     {Object.keys(connectedTools).length===0&&!demoMode&&(
-                      <div style={{fontSize:'0.62rem',color:'#f0a030',marginTop:6}}>No tools connected — <button onClick={e=>{e.stopPropagation();setShowOnboarding(true);setOnboardingStep(0);}} style={{color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:'inherit',padding:0,textDecoration:'underline'}}>Setup wizard →</button></div>
+                      <div style={{fontSize:'0.86rem',color:'#f0a030',marginTop:6}}>No tools connected — <button onClick={e=>{e.stopPropagation();setShowOnboarding(true);setOnboardingStep(0);}} style={{color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:'inherit',padding:0,textDecoration:'underline'}}>Setup wizard →</button></div>
                     )}
                   </div>
                 </div>
@@ -1584,7 +1657,7 @@ export default function DashboardPage() {
                 {/* Posture trend */}
                 <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px'}}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:12}}>
-                    <span style={{fontSize:'0.62rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>7-Day Posture Trend</span>
+                    <span style={{fontSize:'0.86rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>7-Day Posture Trend</span>
                     <span style={{marginLeft:'auto',fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:postureColor}}>{posture}</span>
                   </div>
                   <svg viewBox='0 0 200 50' style={{width:'100%',height:50}}>
@@ -1597,14 +1670,14 @@ export default function DashboardPage() {
                     ))}
                   </svg>
                   <div style={{display:'flex',justifyContent:'space-between',marginTop:4}}>
-                    {['7d','6d','5d','4d','3d','2d','1d'].map(d=><span key={d} style={{fontSize:'0.5rem',color:'var(--wt-dim)'}}>{d}</span>)}
+                    {['7d','6d','5d','4d','3d','2d','1d'].map(d=><span key={d} style={{fontSize:'0.84rem',color:'var(--wt-dim)'}}>{d}</span>)}
                   </div>
                 </div>
                 {/* 7-day Alert Volume */}
                 <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px'}}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
-                    <span style={{fontSize:'0.62rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>7-Day Alert Volume</span>
-                    <span style={{marginLeft:'auto',fontSize:'0.62rem',fontWeight:700,color:'var(--wt-secondary)'}}>{totalAlerts} total</span>
+                    <span style={{fontSize:'0.86rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>7-Day Alert Volume</span>
+                    <span style={{marginLeft:'auto',fontSize:'0.86rem',fontWeight:700,color:'var(--wt-secondary)'}}>{totalAlerts} total</span>
                   </div>
                   {(()=>{
                     const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
@@ -1633,7 +1706,7 @@ export default function DashboardPage() {
                       </div>
                     );
                   })()}
-                  <div style={{marginTop:8,display:'flex',gap:12,fontSize:'0.58rem',color:'var(--wt-muted)'}}>
+                  <div style={{marginTop:8,display:'flex',gap:12,fontSize:'0.82rem',color:'var(--wt-muted)'}}>
                     <span><span style={{color:'#22d49a',fontWeight:700}}>{fpAlerts.length}</span> FP auto-closed</span>
                     <span><span style={{color:'#f0405e',fontWeight:700}}>{tpAlerts.length}</span> TP confirmed</span>
                   </div>
@@ -1642,7 +1715,7 @@ export default function DashboardPage() {
 
               {/* ── SHIFT METRICS ───────────────────────────────────────────── */}
               <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px'}}>
-                <div style={{fontSize:'0.62rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:10}}>Shift Metrics</div>
+                <div style={{fontSize:'0.86rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:10}}>Shift Metrics</div>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
                   {[
                     {label:'Unacked Criticals',value:unackedCritCount,color:unackedCritCount>0?'#f0405e':'#22d49a',sub:'need triage now'},
@@ -1652,76 +1725,10 @@ export default function DashboardPage() {
                   ].map(m=>(
                     <div key={m.label} style={{textAlign:'center',padding:'10px',background:'var(--wt-card2)',borderRadius:8}}>
                       <div style={{fontSize:'1.6rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:m.color}}>{m.value}</div>
-                      <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-secondary)',marginTop:2}}>{m.label}</div>
-                      <div style={{fontSize:'0.54rem',color:'var(--wt-dim)',marginTop:1}}>{m.sub}</div>
+                      <div style={{fontSize:'0.84rem',fontWeight:700,color:'var(--wt-secondary)',marginTop:2}}>{m.label}</div>
+                      <div style={{fontSize:'0.86rem',color:'var(--wt-dim)',marginTop:1}}>{m.sub}</div>
                     </div>
                   ))}
-                </div>
-              </div>
-
-              {/* ── LIVE THREAT INTEL + RECENT INCIDENTS ────────────────────── */}
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}} className='wt-two-col'>
-                {/* Emerging threats */}
-                <div style={{background:'var(--wt-card)',border:'1px solid #f0405e18',borderRadius:12,padding:'14px'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
-                    <span style={{fontSize:'0.62rem',fontWeight:800,color:'#f0405e',textTransform:'uppercase',letterSpacing:'0.5px'}}>Emerging Threats</span>
-                    <span style={{fontSize:'0.54rem',color:'var(--wt-dim)',marginLeft:'auto'}}>for {industry}</span>
-                    <button onClick={()=>setActiveTab('intel')} style={{fontSize:'0.56rem',color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',padding:0}}>View all ↗</button>
-                  </div>
-                  {(customIntel && customIntel.length > 0 ? customIntel : (DEMO_INTEL_BY_INDUSTRY[industry]||DEMO_INTEL_BY_INDUSTRY['default']||[])).slice(0,3).map((item,i)=>{
-                    const c={Critical:'#f0405e',High:'#f97316',Medium:'#f0a030',Low:'#4f8fff'}[item.severity]||'#6b7a94';
-                    return (
-                      <div key={item.id||i} style={{padding:'8px 0',borderBottom:'1px solid var(--wt-border)',display:'flex',gap:8,alignItems:'flex-start'}}>
-                        <span style={{width:6,height:6,borderRadius:'50%',background:c,flexShrink:0,marginTop:5}} />
-                        <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:'0.7rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.title}</div>
-                          <div style={{fontSize:'0.6rem',color:'var(--wt-muted)',marginTop:1}}>{item.source} · {item.time}</div>
-                        </div>
-                        <span style={{fontSize:'0.5rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:`${c}18`,color:c,flexShrink:0}}>{item.severity}</span>
-                      </div>
-                    );
-                  })}
-                  {(!customIntel || customIntel.length === 0) && (!DEMO_INTEL_BY_INDUSTRY[industry]||DEMO_INTEL_BY_INDUSTRY[industry].length===0) && (
-                    <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',padding:'8px 0',textAlign:'center'}}>
-                      {demoMode?'Demo intel loading…':'Connect Threat Intel tools to see live feeds'}
-                    </div>
-                  )}
-                  {livetenableNews.length>0 && (
-                    <div style={{marginTop:8,paddingTop:8,borderTop:'1px solid var(--wt-border)'}}>
-                      <div style={{fontSize:'0.56rem',fontWeight:700,color:'#00b3e3',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Tenable Research</div>
-                      {livetenableNews.slice(0,2).map((item,i)=>(
-                        <div key={i} style={{fontSize:'0.64rem',color:'var(--wt-secondary)',padding:'3px 0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.title}</div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Recent incident activity */}
-                <div style={{background:'var(--wt-card)',border:'1px solid #8b6fff18',borderRadius:12,padding:'14px'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
-                    <span style={{fontSize:'0.62rem',fontWeight:800,color:'#8b6fff',textTransform:'uppercase',letterSpacing:'0.5px'}}>Active Incidents</span>
-                    <button onClick={()=>setActiveTab('incidents')} style={{fontSize:'0.56rem',color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',padding:0,marginLeft:'auto'}}>View all ↗</button>
-                  </div>
-                  {incidents.filter(i=>(incidentStatuses[i.id]||i.status)!=='Resolved'&&!deletedIncidents.has(i.id)).slice(0,4).map(inc=>{
-                    const st=incidentStatuses[inc.id]||inc.status;
-                    const sc=st==='Active'?'#f0405e':st==='Escalated'?'#8b6fff':st==='Contained'?'#f0a030':'#22d49a';
-                    return (
-                      <div key={inc.id} onClick={()=>{setActiveTab('incidents');}} style={{padding:'7px 0',borderBottom:'1px solid var(--wt-border)',display:'flex',gap:8,alignItems:'center',cursor:'pointer'}}>
-                        <div style={{width:6,height:6,borderRadius:'50%',background:sc,flexShrink:0}} />
-                        <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:'0.7rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{inc.title}</div>
-                          <div style={{display:'flex',gap:6,marginTop:1}}>
-                            <span style={{fontSize:'0.54rem',fontWeight:700,color:sc}}>{st}</span>
-                            {inc.assignedTo && <span style={{fontSize:'0.54rem',color:'var(--wt-dim)'}}>{inc.assignedTo.split(' ')[0]}</span>}
-                          </div>
-                        </div>
-                        <span style={{fontSize:'0.5rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:`${SEV_COLOR[inc.severity]||'#6b7a94'}18`,color:SEV_COLOR[inc.severity]||'#6b7a94',flexShrink:0}}>{inc.severity}</span>
-                      </div>
-                    );
-                  })}
-                  {incidents.filter(i=>(incidentStatuses[i.id]||i.status)!=='Resolved'&&!deletedIncidents.has(i.id)).length===0 && (
-                    <div style={{fontSize:'0.68rem',color:'#22d49a',padding:'8px 0',textAlign:'center'}}>No active incidents</div>
-                  )}
                 </div>
               </div>
 
@@ -1788,25 +1795,25 @@ export default function DashboardPage() {
             <div style={{display:'flex',flexDirection:'column',gap:14}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4,flexWrap:'wrap'}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Coverage</h2>
-                <span style={{fontSize:'0.62rem',color:coveredPct>=90?'#22d49a':'#f0a030',background:coveredPct>=90?'#22d49a12':'#f0a03012',padding:'2px 8px',borderRadius:4,fontWeight:600,border:`1px solid ${coveredPct>=90?'#22d49a25':'#f0a03025'}`}}>{coveredPct}% covered</span>
-                {!demoMode&&liveKnownDevices.length>0&&<span style={{fontSize:'0.6rem',color:'#00b3e3',background:'#00b3e310',padding:'2px 8px',borderRadius:4,border:'1px solid #00b3e325',fontWeight:600}}>✦ {liveKnownDevices.length} devices{liveCoverageDevices.length>0?` (${liveCoverageDevices.length} from MDM)`:' from Tenable'}</span>}
+                <span style={{fontSize:'0.86rem',color:coveredPct>=90?'#22d49a':'#f0a030',background:coveredPct>=90?'#22d49a12':'#f0a03012',padding:'2px 8px',borderRadius:4,fontWeight:600,border:`1px solid ${coveredPct>=90?'#22d49a25':'#f0a03025'}`}}>{coveredPct}% covered</span>
+                {!demoMode&&liveKnownDevices.length>0&&<span style={{fontSize:'0.84rem',color:'#00b3e3',background:'#00b3e310',padding:'2px 8px',borderRadius:4,border:'1px solid #00b3e325',fontWeight:600}}>✦ {liveKnownDevices.length} devices{liveCoverageDevices.length>0?` (${liveCoverageDevices.length} from MDM)`:' from Tenable'}</span>}
                 <div style={{display:'flex',gap:5,flexWrap:'wrap',marginLeft:'auto',alignItems:'center'}}>
-                  <span style={{fontSize:'0.58rem',color:'var(--wt-dim)',marginRight:2}}>OS:</span>
+                  <span style={{fontSize:'0.82rem',color:'var(--wt-dim)',marginRight:2}}>OS:</span>
                   {Object.entries(osBreakdown).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([os,n])=>(
-                    <span key={os} style={{fontSize:'0.58rem',padding:'2px 7px',borderRadius:4,background:'var(--wt-border)',color:'var(--wt-muted)',fontWeight:600}}>{os} <strong style={{color:'var(--wt-text)'}}>{n}</strong></span>
+                    <span key={os} style={{fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,background:'var(--wt-border)',color:'var(--wt-muted)',fontWeight:600}}>{os} <strong style={{color:'var(--wt-text)'}}>{n}</strong></span>
                   ))}
-                  <span style={{fontSize:'0.58rem',padding:'2px 7px',borderRadius:4,background:'#4f8fff12',color:'#4f8fff',fontWeight:700,border:'1px solid #4f8fff20',marginLeft:4}}>Total: {demoMode?totalDevices:liveKnownDevices.length||totalDevices}</span>
+                  <span style={{fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,background:'#4f8fff12',color:'#4f8fff',fontWeight:700,border:'1px solid #4f8fff20',marginLeft:4}}>Total: {demoMode?totalDevices:liveKnownDevices.length||totalDevices}</span>
                 </div>
               </div>
 
               {/* Per-tool coverage — only connected tools */}
               <div>
-                <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>
+                <div style={{fontSize:'0.86rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>
                   Tool Coverage Across Estate
-                  {!demoMode&&activeTools.length===0&&<span style={{marginLeft:8,fontSize:'0.58rem',color:'#f0a030',fontWeight:600,textTransform:'none'}}>— no tools connected</span>}
+                  {!demoMode&&activeTools.length===0&&<span style={{marginLeft:8,fontSize:'0.82rem',color:'#f0a030',fontWeight:600,textTransform:'none'}}>— no tools connected</span>}
                 </div>
                 {activeTools.length===0&&!demoMode ? (
-                  <div style={{padding:'14px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:10,fontSize:'0.7rem',color:'var(--wt-dim)',textAlign:'center'}}>
+                  <div style={{padding:'14px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:10,fontSize:'0.86rem',color:'var(--wt-dim)',textAlign:'center'}}>
                     Connect tools in the Tools tab to see coverage analysis.
                   </div>
                 ) : (
@@ -1832,14 +1839,14 @@ export default function DashboardPage() {
                     const pctColor = pct>=95?'#22d49a':pct>=75?'#f0a030':'#f0405e';
                     return (
                       <div key={tool.id} onClick={()=>setGapToolFilter(gapToolFilter===tool.id?null:tool.id)} style={{padding:'10px 14px',background:gapToolFilter===tool.id?'var(--wt-card2)':'var(--wt-card)',border:`1px solid ${gapToolFilter===tool.id?'#4f8fff40':'#141820'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12,cursor:'pointer'}}>
-                        <div style={{width:120,fontSize:'0.76rem',fontWeight:600,flexShrink:0}}>{tool.name}</div>
+                        <div style={{width:120,fontSize:'0.84rem',fontWeight:600,flexShrink:0}}>{tool.name}</div>
                         <div style={{flex:1,height:8,background:'var(--wt-border)',borderRadius:4,overflow:'hidden'}}>
                           <div style={{height:'100%',background:`linear-gradient(90deg,${pctColor},${pctColor}aa)`,borderRadius:4,width:`${pct}%`,transition:'width 1s'}} />
                         </div>
-                        <span style={{fontSize:'0.72rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:pctColor,minWidth:36,textAlign:'right'}}>{pct}%</span>
-                        <span style={{fontSize:'0.68rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:'var(--wt-text)',minWidth:48,textAlign:'right'}}>{rawCount.toLocaleString()}</span>
-                        <span style={{fontSize:'0.56rem',color:'var(--wt-dim)',minWidth:16}}>devices</span>
-                        <span style={{fontSize:'0.6rem',minWidth:90,textAlign:'right'}}>{gapCount>0?<span style={{color:'#f0a030'}}>{gapCount} missing</span>:<span style={{color:'#22d49a'}}>Full coverage</span>}</span>
+                        <span style={{fontSize:'0.8rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:pctColor,minWidth:36,textAlign:'right'}}>{pct}%</span>
+                        <span style={{fontSize:'0.84rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:'var(--wt-text)',minWidth:48,textAlign:'right'}}>{rawCount.toLocaleString()}</span>
+                        <span style={{fontSize:'0.8rem',color:'var(--wt-dim)',minWidth:16}}>devices</span>
+                        <span style={{fontSize:'0.84rem',minWidth:90,textAlign:'right'}}>{gapCount>0?<span style={{color:'#f0a030'}}>{gapCount} missing</span>:<span style={{color:'#22d49a'}}>Full coverage</span>}</span>
                       </div>
                     );
                   })}
@@ -1865,10 +1872,10 @@ export default function DashboardPage() {
                 return (
                   <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px 16px'}}>
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
-                      <span style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'1px'}}>OS Breakdown</span>
-                      {!demoMode&&liveKnownDevices.length>0&&<span style={{fontSize:'0.54rem',color:'#22d49a',background:'#22d49a0a',padding:'1px 6px',borderRadius:3,border:'1px solid #22d49a20',fontWeight:600}}>✦ live</span>}
-                      {demoMode&&<span style={{fontSize:'0.54rem',color:'#f0a030',padding:'1px 6px',borderRadius:3,fontWeight:600}}>demo</span>}
-                      <span style={{marginLeft:'auto',fontSize:'0.6rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{total.toLocaleString()} devices</span>
+                      <span style={{fontSize:'0.86rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'1px'}}>OS Breakdown</span>
+                      {!demoMode&&liveKnownDevices.length>0&&<span style={{fontSize:'0.86rem',color:'#22d49a',background:'#22d49a0a',padding:'1px 6px',borderRadius:3,border:'1px solid #22d49a20',fontWeight:600}}>✦ live</span>}
+                      {demoMode&&<span style={{fontSize:'0.86rem',color:'#f0a030',padding:'1px 6px',borderRadius:3,fontWeight:600}}>demo</span>}
+                      <span style={{marginLeft:'auto',fontSize:'0.84rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{total.toLocaleString()} devices</span>
                     </div>
                     {/* Stacked bar */}
                     <div style={{height:10,borderRadius:5,overflow:'hidden',display:'flex',marginBottom:10,gap:1}}>
@@ -1883,12 +1890,12 @@ export default function DashboardPage() {
                         const col = OS_COLORS[os]||'#6b7a94';
                         return (
                           <div key={os} style={{display:'flex',alignItems:'center',gap:7,padding:'5px 8px',background:`${col}08`,border:`1px solid ${col}20`,borderRadius:7}}>
-                            <span style={{fontSize:'0.7rem',flexShrink:0}}>{OS_ICONS[os]||'💻'}</span>
+                            <span style={{fontSize:'0.86rem',flexShrink:0}}>{OS_ICONS[os]||'💻'}</span>
                             <div style={{flex:1,minWidth:0}}>
-                              <div style={{fontSize:'0.68rem',fontWeight:700,color:'var(--wt-text)'}}>{os}</div>
-                              <div style={{fontSize:'0.56rem',color:'var(--wt-dim)'}}>{n.toLocaleString()} devices</div>
+                              <div style={{fontSize:'0.84rem',fontWeight:700,color:'var(--wt-text)'}}>{os}</div>
+                              <div style={{fontSize:'0.8rem',color:'var(--wt-dim)'}}>{n.toLocaleString()} devices</div>
                             </div>
-                            <span style={{fontSize:'0.64rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:col}}>{pct}%</span>
+                            <span style={{fontSize:'0.8rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:col}}>{pct}%</span>
                           </div>
                         );
                       })}
@@ -1899,12 +1906,12 @@ export default function DashboardPage() {
 
               {/* Devices with gaps */}
               <div>
-                <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Devices with Gaps ({gapDevices.length})</div>
+                <div style={{fontSize:'0.86rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Devices with Gaps ({gapDevices.length})</div>
                 <div style={{display:'flex',flexDirection:'column',gap:6}}>
                   {/* CSV export button */}
                   {gapToolFilter && (
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
-                      <span style={{fontSize:'0.68rem',color:'#4f8fff',fontWeight:600}}>Showing devices missing {ALL_TOOLS.find(t=>t.id===gapToolFilter)?.name||gapToolFilter}</span>
+                      <span style={{fontSize:'0.84rem',color:'#4f8fff',fontWeight:600}}>Showing devices missing {ALL_TOOLS.find(t=>t.id===gapToolFilter)?.name||gapToolFilter}</span>
                       <button onClick={()=>{
                         const filtered = gapDevices.filter(d=>d.missing.some(m=>ALL_TOOLS.find(t=>t.id===gapToolFilter)?.name && m.includes(ALL_TOOLS.find(t=>t.id===gapToolFilter).name.split(' ')[0])));
                         const csv = ['Hostname,IP,OS,Missing Tools,Reason,Last Seen', ...filtered.map(d=>`${d.hostname},${d.ip},${d.os},"${d.missing.join('; ')}","${d.reason}",${d.lastSeen}`)].join('\n');
@@ -1912,8 +1919,8 @@ export default function DashboardPage() {
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a'); a.href=url; a.download=`coverage-gaps-${gapToolFilter}.csv`; a.click();
                         URL.revokeObjectURL(url);
-                      }} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Export CSV ↓</button>
-                      <button onClick={()=>setGapToolFilter(null)} style={{padding:'3px 8px',borderRadius:5,border:'1px solid var(--wt-border)',background:'none',color:'var(--wt-muted)',fontSize:'0.6rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear ×</button>
+                      }} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.86rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Export CSV ↓</button>
+                      <button onClick={()=>setGapToolFilter(null)} style={{padding:'3px 8px',borderRadius:5,border:'1px solid var(--wt-border)',background:'none',color:'var(--wt-muted)',fontSize:'0.84rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear ×</button>
                     </div>
                   )}
                   {(gapToolFilter ? gapDevices.filter(d=>d.missing.some(m=>ALL_TOOLS.find(t=>t.id===gapToolFilter)?.name && m.includes(ALL_TOOLS.find(t=>t.id===gapToolFilter).name.split(' ')[0]))) : gapDevices).map(dev=>{
@@ -1924,19 +1931,19 @@ export default function DashboardPage() {
                         <div style={{flex:1}}>
                           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                             <span style={{fontSize:'0.8rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace'}}>{dev.hostname}</span>
-                            <span style={{fontSize:'0.6rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{dev.ip}</span>
-                            <span style={{fontSize:'0.58rem',color:'var(--wt-muted)'}}>{dev.os}</span>
+                            <span style={{fontSize:'0.84rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{dev.ip}</span>
+                            <span style={{fontSize:'0.82rem',color:'var(--wt-muted)'}}>{dev.os}</span>
                             <span style={{fontSize:'0.46rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:`${heatColor}18`,color:heatColor,border:`1px solid ${heatColor}30`,marginLeft:'auto'}}>{heatLabel}</span>
                           </div>
                           <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:4}}>
                             {dev.missing.map(m=>{
                               const catColor = m.includes('Falcon')||m.includes('Defender')||m.includes('SentinelOne')||m.includes('Carbon Black')?'#f0405e':m.includes('Splunk')||m.includes('Sentinel')||m.includes('QRadar')||m.includes('Elastic')?'#f0a030':m.includes('Tenable')||m.includes('Nessus')||m.includes('Qualys')?'#8b6fff':'#4f8fff';
-                              return <span key={m} style={{fontSize:'0.62rem',fontWeight:700,padding:'3px 8px',borderRadius:4,background:`${catColor}14`,color:catColor,border:`1px solid ${catColor}28`,display:'flex',alignItems:'center',gap:4}}><span style={{fontSize:'0.5rem'}}>✗</span>{m}</span>;
+                              return <span key={m} style={{fontSize:'0.86rem',fontWeight:700,padding:'3px 8px',borderRadius:4,background:`${catColor}14`,color:catColor,border:`1px solid ${catColor}28`,display:'flex',alignItems:'center',gap:4}}><span style={{fontSize:'0.84rem'}}>✗</span>{m}</span>;
                             })}
                           </div>
-                          <div style={{fontSize:'0.66rem',color:'var(--wt-muted)'}}>{dev.reason} · Last seen {dev.lastSeen}</div>
+                          <div style={{fontSize:'0.82rem',color:'var(--wt-muted)'}}>{dev.reason} · Last seen {dev.lastSeen}</div>
                         </div>
-                        <button onClick={()=>setDeployAgentDevice(dev)} style={{padding:'5px 12px',borderRadius:7,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Deploy Agent →</button>
+                        <button onClick={()=>setDeployAgentDevice(dev)} style={{padding:'5px 12px',borderRadius:7,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Deploy Agent →</button>
                       </div>
                     </div>
                   );})}
@@ -1950,10 +1957,10 @@ export default function DashboardPage() {
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4,flexWrap:'wrap'}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Vulnerabilities</h2>
-                {!demoMode && liveVulns.length>0 && <span style={{fontSize:'0.6rem',color:'#22d49a',background:'#22d49a0a',padding:'2px 8px',borderRadius:4,border:'1px solid #22d49a25',fontWeight:600}}>✦ Live · {liveVulns.length} from Tenable</span>}
-                {demoMode && <span style={{fontSize:'0.6rem',color:'#f0a030',background:'#f0a03010',padding:'2px 8px',borderRadius:4,fontWeight:600}}>Demo data</span>}
-                <span style={{fontSize:'0.62rem',color:'#f0405e',background:'#f0405e12',padding:'2px 8px',borderRadius:4}}>Ranked by severity × prevalence</span>
-                {kevVulns.length>0 && <span style={{fontSize:'0.62rem',color:'#f97316',background:'#f9731612',padding:'2px 8px',borderRadius:4,border:'1px solid #f9731625',fontWeight:700}}>{kevVulns.length} CISA KEV — 72h</span>}
+                {!demoMode && liveVulns.length>0 && <span style={{fontSize:'0.84rem',color:'#22d49a',background:'#22d49a0a',padding:'2px 8px',borderRadius:4,border:'1px solid #22d49a25',fontWeight:600}}>✦ Live · {liveVulns.length} from Tenable</span>}
+                {demoMode && <span style={{fontSize:'0.84rem',color:'#f0a030',background:'#f0a03010',padding:'2px 8px',borderRadius:4,fontWeight:600}}>Demo data</span>}
+                <span style={{fontSize:'0.86rem',color:'#f0405e',background:'#f0405e12',padding:'2px 8px',borderRadius:4}}>Ranked by severity × prevalence</span>
+                {kevVulns.length>0 && <span style={{fontSize:'0.86rem',color:'#f97316',background:'#f9731612',padding:'2px 8px',borderRadius:4,border:'1px solid #f9731625',fontWeight:700}}>{kevVulns.length} CISA KEV — 72h</span>}
               </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 290px',gap:14,alignItems:'start'}} className='wt-two-col'>
               {/* LEFT — vuln list */}
@@ -1978,51 +1985,51 @@ export default function DashboardPage() {
                     <div className='vuln-row' onClick={()=>setSelectedVuln(selectedVuln?.id===vuln.id?null:vuln)} style={{padding:'10px 14px',background:selectedVuln?.id===vuln.id?'#0c1428':'var(--wt-card)',border:`1px solid ${selectedVuln?.id===vuln.id?'#4f8fff':'var(--wt-border)'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12}}>
                       <div style={{flex:1,minWidth:0}}>
                         <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:2}}>
-                          <span style={{fontSize:'0.78rem',fontWeight:700}}>{vuln.title}</span>
-                          {vuln.kev && <span style={{fontSize:'0.48rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f97316',color:'#fff',flexShrink:0}}>CISA KEV</span>}
+                          <span style={{fontSize:'0.86rem',fontWeight:700}}>{vuln.title}</span>
+                          {vuln.kev && <span style={{fontSize:'0.58rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f97316',color:'#fff',flexShrink:0}}>CISA KEV</span>}
                         </div>
                         <div style={{display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}>
                           <SevBadge sev={vuln.severity} />
-                          {vuln.cvss&&vuln.cvss!=='N/A'&&<span style={{fontSize:'0.6rem',color:'#4f8fff',fontFamily:'JetBrains Mono,monospace',fontWeight:700}}>CVSS {vuln.cvss}</span>}
-                          <span style={{fontSize:'0.6rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{vuln.cve && vuln.cve !== 'null' ? vuln.cve : ''}</span>
-                          <span style={{fontSize:'0.58rem',color:'var(--wt-muted)'}}>{(vuln.affectedAssets?.length || vuln.affected || 1)} device{(vuln.affectedAssets?.length || vuln.affected || 1)!==1?'s':''} affected</span>
-                          <span style={{fontSize:'0.58rem',color:'#f0a030'}}>{vuln.prevalence!=null?`${vuln.prevalence}% prevalence`:`${vuln.source||'Tenable'}`}</span>
+                          {vuln.cvss&&vuln.cvss!=='N/A'&&<span style={{fontSize:'0.84rem',color:'#4f8fff',fontFamily:'JetBrains Mono,monospace',fontWeight:700}}>CVSS {vuln.cvss}</span>}
+                          <span style={{fontSize:'0.84rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{vuln.cve && vuln.cve !== 'null' ? vuln.cve : ''}</span>
+                          <span style={{fontSize:'0.82rem',color:'var(--wt-muted)'}}>{(vuln.affectedAssets?.length || vuln.affected || 1)} device{(vuln.affectedAssets?.length || vuln.affected || 1)!==1?'s':''} affected</span>
+                          <span style={{fontSize:'0.82rem',color:'#f0a030'}}>{vuln.prevalence!=null?`${vuln.prevalence}% prevalence`:`${vuln.source||'Tenable'}`}</span>
                         </div>
                       </div>
-                      <span style={{fontSize:'0.62rem',color:'#4f8fff',flexShrink:0}}>{selectedVuln?.id===vuln.id?'▲':'▼'}</span>
+                      <span style={{fontSize:'0.86rem',color:'#4f8fff',flexShrink:0}}>{selectedVuln?.id===vuln.id?'▲':'▼'}</span>
                     </div>
                     {selectedVuln?.id===vuln.id && (
                       <div style={{padding:'14px 16px',background:'var(--wt-card2)',border:'1px solid #4f8fff40',borderTop:'2px solid #4f8fff',borderRadius:'0 0 10px 10px',marginBottom:0,boxShadow:'0 4px 20px rgba(0,0,0,0.3)'}}>
                         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
                           <div>
-                            <div style={{fontSize:'0.7rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:10}}>{vuln.description}</div>
-                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Affected Devices</div>
+                            <div style={{fontSize:'0.86rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:10}}>{vuln.description}</div>
+                            <div style={{fontSize:'0.84rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Affected Devices</div>
                             <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',marginBottom:6}}>
                               <span style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:'#f0a030'}}>{(vuln.affectedAssets||vuln.affectedDevices||[vuln.device].filter(Boolean)).length}</span>
-                              <span style={{fontSize:'0.64rem',color:'var(--wt-secondary)'}}>device{(vuln.affectedAssets||vuln.affectedDevices||[]).length!==1?'s':''} affected</span>
+                              <span style={{fontSize:'0.8rem',color:'var(--wt-secondary)'}}>device{(vuln.affectedAssets||vuln.affectedDevices||[]).length!==1?'s':''} affected</span>
                               {(vuln.affectedAssets||vuln.affectedDevices||[]).length > 0 && (
-                                <button onClick={e=>{e.stopPropagation();const assets=vuln.affectedAssets||vuln.affectedDevices||[vuln.device].filter(Boolean);const csv=['Hostname,CVE,Severity,Plugin'].concat(assets.map(h=>`${h},${vuln.cve||'N/A'},${vuln.severity},${vuln.sourceId||''}`)).join('\n');const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`${(vuln.cve||vuln.id).replace(/[^a-z0-9]/gi,'_')}_assets.csv`;a.click();URL.revokeObjectURL(url);}} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>⬇ Export CSV</button>
+                                <button onClick={e=>{e.stopPropagation();const assets=vuln.affectedAssets||vuln.affectedDevices||[vuln.device].filter(Boolean);const csv=['Hostname,CVE,Severity,Plugin'].concat(assets.map(h=>`${h},${vuln.cve||'N/A'},${vuln.severity},${vuln.sourceId||''}`)).join('\n');const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`${(vuln.cve||vuln.id).replace(/[^a-z0-9]/gi,'_')}_assets.csv`;a.click();URL.revokeObjectURL(url);}} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.86rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>⬇ Export CSV</button>
                               )}
                             </div>
-                            {(()=>{const assets=(vuln.affectedAssets||vuln.affectedDevices||[vuln.device].filter(Boolean));if(!assets.length) return null;const show=assets.slice(0,8);const rest=assets.length-8;return(<div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:4}}>{show.map(d=>(<span key={d} style={{fontSize:'0.6rem',fontFamily:'JetBrains Mono,monospace',padding:'2px 7px',borderRadius:4,background:'#f0a03010',border:'1px solid #f0a03025',color:'#f0c070'}}>{d}</span>))}{rest>0&&<span style={{fontSize:'0.6rem',color:'var(--wt-dim)',padding:'2px 7px'}}>+{rest} more</span>}</div>);})()}
+                            {(()=>{const assets=(vuln.affectedAssets||vuln.affectedDevices||[vuln.device].filter(Boolean));if(!assets.length) return null;const show=assets.slice(0,8);const rest=assets.length-8;return(<div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:4}}>{show.map(d=>(<span key={d} style={{fontSize:'0.84rem',fontFamily:'JetBrains Mono,monospace',padding:'2px 7px',borderRadius:4,background:'#f0a03010',border:'1px solid #f0a03025',color:'#f0c070'}}>{d}</span>))}{rest>0&&<span style={{fontSize:'0.84rem',color:'var(--wt-dim)',padding:'2px 7px'}}>+{rest} more</span>}</div>);})()}
                             <div style={{marginTop:10,display:'flex',gap:6,flexWrap:'wrap'}}>
-                              {vuln.patch && <div style={{fontSize:'0.64rem',color:'#22d49a',width:'100%'}}>📦 Patch: <strong>{vuln.patch}</strong></div>}
-                              {vuln.cve && vuln.cve!=='null' && <a href={`https://nvd.nist.gov/vuln/detail/${vuln.cve}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'5px 10px',borderRadius:6,background:'#4f8fff15',border:'1px solid #4f8fff30',color:'#4f8fff',textDecoration:'none',fontSize:'0.66rem',fontWeight:700}}>🔗 NVD</a>}
-                              {vuln.kev && <a href='https://www.cisa.gov/known-exploited-vulnerabilities-catalog' target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'5px 10px',borderRadius:6,background:'#f9731615',border:'1px solid #f9731630',color:'#f97316',textDecoration:'none',fontSize:'0.66rem',fontWeight:700}}>⚠ CISA KEV</a>}
-                              <a href={`https://www.google.com/search?q=${encodeURIComponent((vuln.cve||vuln.title)+' patch download fix')}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'5px 10px',borderRadius:6,background:'#22d49a15',border:'1px solid #22d49a30',color:'#22d49a',textDecoration:'none',fontSize:'0.66rem',fontWeight:700}}>📦 Find Patch</a>
-                              {vuln.source==='Tenable'&&vuln.cve&&vuln.cve!=='null'&&<a href={`https://www.tenable.com/plugins/search?q=${encodeURIComponent(vuln.cve)}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'5px 10px',borderRadius:6,background:'#00b3e315',border:'1px solid #00b3e330',color:'#00b3e3',textDecoration:'none',fontSize:'0.66rem',fontWeight:700}}>🔍 Tenable Plugin</a>}
+                              {vuln.patch && <div style={{fontSize:'0.8rem',color:'#22d49a',width:'100%'}}>📦 Patch: <strong>{vuln.patch}</strong></div>}
+                              {vuln.cve && vuln.cve!=='null' && <a href={`https://nvd.nist.gov/vuln/detail/${vuln.cve}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'5px 10px',borderRadius:6,background:'#4f8fff15',border:'1px solid #4f8fff30',color:'#4f8fff',textDecoration:'none',fontSize:'0.82rem',fontWeight:700}}>🔗 NVD</a>}
+                              {vuln.kev && <a href='https://www.cisa.gov/known-exploited-vulnerabilities-catalog' target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'5px 10px',borderRadius:6,background:'#f9731615',border:'1px solid #f9731630',color:'#f97316',textDecoration:'none',fontSize:'0.82rem',fontWeight:700}}>⚠ CISA KEV</a>}
+                              <a href={`https://www.google.com/search?q=${encodeURIComponent((vuln.cve||vuln.title)+' patch download fix')}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'5px 10px',borderRadius:6,background:'#22d49a15',border:'1px solid #22d49a30',color:'#22d49a',textDecoration:'none',fontSize:'0.82rem',fontWeight:700}}>📦 Find Patch</a>
+                              {vuln.source==='Tenable'&&vuln.cve&&vuln.cve!=='null'&&<a href={`https://www.tenable.com/plugins/search?q=${encodeURIComponent(vuln.cve)}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'5px 10px',borderRadius:6,background:'#00b3e315',border:'1px solid #00b3e330',color:'#00b3e3',textDecoration:'none',fontSize:'0.82rem',fontWeight:700}}>🔍 Tenable Plugin</a>}
                             </div>
                           </div>
                           <div>
-                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Remediation Steps</div>
+                            <div style={{fontSize:'0.84rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Remediation Steps</div>
                             {(vuln.remediation||[vuln.description||'See NVD for remediation guidance.']).map((r,i)=>(
-                              <div key={r} style={{fontSize:'0.7rem',color:'var(--wt-secondary)',padding:'3px 0 3px 14px',position:'relative',lineHeight:1.5}}>
+                              <div key={r} style={{fontSize:'0.86rem',color:'var(--wt-secondary)',padding:'3px 0 3px 14px',position:'relative',lineHeight:1.5}}>
                                 <span style={{position:'absolute',left:0,top:9,width:5,height:5,borderRadius:'50%',background:'#22d49a',display:'block'}} />
                                 {r}
                               </div>
                             ))}
                             <div style={{marginTop:12,padding:'10px',background:'var(--wt-card2)',border:'1px solid #4f8fff18',borderRadius:8}}>
-                              <div style={{fontSize:'0.6rem',fontWeight:700,color:'#4f8fff',marginBottom:8,display:'flex',alignItems:'center',gap:6}}>
+                              <div style={{fontSize:'0.84rem',fontWeight:700,color:'#4f8fff',marginBottom:8,display:'flex',alignItems:'center',gap:6}}>
                                 <span style={{width:6,height:6,borderRadius:'50%',background:'#4f8fff',display:'block'}} />AI Remediation Assistant
                               </div>
                               <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:8}}>
@@ -2036,7 +2043,7 @@ export default function DashboardPage() {
                                   const isLoading = vulnAiLoading === key;
                                   const hasResult = !!vulnAiTexts[key];
                                   return (
-                                    <button key={q.type} onClick={()=>getVulnAiHelp(vuln,q.type)} disabled={isLoading} style={{padding:'4px 11px',borderRadius:5,border:'1px solid ' + q.color + '40',background:hasResult ? q.color + '20' : 'transparent',color:q.color,fontSize:'0.66rem',fontWeight:700,cursor:isLoading?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4,opacity:isLoading?0.7:1}}>
+                                    <button key={q.type} onClick={()=>getVulnAiHelp(vuln,q.type)} disabled={isLoading} style={{padding:'4px 11px',borderRadius:5,border:'1px solid ' + q.color + '40',background:hasResult ? q.color + '20' : 'transparent',color:q.color,fontSize:'0.82rem',fontWeight:700,cursor:isLoading?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4,opacity:isLoading?0.7:1}}>
                                       {isLoading && <span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid ' + q.color,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />}
                                       {!isLoading && hasResult && <span>✓</span>}
                                       {!isLoading && !hasResult && <span>✦</span>}
@@ -2045,7 +2052,7 @@ export default function DashboardPage() {
                                   );
                                 })}
                                 {['splunk','sentinel','defender','iocs'].some(t=>vulnAiTexts[vuln.id+':'+t]) && (
-                                  <button onClick={()=>setVulnAiTexts(prev=>{const n={...prev};['splunk','sentinel','defender','iocs'].forEach(t=>{delete n[vuln.id+':'+t];}); return n;})} style={{marginLeft:'auto',fontSize:'0.58rem',padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-dim)',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear all</button>
+                                  <button onClick={()=>setVulnAiTexts(prev=>{const n={...prev};['splunk','sentinel','defender','iocs'].forEach(t=>{delete n[vuln.id+':'+t];}); return n;})} style={{marginLeft:'auto',fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-dim)',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear all</button>
                                 )}
                               </div>
                               {['splunk','sentinel','defender','iocs'].map(t=>{
@@ -2055,7 +2062,7 @@ export default function DashboardPage() {
                                 const labels = {splunk:'Splunk SPL',sentinel:'Sentinel KQL',defender:'Defender KQL',iocs:'IOCs'};
                                 return (
                                   <div key={t} style={{marginBottom:8}}>
-                                    <div style={{fontSize:'0.58rem',fontWeight:700,color:colors[t],marginBottom:4,textTransform:'uppercase',letterSpacing:'0.5px'}}>{labels[t]}</div>
+                                    <div style={{fontSize:'0.82rem',fontWeight:700,color:colors[t],marginBottom:4,textTransform:'uppercase',letterSpacing:'0.5px'}}>{labels[t]}</div>
                                     <RemediationOutput text={vulnAiTexts[key]} />
                                   </div>
                                 );
@@ -2083,7 +2090,7 @@ export default function DashboardPage() {
                   const segs=counts.map(c=>{const pct=c.n/total;const dash=pct*CIRC;const seg={...c,dash,gap:CIRC-dash,offset};offset+=dash;return seg;});
                   return (
                     <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px'}}>
-                      <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:12}}>Severity Breakdown</div>
+                      <div style={{fontSize:'0.86rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:12}}>Severity Breakdown</div>
                       <div style={{display:'flex',alignItems:'center',gap:12}}>
                         <svg width={136} height={136} viewBox={`0 0 ${CX*2} ${CY*2}`} style={{flexShrink:0}}>
                           {segs.map((seg,i)=>(
@@ -2098,9 +2105,9 @@ export default function DashboardPage() {
                           {segs.map(seg=>(
                             <div key={seg.sev} style={{display:'flex',alignItems:'center',gap:6}}>
                               <span style={{width:7,height:7,borderRadius:'50%',background:seg.color,flexShrink:0}} />
-                              <span style={{fontSize:'0.68rem',fontWeight:600,flex:1}}>{seg.sev}</span>
-                              <span style={{fontSize:'0.72rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:seg.color}}>{seg.n}</span>
-                              <span style={{fontSize:'0.56rem',color:'var(--wt-dim)',minWidth:28,textAlign:'right'}}>{Math.round(seg.n/total*100)}%</span>
+                              <span style={{fontSize:'0.84rem',fontWeight:600,flex:1}}>{seg.sev}</span>
+                              <span style={{fontSize:'0.8rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:seg.color}}>{seg.n}</span>
+                              <span style={{fontSize:'0.8rem',color:'var(--wt-dim)',minWidth:28,textAlign:'right'}}>{Math.round(seg.n/total*100)}%</span>
                             </div>
                           ))}
                         </div>
@@ -2113,29 +2120,29 @@ export default function DashboardPage() {
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
                   {[
                     {label:'KEV Active',val:kevVulns.length,color:'#f97316',icon:'⚠'},
-                    {label:'Avg CVSS',val:vulns.length?(vulns.reduce((a,v)=>a+(v.cvss||0),0)/vulns.length).toFixed(1):'—',color:'#8b6fff',icon:'📊'},
+                    {label:'Avg CVSS',val:(()=>{const withCvss=vulns.filter(v=>v.cvss&&v.cvss!=='N/A'&&Number(v.cvss)>0);return withCvss.length?(withCvss.reduce((a,v)=>a+Number(v.cvss),0)/withCvss.length).toFixed(1):'—';})(),color:'#8b6fff',icon:'📊'},
                     {label:'Devices Exposed',val:[...new Set(vulns.flatMap(v=>v.affectedAssets||v.affectedDevices||[]))].length,color:'#f0405e',icon:'💻'},
                     {label:'Total Vulns',val:vulns.length,color:'#4f8fff',icon:'🔍'},
                   ].map(m=>(
                     <div key={m.label} style={{padding:'10px 12px',background:'var(--wt-card)',border:`1px solid ${m.color}18`,borderRadius:9,textAlign:'center'}}>
                       <div style={{fontSize:'0.75rem',marginBottom:2}}>{m.icon}</div>
                       <div style={{fontSize:'1.3rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:m.color,lineHeight:1}}>{m.val}</div>
-                      <div style={{fontSize:'0.54rem',color:'var(--wt-dim)',marginTop:2}}>{m.label}</div>
+                      <div style={{fontSize:'0.86rem',color:'var(--wt-dim)',marginTop:2}}>{m.label}</div>
                     </div>
                   ))}
                 </div>
 
                 {/* CVSS distribution */}
                 <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px 16px'}}>
-                  <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:10}}>CVSS Distribution</div>
+                  <div style={{fontSize:'0.86rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:10}}>CVSS Distribution</div>
                   {[{label:'Critical 9+',min:9,max:11,color:'#f0405e'},{label:'High 7–9',min:7,max:9,color:'#f97316'},{label:'Medium 4–7',min:4,max:7,color:'#f0a030'},{label:'Low 0–4',min:0,max:4,color:'#4f8fff'}].map(b=>{
                     const n=vulns.filter(v=>(v.cvss||0)>=b.min&&(v.cvss||0)<b.max).length;
                     if(!n) return null;
                     return (
                       <div key={b.label} style={{marginBottom:7}}>
                         <div style={{display:'flex',justifyContent:'space-between',marginBottom:2}}>
-                          <span style={{fontSize:'0.62rem',color:'var(--wt-muted)'}}>{b.label}</span>
-                          <span style={{fontSize:'0.62rem',fontWeight:700,color:b.color}}>{n}</span>
+                          <span style={{fontSize:'0.86rem',color:'var(--wt-muted)'}}>{b.label}</span>
+                          <span style={{fontSize:'0.86rem',fontWeight:700,color:b.color}}>{n}</span>
                         </div>
                         <div style={{height:4,borderRadius:2,background:'var(--wt-border)',overflow:'hidden'}}>
                           <div style={{height:'100%',borderRadius:2,background:b.color,width:`${Math.round(n/Math.max(vulns.length,1)*100)}%`,transition:'width .5s'}} />
@@ -2153,11 +2160,11 @@ export default function DashboardPage() {
                   if(!top.length) return null;
                   return (
                     <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px 16px'}}>
-                      <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Most Exposed Devices</div>
+                      <div style={{fontSize:'0.86rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Most Exposed Devices</div>
                       {top.map(([device,count])=>(
                         <div key={device} style={{display:'flex',alignItems:'center',gap:8,padding:'4px 0',borderBottom:'1px solid var(--wt-border)'}}>
-                          <span style={{fontSize:'0.64rem',fontFamily:'JetBrains Mono,monospace',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{device}</span>
-                          <span style={{fontSize:'0.58rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#f0405e18',color:'#f0405e'}}>{count}</span>
+                          <span style={{fontSize:'0.8rem',fontFamily:'JetBrains Mono,monospace',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{device}</span>
+                          <span style={{fontSize:'0.82rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#f0405e18',color:'#f0405e'}}>{count}</span>
                         </div>
                       ))}
                     </div>
@@ -2175,30 +2182,30 @@ export default function DashboardPage() {
               <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Threat Intelligence</h2>
                 <div style={{display:'flex',alignItems:'center',gap:6,marginLeft:'auto'}}>
-                  <span style={{fontSize:'0.7rem',color:'var(--wt-muted)'}}>Industry:</span>
-                  <select value={industry} onChange={e=>{setIndustryPersisted(e.target.value);fetchIntelForIndustry(e.target.value);}} style={{padding:'4px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.76rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                  <span style={{fontSize:'0.86rem',color:'var(--wt-muted)'}}>Industry:</span>
+                  <select value={industry} onChange={e=>{setIndustryPersisted(e.target.value);fetchIntelForIndustry(e.target.value);}} style={{padding:'4px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.84rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                     {INDUSTRIES.map(i=><option key={i} value={i}>{i}</option>)}
                   </select>
                   {intelLoading
                     ? <span style={{width:14,height:14,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}} />
-                    : <button onClick={()=>fetchIntelForIndustry(industry)} title='Refresh threat intel' style={{padding:'3px 10px',borderRadius:5,border:'1px solid #4f8fff28',background:'#4f8fff0a',color:'#4f8fff',fontSize:'0.64rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>⟳ Refresh</button>
+                    : <button onClick={()=>fetchIntelForIndustry(industry)} title='Refresh threat intel' style={{padding:'3px 10px',borderRadius:5,border:'1px solid #4f8fff28',background:'#4f8fff0a',color:'#4f8fff',fontSize:'0.8rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>⟳ Refresh</button>
                   }
                   {customIntel && !demoMode && (
-                    <span style={{fontSize:'0.6rem',color:'#22d49a',background:'#22d49a0a',padding:'2px 8px',borderRadius:4,border:'1px solid #22d49a25',fontWeight:600}}>
+                    <span style={{fontSize:'0.84rem',color:'#22d49a',background:'#22d49a0a',padding:'2px 8px',borderRadius:4,border:'1px solid #22d49a25',fontWeight:600}}>
                       ✦ LIVE · {customIntel.length} items{intelFetchedAt ? ` · ${Math.floor((Date.now()-new Date(intelFetchedAt).getTime())/60000)}m ago` : ''}{customIntel.some(i=>i.fromConnectedTool)?' · from connected tools':''}
                     </span>
                   )}
                   {!customIntel && !demoMode && !intelLoading && (
-                    <span style={{fontSize:'0.6rem',color:'#f0a030',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025',fontWeight:600}}>Demo data · no API key</span>
+                    <span style={{fontSize:'0.84rem',color:'#f0a030',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025',fontWeight:600}}>Demo data · no API key</span>
                   )}
                 </div>
               </div>
 
               {/* Industry-specific intel first — 3 column grid */}
               <div>
-                <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
+                <div style={{fontSize:'0.86rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
                   {industry} — Active Threats
-                  <span style={{fontSize:'0.54rem',fontWeight:600,color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{industryIntel.filter(i=>i.industrySpecific).length} items</span>
+                  <span style={{fontSize:'0.86rem',fontWeight:600,color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{industryIntel.filter(i=>i.industrySpecific).length} items</span>
                 </div>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}} className='wt-three-col'>
                 {industryIntel.filter(i=>i.industrySpecific).slice(0,6).map(item=>{
@@ -2210,28 +2217,28 @@ export default function DashboardPage() {
                         <div style={{flex:1}}>
                           <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4}}>
                             <SevBadge sev={item.severity} />
-                            <span style={{fontSize:'0.76rem',fontWeight:700}}>{item.title}</span>
+                            <span style={{fontSize:'0.84rem',fontWeight:700}}>{item.title}</span>
                           </div>
-                          <div style={{fontSize:'0.7rem',color:'var(--wt-secondary)',lineHeight:1.6,marginBottom:6,display:'-webkit-box',WebkitLineClamp:isExpanded?999:2,WebkitBoxOrient:'vertical',overflow:'hidden'}}>{item.summary}</div>
+                          <div style={{fontSize:'0.86rem',color:'var(--wt-secondary)',lineHeight:1.6,marginBottom:6,display:'-webkit-box',WebkitLineClamp:isExpanded?999:2,WebkitBoxOrient:'vertical',overflow:'hidden'}}>{item.summary}</div>
                           <div style={{display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}>
-                            <span style={{fontSize:'0.56rem',color:'#4f8fff'}}>{item.source}</span>
-                            <span style={{fontSize:'0.56rem',color:'var(--wt-dim)'}}>{item.time}</span>
-                            {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.54rem',fontWeight:700,color:'#f0a030',background:'#f0a03012',padding:'1px 5px',borderRadius:3}}>{item.iocs.length} IOCs</span>}
-                            <a href={item.url||`https://www.ncsc.gov.uk/search?q=${encodeURIComponent(item.title)}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.5rem',color:'#4f8fff',textDecoration:'none',padding:'1px 5px',border:'1px solid #4f8fff20',borderRadius:3}}>↗</a>
+                            <span style={{fontSize:'0.8rem',color:'#4f8fff'}}>{item.source}</span>
+                            <span style={{fontSize:'0.8rem',color:'var(--wt-dim)'}}>{item.time}</span>
+                            {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.86rem',fontWeight:700,color:'#f0a030',background:'#f0a03012',padding:'1px 5px',borderRadius:3}}>{item.iocs.length} IOCs</span>}
+                            <a href={item.url||`https://www.ncsc.gov.uk/search?q=${encodeURIComponent(item.title)}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.84rem',color:'#4f8fff',textDecoration:'none',padding:'1px 5px',border:'1px solid #4f8fff20',borderRadius:3}}>↗</a>
                           </div>
                         </div>
-                        <span style={{fontSize:'0.62rem',color:'var(--wt-dim)',flexShrink:0}}>{isExpanded?'▲':'▼'}</span>
+                        <span style={{fontSize:'0.86rem',color:'var(--wt-dim)',flexShrink:0}}>{isExpanded?'▲':'▼'}</span>
                       </div>
                     </div>
                     {isExpanded && item.iocs && item.iocs.length>0 && (
                       <div style={{padding:'10px 14px 14px',borderTop:'1px solid #f0405e15',background:'#07010a'}}>
-                        <div style={{fontSize:'0.6rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Indicators of Compromise</div>
+                        <div style={{fontSize:'0.84rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Indicators of Compromise</div>
                         <div style={{display:'flex',flexDirection:'column',gap:4}}>
                           {item.iocs.map(ioc=>(
                             <div key={ioc} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 8px',background:'#0d0208',border:'1px solid #1e1010',borderRadius:6}}>
                               <span style={{width:6,height:6,borderRadius:'50%',background:'#f0a030',flexShrink:0}} />
-                              <code style={{fontSize:'0.68rem',fontFamily:'JetBrains Mono,monospace',color:'#f0c070',flex:1,wordBreak:'break-all'}}>{ioc}</code>
-                              <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(ioc);}} style={{fontSize:'0.54rem',padding:'2px 7px',borderRadius:3,border:'1px solid #f0a03025',background:'transparent',color:'#f0a030',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Copy</button>
+                              <code style={{fontSize:'0.84rem',fontFamily:'JetBrains Mono,monospace',color:'#f0c070',flex:1,wordBreak:'break-all'}}>{ioc}</code>
+                              <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(ioc);}} style={{fontSize:'0.86rem',padding:'2px 7px',borderRadius:3,border:'1px solid #f0a03025',background:'transparent',color:'#f0a030',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Copy</button>
                             </div>
                           ))}
                         </div>
@@ -2256,16 +2263,16 @@ export default function DashboardPage() {
                 }, {});
                 return (
                   <div>
-                    <div style={{fontSize:'0.62rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
+                    <div style={{fontSize:'0.86rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
                       <span style={{width:6,height:6,borderRadius:'50%',background:'#22d49a',boxShadow:'0 0 5px #22d49a',display:'block'}} />
                       Live — Connected Threat Intel Tools
-                      <span style={{fontSize:'0.54rem',fontWeight:600,color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{connectedIntelItems.length} items</span>
+                      <span style={{fontSize:'0.86rem',fontWeight:600,color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{connectedIntelItems.length} items</span>
                     </div>
                     {Object.entries(bySource).map(([source, items])=>(
                       <div key={source} style={{marginBottom:12}}>
-                        <div style={{fontSize:'0.6rem',fontWeight:700,color:'#22d49a',marginBottom:6,display:'flex',alignItems:'center',gap:6}}>
+                        <div style={{fontSize:'0.84rem',fontWeight:700,color:'#22d49a',marginBottom:6,display:'flex',alignItems:'center',gap:6}}>
                           <span>{source}</span>
-                          <span style={{fontSize:'0.52rem',color:'var(--wt-dim)',fontWeight:400}}>{items.length} indicator{items.length!==1?'s':''}</span>
+                          <span style={{fontSize:'0.84rem',color:'var(--wt-dim)',fontWeight:400}}>{items.length} indicator{items.length!==1?'s':''}</span>
                         </div>
                         <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}} className='wt-three-col'>
                         {items.slice(0,6).map((item,i)=>{
@@ -2276,26 +2283,26 @@ export default function DashboardPage() {
                               <div style={{padding:'10px 14px',cursor:'pointer'}} onClick={()=>toggleIntel(item.id)}>
                                 <div style={{display:'flex',alignItems:'flex-start',gap:7,marginBottom:4}}>
                                   <SevBadge sev={item.severity} />
-                                  <span style={{fontSize:'0.72rem',fontWeight:700,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.title}</span>
-                                  <span style={{fontSize:'0.58rem',color:'var(--wt-dim)',flexShrink:0}}>{isExpanded?'▲':'▼'}</span>
+                                  <span style={{fontSize:'0.8rem',fontWeight:700,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.title}</span>
+                                  <span style={{fontSize:'0.82rem',color:'var(--wt-dim)',flexShrink:0}}>{isExpanded?'▲':'▼'}</span>
                                 </div>
-                                <div style={{fontSize:'0.68rem',color:'var(--wt-secondary)',lineHeight:1.55,marginBottom:5,display:'-webkit-box',WebkitLineClamp:isExpanded?999:2,WebkitBoxOrient:'vertical',overflow:'hidden'}}>{item.summary}</div>
+                                <div style={{fontSize:'0.84rem',color:'var(--wt-secondary)',lineHeight:1.55,marginBottom:5,display:'-webkit-box',WebkitLineClamp:isExpanded?999:2,WebkitBoxOrient:'vertical',overflow:'hidden'}}>{item.summary}</div>
                                 <div style={{display:'flex',gap:5,alignItems:'center',flexWrap:'wrap'}}>
-                                  <span style={{fontSize:'0.54rem',color:'#22d49a'}}>{item.time}</span>
-                                  {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.52rem',fontWeight:700,color:'#f0a030',background:'#f0a03012',padding:'1px 5px',borderRadius:3}}>{item.iocs.length} IOCs</span>}
-                                  {item.mitre && <span style={{fontSize:'0.5rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{item.mitre}</span>}
-                                  {item.url && <a href={item.url} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.5rem',color:'#4f8fff',textDecoration:'none',padding:'1px 5px',border:'1px solid #4f8fff20',borderRadius:3}}>↗</a>}
+                                  <span style={{fontSize:'0.86rem',color:'#22d49a'}}>{item.time}</span>
+                                  {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.84rem',fontWeight:700,color:'#f0a030',background:'#f0a03012',padding:'1px 5px',borderRadius:3}}>{item.iocs.length} IOCs</span>}
+                                  {item.mitre && <span style={{fontSize:'0.84rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{item.mitre}</span>}
+                                  {item.url && <a href={item.url} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.84rem',color:'#4f8fff',textDecoration:'none',padding:'1px 5px',border:'1px solid #4f8fff20',borderRadius:3}}>↗</a>}
                                 </div>
                               </div>
                               {isExpanded && item.iocs && item.iocs.length>0 && (
                                 <div style={{padding:'8px 14px 12px',borderTop:'1px solid #22d49a15',background:'var(--wt-card2)'}}>
-                                  <div style={{fontSize:'0.58rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>Indicators</div>
+                                  <div style={{fontSize:'0.82rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>Indicators</div>
                                   <div style={{display:'flex',flexDirection:'column',gap:3}}>
                                     {item.iocs.map(ioc=>(
                                       <div key={ioc} style={{display:'flex',alignItems:'center',gap:6,padding:'3px 6px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:5}}>
                                         <span style={{width:5,height:5,borderRadius:'50%',background:'#f0a030',flexShrink:0}} />
-                                        <code style={{fontSize:'0.66rem',fontFamily:'JetBrains Mono,monospace',color:'#f0c070',flex:1,wordBreak:'break-all'}}>{ioc}</code>
-                                        <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(ioc);}} style={{fontSize:'0.5rem',padding:'1px 6px',borderRadius:3,border:'1px solid #f0a03025',background:'transparent',color:'#f0a030',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Copy</button>
+                                        <code style={{fontSize:'0.82rem',fontFamily:'JetBrains Mono,monospace',color:'#f0c070',flex:1,wordBreak:'break-all'}}>{ioc}</code>
+                                        <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(ioc);}} style={{fontSize:'0.84rem',padding:'1px 6px',borderRadius:3,border:'1px solid #f0a03025',background:'transparent',color:'#f0a030',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Copy</button>
                                       </div>
                                     ))}
                                   </div>
@@ -2306,10 +2313,10 @@ export default function DashboardPage() {
                                         const key=item.id+':'+tool;
                                         const isLoading=iocQueryLoading===key;
                                         const hasResult=!!iocQueries[key];
-                                        return (<button key={tool} onClick={e=>{e.stopPropagation();if(isLoading)return;setIocQueryLoading(key);const toolLabel={'splunk':'Splunk SPL','sentinel':'Microsoft Sentinel KQL','defender':'Microsoft Defender Advanced Hunting','elastic':'Elastic EQL'}[tool];fetch('/api/copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:'ioc_hunt',prompt:'Generate a '+toolLabel+' query to hunt for these IOCs: '+item.iocs.join(', ')+'. Provide ONLY the raw query, no preamble.'})}).then(r=>r.json()).then(d=>{setIocQueries(prev=>({...prev,[key]:d.response||''}));setIocQueryLoading(null);}).catch(()=>setIocQueryLoading(null));}} disabled={isLoading} style={{padding:'3px 8px',borderRadius:4,border:`1px solid ${color}40`,background:hasResult?`${color}20`:'transparent',color,fontSize:'0.58rem',fontWeight:700,cursor:isLoading?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:3,opacity:isLoading?0.7:1}}>{isLoading&&<span style={{display:'inline-block',width:6,height:6,borderRadius:'50%',border:`2px solid ${color}`,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />}{!isLoading&&hasResult&&'✓'}{label}</button>);
+                                        return (<button key={tool} onClick={e=>{e.stopPropagation();if(isLoading)return;setIocQueryLoading(key);const toolLabel={'splunk':'Splunk SPL','sentinel':'Microsoft Sentinel KQL','defender':'Microsoft Defender Advanced Hunting','elastic':'Elastic EQL'}[tool];fetch('/api/copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:'ioc_hunt',prompt:'Generate a '+toolLabel+' query to hunt for these IOCs: '+item.iocs.join(', ')+'. Provide ONLY the raw query, no preamble.'})}).then(r=>r.json()).then(d=>{setIocQueries(prev=>({...prev,[key]:d.response||''}));setIocQueryLoading(null);}).catch(()=>setIocQueryLoading(null));}} disabled={isLoading} style={{padding:'3px 8px',borderRadius:4,border:`1px solid ${color}40`,background:hasResult?`${color}20`:'transparent',color,fontSize:'0.82rem',fontWeight:700,cursor:isLoading?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:3,opacity:isLoading?0.7:1}}>{isLoading&&<span style={{display:'inline-block',width:6,height:6,borderRadius:'50%',border:`2px solid ${color}`,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />}{!isLoading&&hasResult&&'✓'}{label}</button>);
                                       })}
                                     </div>
-                                    {[{tool:'splunk',label:'Splunk SPL',color:'#f97316'},{tool:'sentinel',label:'Sentinel KQL',color:'#4f8fff'},{tool:'defender',label:'Defender AH',color:'#22d49a'},{tool:'elastic',label:'Elastic EQL',color:'#00bfb3'}].map(({tool,label,color})=>{const key=item.id+':'+tool;if(!iocQueries[key])return null;return(<div key={tool} style={{marginTop:6}}><div style={{fontSize:'0.52rem',fontWeight:700,color,textTransform:'uppercase',marginBottom:3}}>{label}</div><RemediationOutput text={iocQueries[key]} /></div>);})}
+                                    {[{tool:'splunk',label:'Splunk SPL',color:'#f97316'},{tool:'sentinel',label:'Sentinel KQL',color:'#4f8fff'},{tool:'defender',label:'Defender AH',color:'#22d49a'},{tool:'elastic',label:'Elastic EQL',color:'#00bfb3'}].map(({tool,label,color})=>{const key=item.id+':'+tool;if(!iocQueries[key])return null;return(<div key={tool} style={{marginTop:6}}><div style={{fontSize:'0.84rem',fontWeight:700,color,textTransform:'uppercase',marginBottom:3}}>{label}</div><RemediationOutput text={iocQueries[key]} /></div>);})}
                                   </div>
                                 </div>
                               )}
@@ -2325,24 +2332,24 @@ export default function DashboardPage() {
 
               {/* Tenable — In The News — 3 columns */}
               <div>
-                <div style={{fontSize:'0.62rem',fontWeight:700,color:'#00b3e3',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
+                <div style={{fontSize:'0.86rem',fontWeight:700,color:'#00b3e3',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
                   Tenable Research
-                  <span style={{fontSize:'0.54rem',fontWeight:600,color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>in the news</span>
+                  <span style={{fontSize:'0.86rem',fontWeight:600,color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>in the news</span>
                 </div>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,minWidth:0}} className='wt-three-col'>
                 {tenableNewsItems.slice(0,3).map(item=>(
                   <div key={item.id} style={{background:'var(--wt-card)',border:'1px solid #00b3e318',borderRadius:10,padding:'12px 14px',minWidth:0,overflow:'hidden'}}>
                     <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4}}>
                       <SevBadge sev={item.severity} />
-                      <span style={{fontSize:'0.74rem',fontWeight:700,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',minWidth:0}}>{item.title}</span>
+                      <span style={{fontSize:'0.82rem',fontWeight:700,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',minWidth:0}}>{item.title}</span>
                     </div>
-                    <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:6}}>{item.summary}</div>
+                    <div style={{fontSize:'0.82rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:6}}>{item.summary}</div>
                     <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
-                      <span style={{fontSize:'0.58rem',color:'#00b3e3',fontWeight:600}}>{item.source}</span>
-                      <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{item.time}</span>
-                      {item.iocs&&item.iocs.map(cve=><span key={cve} style={{fontSize:'0.52rem',color:'#f97316',fontFamily:'JetBrains Mono,monospace',padding:'1px 5px',border:'1px solid #f9731625',borderRadius:3,background:'#f9731610'}}>{cve}</span>)}
-                      {item.mitre&&<span style={{fontSize:'0.52rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{item.mitre}</span>}
-                      <a href={item.url} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.5rem',color:'#00b3e3',textDecoration:'none',padding:'1px 5px',border:'1px solid #00b3e320',borderRadius:3}}>↗ Read</a>
+                      <span style={{fontSize:'0.82rem',color:'#00b3e3',fontWeight:600}}>{item.source}</span>
+                      <span style={{fontSize:'0.82rem',color:'var(--wt-dim)'}}>{item.time}</span>
+                      {item.iocs&&item.iocs.map(cve=><span key={cve} style={{fontSize:'0.84rem',color:'#f97316',fontFamily:'JetBrains Mono,monospace',padding:'1px 5px',border:'1px solid #f9731625',borderRadius:3,background:'#f9731610'}}>{cve}</span>)}
+                      {item.mitre&&<span style={{fontSize:'0.84rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{item.mitre}</span>}
+                      <a href={item.url} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.84rem',color:'#00b3e3',textDecoration:'none',padding:'1px 5px',border:'1px solid #00b3e320',borderRadius:3}}>↗ Read</a>
                     </div>
                   </div>
                 ))}
@@ -2352,7 +2359,7 @@ export default function DashboardPage() {
               {/* Darktrace anomalies if active */}
               {darktrace?.active && (
                 <div>
-                  <div style={{fontSize:'0.62rem',fontWeight:700,color:'#8b6fff',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Darktrace — Network Anomalies</div>
+                  <div style={{fontSize:'0.86rem',fontWeight:700,color:'#8b6fff',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Darktrace — Network Anomalies</div>
                   {[
                     {device:'SRV-FINANCE01',score:96,desc:'Anomalous outbound HTTPS beaconing — 300s interval, unusual destination',time:'1h ago'},
                     {device:'laptop-CFO01',score:88,desc:'Unusual internal reconnaissance — scanning 10.0.0.0/24 subnet',time:'2h ago'},
@@ -2363,10 +2370,10 @@ export default function DashboardPage() {
                         <span style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:'#8b6fff'}}>{a.score}</span>
                       </div>
                       <div style={{flex:1}}>
-                        <div style={{fontSize:'0.76rem',fontWeight:700,marginBottom:2}}>{a.device}</div>
-                        <div style={{fontSize:'0.7rem',color:'var(--wt-muted)'}}>{a.desc}</div>
+                        <div style={{fontSize:'0.84rem',fontWeight:700,marginBottom:2}}>{a.device}</div>
+                        <div style={{fontSize:'0.86rem',color:'var(--wt-muted)'}}>{a.desc}</div>
                       </div>
-                      <span style={{fontSize:'0.6rem',color:'var(--wt-dim)',flexShrink:0}}>{a.time}</span>
+                      <span style={{fontSize:'0.84rem',color:'var(--wt-dim)',flexShrink:0}}>{a.time}</span>
                     </div>
                   ))}
                 </div>
@@ -2381,10 +2388,10 @@ export default function DashboardPage() {
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4,flexWrap:'wrap'}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Incidents</h2>
-                <span style={{fontSize:'0.62rem',color:'#f0405e',background:'#f0405e12',padding:'2px 8px',borderRadius:4}}>{incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Active').length} Active</span>
-                <span style={{fontSize:'0.62rem',color:'#8b6fff',background:'#8b6fff12',padding:'2px 8px',borderRadius:4}}>{incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Escalated').length} Escalated</span>
-                {incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Resolved').length>0 && <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Resolved').length} Resolved</span>}
-                <span style={{marginLeft:'auto',fontSize:'0.58rem',color:'var(--wt-dim)'}}>{incidents.filter(i=>!deletedIncidents.has(i.id)).length} total</span>
+                <span style={{fontSize:'0.86rem',color:'#f0405e',background:'#f0405e12',padding:'2px 8px',borderRadius:4}}>{incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Active').length} Active</span>
+                <span style={{fontSize:'0.86rem',color:'#8b6fff',background:'#8b6fff12',padding:'2px 8px',borderRadius:4}}>{incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Escalated').length} Escalated</span>
+                {incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Resolved').length>0 && <span style={{fontSize:'0.86rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Resolved').length} Resolved</span>}
+                <span style={{marginLeft:'auto',fontSize:'0.82rem',color:'var(--wt-dim)'}}>{incidents.filter(i=>!deletedIncidents.has(i.id)).length} total</span>
               </div>
 
               {/* Analyst workload */}
@@ -2405,8 +2412,8 @@ export default function DashboardPage() {
                 return (
                   <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'12px 16px'}}>
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
-                      <span style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Analyst Workload</span>
-                      {analystFilter && <button onClick={()=>setAnalystFilter(null)} style={{fontSize:'0.58rem',padding:'1px 8px',borderRadius:4,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Showing: {analystFilter} ×</button>}
+                      <span style={{fontSize:'0.84rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Analyst Workload</span>
+                      {analystFilter && <button onClick={()=>setAnalystFilter(null)} style={{fontSize:'0.82rem',padding:'1px 8px',borderRadius:4,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Showing: {analystFilter} ×</button>}
                     </div>
                     <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
                       {entries.map(([name,stats])=>{
@@ -2416,14 +2423,14 @@ export default function DashboardPage() {
                         const isFiltered = analystFilter === name;
                         return (
                           <div key={name} onClick={()=>setAnalystFilter(isFiltered?null:name)} style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',background:isFiltered?`${loadColor}15`:'var(--wt-card2)',border:`1px solid ${isFiltered?loadColor:loadColor+'20'}`,borderRadius:8,minWidth:160,cursor:'pointer',transition:'all .15s'}}>
-                            <div style={{width:28,height:28,borderRadius:'50%',background:`linear-gradient(135deg,${loadColor}30,${loadColor}10)`,border:`1px solid ${loadColor}40`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.6rem',fontWeight:800,color:loadColor,flexShrink:0}}>{initials}</div>
+                            <div style={{width:28,height:28,borderRadius:'50%',background:`linear-gradient(135deg,${loadColor}30,${loadColor}10)`,border:`1px solid ${loadColor}40`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.84rem',fontWeight:800,color:loadColor,flexShrink:0}}>{initials}</div>
                             <div style={{flex:1,minWidth:0}}>
-                              <div style={{fontSize:'0.7rem',fontWeight:700,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{name.split(' ')[0]}</div>
+                              <div style={{fontSize:'0.86rem',fontWeight:700,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{name.split(' ')[0]}</div>
                               <div style={{display:'flex',gap:4,marginTop:2,flexWrap:'wrap'}}>
-                                {stats.active>0&&<span style={{fontSize:'0.52rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:'#f0405e18',color:'#f0405e'}}>{stats.active} active</span>}
-                                {stats.escalated>0&&<span style={{fontSize:'0.52rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:'#8b6fff18',color:'#8b6fff'}}>{stats.escalated} escalated</span>}
-                                {stats.contained>0&&<span style={{fontSize:'0.52rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:'#f0a03018',color:'#f0a030'}}>{stats.contained} contained</span>}
-                                {stats.resolved>0&&<span style={{fontSize:'0.52rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:'#22d49a18',color:'#22d49a'}}>{stats.resolved} resolved</span>}
+                                {stats.active>0&&<span style={{fontSize:'0.84rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:'#f0405e18',color:'#f0405e'}}>{stats.active} active</span>}
+                                {stats.escalated>0&&<span style={{fontSize:'0.84rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:'#8b6fff18',color:'#8b6fff'}}>{stats.escalated} escalated</span>}
+                                {stats.contained>0&&<span style={{fontSize:'0.84rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:'#f0a03018',color:'#f0a030'}}>{stats.contained} contained</span>}
+                                {stats.resolved>0&&<span style={{fontSize:'0.84rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:'#22d49a18',color:'#22d49a'}}>{stats.resolved} resolved</span>}
                               </div>
                             </div>
                             <div style={{fontSize:'1.2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:loadColor,lineHeight:1}}>{stats.total}</div>
@@ -2442,8 +2449,8 @@ export default function DashboardPage() {
                     <div style={{padding:'12px 16px',cursor:'pointer',display:'flex',alignItems:'flex-start',gap:12}} onClick={()=>setSelectedIncident(isSel?null:inc)}>
                       <div style={{flex:1}}>
                         <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
-                          <span style={{fontSize:'0.62rem',fontWeight:800,color:'#4f8fff',fontFamily:'JetBrains Mono,monospace'}}>{inc.id}</span>
-                          <span style={{fontSize:'0.52rem',fontWeight:700,padding:'2px 7px',borderRadius:3,background:`${statusColor}15`,color:statusColor,border:`1px solid ${statusColor}25`}}>{incStatus.toUpperCase()}</span>
+                          <span style={{fontSize:'0.86rem',fontWeight:800,color:'#4f8fff',fontFamily:'JetBrains Mono,monospace'}}>{inc.id}</span>
+                          <span style={{fontSize:'0.84rem',fontWeight:700,padding:'2px 7px',borderRadius:3,background:`${statusColor}15`,color:statusColor,border:`1px solid ${statusColor}25`}}>{incStatus.toUpperCase()}</span>
                           <SevBadge sev={inc.severity} />
                           {(()=>{
                             void slaTick;
@@ -2456,15 +2463,15 @@ export default function DashboardPage() {
                             const pct=Math.min(100,Math.max(0,(elapsed/slaMin)*100));
                             const color=remaining<0?'#f0405e':pct>75?'#f97316':pct>50?'#f0a030':'#22d49a';
                             const label=remaining<0?`SLA BREACHED ${Math.abs(Math.floor(remaining/60))}h ago`:remaining<60?`${remaining}m left`:`${Math.floor(remaining/60)}h ${remaining%60}m left`;
-                            return <span style={{fontSize:'0.48rem',fontWeight:800,padding:'1px 6px',borderRadius:3,background:`${color}15`,color,border:`1px solid ${color}25`,flexShrink:0}}>{label}</span>;
+                            return <span style={{fontSize:'0.58rem',fontWeight:800,padding:'1px 6px',borderRadius:3,background:`${color}15`,color,border:`1px solid ${color}25`,flexShrink:0}}>{label}</span>;
                           })()}
                         </div>
                         <div style={{fontSize:'0.84rem',fontWeight:700,marginBottom:4}}>{inc.title}</div>
                         <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
-                          {(inc.mitreTactics||[]).map(t=><span key={t} style={{fontSize:'0.52rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{t}</span>)}
-                          <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{inc.alertCount} alert{inc.alertCount!==1?'s':''} · {(inc.devices||[]).length} device{(inc.devices||[]).length!==1?'s':''}</span>
-                          <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>Updated {inc.updated&&inc.updated.split&&inc.updated.split(' ')[1]||'—'}</span>
-                          {inc.assignedTo && <span style={{fontSize:'0.54rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff25',flexShrink:0}}>{'\u{1f464}'} {inc.assignedTo.split(' ')[0]}</span>}
+                          {(inc.mitreTactics||[]).map(t=><span key={t} style={{fontSize:'0.84rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{t}</span>)}
+                          <span style={{fontSize:'0.82rem',color:'var(--wt-dim)'}}>{inc.alertCount} alert{inc.alertCount!==1?'s':''} · {(inc.devices||[]).length} device{(inc.devices||[]).length!==1?'s':''}</span>
+                          <span style={{fontSize:'0.82rem',color:'var(--wt-dim)'}}>Updated {inc.updated&&inc.updated.split&&inc.updated.split(' ')[1]||'—'}</span>
+                          {inc.assignedTo && <span style={{fontSize:'0.86rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff25',flexShrink:0}}>{'\u{1f464}'} {inc.assignedTo.split(' ')[0]}</span>}
                           {(()=>{
                             if(!inc.created||(incidentStatuses[inc.id]||inc.status)!=='Active') return null;
                             const ageMs=Date.now()-new Date(inc.created).getTime();
@@ -2474,39 +2481,39 @@ export default function DashboardPage() {
                             const h=Math.floor(Math.abs(remainMs)/3600000);
                             const m=Math.floor((Math.abs(remainMs)%3600000)/60000);
                             const label=breached?`SLA breached ${h}h${m}m ago`:`SLA ${h}h${m}m remaining`;
-                            return <span style={{fontSize:'0.56rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:breached?'#f0405e':'#f0a03012',color:breached?'#fff':'#f0a030',border:breached?'none':'1px solid #f0a03030'}}>{label}</span>;
+                            return <span style={{fontSize:'0.8rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:breached?'#f0405e':'#f0a03012',color:breached?'#fff':'#f0a030',border:breached?'none':'1px solid #f0a03030'}}>{label}</span>;
                           })()}
                         </div>
                       </div>
                       <div style={{display:'flex',alignItems:'center',gap:4,flexShrink:0}}>
-                        {incidentAssignees&&incidentAssignees[inc.id]&&<span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:'#4f8fff18',color:'#4f8fff',border:'1px solid #4f8fff25'}}>→ {incidentAssignees[inc.id]}</span>}
-                        <button onClick={e=>{e.stopPropagation();setIncidentAssignees(prev=>({...prev,[inc.id]:prev[inc.id]?null:'Me'}));}} style={{fontSize:'0.52rem',padding:'2px 7px',borderRadius:4,border:`1px solid ${incidentAssignees&&incidentAssignees[inc.id]?'#4f8fff40':'var(--wt-border2)'}`,background:incidentAssignees&&incidentAssignees[inc.id]?'#4f8fff15':'transparent',color:incidentAssignees&&incidentAssignees[inc.id]?'#4f8fff':'var(--wt-dim)',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:700}}>{incidentAssignees&&incidentAssignees[inc.id]?'✓ Me':'Assign'}</button>
-                        <span style={{fontSize:'0.7rem',color:'var(--wt-dim)'}}>{isSel?'▲':'▼'}</span>
+                        {incidentAssignees&&incidentAssignees[inc.id]&&<span style={{fontSize:'0.84rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:'#4f8fff18',color:'#4f8fff',border:'1px solid #4f8fff25'}}>→ {incidentAssignees[inc.id]}</span>}
+                        <button onClick={e=>{e.stopPropagation();setIncidentAssignees(prev=>({...prev,[inc.id]:prev[inc.id]?null:'Me'}));}} style={{fontSize:'0.84rem',padding:'2px 7px',borderRadius:4,border:`1px solid ${incidentAssignees&&incidentAssignees[inc.id]?'#4f8fff40':'var(--wt-border2)'}`,background:incidentAssignees&&incidentAssignees[inc.id]?'#4f8fff15':'transparent',color:incidentAssignees&&incidentAssignees[inc.id]?'#4f8fff':'var(--wt-dim)',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:700}}>{incidentAssignees&&incidentAssignees[inc.id]?'✓ Me':'Assign'}</button>
+                        <span style={{fontSize:'0.86rem',color:'var(--wt-dim)'}}>{isSel?'▲':'▼'}</span>
                       </div>
                     </div>
                     {isSel && (
                       <div style={{borderTop:'1px solid #1d2535',padding:'14px 16px'}}>
                         <GateWall feature='AI Attack Narrative' requiredTier='team' userTier={userTier} isAdmin={isAdmin}>
-              <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,padding:'10px',background:'linear-gradient(135deg,rgba(79,143,255,0.04),rgba(34,201,146,0.04))',border:'1px solid #4f8fff15',borderRadius:8,marginBottom:12}}>
-                          <span style={{fontSize:'0.6rem',fontWeight:700,color:'#4f8fff',display:'block',marginBottom:4}}>AI ATTACK NARRATIVE</span>
+              <div style={{fontSize:'0.82rem',color:'var(--wt-secondary)',lineHeight:1.65,padding:'10px',background:'linear-gradient(135deg,rgba(79,143,255,0.04),rgba(34,201,146,0.04))',border:'1px solid #4f8fff15',borderRadius:8,marginBottom:12}}>
+                          <span style={{fontSize:'0.84rem',fontWeight:700,color:'#4f8fff',display:'block',marginBottom:4}}>AI ATTACK NARRATIVE</span>
                           {inc.aiSummary}
                         </div>
                         </GateWall>
-                        <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Attack Timeline</div>
+                        <div style={{fontSize:'0.86rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Attack Timeline</div>
                         <div style={{display:'flex',flexDirection:'column',gap:0}}>
                           {(inc.timeline||[]).map((event,i)=>(
                             <div key={i} style={{display:'flex',gap:0,padding:'5px 0'}}>
                               <div style={{display:'flex',flexDirection:'column',alignItems:'center',minWidth:50}}>
-                                <span style={{fontSize:'0.6rem',fontFamily:'JetBrains Mono,monospace',color:'var(--wt-dim)',marginBottom:3}}>{event.t}</span>
+                                <span style={{fontSize:'0.84rem',fontFamily:'JetBrains Mono,monospace',color:'var(--wt-dim)',marginBottom:3}}>{event.t}</span>
                                 <div style={{width:8,height:8,borderRadius:'50%',background:event.actor==='AI'?'#4f8fff':'#22d49a',flexShrink:0}} />
                                 {i<(inc.timeline||[]).length-1&&<div style={{width:1,flex:1,background:'var(--wt-border)',minHeight:16,marginTop:2}} />}
                               </div>
                               <div style={{flex:1,paddingLeft:10,paddingBottom:8}}>
                                 <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:1}}>
-                                  <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:event.actor==='AI'?'#4f8fff15':'#22d49a15',color:event.actor==='AI'?'#4f8fff':'#22d49a'}}>{event.actor}</span>
-                                  <span style={{fontSize:'0.74rem',fontWeight:600}}>{event.action}</span>
+                                  <span style={{fontSize:'0.84rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:event.actor==='AI'?'#4f8fff15':'#22d49a15',color:event.actor==='AI'?'#4f8fff':'#22d49a'}}>{event.actor}</span>
+                                  <span style={{fontSize:'0.82rem',fontWeight:600}}>{event.action}</span>
                                 </div>
-                                <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',lineHeight:1.5}}>{event.detail}</div>
+                                <div style={{fontSize:'0.84rem',color:'var(--wt-muted)',lineHeight:1.5}}>{event.detail}</div>
                               </div>
                             </div>
                           ))}
@@ -2514,31 +2521,31 @@ export default function DashboardPage() {
                         {/* AI Commands Run — extracted from AI-actor timeline entries */}
                         {(inc.timeline||[]).filter(e=>e.actor==='AI'&&e.cmd).length>0&&(
                           <div style={{marginTop:12,padding:'10px 12px',background:'#060b10',border:'1px solid #4f8fff20',borderRadius:8}}>
-                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8,display:'flex',alignItems:'center',gap:6}}>
+                            <div style={{fontSize:'0.84rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8,display:'flex',alignItems:'center',gap:6}}>
                               <span style={{width:6,height:6,borderRadius:'50%',background:'#4f8fff',display:'block'}} />AI Commands Executed
-                              <span style={{fontSize:'0.52rem',color:'var(--wt-dim)',fontWeight:400,marginLeft:4}}>automated responses run by Watchtower AI</span>
+                              <span style={{fontSize:'0.84rem',color:'var(--wt-dim)',fontWeight:400,marginLeft:4}}>automated responses run by Watchtower AI</span>
                             </div>
                             <div style={{display:'flex',flexDirection:'column',gap:4}}>
                               {(inc.timeline||[]).filter(e=>e.actor==='AI'&&e.cmd).map((e,ci)=>(
                                 <div key={ci} style={{display:'flex',gap:8,alignItems:'flex-start'}}>
-                                  <span style={{fontSize:'0.52rem',fontFamily:'JetBrains Mono,monospace',color:'#4f8fff',flexShrink:0,marginTop:3,minWidth:36}}>{e.t}</span>
+                                  <span style={{fontSize:'0.84rem',fontFamily:'JetBrains Mono,monospace',color:'#4f8fff',flexShrink:0,marginTop:3,minWidth:36}}>{e.t}</span>
                                   <div style={{flex:1}}>
-                                    <div style={{fontSize:'0.6rem',color:'var(--wt-secondary)',marginBottom:2}}>{e.action}</div>
-                                    <div style={{padding:'4px 8px',background:'#0d1520',border:'1px solid #1a2535',borderRadius:4,fontSize:'0.6rem',fontFamily:'JetBrains Mono,monospace',color:'#22d49a',wordBreak:'break-all',whiteSpace:'pre-wrap',lineHeight:1.6}}>{e.cmd}</div>
+                                    <div style={{fontSize:'0.84rem',color:'var(--wt-secondary)',marginBottom:2}}>{e.action}</div>
+                                    <div style={{padding:'4px 8px',background:'#0d1520',border:'1px solid #1a2535',borderRadius:4,fontSize:'0.84rem',fontFamily:'JetBrains Mono,monospace',color:'#22d49a',wordBreak:'break-all',whiteSpace:'pre-wrap',lineHeight:1.6}}>{e.cmd}</div>
                                   </div>
-                                  <button onClick={()=>navigator.clipboard.writeText(e.cmd)} style={{padding:'2px 6px',borderRadius:3,border:'1px solid #1d2535',background:'transparent',color:'var(--wt-dim)',fontSize:'0.52rem',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0,marginTop:3}}>Copy</button>
+                                  <button onClick={()=>navigator.clipboard.writeText(e.cmd)} style={{padding:'2px 6px',borderRadius:3,border:'1px solid #1d2535',background:'transparent',color:'var(--wt-dim)',fontSize:'0.84rem',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0,marginTop:3}}>Copy</button>
                                 </div>
                               ))}
                             </div>
                           </div>
                         )}
                         <div style={{display:'flex',gap:6,marginTop:10,flexWrap:'wrap',alignItems:'center',position:'relative'}}>
-                          <button onClick={()=>setAddingNoteTo(addingNoteTo===inc.id?null:inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid var(--wt-border2)',background:addingNoteTo===inc.id?'#4f8fff12':'transparent',color:'#8a9ab0',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📝 Note</button>
-                          {canUse('team')&&<button onClick={()=>{const si=showInvest;const n=new Set(si);if(!n.has(inc.id)){n.add(inc.id);setShowInvest(n);runInvestigation(inc);}else{n.delete(inc.id);setShowInvest(n);}}} style={{padding:'5px 12px',borderRadius:6,border:`1px solid ${showInvest.has(inc.id)?'#8b6fff':'#8b6fff30'}`,background:showInvest.has(inc.id)?'#8b6fff20':'#8b6fff0a',color:'#8b6fff',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✦ {investLoading.has(inc.id)?'Investigating…':investResults[inc.id]&&!investResults[inc.id]._error?'Investigation ▲':'Deep Investigate'}</button>}
-                          <button onClick={()=>setIncidentStatuses(prev=>({...prev,[inc.id]:'Escalated'}))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0a03030',background:'#f0a03008',color:'#f0a030',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>⬆ Escalate</button>
-                          <button onClick={()=>closeIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✓ Close</button>
+                          <button onClick={()=>setAddingNoteTo(addingNoteTo===inc.id?null:inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid var(--wt-border2)',background:addingNoteTo===inc.id?'#4f8fff12':'transparent',color:'#8a9ab0',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📝 Note</button>
+                          {canUse('team')&&<button onClick={()=>{const si=showInvest;const n=new Set(si);if(!n.has(inc.id)){n.add(inc.id);setShowInvest(n);runInvestigation(inc);}else{n.delete(inc.id);setShowInvest(n);}}} style={{padding:'5px 12px',borderRadius:6,border:`1px solid ${showInvest.has(inc.id)?'#8b6fff':'#8b6fff30'}`,background:showInvest.has(inc.id)?'#8b6fff20':'#8b6fff0a',color:'#8b6fff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✦ {investLoading.has(inc.id)?'Investigating…':investResults[inc.id]&&!investResults[inc.id]._error?'Investigation ▲':'Deep Investigate'}</button>}
+                          <button onClick={()=>setIncidentStatuses(prev=>({...prev,[inc.id]:'Escalated'}))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0a03030',background:'#f0a03008',color:'#f0a030',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>⬆ Escalate</button>
+                          <button onClick={()=>closeIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✓ Close</button>
                           {/* Assign to me */}
-                          <button onClick={()=>setCreatedIncidents(prev=>prev.map(i=>i.id===inc.id?{...i,assignedTo:currentUserName||'Me'}:i))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff08',color:'#4f8fff',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>👤 Assign to me</button>
+                          <button onClick={()=>setCreatedIncidents(prev=>prev.map(i=>i.id===inc.id?{...i,assignedTo:currentUserName||'Me'}:i))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff08',color:'#4f8fff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>👤 Assign to me</button>
                           {/* Assign to analyst dropdown */}
                           {(()=>{
                             // Live: pull from staffUsers (Redis); demo: derive from demo incident assignedTo
@@ -2550,11 +2557,11 @@ export default function DashboardPage() {
                             const allAnalysts=[...new Set([...baseAnalysts,...(!demoMode&&staffUsers.length>0?[]:[])])].filter(Boolean);
                             return (
                               <div style={{position:'relative'}}>
-                                <button onClick={e=>{e.stopPropagation();setAssignDropdown(assignDropdown===inc.id?null:inc.id);}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff08',color:'#8b6fff',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Assign ▾</button>
+                                <button onClick={e=>{e.stopPropagation();setAssignDropdown(assignDropdown===inc.id?null:inc.id);}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff08',color:'#8b6fff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Assign ▾</button>
                                 {assignDropdown===inc.id && (
                                   <div onClick={e=>e.stopPropagation()} style={{position:'absolute',bottom:'100%',left:0,marginBottom:4,background:'var(--wt-sidebar)',border:'1px solid #1d2535',borderRadius:8,boxShadow:'0 4px 20px rgba(0,0,0,0.5)',zIndex:200,minWidth:160,padding:4}}>
                                     {allAnalysts.map(name=>(
-                                      <button key={name} onClick={()=>{setCreatedIncidents(prev=>prev.map(i=>i.id===inc.id?{...i,assignedTo:name}:i));setAssignDropdown(null);}} style={{display:'block',width:'100%',padding:'7px 12px',border:'none',borderRadius:5,background:inc.assignedTo===name?'#4f8fff18':'transparent',color:inc.assignedTo===name?'#4f8fff':'var(--wt-secondary)',fontSize:'0.72rem',fontWeight:inc.assignedTo===name?700:400,cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>
+                                      <button key={name} onClick={()=>{setCreatedIncidents(prev=>prev.map(i=>i.id===inc.id?{...i,assignedTo:name}:i));setAssignDropdown(null);}} style={{display:'block',width:'100%',padding:'7px 12px',border:'none',borderRadius:5,background:inc.assignedTo===name?'#4f8fff18':'transparent',color:inc.assignedTo===name?'#4f8fff':'var(--wt-secondary)',fontSize:'0.8rem',fontWeight:inc.assignedTo===name?700:400,cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>
                                         {inc.assignedTo===name?'✓ ':''}{name}
                                       </button>
                                     ))}
@@ -2563,21 +2570,21 @@ export default function DashboardPage() {
                               </div>
                             );
                           })()}
-                          <button onClick={()=>deleteIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0405e25',background:'#f0405e0a',color:'#f0405e',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🗑</button>
-                          {inc.alerts&&inc.alerts.length>0&&<button onClick={()=>{setAlertSevFilter('all');setAlertSearch('');inc.alerts.forEach(id=>setExpandedAlerts(prev=>{const n=new Set(prev);n.add(id);return n;}));setActiveTab('alerts');}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff08',color:'#4f8fff',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🔗 Alerts</button>}
+                          <button onClick={()=>deleteIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0405e25',background:'#f0405e0a',color:'#f0405e',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🗑</button>
+                          {inc.alerts&&inc.alerts.length>0&&<button onClick={()=>{setAlertSevFilter('all');setAlertSearch('');inc.alerts.forEach(id=>setExpandedAlerts(prev=>{const n=new Set(prev);n.add(id);return n;}));setActiveTab('alerts');}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff08',color:'#4f8fff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🔗 Alerts</button>}
                         </div>
                         {addingNoteTo===inc.id && (
                           <div style={{marginTop:8,display:'flex',gap:6}}>
-                            <input value={noteInput} onChange={e=>setNoteInput(e.target.value)} placeholder='Type a note...' style={{flex:1,padding:'6px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.74rem',fontFamily:'Inter,sans-serif',outline:'none'}} />
-                            <button onClick={()=>{if(noteInput.trim()){setIncidentNotes(prev=>({...prev,[inc.id]:[...(prev[inc.id]||[]),{text:noteInput.trim(),time:new Date().toLocaleTimeString()}]}));setNoteInput('');setAddingNoteTo(null);}}} style={{padding:'6px 12px',borderRadius:6,border:'none',background:'#4f8fff',color:'#fff',fontSize:'0.7rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Save</button>
+                            <input value={noteInput} onChange={e=>setNoteInput(e.target.value)} placeholder='Type a note...' style={{flex:1,padding:'6px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.82rem',fontFamily:'Inter,sans-serif',outline:'none'}} />
+                            <button onClick={()=>{if(noteInput.trim()){setIncidentNotes(prev=>({...prev,[inc.id]:[...(prev[inc.id]||[]),{text:noteInput.trim(),time:new Date().toLocaleTimeString()}]}));setNoteInput('');setAddingNoteTo(null);}}} style={{padding:'6px 12px',borderRadius:6,border:'none',background:'#4f8fff',color:'#fff',fontSize:'0.86rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Save</button>
                           </div>
                         )}
                         {incidentNotes[inc.id] && incidentNotes[inc.id].length>0 && (
                           <div style={{marginTop:8}}>
-                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>Notes</div>
+                            <div style={{fontSize:'0.84rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>Notes</div>
                             {incidentNotes[inc.id].map((n,ni)=>(
-                              <div key={ni} style={{fontSize:'0.7rem',color:'var(--wt-secondary)',padding:'5px 8px',background:'var(--wt-card2)',borderRadius:5,marginBottom:3,display:'flex',justifyContent:'space-between',gap:8}}>
-                                <span>{n.text}</span><span style={{color:'var(--wt-dim)',flexShrink:0,fontSize:'0.6rem'}}>{n.time}</span>
+                              <div key={ni} style={{fontSize:'0.86rem',color:'var(--wt-secondary)',padding:'5px 8px',background:'var(--wt-card2)',borderRadius:5,marginBottom:3,display:'flex',justifyContent:'space-between',gap:8}}>
+                                <span>{n.text}</span><span style={{color:'var(--wt-dim)',flexShrink:0,fontSize:'0.84rem'}}>{n.time}</span>
                               </div>
                             ))}
                           </div>
@@ -2586,22 +2593,22 @@ export default function DashboardPage() {
                         {showInvest.has(inc.id) && (
                           <div style={{marginTop:14,background:'linear-gradient(135deg,rgba(139,111,255,0.05),rgba(79,143,255,0.03))',border:'1px solid #8b6fff25',borderRadius:12,overflow:'hidden'}}>
                             <div style={{padding:'10px 14px',borderBottom:'1px solid #8b6fff15',display:'flex',alignItems:'center',gap:8}}>
-                              <span style={{fontSize:'0.64rem',fontWeight:800,color:'#8b6fff',letterSpacing:'0.5px'}}>✦ TIER 2/3 DEEP INVESTIGATION</span>
-                              {investResults[inc.id] && <span style={{fontSize:'0.56rem',color:'var(--wt-muted)',marginLeft:'auto'}}>AI-generated · verify with your tools</span>}
+                              <span style={{fontSize:'0.8rem',fontWeight:800,color:'#8b6fff',letterSpacing:'0.5px'}}>✦ TIER 2/3 DEEP INVESTIGATION</span>
+                              {investResults[inc.id] && <span style={{fontSize:'0.8rem',color:'var(--wt-muted)',marginLeft:'auto'}}>AI-generated · verify with your tools</span>}
                             </div>
-                            {investLoading.has(inc.id) && <div style={{padding:'14px',fontSize:'0.72rem',color:'var(--wt-muted)',display:'flex',alignItems:'center',gap:8}}><span style={{width:10,height:10,borderRadius:'50%',border:'2px solid #8b6fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>Running deep investigation…</div>}
-                            {investResults[inc.id]?._error && <div style={{padding:'12px 14px',background:'#f0405e08',border:'1px solid #f0405e25',borderRadius:8,display:'flex',alignItems:'center',gap:8}}><span style={{color:'#f0405e',fontSize:'0.8rem'}}>⚠</span><div><div style={{fontSize:'0.72rem',color:'#f0405e',fontWeight:600,marginBottom:2}}>Investigation failed</div><div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>{investResults[inc.id]._error}</div></div><button onClick={()=>{setInvestResults(prev=>{const n={...prev};delete n[inc.id];return n;});runInvestigation(inc);}} style={{marginLeft:'auto',padding:'4px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.66rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>↺ Retry</button></div>}
+                            {investLoading.has(inc.id) && <div style={{padding:'14px',fontSize:'0.8rem',color:'var(--wt-muted)',display:'flex',alignItems:'center',gap:8}}><span style={{width:10,height:10,borderRadius:'50%',border:'2px solid #8b6fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>Running deep investigation…</div>}
+                            {investResults[inc.id]?._error && <div style={{padding:'12px 14px',background:'#f0405e08',border:'1px solid #f0405e25',borderRadius:8,display:'flex',alignItems:'center',gap:8}}><span style={{color:'#f0405e',fontSize:'0.8rem'}}>⚠</span><div><div style={{fontSize:'0.8rem',color:'#f0405e',fontWeight:600,marginBottom:2}}>Investigation failed</div><div style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>{investResults[inc.id]._error}</div></div><button onClick={()=>{setInvestResults(prev=>{const n={...prev};delete n[inc.id];return n;});runInvestigation(inc);}} style={{marginLeft:'auto',padding:'4px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>↺ Retry</button></div>}
                             {investResults[inc.id] && !investResults[inc.id]._error && (()=>{const inv=investResults[inc.id];return(
                               <div style={{padding:'14px',display:'flex',flexDirection:'column',gap:14}}>
-                                {inv.rootCause&&<div><div style={{fontSize:'0.56rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Root Cause</div><div style={{fontSize:'0.72rem',color:'var(--wt-secondary)',lineHeight:1.65}}>{inv.rootCause}</div></div>}
-                                {inv.attackerObjective&&<div><div style={{fontSize:'0.56rem',fontWeight:700,color:'#f97316',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>Attacker Objective</div><div style={{fontSize:'0.72rem',color:'#f97316',padding:'5px 10px',background:'#f9731612',borderRadius:6}}>{inv.attackerObjective}</div></div>}
-                                {inv.affectedScope&&<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}><div><div style={{fontSize:'0.56rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Users at Risk</div>{(inv.affectedScope.users||[]).map((u,i)=><div key={i} style={{fontSize:'0.64rem',color:'var(--wt-secondary)',marginBottom:1}}>👤 {u}</div>)}</div><div><div style={{fontSize:'0.56rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Devices at Risk</div>{(inv.affectedScope.devices||[]).map((d,i)=><div key={i} style={{fontSize:'0.64rem',color:'var(--wt-secondary)',marginBottom:1}}>💻 {d}</div>)}</div></div>}
-                                {inv.attackTimeline?.length>0&&<div><div style={{fontSize:'0.56rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',marginBottom:6}}>Reconstructed Timeline</div>{inv.attackTimeline.map((ev,i)=>(<div key={i} style={{display:'flex',gap:8,padding:'5px 0',borderBottom:'1px solid var(--wt-border)',alignItems:'flex-start'}}><span style={{fontSize:'0.6rem',fontFamily:'JetBrains Mono,monospace',color:'#4f8fff',flexShrink:0,minWidth:36}}>{ev.time}</span><div style={{flex:1}}><div style={{fontSize:'0.66rem',fontWeight:600,color:'var(--wt-text)',marginBottom:1}}>{ev.event}</div><div style={{fontSize:'0.6rem',color:'var(--wt-dim)'}}>{ev.significance}</div></div><span style={{fontSize:'0.52rem',color:'#4f8fff',fontWeight:700,flexShrink:0,padding:'1px 5px',background:'#4f8fff12',borderRadius:3}}>{ev.source}</span></div>))}</div>}
-                                {inv.lateralMovementPaths?.length>0&&<div><div style={{fontSize:'0.56rem',fontWeight:700,color:'#f97316',textTransform:'uppercase',marginBottom:4}}>Lateral Movement Paths</div>{inv.lateralMovementPaths.map((path,i)=><div key={i} style={{fontSize:'0.64rem',color:'#f97316',marginBottom:2}}>→ {path}</div>)}</div>}
-                                {inv.remediationSteps?.length>0&&<div><div style={{fontSize:'0.56rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',marginBottom:6}}>Remediation Plan</div>{inv.remediationSteps.map((s,i)=>{const pc=s.priority==='Critical'?'#f0405e':s.priority==='High'?'#f97316':'#f0a030';return(<div key={i} style={{display:'flex',gap:8,padding:'5px 8px',background:`${pc}08`,borderRadius:6,border:`1px solid ${pc}20`,marginBottom:4}}><span style={{fontSize:'0.52rem',fontWeight:700,color:pc,padding:'1px 5px',background:`${pc}15`,borderRadius:3,flexShrink:0,marginTop:2}}>{s.priority}</span><div><div style={{fontSize:'0.66rem',color:'var(--wt-text)',fontWeight:600}}>{s.action}</div><div style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>Owner: {s.owner}</div></div></div>);})}</div>}
-                                {inv.forensicCommands?.length>0&&<div><div style={{fontSize:'0.56rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',marginBottom:6}}>Forensic Commands</div>{inv.forensicCommands.map((fc,i)=>(<div key={i} style={{marginBottom:8}}><div style={{display:'flex',justifyContent:'space-between',marginBottom:2}}><span style={{fontSize:'0.56rem',color:'var(--wt-dim)',fontWeight:700}}>{fc.tool} — {fc.purpose}</span><button onClick={()=>navigator.clipboard?.writeText(fc.command)} style={{padding:'2px 7px',borderRadius:3,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.5rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Copy</button></div><code style={{display:'block',fontSize:'0.6rem',fontFamily:'JetBrains Mono,monospace',color:'#22c992',background:'#050810',padding:'6px 8px',borderRadius:5,wordBreak:'break-all',lineHeight:1.5}}>{fc.command}</code></div>))}</div>}
-                                {inv.iocs?.length>0&&<div><div style={{fontSize:'0.56rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',marginBottom:4}}>Extracted IOCs</div><div style={{display:'flex',flexWrap:'wrap',gap:4}}>{inv.iocs.map((ioc,i)=>(<span key={i} style={{fontSize:'0.62rem',fontFamily:'JetBrains Mono,monospace',padding:'2px 7px',background:'#f0a03010',border:'1px solid #f0a03025',borderRadius:4,color:'#f0a030'}}>{ioc}</span>))}</div></div>}
-                                {inv.detectionGaps?.length>0&&<div><div style={{fontSize:'0.56rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Detection Gaps Found</div>{inv.detectionGaps.map((g,i)=><div key={i} style={{fontSize:'0.62rem',color:'var(--wt-muted)',marginBottom:2}}>⚠️ {g}</div>)}</div>}
+                                {inv.rootCause&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Root Cause</div><div style={{fontSize:'0.8rem',color:'var(--wt-secondary)',lineHeight:1.65}}>{inv.rootCause}</div></div>}
+                                {inv.attackerObjective&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#f97316',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>Attacker Objective</div><div style={{fontSize:'0.8rem',color:'#f97316',padding:'5px 10px',background:'#f9731612',borderRadius:6}}>{inv.attackerObjective}</div></div>}
+                                {inv.affectedScope&&<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}><div><div style={{fontSize:'0.8rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Users at Risk</div>{(inv.affectedScope.users||[]).map((u,i)=><div key={i} style={{fontSize:'0.8rem',color:'var(--wt-secondary)',marginBottom:1}}>👤 {u}</div>)}</div><div><div style={{fontSize:'0.8rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Devices at Risk</div>{(inv.affectedScope.devices||[]).map((d,i)=><div key={i} style={{fontSize:'0.8rem',color:'var(--wt-secondary)',marginBottom:1}}>💻 {d}</div>)}</div></div>}
+                                {inv.attackTimeline?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',marginBottom:6}}>Reconstructed Timeline</div>{inv.attackTimeline.map((ev,i)=>(<div key={i} style={{display:'flex',gap:8,padding:'5px 0',borderBottom:'1px solid var(--wt-border)',alignItems:'flex-start'}}><span style={{fontSize:'0.84rem',fontFamily:'JetBrains Mono,monospace',color:'#4f8fff',flexShrink:0,minWidth:36}}>{ev.time}</span><div style={{flex:1}}><div style={{fontSize:'0.82rem',fontWeight:600,color:'var(--wt-text)',marginBottom:1}}>{ev.event}</div><div style={{fontSize:'0.84rem',color:'var(--wt-dim)'}}>{ev.significance}</div></div><span style={{fontSize:'0.84rem',color:'#4f8fff',fontWeight:700,flexShrink:0,padding:'1px 5px',background:'#4f8fff12',borderRadius:3}}>{ev.source}</span></div>))}</div>}
+                                {inv.lateralMovementPaths?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#f97316',textTransform:'uppercase',marginBottom:4}}>Lateral Movement Paths</div>{inv.lateralMovementPaths.map((path,i)=><div key={i} style={{fontSize:'0.8rem',color:'#f97316',marginBottom:2}}>→ {path}</div>)}</div>}
+                                {inv.remediationSteps?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',marginBottom:6}}>Remediation Plan</div>{inv.remediationSteps.map((s,i)=>{const pc=s.priority==='Critical'?'#f0405e':s.priority==='High'?'#f97316':'#f0a030';return(<div key={i} style={{display:'flex',gap:8,padding:'5px 8px',background:`${pc}08`,borderRadius:6,border:`1px solid ${pc}20`,marginBottom:4}}><span style={{fontSize:'0.84rem',fontWeight:700,color:pc,padding:'1px 5px',background:`${pc}15`,borderRadius:3,flexShrink:0,marginTop:2}}>{s.priority}</span><div><div style={{fontSize:'0.82rem',color:'var(--wt-text)',fontWeight:600}}>{s.action}</div><div style={{fontSize:'0.82rem',color:'var(--wt-dim)'}}>Owner: {s.owner}</div></div></div>);})}</div>}
+                                {inv.forensicCommands?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',marginBottom:6}}>Forensic Commands</div>{inv.forensicCommands.map((fc,i)=>(<div key={i} style={{marginBottom:8}}><div style={{display:'flex',justifyContent:'space-between',marginBottom:2}}><span style={{fontSize:'0.8rem',color:'var(--wt-dim)',fontWeight:700}}>{fc.tool} — {fc.purpose}</span><button onClick={()=>navigator.clipboard?.writeText(fc.command)} style={{padding:'2px 7px',borderRadius:3,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Copy</button></div><code style={{display:'block',fontSize:'0.84rem',fontFamily:'JetBrains Mono,monospace',color:'#22c992',background:'#050810',padding:'6px 8px',borderRadius:5,wordBreak:'break-all',lineHeight:1.5}}>{fc.command}</code></div>))}</div>}
+                                {inv.iocs?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',marginBottom:4}}>Extracted IOCs</div><div style={{display:'flex',flexWrap:'wrap',gap:4}}>{inv.iocs.map((ioc,i)=>(<span key={i} style={{fontSize:'0.86rem',fontFamily:'JetBrains Mono,monospace',padding:'2px 7px',background:'#f0a03010',border:'1px solid #f0a03025',borderRadius:4,color:'#f0a030'}}>{ioc}</span>))}</div></div>}
+                                {inv.detectionGaps?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Detection Gaps Found</div>{inv.detectionGaps.map((g,i)=><div key={i} style={{fontSize:'0.86rem',color:'var(--wt-muted)',marginBottom:2}}>⚠️ {g}</div>)}</div>}
                               </div>
                             );})()}
                           </div>
@@ -2620,8 +2627,8 @@ export default function DashboardPage() {
             <div style={{display:'flex',flexDirection:'column',gap:16,width:'100%'}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4,flexWrap:'wrap'}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Compliance Mapping</h2>
-                <span style={{fontSize:'0.62rem',color:'#4f8fff',background:'#4f8fff12',padding:'2px 8px',borderRadius:4}}>MITRE ATT&amp;CK → ISO 27001 · Cyber Essentials · NIST CSF</span>
-                <span style={{fontSize:'0.62rem',color:'#8b6fff',background:'#8b6fff12',padding:'2px 8px',borderRadius:4,border:'1px solid #8b6fff20'}}>NIS2 · DORA</span>
+                <span style={{fontSize:'0.86rem',color:'#4f8fff',background:'#4f8fff12',padding:'2px 8px',borderRadius:4}}>MITRE ATT&amp;CK → ISO 27001 · Cyber Essentials · NIST CSF</span>
+                <span style={{fontSize:'0.86rem',color:'#8b6fff',background:'#8b6fff12',padding:'2px 8px',borderRadius:4,border:'1px solid #8b6fff20'}}>NIS2 · DORA</span>
                 <div style={{marginLeft:'auto',display:'flex',gap:6}}>
                   <button onClick={()=>{
                     const mitreTechs=[...new Set(alerts.filter(a=>a.mitre).map(a=>a.mitre))];
@@ -2660,17 +2667,17 @@ export default function DashboardPage() {
                     const blob=new Blob([lines.join('\n')],{type:'text/plain'});
                     const url=URL.createObjectURL(blob);
                     const a=document.createElement('a');a.href=url;a.download=`watchtower-regulatory-report-${new Date().toISOString().split('T')[0]}.txt`;a.click();URL.revokeObjectURL(url);
-                  }} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #8b6fff30',background:'#8b6fff12',color:'#8b6fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                  }} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #8b6fff30',background:'#8b6fff12',color:'#8b6fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                     📄 NIS2/DORA Export
                   </button>
                   <button onClick={async()=>{
                     const w=window.open('','_blank');if(!w)return;
                     w.document.write('<html><body style="background:#050508;color:#e8ecf4;font-family:Inter;display:flex;align-items:center;justify-content:center;height:100vh">Generating compliance report…</body></html>');
                     try{
-                      const r=await fetch('/api/exec-summary',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({org:'My Organisation',period:'Last 30 days',totalAlerts,critAlerts:critAlerts.length,openCases,closedCases:0,slaBreaches,fpsClosed:fpAlerts.length,tpConfirmed:tpAlerts.length,posture,coverage:coveredPct,tools:Object.keys(connectedTools).length,topAlerts:critAlerts.slice(0,5).map(a=>a.title),topVulns:vulns.slice(0,3).map(v=>v.title)})});
-                      const d=await r.json();if(d.html&&w){w.document.open();w.document.write(d.html);w.document.close();setTimeout(()=>w.print(),500);}
+                      const r=await fetch('/api/exec-summary',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current,'x-is-admin':isAdmin?'true':'false','x-user-tier':userTier},body:JSON.stringify({org:'Watchtower SOC',period:'Last 30 days',totalAlerts,critAlerts:critAlerts.length,openCases,closedCases:incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Resolved').length,slaBreaches,fpsClosed:fpAlerts.length,tpConfirmed:tpAlerts.length,posture,coverage:coveredPct,tools:Object.keys(connectedTools).length,topAlerts:critAlerts.slice(0,5).map(a=>a.title),topVulns:vulns.slice(0,3).map(v=>v.title)})});
+                      const d=await r.json();if(d.html&&w){w.document.open();w.document.write(d.html);w.document.close();setTimeout(()=>w.print(),500);}else if(!d.ok&&w){w.document.open();w.document.write('<html><body style="font-family:sans-serif;padding:40px;color:#333"><h2>Report generation failed</h2><p>'+((d.error)||'Check your Anthropic API key in Tools tab.')+'</p></body></html>');w.document.close();}
                     }catch(e){if(w)w.close();}
-                  }} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #22d49a30',background:'#22d49a12',color:'#22d49a',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                  }} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #22d49a30',background:'#22d49a12',color:'#22d49a',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                     📊 Board Report PDF
                   </button>
                 </div>
@@ -2679,21 +2686,21 @@ export default function DashboardPage() {
               {/* Active technique coverage */}
               <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,overflow:'hidden'}}>
                 <div style={{padding:'12px 16px',borderBottom:'1px solid var(--wt-border)',display:'flex',alignItems:'center',gap:8}}>
-                  <span style={{fontSize:'0.7rem',fontWeight:800,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1px'}}>Active Threats by Framework</span>
-                  <span style={{fontSize:'0.62rem',color:'var(--wt-muted)',marginLeft:'auto'}}>{alerts.filter(a=>a.mitre).length} alerts with MITRE mapping</span>
+                  <span style={{fontSize:'0.86rem',fontWeight:800,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1px'}}>Active Threats by Framework</span>
+                  <span style={{fontSize:'0.86rem',color:'var(--wt-muted)',marginLeft:'auto'}}>{alerts.filter(a=>a.mitre).length} alerts with MITRE mapping</span>
                 </div>
                 <div style={{overflowX:'auto'}}>
-                  <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.74rem'}}>
+                  <table style={{width:'100%',borderCollapse:'collapse',fontSize:'0.82rem'}}>
                     <thead>
                       <tr style={{background:'var(--wt-card2)'}}>
                         {['MITRE Technique','Alert','Severity','ISO 27001','Cyber Essentials','NIST CSF'].map(h=>(
-                          <th key={h} style={{padding:'8px 14px',textAlign:'left',fontWeight:700,fontSize:'0.62rem',color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',whiteSpace:'nowrap',borderBottom:'1px solid var(--wt-border)'}}>{h}</th>
+                          <th key={h} style={{padding:'8px 14px',textAlign:'left',fontWeight:700,fontSize:'0.86rem',color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',whiteSpace:'nowrap',borderBottom:'1px solid var(--wt-border)'}}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {alerts.filter(a=>a.mitre).length === 0 ? (
-                        <tr><td colSpan={6} style={{padding:'24px',textAlign:'center',color:'var(--wt-dim)',fontSize:'0.7rem'}}>
+                        <tr><td colSpan={6} style={{padding:'24px',textAlign:'center',color:'var(--wt-dim)',fontSize:'0.86rem'}}>
                           {demoMode ? 'No MITRE-tagged alerts.' : 'No MITRE-tagged alerts from live tools yet — MITRE mappings populate as alerts arrive from CrowdStrike, Taegis, and Sentinel.'}
                         </td></tr>
                       ) : alerts.filter(a=>a.mitre).slice(0,12).map(a=>{
@@ -2714,12 +2721,12 @@ export default function DashboardPage() {
                         const sevColor=SEV_COLOR[a.severity];
                         return (
                           <tr key={a.id} className='row-hover' style={{borderBottom:'1px solid var(--wt-border)'}}>
-                            <td style={{padding:'8px 14px',fontFamily:'JetBrains Mono,monospace',fontSize:'0.68rem',color:'#7c6aff',whiteSpace:'nowrap'}}>{a.mitre}</td>
+                            <td style={{padding:'8px 14px',fontFamily:'JetBrains Mono,monospace',fontSize:'0.84rem',color:'#7c6aff',whiteSpace:'nowrap'}}>{a.mitre}</td>
                             <td style={{padding:'8px 14px',maxWidth:240,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.title}</td>
-                            <td style={{padding:'8px 14px'}}><span style={{fontSize:'0.56rem',fontWeight:800,padding:'1px 6px',borderRadius:3,background:`${sevColor}15`,color:sevColor}}>{a.severity}</span></td>
-                            <td style={{padding:'8px 14px',color:'var(--wt-secondary)',fontFamily:'JetBrains Mono,monospace',fontSize:'0.64rem',whiteSpace:'nowrap'}}>{m.iso}</td>
-                            <td style={{padding:'8px 14px',color:'var(--wt-secondary)',fontSize:'0.68rem',whiteSpace:'nowrap'}}>{m.ce}</td>
-                            <td style={{padding:'8px 14px',color:'var(--wt-secondary)',fontFamily:'JetBrains Mono,monospace',fontSize:'0.64rem',whiteSpace:'nowrap'}}>{m.nist}</td>
+                            <td style={{padding:'8px 14px'}}><span style={{fontSize:'0.8rem',fontWeight:800,padding:'1px 6px',borderRadius:3,background:`${sevColor}15`,color:sevColor}}>{a.severity}</span></td>
+                            <td style={{padding:'8px 14px',color:'var(--wt-secondary)',fontFamily:'JetBrains Mono,monospace',fontSize:'0.8rem',whiteSpace:'nowrap'}}>{m.iso}</td>
+                            <td style={{padding:'8px 14px',color:'var(--wt-secondary)',fontSize:'0.84rem',whiteSpace:'nowrap'}}>{m.ce}</td>
+                            <td style={{padding:'8px 14px',color:'var(--wt-secondary)',fontFamily:'JetBrains Mono,monospace',fontSize:'0.8rem',whiteSpace:'nowrap'}}>{m.nist}</td>
                           </tr>
                         );
                       })}
@@ -2760,19 +2767,19 @@ export default function DashboardPage() {
                       <div key={fw.name} style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px'}}>
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
                           <span style={{fontSize:'0.8rem',fontWeight:800}}>{fw.name}</span>
-                          <span style={{fontSize:'1.2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:fw.color}}>{fw.score}<span style={{fontSize:'0.6rem',fontWeight:600,color:'var(--wt-muted)'}}>%</span></span>
+                          <span style={{fontSize:'1.2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:fw.color}}>{fw.score}<span style={{fontSize:'0.84rem',fontWeight:600,color:'var(--wt-muted)'}}>%</span></span>
                         </div>
                         <div style={{height:4,background:'var(--wt-border)',borderRadius:2,marginBottom:12}}>
                           <div style={{height:'100%',width:`${fw.score}%`,background:fw.color,borderRadius:2,transition:'width 1s'}} />
                         </div>
-                        <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',marginBottom:6}}>{hasLiveData?`${fw.gaps.length} failing controls`:'Gaps to address (demo)'}</div>
+                        <div style={{fontSize:'0.86rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',marginBottom:6}}>{hasLiveData?`${fw.gaps.length} failing controls`:'Gaps to address (demo)'}</div>
                         {fw.gaps.slice(0,4).map(g=>(
                           <div key={g} style={{display:'flex',gap:6,marginBottom:4,alignItems:'flex-start'}}>
-                            <span style={{color:'#f0405e',fontSize:'0.6rem',flexShrink:0,marginTop:2}}>✗</span>
-                            <span style={{fontSize:'0.72rem',color:'var(--wt-secondary)',lineHeight:1.5}}>{g}</span>
+                            <span style={{color:'#f0405e',fontSize:'0.84rem',flexShrink:0,marginTop:2}}>✗</span>
+                            <span style={{fontSize:'0.8rem',color:'var(--wt-secondary)',lineHeight:1.5}}>{g}</span>
                           </div>
                         ))}
-                        {fw.gaps.length === 0 && <div style={{fontSize:'0.72rem',color:'#22d49a'}}>✓ No failing controls from current alerts</div>}
+                        {fw.gaps.length === 0 && <div style={{fontSize:'0.8rem',color:'#22d49a'}}>✓ No failing controls from current alerts</div>}
                       </div>
                     ))}
                   </div>
@@ -2781,16 +2788,16 @@ export default function DashboardPage() {
 
               {/* Vuln CVE → framework mapping */}
               <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px'}}>
-                <div style={{fontSize:'0.7rem',fontWeight:800,color:'#f0a030',textTransform:'uppercase',letterSpacing:'1px',marginBottom:12}}>KEV Vulnerabilities — Compliance Impact</div>
+                <div style={{fontSize:'0.86rem',fontWeight:800,color:'#f0a030',textTransform:'uppercase',letterSpacing:'1px',marginBottom:12}}>KEV Vulnerabilities — Compliance Impact</div>
                 <div style={{display:'flex',flexDirection:'column',gap:8}}>
                   {vulns.filter(v=>v.kev).slice(0,5).map(v=>(
                     <div key={v.id} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',background:'var(--wt-card2)',borderRadius:8,flexWrap:'wrap'}}>
-                      <span style={{fontSize:'0.68rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:'#f0405e',flexShrink:0}}>{v.cve}</span>
-                      <span style={{fontSize:'0.72rem',flex:1,minWidth:160}}>{v.title}</span>
+                      <span style={{fontSize:'0.84rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:'#f0405e',flexShrink:0}}>{v.cve}</span>
+                      <span style={{fontSize:'0.8rem',flex:1,minWidth:160}}>{v.title}</span>
                       <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-                        <span style={{fontSize:'0.58rem',padding:'2px 7px',borderRadius:4,background:'#4f8fff14',color:'#4f8fff',border:'1px solid #4f8fff25'}}>ISO A.8.8</span>
-                        <span style={{fontSize:'0.58rem',padding:'2px 7px',borderRadius:4,background:'#22d49a14',color:'#22d49a',border:'1px solid #22d49a25'}}>CE: Patching</span>
-                        <span style={{fontSize:'0.58rem',padding:'2px 7px',borderRadius:4,background:'#8b6fff14',color:'#8b6fff',border:'1px solid #8b6fff25'}}>NIST PR.IP-12</span>
+                        <span style={{fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,background:'#4f8fff14',color:'#4f8fff',border:'1px solid #4f8fff25'}}>ISO A.8.8</span>
+                        <span style={{fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,background:'#22d49a14',color:'#22d49a',border:'1px solid #22d49a25'}}>CE: Patching</span>
+                        <span style={{fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,background:'#8b6fff14',color:'#8b6fff',border:'1px solid #8b6fff25'}}>NIST PR.IP-12</span>
                       </div>
                     </div>
                   ))}
@@ -2823,7 +2830,7 @@ export default function DashboardPage() {
               <div style={{width:36,height:36,background:'linear-gradient(135deg,#4f8fff,#8b6fff)',borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.1rem'}}>🛡</div>
               <div>
                 <div style={{fontSize:'0.92rem',fontWeight:800}}>Welcome to Watchtower</div>
-                <div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>3 steps to your first live alert</div>
+                <div style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>3 steps to your first live alert</div>
               </div>
               <button onClick={()=>setShowOnboarding(false)} style={{marginLeft:'auto',background:'none',border:'none',color:'var(--wt-dim)',cursor:'pointer',fontSize:'1.2rem'}}>×</button>
             </div>
@@ -2831,21 +2838,21 @@ export default function DashboardPage() {
               {['Connect a tool','Configure AI','Go live'].map((s,i)=>(
                 <div key={i} style={{flex:1,textAlign:'center'}}>
                   <div style={{height:4,borderRadius:2,background:i<=onboardingStep?'#4f8fff':'var(--wt-border)',marginBottom:4,transition:'background .3s'}} />
-                  <div style={{fontSize:'0.6rem',color:i===onboardingStep?'#4f8fff':'var(--wt-dim)',fontWeight:i===onboardingStep?700:400}}>{s}</div>
+                  <div style={{fontSize:'0.84rem',color:i===onboardingStep?'#4f8fff':'var(--wt-dim)',fontWeight:i===onboardingStep?700:400}}>{s}</div>
                 </div>
               ))}
             </div>
             {onboardingStep===0&&(
               <div>
                 <div style={{fontSize:'0.82rem',fontWeight:700,marginBottom:8}}>Step 1 — Connect your first integration</div>
-                <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:16}}>Watchtower connects to your existing tools — CrowdStrike, Tenable, Splunk, Sentinel, and 14 others. Click "+ Connect" on any tool to add your credentials.</div>
+                <div style={{fontSize:'0.82rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:16}}>Watchtower connects to your existing tools — CrowdStrike, Tenable, Splunk, Sentinel, and 14 others. Click "+ Connect" on any tool to add your credentials.</div>
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:16}}>
                   {[{id:'crowdstrike',name:'CrowdStrike Falcon',cat:'EDR',color:'#f0405e'},{id:'tenable',name:'Tenable.io',cat:'Vuln',color:'#00b3e3'},{id:'splunk',name:'Splunk SIEM',cat:'SIEM',color:'#65a637'},{id:'sentinel',name:'Microsoft Sentinel',cat:'SIEM',color:'#4f8fff'}].map(t=>(
                     <div key={t.id} style={{padding:'10px 12px',background:'var(--wt-card)',border:`1px solid ${t.color}20`,borderRadius:8,display:'flex',alignItems:'center',gap:8}}>
                       <div style={{width:8,height:8,borderRadius:'50%',background:connectedTools[t.id]?'#22c992':'#252e42',flexShrink:0}} />
                       <div style={{flex:1}}>
-                        <div style={{fontSize:'0.72rem',fontWeight:600}}>{t.name}</div>
-                        <div style={{fontSize:'0.56rem',color:'var(--wt-dim)'}}>{t.cat}</div>
+                        <div style={{fontSize:'0.8rem',fontWeight:600}}>{t.name}</div>
+                        <div style={{fontSize:'0.8rem',color:'var(--wt-dim)'}}>{t.cat}</div>
                       </div>
                     </div>
                   ))}
@@ -2859,8 +2866,8 @@ export default function DashboardPage() {
             {onboardingStep===1&&(
               <div>
                 <div style={{fontSize:'0.82rem',fontWeight:700,marginBottom:8}}>Step 2 — Add your Anthropic API key</div>
-                <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:16}}>Watchtower uses Claude Haiku to triage alerts, generate attack narratives, and power the Co-Pilot. Add your own key to activate AI features.</div>
-                <div style={{padding:'12px',background:'#4f8fff08',border:'1px solid #4f8fff20',borderRadius:8,fontSize:'0.72rem',color:'var(--wt-secondary)',marginBottom:16,lineHeight:1.6}}>Get a free key at <a href='https://console.anthropic.com/account/keys' target='_blank' rel='noopener noreferrer' style={{color:'#4f8fff'}}>console.anthropic.com</a> → API Keys → Create Key. It starts with <code style={{fontFamily:'JetBrains Mono,monospace',background:'var(--wt-border)',padding:'1px 4px',borderRadius:3}}>sk-ant-</code></div>
+                <div style={{fontSize:'0.82rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:16}}>Watchtower uses Claude Haiku to triage alerts, generate attack narratives, and power the Co-Pilot. Add your own key to activate AI features.</div>
+                <div style={{padding:'12px',background:'#4f8fff08',border:'1px solid #4f8fff20',borderRadius:8,fontSize:'0.8rem',color:'var(--wt-secondary)',marginBottom:16,lineHeight:1.6}}>Get a free key at <a href='https://console.anthropic.com/account/keys' target='_blank' rel='noopener noreferrer' style={{color:'#4f8fff'}}>console.anthropic.com</a> → API Keys → Create Key. It starts with <code style={{fontFamily:'JetBrains Mono,monospace',background:'var(--wt-border)',padding:'1px 4px',borderRadius:3}}>sk-ant-</code></div>
                 <div style={{display:'flex',gap:8}}>
                   <button onClick={()=>setOnboardingStep(0)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid var(--wt-border)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>← Back</button>
                   <button onClick={()=>{setShowOnboarding(false);setActiveTab('tools');}} style={{flex:1,padding:'10px',borderRadius:8,border:'none',background:'#4f8fff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Add in Tools tab →</button>
@@ -2871,10 +2878,10 @@ export default function DashboardPage() {
             {onboardingStep===2&&(
               <div>
                 <div style={{fontSize:'0.82rem',fontWeight:700,marginBottom:8}}>Step 3 — Switch to Live mode</div>
-                <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:16}}>You're currently in Demo mode showing sample data. Click the DEMO toggle in the top bar to switch to Live and see your real alerts.</div>
+                <div style={{fontSize:'0.82rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:16}}>You're currently in Demo mode showing sample data. Click the DEMO toggle in the top bar to switch to Live and see your real alerts.</div>
                 <div style={{padding:'12px 14px',background:'#22d49a08',border:'1px solid #22d49a20',borderRadius:8,marginBottom:16,display:'flex',alignItems:'center',gap:10}}>
                   <span style={{fontSize:'1.2rem'}}>✦</span>
-                  <div style={{fontSize:'0.72rem',color:'var(--wt-secondary)',lineHeight:1.6}}>Watchtower will sync your tools every 60 seconds and start triaging alerts automatically.</div>
+                  <div style={{fontSize:'0.8rem',color:'var(--wt-secondary)',lineHeight:1.6}}>Watchtower will sync your tools every 60 seconds and start triaging alerts automatically.</div>
                 </div>
                 <div style={{display:'flex',gap:8}}>
                   <button onClick={()=>setOnboardingStep(1)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid var(--wt-border)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>← Back</button>
@@ -2930,8 +2937,8 @@ export default function DashboardPage() {
         return (
           <Modal title={`Deploy Agents — ${deployAgentDevice.hostname}`} onClose={()=>setDeployAgentDevice(null)}>
             <div style={{marginBottom:14,padding:'8px 12px',background:'var(--wt-card2)',border:'1px solid var(--wt-border)',borderRadius:8}}>
-              <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginBottom:3}}>Device: <strong style={{color:'var(--wt-text)',fontFamily:'JetBrains Mono,monospace'}}>{deployAgentDevice.hostname}</strong> · {deployAgentDevice.os} · {deployAgentDevice.ip}</div>
-              <div style={{fontSize:'0.68rem',color:'#f0405e'}}>⚠ {deployAgentDevice.reason}</div>
+              <div style={{fontSize:'0.84rem',color:'var(--wt-muted)',marginBottom:3}}>Device: <strong style={{color:'var(--wt-text)',fontFamily:'JetBrains Mono,monospace'}}>{deployAgentDevice.hostname}</strong> · {deployAgentDevice.os} · {deployAgentDevice.ip}</div>
+              <div style={{fontSize:'0.84rem',color:'#f0405e'}}>⚠ {deployAgentDevice.reason}</div>
             </div>
             {missing.map(tool=>{
               const info = TOOL_INSTRUCTIONS[tool] || {color:'#4f8fff',steps:[{label:'Manual deployment required',detail:`Visit the ${tool} admin console and follow the agent deployment guide for ${deployAgentDevice.os}.`}],note:null};
@@ -2940,15 +2947,15 @@ export default function DashboardPage() {
                   <div style={{padding:'9px 14px',background:`${info.color}0f`,borderBottom:`1px solid ${info.color}20`,display:'flex',alignItems:'center',gap:8}}>
                     <span style={{width:8,height:8,borderRadius:'50%',background:info.color,display:'block',flexShrink:0}} />
                     <span style={{fontSize:'0.8rem',fontWeight:800,color:info.color}}>{tool}</span>
-                    <span style={{marginLeft:'auto',fontSize:'0.58rem',color:'var(--wt-dim)',fontWeight:600}}>{missing.indexOf(tool)+1}/{missing.length}</span>
+                    <span style={{marginLeft:'auto',fontSize:'0.82rem',color:'var(--wt-dim)',fontWeight:600}}>{missing.indexOf(tool)+1}/{missing.length}</span>
                   </div>
                   <div style={{padding:'10px 14px',display:'flex',flexDirection:'column',gap:8}}>
                     {info.steps.map(step=>(
                       <div key={step.label} style={{display:'flex',gap:10,alignItems:'flex-start'}}>
-                        <div style={{width:18,height:18,borderRadius:4,background:`${info.color}18`,border:`1px solid ${info.color}30`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.52rem',fontWeight:800,color:info.color,flexShrink:0,marginTop:1}}>{info.steps.indexOf(step)+1}</div>
+                        <div style={{width:18,height:18,borderRadius:4,background:`${info.color}18`,border:`1px solid ${info.color}30`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.84rem',fontWeight:800,color:info.color,flexShrink:0,marginTop:1}}>{info.steps.indexOf(step)+1}</div>
                         <div style={{flex:1}}>
-                          <div style={{fontSize:'0.72rem',fontWeight:700,marginBottom:2}}>{step.label}</div>
-                          <div style={{fontSize:'0.66rem',color:'var(--wt-muted)',lineHeight:1.65,fontFamily:'JetBrains Mono,monospace',background:'var(--wt-card2)',padding:'5px 8px',borderRadius:5,whiteSpace:'pre-wrap',wordBreak:'break-all'}}>{step.detail}</div>
+                          <div style={{fontSize:'0.8rem',fontWeight:700,marginBottom:2}}>{step.label}</div>
+                          <div style={{fontSize:'0.82rem',color:'var(--wt-muted)',lineHeight:1.65,fontFamily:'JetBrains Mono,monospace',background:'var(--wt-card2)',padding:'5px 8px',borderRadius:5,whiteSpace:'pre-wrap',wordBreak:'break-all'}}>{step.detail}</div>
                         </div>
                       </div>
                     ))}
@@ -2961,7 +2968,7 @@ export default function DashboardPage() {
                 </div>
               );
             })}
-            <div style={{padding:'8px 12px',background:'var(--wt-card2)',border:'1px solid #4f8fff15',borderRadius:7,fontSize:'0.66rem',color:'var(--wt-muted)',lineHeight:1.6}}>
+            <div style={{padding:'8px 12px',background:'var(--wt-card2)',border:'1px solid #4f8fff15',borderRadius:7,fontSize:'0.82rem',color:'var(--wt-muted)',lineHeight:1.6}}>
               💡 After deployment, agents check in within 5 minutes. This device will clear from the gaps list automatically once all agents are reporting.
             </div>
           </Modal>
@@ -2971,15 +2978,15 @@ export default function DashboardPage() {
       {/* Coverage Gap Modal */}
       {modal?.type==='gaps' && (
         <Modal title={`Coverage Gaps — ${gapDevices.length} Devices`} onClose={()=>setModal(null)}>
-          <div style={{marginBottom:10,padding:'8px 12px',background:'#f0405e0a',border:'1px solid #f0405e18',borderRadius:8,fontSize:'0.74rem',color:'#f0405e'}}>
+          <div style={{marginBottom:10,padding:'8px 12px',background:'#f0405e0a',border:'1px solid #f0405e18',borderRadius:8,fontSize:'0.82rem',color:'#f0405e'}}>
             ⚠ These devices have no agent coverage — they are invisible to your security tools and represent active risk.
           </div>
           {Object.keys(osBreakdown||{}).length > 0 && (
             <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:12}}>
               {Object.entries(osBreakdown||{}).sort((a,b)=>b[1]-a[1]).map(([os,n])=>(
-                <span key={os} style={{fontSize:'0.62rem',padding:'3px 9px',borderRadius:5,background:'var(--wt-card2)',border:'1px solid var(--wt-border)',color:'var(--wt-secondary)',fontFamily:'JetBrains Mono,monospace'}}>{os} <strong style={{color:'var(--wt-text)'}}>{n}</strong></span>
+                <span key={os} style={{fontSize:'0.86rem',padding:'3px 9px',borderRadius:5,background:'var(--wt-card2)',border:'1px solid var(--wt-border)',color:'var(--wt-secondary)',fontFamily:'JetBrains Mono,monospace'}}>{os} <strong style={{color:'var(--wt-text)'}}>{n}</strong></span>
               ))}
-              <span style={{fontSize:'0.62rem',color:'var(--wt-dim)',alignSelf:'center'}}>by OS</span>
+              <span style={{fontSize:'0.86rem',color:'var(--wt-dim)',alignSelf:'center'}}>by OS</span>
             </div>
           )}
           {gapDevices.map(dev=>(
@@ -2987,17 +2994,17 @@ export default function DashboardPage() {
 
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
                 <span style={{fontSize:'0.82rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace'}}>{dev.hostname}</span>
-                <span style={{fontSize:'0.6rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{dev.ip}</span>
-                <span style={{fontSize:'0.6rem',color:'var(--wt-muted)'}}>{dev.os}</span>
-                <span style={{fontSize:'0.58rem',color:'var(--wt-dim)',marginLeft:'auto'}}>Last seen {dev.lastSeen}</span>
+                <span style={{fontSize:'0.84rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{dev.ip}</span>
+                <span style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>{dev.os}</span>
+                <span style={{fontSize:'0.82rem',color:'var(--wt-dim)',marginLeft:'auto'}}>Last seen {dev.lastSeen}</span>
               </div>
               <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:4}}>
                 {dev.missing.map(m=>{
                   const catColor = m.includes('Falcon')||m.includes('Defender')||m.includes('SentinelOne')||m.includes('Carbon Black')?'#f0405e':m.includes('Splunk')||m.includes('Sentinel')||m.includes('QRadar')||m.includes('Elastic')?'#f0a030':m.includes('Tenable')||m.includes('Nessus')||m.includes('Qualys')?'#8b6fff':'#4f8fff';
-                  return <span key={m} style={{fontSize:'0.62rem',fontWeight:700,padding:'3px 8px',borderRadius:4,background:`${catColor}14`,color:catColor,border:`1px solid ${catColor}28`,display:'inline-flex',alignItems:'center',gap:4}}><span style={{fontSize:'0.5rem'}}>✗</span>{m}</span>;
+                  return <span key={m} style={{fontSize:'0.86rem',fontWeight:700,padding:'3px 8px',borderRadius:4,background:`${catColor}14`,color:catColor,border:`1px solid ${catColor}28`,display:'inline-flex',alignItems:'center',gap:4}}><span style={{fontSize:'0.84rem'}}>✗</span>{m}</span>;
                 })}
               </div>
-              <div style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>{dev.reason}</div>
+              <div style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>{dev.reason}</div>
             </div>
           ))}
         </Modal>
@@ -3006,7 +3013,7 @@ export default function DashboardPage() {
       {/* Tools Modal */}
       {modal?.type==='tools' && (
         <Modal title='Tool Status & Sync' onClose={()=>setModal(null)}>
-          <div style={{marginBottom:12,fontSize:'0.66rem',color:'var(--wt-muted)'}}>Last synced: {lastSynced ? new Date(lastSynced).toLocaleTimeString('en-GB') : 'Not yet'} · {Object.keys(connectedTools).length} tools connected</div>
+          <div style={{marginBottom:12,fontSize:'0.82rem',color:'var(--wt-muted)'}}>Last synced: {lastSynced ? new Date(lastSynced).toLocaleTimeString('en-GB') : 'Not yet'} · {Object.keys(connectedTools).length} tools connected</div>
           {tools.filter(t=>t.active||connectedTools[t.id]).map(tool=>{
             const sr = toolSyncResults[tool.id];
             return (
@@ -3014,20 +3021,20 @@ export default function DashboardPage() {
                 <div style={{display:'flex',alignItems:'center',gap:10}}>
                   <div style={{width:8,height:8,borderRadius:'50%',background:sr?.error?'#f0405e':sr?'#22c992':'#f0a030',boxShadow:sr?.error?'0 0 5px #f0405e':sr?'0 0 5px #22c992':'none',flexShrink:0}} />
                   <span style={{flex:1,fontSize:'0.82rem',fontWeight:600}}>{tool.name}</span>
-                  <span style={{fontSize:'0.66rem',color:sr?.error?'#f0405e':sr?'#22d49a':'#f0a030',fontWeight:700}}>
+                  <span style={{fontSize:'0.82rem',color:sr?.error?'#f0405e':sr?'#22d49a':'#f0a030',fontWeight:700}}>
                     {sr?.error ? '✗ Error' : sr ? `✓ ${sr.count} records` : 'Pending'}
                   </span>
-                  {!demoMode && doSync && <button onClick={()=>doSync([tool.id])} style={{padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff28',background:'#4f8fff0a',color:'#4f8fff',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>⟳</button>}
+                  {!demoMode && doSync && <button onClick={()=>doSync([tool.id])} style={{padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff28',background:'#4f8fff0a',color:'#4f8fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>⟳</button>}
                 </div>
-                {sr && <div style={{paddingLeft:18,marginTop:4,fontSize:'0.6rem',color:sr.error?'#f0405e':'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',lineHeight:1.5}}>
+                {sr && <div style={{paddingLeft:18,marginTop:4,fontSize:'0.84rem',color:sr.error?'#f0405e':'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',lineHeight:1.5}}>
                   {sr.error ? sr.error : `Last sync: ${new Date(sr.syncedAt).toLocaleTimeString('en-GB')} · ${sr.count} record${sr.count!==1?'s':''} pulled`}
                 </div>}
               </div>
             );
           })}
           {tools.filter(t=>!t.active&&!connectedTools[t.id]).length > 0 && (
-            <div style={{marginTop:10,padding:'8px 10px',background:'var(--wt-card2)',borderRadius:7,fontSize:'0.66rem',color:'var(--wt-dim)'}}>
-              {tools.filter(t=>!t.active&&!connectedTools[t.id]).length} tools not connected — <button onClick={()=>{setModal(null);setActiveTab('tools');}} style={{color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontSize:'0.66rem',padding:0}}>Setup wizard →</button> or <button onClick={e=>{e.stopPropagation();setActiveTab('tools');}} style={{color:'#22d49a',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:'inherit',padding:0}}>Tools tab →</button>
+            <div style={{marginTop:10,padding:'8px 10px',background:'var(--wt-card2)',borderRadius:7,fontSize:'0.82rem',color:'var(--wt-dim)'}}>
+              {tools.filter(t=>!t.active&&!connectedTools[t.id]).length} tools not connected — <button onClick={()=>{setModal(null);setActiveTab('tools');}} style={{color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontSize:'0.82rem',padding:0}}>Setup wizard →</button> or <button onClick={e=>{e.stopPropagation();setActiveTab('tools');}} style={{color:'#22d49a',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:'inherit',padding:0}}>Tools tab →</button>
             </div>
           )}
         </Modal>
@@ -3040,7 +3047,7 @@ export default function DashboardPage() {
             {[{val:alerts.length,label:'Ingested',c:'#4f8fff'},{val:fpAlerts.length,label:'Auto-Closed FPs',c:'#22d49a'},{val:tpAlerts.length,label:'Escalated TPs',c:'#f0405e'}].map(s=>(
               <div key={s.label} style={{textAlign:'center',padding:'10px',background:'var(--wt-bg)',borderRadius:8,border:'1px solid #1d2535'}}>
                 <div style={{fontSize:'1.6rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.c,letterSpacing:-1}}>{s.val}</div>
-                <div style={{fontSize:'0.6rem',color:'var(--wt-dim)'}}>{s.label}</div>
+                <div style={{fontSize:'0.84rem',color:'var(--wt-dim)'}}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -3048,10 +3055,10 @@ export default function DashboardPage() {
             <div key={a.id} style={{padding:'10px 0',borderBottom:'1px solid #1d2535'}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:2}}>
                 <span style={{width:4,height:16,borderRadius:2,background:SEV_COLOR[a.severity],flexShrink:0}} />
-                <span style={{fontSize:'0.78rem',fontWeight:600,flex:1}}>{a.title}</span>
-                <span style={{fontSize:'0.56rem',fontWeight:800,padding:'2px 7px',borderRadius:3,color:(VERDICT_STYLE[a.verdict]||VERDICT_STYLE.Pending).c,background:(VERDICT_STYLE[a.verdict]||VERDICT_STYLE.Pending).bg}}>{a.verdict||'—'}</span>
+                <span style={{fontSize:'0.86rem',fontWeight:600,flex:1}}>{a.title}</span>
+                <span style={{fontSize:'0.8rem',fontWeight:800,padding:'2px 7px',borderRadius:3,color:(VERDICT_STYLE[a.verdict]||VERDICT_STYLE.Pending).c,background:(VERDICT_STYLE[a.verdict]||VERDICT_STYLE.Pending).bg}}>{a.verdict||'—'}</span>
               </div>
-              {a.aiActions?.[0]&&<div style={{fontSize:'0.7rem',color:'#22d49a',paddingLeft:12}}>⚡ {a.aiActions?.[0]}</div>}
+              {a.aiActions?.[0]&&<div style={{fontSize:'0.86rem',color:'#22d49a',paddingLeft:12}}>⚡ {a.aiActions?.[0]}</div>}
             </div>
           ))}
         </Modal>
@@ -3064,19 +3071,19 @@ export default function DashboardPage() {
           <div style={{display:'flex',alignItems:'center',gap:10,padding:'14px 16px',borderBottom:'1px solid var(--wt-border)',flexShrink:0}}>
             <span style={{fontSize:'1rem',lineHeight:1}}>✦</span>
             <span style={{fontWeight:800,fontSize:'0.9rem',flex:1}}>AI Co-Pilot</span>
-            <span style={{fontSize:'0.52rem',color:'#22d49a',background:'#22d49a10',padding:'1px 6px',borderRadius:3,border:'1px solid #22d49a20',fontWeight:700}}>
+            <span style={{fontSize:'0.84rem',color:'#22d49a',background:'#22d49a10',padding:'1px 6px',borderRadius:3,border:'1px solid #22d49a20',fontWeight:700}}>
               {demoMode?'DEMO':'LIVE'} · {alerts.length} alerts
             </span>
-            <span style={{fontSize:'0.56rem',fontWeight:800,padding:'2px 7px',borderRadius:4,background:'#4f8fff18',color:'#4f8fff',border:'1px solid #4f8fff30'}}>TEAM+</span>
-            {copilotMessages.length>0&&<button onClick={()=>setCopilotMessages([])} title='Clear conversation' style={{background:'none',border:'1px solid var(--wt-border)',borderRadius:5,color:'var(--wt-dim)',fontSize:'0.62rem',cursor:'pointer',padding:'2px 7px',fontFamily:'Inter,sans-serif'}}>Clear</button>}
+            <span style={{fontSize:'0.8rem',fontWeight:800,padding:'2px 7px',borderRadius:4,background:'#4f8fff18',color:'#4f8fff',border:'1px solid #4f8fff30'}}>TEAM+</span>
+            {copilotMessages.length>0&&<button onClick={()=>setCopilotMessages([])} title='Clear conversation' style={{background:'none',border:'1px solid var(--wt-border)',borderRadius:5,color:'var(--wt-dim)',fontSize:'0.86rem',cursor:'pointer',padding:'2px 7px',fontFamily:'Inter,sans-serif'}}>Clear</button>}
             <button onClick={()=>setShowCopilot(false)} style={{background:'none',border:'none',color:'var(--wt-muted)',fontSize:'1.3rem',cursor:'pointer',lineHeight:1,padding:'0 4px'}}>×</button>
           </div>
           {!canUse('team') ? (
             <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:32,textAlign:'center',gap:12}}>
               <div style={{fontSize:'2rem'}}>🔒</div>
               <div style={{fontWeight:700,fontSize:'0.9rem'}}>Essentials plan required</div>
-              <div style={{fontSize:'0.78rem',color:'var(--wt-muted)',lineHeight:1.6}}>AI Co-Pilot is available on Essentials plan and above. Ask security questions, generate detection queries, and get instant threat analysis.</div>
-              <a href='/pricing' style={{padding:'8px 20px',background:'#4f8fff',color:'#fff',borderRadius:8,fontSize:'0.78rem',fontWeight:700,textDecoration:'none',marginTop:8}}>Upgrade to Essentials</a>
+              <div style={{fontSize:'0.86rem',color:'var(--wt-muted)',lineHeight:1.6}}>AI Co-Pilot is available on Essentials plan and above. Ask security questions, generate detection queries, and get instant threat analysis.</div>
+              <a href='/pricing' style={{padding:'8px 20px',background:'#4f8fff',color:'#fff',borderRadius:8,fontSize:'0.86rem',fontWeight:700,textDecoration:'none',marginTop:8}}>Upgrade to Essentials</a>
             </div>
           ) : (
             <>
@@ -3084,7 +3091,7 @@ export default function DashboardPage() {
               <div style={{flex:1,overflowY:'auto',padding:'14px 16px',display:'flex',flexDirection:'column',gap:10}}>
                 {copilotMessages.length===0 && (
                   <div style={{display:'flex',flexDirection:'column',gap:8,marginTop:8}}>
-                    <div style={{fontSize:'0.7rem',color:'var(--wt-dim)',fontWeight:600,textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>Suggested prompts</div>
+                    <div style={{fontSize:'0.86rem',color:'var(--wt-dim)',fontWeight:600,textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>Suggested prompts</div>
                     <div style={{fontSize:'0.55rem',color:'var(--wt-dim)',marginBottom:4}}>These use your live data:</div>
                     {[
                       critAlerts.length>0?`Triage my top critical alert: ${critAlerts[0]?.title?.slice(0,40)||'unknown'}`:null,
@@ -3096,7 +3103,7 @@ export default function DashboardPage() {
                       `What should I prioritise right now?`,
                     ].filter(Boolean).slice(0,4).map(p=>(
                       <button key={p} onClick={()=>sendCopilotMessage(p)}
-                        style={{padding:'8px 12px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:8,color:'var(--wt-secondary)',fontSize:'0.74rem',textAlign:'left',cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'border-color .15s',lineHeight:1.4}}
+                        style={{padding:'8px 12px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:8,color:'var(--wt-secondary)',fontSize:'0.82rem',textAlign:'left',cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'border-color .15s',lineHeight:1.4}}
                         onMouseEnter={e=>e.currentTarget.style.borderColor='#4f8fff40'}
                         onMouseLeave={e=>e.currentTarget.style.borderColor='var(--wt-border)'}
                       >{p}</button>
@@ -3105,8 +3112,8 @@ export default function DashboardPage() {
                 )}
                 {copilotMessages.map((msg,i)=>(
                   <div key={i} style={{display:'flex',flexDirection:'column',alignItems:msg.role==='user'?'flex-end':'flex-start',gap:3}}>
-                    <div style={{maxWidth:'88%',padding:'9px 13px',borderRadius:msg.role==='user'?'12px 12px 4px 12px':'12px 12px 12px 4px',background:msg.role==='user'?'#4f8fff':'var(--wt-card)',border:msg.role==='user'?'none':'1px solid var(--wt-border)',fontSize:'0.78rem',color:msg.role==='user'?'#fff':'var(--wt-text)',lineHeight:1.65,whiteSpace:'pre-wrap',wordBreak:'break-word'}}>
-                      {msg.role==='assistant' && <span style={{fontSize:'0.58rem',fontWeight:700,color:'#4f8fff',display:'block',marginBottom:4}}>✦ WATCHTOWER AI</span>}
+                    <div style={{maxWidth:'88%',padding:'9px 13px',borderRadius:msg.role==='user'?'12px 12px 4px 12px':'12px 12px 12px 4px',background:msg.role==='user'?'#4f8fff':'var(--wt-card)',border:msg.role==='user'?'none':'1px solid var(--wt-border)',fontSize:'0.86rem',color:msg.role==='user'?'#fff':'var(--wt-text)',lineHeight:1.65,whiteSpace:'pre-wrap',wordBreak:'break-word'}}>
+                      {msg.role==='assistant' && <span style={{fontSize:'0.82rem',fontWeight:700,color:'#4f8fff',display:'block',marginBottom:4}}>✦ WATCHTOWER AI</span>}
                       {msg.role==='assistant' ? (()=>{
                         const lines = (msg.text||'').split('\n');
                         return lines.map((line,li)=>{
@@ -3116,10 +3123,10 @@ export default function DashboardPage() {
                           const isCode = line.startsWith('  ') || line.startsWith('\t') || /^`.*`$/.test(line.trim());
                           const isBullet = /^[-•*]\s/.test(line.trim()) || /^\d+\.\s/.test(line.trim());
                           const cleaned = line.replace(/^\*\*|\*\*$/g,'').replace(/^#{1,3}\s/,'').replace(/^[-•*]\s/,'').replace(/^\d+\.\s/,'');
-                          if(isCode) return <code key={li} style={{display:'block',fontSize:'0.7rem',fontFamily:'JetBrains Mono,monospace',background:'#050810',color:'#22c992',padding:'2px 6px',borderRadius:4,marginBottom:2,whiteSpace:'pre-wrap',wordBreak:'break-all'}}>{line.trim().replace(/^`|`$/g,'')}</code>;
-                          if(isBullet) return <div key={li} style={{display:'flex',gap:6,marginBottom:2}}><span style={{color:'#4f8fff',flexShrink:0,marginTop:2}}>›</span><span style={{fontSize:'0.76rem',lineHeight:1.55}}>{cleaned}</span></div>;
-                          if(isBold) return <div key={li} style={{fontSize:'0.72rem',fontWeight:700,color:'#4f8fff',marginTop:li>0?6:0,marginBottom:2}}>{cleaned}</div>;
-                          return <div key={li} style={{fontSize:'0.76rem',lineHeight:1.6,marginBottom:1}}>{line}</div>;
+                          if(isCode) return <code key={li} style={{display:'block',fontSize:'0.86rem',fontFamily:'JetBrains Mono,monospace',background:'#050810',color:'#22c992',padding:'2px 6px',borderRadius:4,marginBottom:2,whiteSpace:'pre-wrap',wordBreak:'break-all'}}>{line.trim().replace(/^`|`$/g,'')}</code>;
+                          if(isBullet) return <div key={li} style={{display:'flex',gap:6,marginBottom:2}}><span style={{color:'#4f8fff',flexShrink:0,marginTop:2}}>›</span><span style={{fontSize:'0.84rem',lineHeight:1.55}}>{cleaned}</span></div>;
+                          if(isBold) return <div key={li} style={{fontSize:'0.8rem',fontWeight:700,color:'#4f8fff',marginTop:li>0?6:0,marginBottom:2}}>{cleaned}</div>;
+                          return <div key={li} style={{fontSize:'0.84rem',lineHeight:1.6,marginBottom:1}}>{line}</div>;
                         });
                       })() : msg.text}
                     </div>
@@ -3143,12 +3150,12 @@ export default function DashboardPage() {
                   onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendCopilotMessage(copilotInput);}}}
                   placeholder='Ask a security question… (Enter to send)'
                   rows={2}
-                  style={{flex:1,resize:'none',padding:'8px 12px',borderRadius:8,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.78rem',fontFamily:'Inter,sans-serif',outline:'none',lineHeight:1.5}}
+                  style={{flex:1,resize:'none',padding:'8px 12px',borderRadius:8,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.86rem',fontFamily:'Inter,sans-serif',outline:'none',lineHeight:1.5}}
                 />
                 <button
                   onClick={()=>sendCopilotMessage(copilotInput)}
                   disabled={!copilotInput.trim()||copilotLoading}
-                  style={{padding:'8px 14px',borderRadius:8,background:copilotInput.trim()&&!copilotLoading?'#4f8fff':'var(--wt-card)',border:'1px solid var(--wt-border2)',color:copilotInput.trim()&&!copilotLoading?'#fff':'var(--wt-dim)',fontSize:'0.78rem',fontWeight:700,cursor:copilotInput.trim()&&!copilotLoading?'pointer':'default',fontFamily:'Inter,sans-serif',flexShrink:0,transition:'all .15s',alignSelf:'flex-end'}}
+                  style={{padding:'8px 14px',borderRadius:8,background:copilotInput.trim()&&!copilotLoading?'#4f8fff':'var(--wt-card)',border:'1px solid var(--wt-border2)',color:copilotInput.trim()&&!copilotLoading?'#fff':'var(--wt-dim)',fontSize:'0.86rem',fontWeight:700,cursor:copilotInput.trim()&&!copilotLoading?'pointer':'default',fontFamily:'Inter,sans-serif',flexShrink:0,transition:'all .15s',alignSelf:'flex-end'}}
                 >↑</button>
               </div>
             </>
@@ -3164,10 +3171,10 @@ export default function DashboardPage() {
               <span style={{fontSize:'0.88rem',fontWeight:800}}>⌨ Keyboard Shortcuts</span>
               <button onClick={()=>setShowShortcuts(false)} style={{background:'none',border:'none',color:'var(--wt-muted)',fontSize:'1.2rem',cursor:'pointer',lineHeight:1}}>×</button>
             </div>
-            <div style={{display:'grid',gridTemplateColumns:'auto 1fr',gap:'8px 16px',fontSize:'0.78rem'}}>
+            <div style={{display:'grid',gridTemplateColumns:'auto 1fr',gap:'8px 16px',fontSize:'0.86rem'}}>
               {[['G then O','Overview'],['G then A','Alerts'],['G then C','Coverage'],['G then V','Vulnerabilities'],['G then I','Intel'],['G then N','Incidents'],['G then T','Tools'],['G then S','Sales'],['?','Toggle this help'],['Esc','Close overlay']].map(([k,v])=>(
                 <React.Fragment key={k}>
-                  <kbd style={{background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:5,padding:'2px 8px',fontFamily:'JetBrains Mono,monospace',fontSize:'0.7rem',color:'var(--wt-secondary)',whiteSpace:'nowrap'}}>{k}</kbd>
+                  <kbd style={{background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:5,padding:'2px 8px',fontFamily:'JetBrains Mono,monospace',fontSize:'0.86rem',color:'var(--wt-secondary)',whiteSpace:'nowrap'}}>{k}</kbd>
                   <span style={{color:'var(--wt-muted)',alignSelf:'center'}}>{v}</span>
                 </React.Fragment>
               ))}

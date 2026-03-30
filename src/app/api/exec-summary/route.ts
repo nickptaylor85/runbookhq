@@ -9,9 +9,10 @@ export async function POST(req: NextRequest) {
     if (!rl.ok) return NextResponse.json({ ok: false, error: `Rate limit exceeded. Resets in ${rl.reset}s.` }, { status: 429 });
   // Tier enforcement: requires Professional (business) or above
   const userTier = req.headers.get('x-user-tier') || 'community';
+  const isAdminReq = req.headers.get('x-is-admin') === 'true';
   const tierLevels: Record<string, number> = { community: 0, team: 1, business: 2, mssp: 3 };
-  if ((tierLevels[userTier] || 0) < 2) {
-    return NextResponse.json({ ok: false, error: 'Executive reports require Professional plan or above. Upgrade at /pricing.' }, { status: 403 });
+  if (!isAdminReq && (tierLevels[userTier] || 0) < 1) {
+    return NextResponse.json({ ok: false, error: 'Executive reports require Essentials plan or above.' }, { status: 403 });
   }
     const tenantId = req.headers.get('x-tenant-id') || 'global';
     const body = await req.json() as Record<string, unknown>;

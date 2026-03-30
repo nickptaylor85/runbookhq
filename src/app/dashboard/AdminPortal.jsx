@@ -143,28 +143,46 @@ function SignupToggle() {
 function AuditLogView({ tenantId }) {
   const [entries, setEntries] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
+  const [filter, setFilter] = React.useState('all');
   React.useEffect(()=>{
-    fetch('/api/audit?limit=100',{headers:{'x-tenant-id':tenantId}}).then(r=>r.json()).then(d=>{if(d.entries)setEntries(d.entries);setLoading(false);}).catch(()=>setLoading(false));
+    fetch('/api/audit?limit=200',{headers:{'x-tenant-id':tenantId}}).then(r=>r.json()).then(d=>{if(d.entries)setEntries(d.entries);setLoading(false);}).catch(()=>setLoading(false));
   },[tenantId]);
-  if(loading) return <div style={{fontSize:'0.72rem',color:'var(--wt-muted)'}}>Loading…</div>;
-  if(entries.length===0) return <div style={{fontSize:'0.72rem',color:'var(--wt-muted)',padding:'16px 0'}}>No audit entries yet. FP/TP verdicts and incident changes will appear here.</div>;
-  const typeColors = {verdict:'#4f8fff',incident_status:'#f0a030',auto_close_fp:'#22d49a',auto_response:'#f0405e'};
+  if(loading) return <div style={{fontSize:'0.76rem',color:'var(--wt-muted)'}}>Loading…</div>;
+  if(entries.length===0) return <div style={{fontSize:'0.76rem',color:'var(--wt-muted)',padding:'16px 0'}}>No audit entries yet. Analyst verdicts, incident changes, and auto-responses appear here.</div>;
+  const typeColors = {verdict:'#4f8fff',incident_status:'#f0a030',auto_close_fp:'#22d49a',auto_response:'#f0405e',auto_notify_tp:'#f97316',auto_response_full:'#f0405e',incident_note:'#8b6fff',default:'#6b7a94'};
+  const typeLabels = {verdict:'Verdict',incident_status:'Status Change',auto_close_fp:'Auto-FP Close',auto_response:'Auto-Response',auto_notify_tp:'Auto-TP Notify',auto_response_full:'Full Auto Action',incident_note:'Note Added'};
+  const types = ['all',...new Set(entries.map(e=>e.type).filter(Boolean))];
+  const filtered = filter==='all' ? entries : entries.filter(e=>e.type===filter);
   return (
-    <div style={{display:'flex',flexDirection:'column',gap:4,maxHeight:400,overflowY:'auto'}}>
-      {entries.map((e,i)=>(
-        <div key={i} style={{display:'flex',alignItems:'flex-start',gap:8,padding:'8px 12px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:8}}>
-          <div style={{width:6,height:6,borderRadius:'50%',background:typeColors[e.type]||'#6b7a94',flexShrink:0,marginTop:5}} />
-          <div style={{flex:1,minWidth:0}}>
-            <div style={{display:'flex',gap:6,alignItems:'center',marginBottom:2,flexWrap:'wrap'}}>
-              <span style={{fontSize:'0.64rem',fontWeight:700,color:typeColors[e.type]||'#6b7a94'}}>{e.type}</span>
-              {e.verdict&&<span style={{fontSize:'0.6rem',padding:'0 5px',borderRadius:3,background:(e.verdict==='FP'?'#22d49a':'#f0405e')+'18',color:e.verdict==='FP'?'#22d49a':'#f0405e',fontWeight:700}}>{e.verdict}</span>}
-              {e.analyst&&<span style={{fontSize:'0.58rem',color:'var(--wt-muted)'}}>{e.analyst}</span>}
-              <span style={{fontSize:'0.56rem',color:'var(--wt-dim)',marginLeft:'auto',fontFamily:'JetBrains Mono,monospace'}}>{e.ts?new Date(e.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):''}</span>
-            </div>
-            <div style={{fontSize:'0.66rem',color:'var(--wt-secondary)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{e.alertTitle||e.incidentId||e.action||''}</div>
-          </div>
+    <div>
+      <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:10}}>
+        {types.slice(0,8).map(t=>(
+          <button key={t} onClick={()=>setFilter(t)} style={{padding:'3px 10px',borderRadius:5,border:`1px solid ${filter===t?typeColors[t]||'#4f8fff':'var(--wt-border)'}`,background:filter===t?(typeColors[t]||'#4f8fff')+'15':'transparent',color:filter===t?typeColors[t]||'#4f8fff':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+            {t==='all'?'All':typeLabels[t]||t}
+          </button>
+        ))}
+      </div>
+      <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:10,overflow:'hidden'}}>
+        <div style={{display:'grid',gridTemplateColumns:'80px 120px 120px 1fr 80px',padding:'7px 14px',borderBottom:'1px solid var(--wt-border)',fontSize:'0.66rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px'}}>
+          <span>Time</span><span>Type</span><span>User</span><span>Detail</span><span>Verdict</span>
         </div>
-      ))}
+        <div style={{maxHeight:450,overflowY:'auto'}}>
+          {filtered.map((e,i)=>{
+            const col = typeColors[e.type]||typeColors.default;
+            const user = e.analyst||e.userId||'—';
+            const detail = e.alertTitle||e.incidentId||e.action||e.type||'';
+            return (
+              <div key={i} style={{display:'grid',gridTemplateColumns:'80px 120px 120px 1fr 80px',padding:'7px 14px',borderBottom:'1px solid var(--wt-border)',background:i%2===0?'transparent':'var(--wt-card2)',alignItems:'center',gap:6}}>
+                <span style={{fontSize:'0.66rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{e.ts?new Date(e.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):''}</span>
+                <span style={{fontSize:'0.68rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:col+'18',color:col,border:`1px solid ${col}30`,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{typeLabels[e.type]||e.type||'action'}</span>
+                <span style={{fontSize:'0.72rem',fontWeight:600,color:'var(--wt-text)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}} title={user}>{user.length>18?user.slice(0,16)+'…':user}</span>
+                <span style={{fontSize:'0.72rem',color:'var(--wt-secondary)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}} title={detail}>{detail.slice(0,60)}</span>
+                <span style={{fontSize:'0.72rem',fontWeight:700,color:e.verdict==='FP'?'#22d49a':e.verdict==='TP'?'#f0405e':e.status?'#f0a030':'var(--wt-dim)'}}>{e.verdict||e.status||'—'}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
@@ -501,14 +519,14 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                     <span style={{fontSize:'0.58rem',fontWeight:700,padding:'2px 6px',borderRadius:3,background:user.status==='Active'?'#22d49a12':'#f0a03012',color:user.status==='Active'?'#22d49a':'#f0a030'}}>{user.status}</span>
                   </div>
                   <div style={{display:'flex',gap:5,justifyContent:'flex-end',flexWrap:'wrap'}}>
-                    {user.role !== 'owner' && !isEditing && (
+                    {!isEditing && (
                       <button onClick={()=>setEditingUser(user.id)} style={{padding:'3px 8px',borderRadius:5,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.6rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Edit</button>
                     )}
                     {isEditing && (
                       <button onClick={()=>setEditingUser(null)} style={{padding:'3px 8px',borderRadius:5,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.6rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Cancel</button>
                     )}
                     {/* Set temp password */}
-                    {user.role !== 'owner' && (()=>{
+                    {(()=>{
                       const ps = setPassState[user.id] || {};
                       if (ps.open) return (
                         <div style={{display:'flex',gap:4,alignItems:'center'}}>
@@ -564,7 +582,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                         </button>
                       );
                     })()}
-                    {user.role !== 'owner' && (
+                    {(
                       <button onClick={async()=>{
                         if (!user.id) { console.error('[remove] user.id is undefined', user); return; }
                         // Optimistic remove
@@ -862,8 +880,8 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
           )}
           {aiLog && aiLog.entries && aiLog.entries.length > 0 && (
             <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:10,overflow:'hidden'}}>
-              <div style={{display:'grid',gridTemplateColumns:'75px 80px 80px 1fr 55px 55px',padding:'6px 12px',borderBottom:'1px solid var(--wt-border)',fontSize:'0.56rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px'}}>
-                <span>Time</span><span>Type</span><span>User</span><span>Prompt / Context</span><span>ms</span><span>Status</span>
+              <div style={{display:'grid',gridTemplateColumns:'75px 90px 110px 1fr 55px 55px',padding:'6px 12px',borderBottom:'1px solid var(--wt-border)',fontSize:'0.66rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px'}}>
+                <span>Time</span><span>Type</span><span>User / Tenant</span><span>Prompt / Context</span><span>ms</span><span>Status</span>
               </div>
               <div style={{maxHeight:500,overflowY:'auto'}}>
                 {aiLog.entries.map((e,i)=>{
@@ -871,10 +889,10 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                   const c = tc[e.type]||'#6b7a94';
                   const ctx = e.alertTitle?'Alert: '+e.alertTitle:e.vulnCve?'Vuln: '+e.vulnCve:e.industry&&e.industry!=='ioc_hunt'?'Intel: '+e.industry:e.promptPreview||'—';
                   return (
-                    <div key={i} style={{display:'grid',gridTemplateColumns:'75px 80px 80px 1fr 55px 55px',padding:'6px 12px',borderBottom:'1px solid #1d2535',background:i%2===0?'transparent':'var(--wt-card2)',fontSize:'0.6rem',alignItems:'center',gap:4}}>
-                      <span style={{color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',fontSize:'0.56rem'}}>{new Date(e.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>
-                      <span style={{padding:'1px 5px',borderRadius:3,background:c+'18',color:c,border:'1px solid '+c+'30',fontWeight:700,fontSize:'0.54rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{e.type}</span>
-                      <span style={{color:'var(--wt-muted)',fontFamily:'JetBrains Mono,monospace',fontSize:'0.56rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{(e.userId||'anon').split('@')[0].slice(0,12)}</span>
+                    <div key={i} style={{display:'grid',gridTemplateColumns:'75px 90px 110px 1fr 55px 55px',padding:'6px 12px',borderBottom:'1px solid #1d2535',background:i%2===0?'transparent':'var(--wt-card2)',fontSize:'0.68rem',alignItems:'center',gap:4}}>
+                      <span style={{color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',fontSize:'0.64rem'}}>{new Date(e.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>
+                      <span style={{padding:'1px 5px',borderRadius:3,background:c+'18',color:c,border:'1px solid '+c+'30',fontWeight:700,fontSize:'0.64rem',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{e.type}</span>
+                      <div style={{overflow:'hidden'}}><div style={{fontWeight:600,color:'var(--wt-text)',fontSize:'0.68rem',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{e.userId||'anon'}</div><div style={{fontSize:'0.62rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{e.tenantId||'global'}</div></div>
                       <span style={{color:'var(--wt-secondary)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontSize:'0.6rem'}} title={ctx}>{ctx.slice(0,80)}</span>
                       <span style={{color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',fontSize:'0.56rem'}}>{e.durationMs}ms</span>
                       <span style={{fontWeight:700,fontSize:'0.6rem',color:e.ok?'#22d49a':'#f0405e'}}>{e.ok?'✓ OK':'✗ '+((e.error||'err').slice(0,15))}</span>
