@@ -1143,8 +1143,7 @@ export default function DashboardPage() {
                       <span>{icon}</span>{label}
                       {t==='admin'&&<span style={{marginLeft:'auto',width:5,height:5,borderRadius:'50%',background:'#f0a030',boxShadow:'0 0 4px #f0a030',display:'block'}} />}
                     </button>
-                    ))
-                  })}
+                  ))}
                 </div>
               </div>
             );
