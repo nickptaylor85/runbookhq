@@ -202,16 +202,30 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
   const [filterStatus, setFilterStatus] = useState('All');
 
   // Users/Roles state
-  const [staffUsers, setStaffUsers] = useState([
-    {id:'u1', name:'Nick Taylor',    email:'nick@getwatchtower.io',   role:'owner',      status:'Active', joined:'2024-01-01', lastSeen:'Now'},
-    {id:'u2', name:'Sarah Chen',     email:'sarah@getwatchtower.io',  role:'tech_admin', status:'Active', joined:'2024-03-15', lastSeen:'2h ago'},
-    {id:'u3', name:'James Harlow',   email:'james@getwatchtower.io',  role:'sales',      status:'Active', joined:'2024-05-01', lastSeen:'1d ago'},
-    {id:'u4', name:'Emma Wilson',    email:'emma@getwatchtower.io',   role:'viewer',     status:'Active', joined:'2024-06-20', lastSeen:'3d ago'},
-    {id:'u5', name:'Invited User',   email:'ops@clientco.com',        role:'viewer',     status:'Pending',joined:'2024-07-01', lastSeen:'Never'},
-  ]);
-  const [inviteForm, setInviteForm] = useState({name:'',email:'',role:'viewer'});
-  const [inviteStatus, setInviteStatus] = useState(null); // null | 'sending' | 'sent' | 'error'
+  const [staffUsers, setStaffUsers] = useState([]);
+  const [usersLoaded, setUsersLoaded] = useState(false);
+  const [setPassState, setSetPassState] = useState({});
+  const [inviteForm, setInviteForm] = useState({name:'',email:'',role:'viewer',tempPassword:''});
+  const [inviteStatus, setInviteStatus] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
+
+  // Load users from Redis on mount
+  useEffect(()=>{
+    fetch('/api/admin/users').then(r=>r.json()).then(d=>{
+      if(d.ok && Array.isArray(d.users) && d.users.length > 0) {
+        setStaffUsers(d.users.map(u=>({
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          role: u.role,
+          status: u.status === 'active' ? 'Active' : u.status === 'pending' ? 'Pending' : u.status || 'Active',
+          joined: u.createdAt?.slice(0,10) || '',
+          lastSeen: u.lastSeen || 'Never',
+        })));
+      }
+      setUsersLoaded(true);
+    }).catch(()=>setUsersLoaded(true));
+  },[]);
 
   // Stripe config state
   const [stripeConfig, setStripeConfig] = useState({publishableKey:'',secretKey:'',webhookSecret:'',priceMssp:'',priceBusiness:'',priceTeamPerSeat:''});
@@ -341,8 +355,8 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
           {/* Invite / Create user form */}
           <div style={{background:'var(--wt-card)',border:'1px solid #4f8fff20',borderRadius:12,padding:'18px 20px'}}>
             <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:4}}>Invite or Create Staff User</div>
-            <div style={{fontSize:'0.7rem',color:'var(--wt-muted)',marginBottom:14}}>Internal team only — not customer accounts. Assign a role to control dashboard access.</div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 160px 120px',gap:10,alignItems:'flex-end',flexWrap:'wrap'}}>
+            <div style={{fontSize:'0.7rem',color:'var(--wt-muted)',marginBottom:14,lineHeight:1.6}}>Add a team member. Set a temp password to let them log in immediately, or leave blank to send an invite link.</div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 140px 140px 110px',gap:10,alignItems:'flex-end',flexWrap:'wrap'}}>
               <div>
                 <label style={{display:'block',fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Full Name</label>
                 <input value={inviteForm.name} onChange={e=>setInviteForm(f=>({...f,name:e.target.value}))}
@@ -365,24 +379,46 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                 </select>
               </div>
               <div>
+                <label style={{display:'block',fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Temp Password <span style={{color:'var(--wt-dim)',fontWeight:400,textTransform:'none'}}>(optional)</span></label>
+                <input value={inviteForm.tempPassword} onChange={e=>setInviteForm(f=>({...f,tempPassword:e.target.value}))}
+                  placeholder='Skip to send invite link'
+                  type='text'
+                  style={{width:'100%',padding:'8px 11px',background:'var(--wt-card2)',border:`1px solid ${inviteForm.tempPassword&&inviteForm.tempPassword.length<8?'#f0405e40':inviteForm.tempPassword.length>=8?'#22d49a40':'var(--wt-border2)'}`,borderRadius:7,color:'var(--wt-text)',fontSize:'0.78rem',fontFamily:'JetBrains Mono,monospace',outline:'none',boxSizing:'border-box'}}/>
+              </div>
+              <div>
+                <label style={{display:'block',fontSize:'0.62rem',fontWeight:700,color:'transparent',marginBottom:5}}>.</label>
                 <button
-                  onClick={()=>{
+                  onClick={async()=>{
                     if (!inviteForm.email || !inviteForm.name) return;
                     setInviteStatus('sending');
-                    // In production: POST /api/auth/invite
-                    setTimeout(()=>{
-                      setStaffUsers(prev=>[...prev, {
-                        id:'u'+Date.now(), name:inviteForm.name, email:inviteForm.email,
-                        role:inviteForm.role, status:'Pending', joined:new Date().toISOString().slice(0,10), lastSeen:'Never'
-                      }]);
-                      setInviteForm({name:'',email:'',role:'viewer'});
-                      setInviteStatus('sent');
-                      setTimeout(()=>setInviteStatus(null), 3000);
-                    }, 800);
+                    try {
+                      if (inviteForm.tempPassword && inviteForm.tempPassword.length >= 8) {
+                        // Create user directly with password — no invite email
+                        const r = await fetch('/api/admin/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'create',name:inviteForm.name,email:inviteForm.email,role:inviteForm.role})});
+                        const d = await r.json();
+                        if (r.ok && d.user) {
+                          // Set the temp password
+                          await fetch('/api/admin/users/set-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:d.user.id,password:inviteForm.tempPassword})});
+                          setStaffUsers(prev=>[...prev, {id:d.user.id, name:inviteForm.name, email:inviteForm.email, role:inviteForm.role, status:'Active', joined:new Date().toISOString().slice(0,10), lastSeen:'Never'}]);
+                          setInviteForm({name:'',email:'',role:'viewer',tempPassword:''});
+                          setInviteStatus('created');
+                        } else { setInviteStatus('error'); }
+                      } else {
+                        // Send invite link
+                        const r = await fetch('/api/auth/invite',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:inviteForm.name,email:inviteForm.email,role:inviteForm.role})});
+                        const d = await r.json();
+                        if (r.ok) {
+                          setStaffUsers(prev=>[...prev, {id:d.userId||('u'+Date.now()), name:inviteForm.name, email:inviteForm.email, role:inviteForm.role, status:'Pending', joined:new Date().toISOString().slice(0,10), lastSeen:'Never'}]);
+                          setInviteForm({name:'',email:'',role:'viewer',tempPassword:''});
+                          setInviteStatus('sent');
+                        } else { setInviteStatus('error'); }
+                      }
+                    } catch(e) { setInviteStatus('error'); }
+                    setTimeout(()=>setInviteStatus(null), 4000);
                   }}
-                  disabled={inviteStatus==='sending'}
-                  style={{width:'100%',padding:'9px 0',borderRadius:7,border:'none',background:'#4f8fff',color:'#fff',fontSize:'0.78rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',opacity:inviteStatus==='sending'?0.7:1}}>
-                  {inviteStatus==='sending'?'Sending…':inviteStatus==='sent'?'✓ Sent!':'Send Invite'}
+                  disabled={inviteStatus==='sending'||!inviteForm.email||!inviteForm.name||(!!inviteForm.tempPassword&&inviteForm.tempPassword.length<8)}
+                  style={{width:'100%',padding:'9px 0',borderRadius:7,border:'none',background:inviteStatus==='error'?'#f0405e':inviteForm.tempPassword&&inviteForm.tempPassword.length>=8?'#22d49a':'#4f8fff',color:'#fff',fontSize:'0.78rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',opacity:inviteStatus==='sending'||!inviteForm.email||!inviteForm.name||(!!inviteForm.tempPassword&&inviteForm.tempPassword.length<8)?0.5:1}}>
+                  {inviteStatus==='sending'?'…':inviteStatus==='sent'?'✓ Invite sent!':inviteStatus==='created'?'✓ User created!':inviteStatus==='error'?'Error — retry':inviteForm.tempPassword&&inviteForm.tempPassword.length>=8?'Create User':'Send Invite'}
                 </button>
               </div>
             </div>
@@ -427,9 +463,9 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
 
           {/* Staff user list */}
           <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
-            <div style={{fontSize:'0.72rem',fontWeight:700,marginBottom:12}}>Team Members ({staffUsers.length})</div>
+            <div style={{fontSize:'0.72rem',fontWeight:700,marginBottom:12}}>Team Members ({staffUsers.length}){!usersLoaded&&<span style={{fontSize:'0.6rem',color:'var(--wt-dim)',marginLeft:8,fontWeight:400}}>Loading…</span>}</div>
             {/* Column headers */}
-            <div style={{display:'grid',gridTemplateColumns:'1fr 180px 100px 80px 100px',gap:8,padding:'5px 10px',fontSize:'0.56rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',borderBottom:'1px solid var(--wt-border)',marginBottom:4}}>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 180px 100px 80px 160px',gap:8,padding:'5px 10px',fontSize:'0.56rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',borderBottom:'1px solid var(--wt-border)',marginBottom:4}}>
               <span>User</span><span>Email</span><span>Role</span><span>Status</span><span style={{textAlign:'right'}}>Actions</span>
             </div>
             {staffUsers.map(user=>{
@@ -437,7 +473,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
               const roleLabel = {owner:'Owner',tech_admin:'Tech Admin',sales:'Sales',viewer:'Viewer'}[user.role]||user.role;
               const isEditing = editingUser===user.id;
               return (
-                <div key={user.id} style={{display:'grid',gridTemplateColumns:'1fr 180px 100px 80px 100px',gap:8,padding:'9px 10px',alignItems:'center',borderBottom:'1px solid var(--wt-border)',opacity:user.status==='Pending'?0.75:1}}>
+                <div key={user.id} style={{display:'grid',gridTemplateColumns:'1fr 180px 100px 80px 160px',gap:8,padding:'9px 10px',alignItems:'center',borderBottom:'1px solid var(--wt-border)',opacity:user.status==='Pending'?0.75:1}}>
                   <div>
                     <div style={{fontSize:'0.78rem',fontWeight:600}}>{user.name}</div>
                     <div style={{fontSize:'0.58rem',color:'var(--wt-dim)',marginTop:1}}>Last seen: {user.lastSeen}</div>
@@ -446,9 +482,11 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                   <div>
                     {isEditing ? (
                       <select defaultValue={user.role}
-                        onChange={e=>{
-                          setStaffUsers(prev=>prev.map(u=>u.id===user.id?{...u,role:e.target.value}:u));
+                        onChange={async e=>{
+                          const newRole = e.target.value;
+                          setStaffUsers(prev=>prev.map(u=>u.id===user.id?{...u,role:newRole}:u));
                           setEditingUser(null);
+                          await fetch('/api/admin/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'update',userId:user.id,role:newRole})}).catch(()=>{});
                         }}
                         style={{padding:'3px 6px',background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:5,color:'var(--wt-text)',fontSize:'0.68rem',fontFamily:'Inter,sans-serif',outline:'none',cursor:'pointer'}}>
                         <option value='tech_admin'>Tech Admin</option>
@@ -462,15 +500,75 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                   <div>
                     <span style={{fontSize:'0.58rem',fontWeight:700,padding:'2px 6px',borderRadius:3,background:user.status==='Active'?'#22d49a12':'#f0a03012',color:user.status==='Active'?'#22d49a':'#f0a030'}}>{user.status}</span>
                   </div>
-                  <div style={{display:'flex',gap:5,justifyContent:'flex-end'}}>
+                  <div style={{display:'flex',gap:5,justifyContent:'flex-end',flexWrap:'wrap'}}>
                     {user.role !== 'owner' && !isEditing && (
                       <button onClick={()=>setEditingUser(user.id)} style={{padding:'3px 8px',borderRadius:5,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.6rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Edit</button>
                     )}
                     {isEditing && (
                       <button onClick={()=>setEditingUser(null)} style={{padding:'3px 8px',borderRadius:5,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.6rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Cancel</button>
                     )}
+                    {/* Set temp password */}
+                    {user.role !== 'owner' && (()=>{
+                      const ps = setPassState[user.id] || {};
+                      if (ps.open) return (
+                        <div style={{display:'flex',gap:4,alignItems:'center'}}>
+                          <input
+                            autoFocus
+                            type='text'
+                            placeholder='Min 8 chars'
+                            value={ps.val||''}
+                            onChange={e=>setSetPassState(prev=>({...prev,[user.id]:{...ps,val:e.target.value,done:false,error:null}}))}
+                            onKeyDown={async e=>{
+                              if(e.key==='Escape') setSetPassState(prev=>({...prev,[user.id]:{...ps,open:false}}));
+                              if(e.key==='Enter') {
+                                if(!ps.val||ps.val.length<8) return;
+                                setSetPassState(prev=>({...prev,[user.id]:{...ps,saving:true}}));
+                                const r = await fetch('/api/admin/users/set-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:user.email,password:ps.val})});
+                                const d = await r.json();
+                                if(r.ok) {
+                                  setStaffUsers(prev=>prev.map(u=>u.id===user.id?{...u,status:'Active'}:u));
+                                  setSetPassState(prev=>({...prev,[user.id]:{open:false,done:true}}));
+                                } else {
+                                  setSetPassState(prev=>({...prev,[user.id]:{...ps,saving:false,error:d.error||'Failed'}}));
+                                }
+                              }
+                            }}
+                            style={{padding:'3px 7px',width:120,background:'var(--wt-card2)',border:'1px solid #4f8fff40',borderRadius:5,color:'var(--wt-text)',fontSize:'0.66rem',fontFamily:'JetBrains Mono,monospace',outline:'none'}}
+                          />
+                          <button
+                            disabled={ps.saving||!ps.val||ps.val.length<8}
+                            onClick={async()=>{
+                              if(!ps.val||ps.val.length<8) return;
+                              setSetPassState(prev=>({...prev,[user.id]:{...ps,saving:true}}));
+                              const r = await fetch('/api/admin/users/set-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:user.email,password:ps.val})});
+                              const d = await r.json();
+                              if(r.ok) {
+                                setStaffUsers(prev=>prev.map(u=>u.id===user.id?{...u,status:'Active'}:u));
+                                setSetPassState(prev=>({...prev,[user.id]:{open:false,done:true}}));
+                              } else {
+                                setSetPassState(prev=>({...prev,[user.id]:{...ps,saving:false,error:d.error||'Failed'}}));
+                              }
+                            }}
+                            style={{padding:'3px 8px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.6rem',fontWeight:700,cursor:ps.saving||!ps.val||ps.val.length<8?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',opacity:ps.saving||!ps.val||ps.val.length<8?0.5:1}}>
+                            {ps.saving?'…':'Set'}
+                          </button>
+                          <button onClick={()=>setSetPassState(prev=>({...prev,[user.id]:{...ps,open:false}}))} style={{padding:'3px 6px',borderRadius:5,border:'1px solid var(--wt-border)',background:'transparent',color:'var(--wt-dim)',fontSize:'0.6rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✕</button>
+                          {ps.error&&<span style={{fontSize:'0.58rem',color:'#f0405e'}}>{ps.error}</span>}
+                        </div>
+                      );
+                      return (
+                        <button
+                          onClick={()=>setSetPassState(prev=>({...prev,[user.id]:{open:true,val:'',done:false}}))}
+                          style={{padding:'3px 8px',borderRadius:5,border:`1px solid ${setPassState[user.id]?.done?'#22d49a30':'#f0a03025'}`,background:setPassState[user.id]?.done?'#22d49a10':'#f0a03008',color:setPassState[user.id]?.done?'#22d49a':'#f0a030',fontSize:'0.6rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                          {setPassState[user.id]?.done?'✓ Pass set':'Set Pass'}
+                        </button>
+                      );
+                    })()}
                     {user.role !== 'owner' && (
-                      <button onClick={()=>setStaffUsers(prev=>prev.filter(u=>u.id!==user.id))}
+                      <button onClick={async()=>{
+                        setStaffUsers(prev=>prev.filter(u=>u.id!==user.id));
+                        await fetch('/api/admin/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',userId:user.id})}).catch(()=>{});
+                      }}
                         style={{padding:'3px 8px',borderRadius:5,border:'1px solid #f0405e25',background:'#f0405e08',color:'#f0405e',fontSize:'0.6rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Remove</button>
                     )}
                     {user.status==='Pending' && (

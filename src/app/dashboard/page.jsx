@@ -396,6 +396,21 @@ export default function DashboardPage() {
         // Load persisted alert notes
         fetch('/api/alert-notes',{headers:{'x-tenant-id':tenantRef.current}}).then(r=>r.json()).then(d=>{if(d.notes&&typeof d.notes==='object')setAlertNotes(d.notes);}).catch(()=>{});
         fetch('/api/alert-state',{headers:{'x-tenant-id':tenantRef.current}}).then(r=>r.json()).then(d=>{if(d.overrides&&typeof d.overrides==='object')setAlertOverrides(d.overrides);if(d.assignees&&typeof d.assignees==='object')setAlertAssignees(d.assignees);}).catch(()=>{});
+        // Load persisted incidents (created by analyst, survive refresh)
+        fetch('/api/incidents',{headers:{'x-tenant-id':tenantRef.current}}).then(r=>r.json()).then(d=>{
+          if(d.ok && Array.isArray(d.incidents) && d.incidents.length > 0) {
+            setCreatedIncidents(d.incidents);
+            // Restore statuses and notes from persisted data
+            const statuses = {};
+            const notes = {};
+            d.incidents.forEach(inc => {
+              if (inc.status) statuses[inc.id] = inc.status;
+              if (inc.notes?.length) notes[inc.id] = inc.notes;
+            });
+            if (Object.keys(statuses).length) setIncidentStatuses(prev => ({...statuses, ...prev}));
+            if (Object.keys(notes).length) setIncidentNotes(prev => ({...prev, ...notes}));
+          }
+        }).catch(()=>{});
         if (d.settings?.demoMode !== undefined) {
           setDemoMode(d.settings.demoMode === 'true');
         } else {
@@ -450,7 +465,14 @@ export default function DashboardPage() {
   const [deployAgentDevice, setDeployAgentDevice] = useState(null);
   const [incidentStatuses, setIncidentStatuses] = useState({});
   const [deletedIncidents, setDeletedIncidents] = useState(new Set());
-  function deleteIncident(id) { setDeletedIncidents(prev=>new Set([...prev,id])); setSelectedIncident(null); }
+  function deleteIncident(id) {
+    setDeletedIncidents(prev=>new Set([...prev,id]));
+    setSelectedIncident(null);
+    // Remove from Redis (live mode)
+    if (!demoMode) {
+      fetch('/api/incidents?id='+id,{method:'DELETE',headers:{'x-tenant-id':tenantRef.current}}).catch(()=>{});
+    }
+  }
   const [incidentNotes, setIncidentNotes] = useState({});
   const [investResults, setInvestResults] = React.useState({});
   const [investLoading, setInvestLoading] = React.useState(new Set());
@@ -675,6 +697,24 @@ export default function DashboardPage() {
     }, 2000);
     return ()=>{ if(overrideSaveTimer.current) clearTimeout(overrideSaveTimer.current); };
   },[alertOverrides]);
+
+  // Persist incidents to Redis whenever createdIncidents or incidentStatuses changes (debounced 2s)
+  const incidentSaveTimer = React.useRef(null);
+  useEffect(()=>{
+    if (demoMode) return;
+    if (createdIncidents.length === 0) return; // don't wipe on initial empty state
+    if (incidentSaveTimer.current) clearTimeout(incidentSaveTimer.current);
+    incidentSaveTimer.current = setTimeout(()=>{
+      // Merge current statuses and notes into the incidents before saving
+      const toSave = createdIncidents.map(inc => ({
+        ...inc,
+        status: incidentStatuses[inc.id] || inc.status,
+        notes: incidentNotes[inc.id] || inc.notes || [],
+      }));
+      fetch('/api/incidents',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({incidents:toSave})}).catch(()=>{});
+    }, 2000);
+    return ()=>{ if(incidentSaveTimer.current) clearTimeout(incidentSaveTimer.current); };
+  },[createdIncidents, incidentStatuses, incidentNotes, demoMode]);
 
   // Keyboard shortcuts: G+key to navigate tabs, ? for help
   useEffect(()=>{
