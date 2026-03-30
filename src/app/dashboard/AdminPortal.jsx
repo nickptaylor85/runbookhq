@@ -115,7 +115,7 @@ function SignupToggle() {
     setSaving(true);
     try {
       const newVal = !enabled;
-      const r = await fetch('/api/admin/platform',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({signup_enabled:newVal})});
+      const r = await fetch('/api/admin/platform',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':'global'},body:JSON.stringify({signup_enabled:newVal})});
       if (r.ok) {
         setEnabled(newVal);
       } else {
