@@ -566,8 +566,21 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                     })()}
                     {user.role !== 'owner' && (
                       <button onClick={async()=>{
+                        if (!user.id) { console.error('[remove] user.id is undefined', user); return; }
+                        // Optimistic remove
                         setStaffUsers(prev=>prev.filter(u=>u.id!==user.id));
-                        await fetch('/api/admin/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',userId:user.id})}).catch(()=>{});
+                        try {
+                          const r = await fetch('/api/admin/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'delete',userId:user.id})});
+                          if (!r.ok) {
+                            const d = await r.json().catch(()=>({}));
+                            console.error('[remove] API error', r.status, d);
+                            // Revert on failure
+                            setStaffUsers(prev=>[...prev, user].sort((a,b)=>a.name?.localeCompare(b.name||'')||0));
+                          }
+                        } catch(e) {
+                          console.error('[remove] fetch error', e);
+                          setStaffUsers(prev=>[...prev, user].sort((a,b)=>a.name?.localeCompare(b.name||'')||0));
+                        }
                       }}
                         style={{padding:'3px 8px',borderRadius:5,border:'1px solid #f0405e25',background:'#f0405e08',color:'#f0405e',fontSize:'0.6rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Remove</button>
                     )}

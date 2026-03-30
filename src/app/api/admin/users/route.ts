@@ -24,7 +24,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!(await requireAdmin(req))) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
+  if (!(await requireAdmin(req))) {
+    console.error('[admin/users] 403 — x-is-admin:', req.headers.get('x-is-admin'), 'tier:', req.headers.get('x-user-tier'));
+    return NextResponse.json({ error: 'Admin only' }, { status: 403 });
+  }
   const tenantId = req.headers.get('x-tenant-id') || 'global';
   try {
     const { action, userId, name, email, role, status } = await req.json();
