@@ -189,17 +189,15 @@ export const tenable: IntegrationAdapter = {
 
     // Step 3: fetch asset OS data from /workbenches/assets to enrich coverage
     // This gives us operating_system per hostname so coverage tab shows real OS
-    // Also emits coverage device records so the Coverage tab shows all Tenable-scanned devices
     try {
       const assetRes = await fetch(
-        `https://cloud.tenable.com/workbenches/assets?date_range=90&limit=5000`,
+        `https://cloud.tenable.com/workbenches/assets?date_range=90&limit=500`,
         { headers, signal: AbortSignal.timeout(8000) }
       );
       if (assetRes.ok) {
-        const assetData = await assetRes.json() as { assets?: Array<{ id?: string; fqdn?: string[]; hostname?: string[]; ipv4?: string[]; ipv6?: string[]; operating_system?: string[]; netbios_name?: string[]; last_seen?: string; sources?: Array<{name:string}> }> };
+        const assetData = await assetRes.json() as { assets?: Array<{ fqdn?: string[]; hostname?: string[]; ipv4?: string[]; operating_system?: string[]; netbios_name?: string[] }> };
         const osMap = new Map<string, string>();
-        const tenableAssets = assetData.assets || [];
-        for (const asset of tenableAssets) {
+        for (const asset of (assetData.assets || [])) {
           const os = asset.operating_system?.[0] || '';
           if (!os) continue;
           const names = [
@@ -212,44 +210,18 @@ export const tenable: IntegrationAdapter = {
             if (name) osMap.set(name.toLowerCase(), os);
           }
         }
-        // Enrich vuln results with OS
+        // Enrich results with OS
         for (const r of results) {
           if (!r.raw) r.raw = {};
           (r.raw as any)._osMap = Object.fromEntries(osMap);
+          // Set OS on the primary device if known
           const primaryOs = osMap.get(r.device?.toLowerCase() || '');
           if (primaryOs) (r.raw as any).os = primaryOs;
         }
         console.log(`[tenable] enriched with OS data for ${osMap.size} assets`);
-
-        // Emit coverage device records — one per Tenable-scanned asset
-        // Source = 'Tenable Assets' → picked up by COVERAGE_SOURCES in dashboard
-        for (const asset of tenableAssets) {
-          const hostname = asset.fqdn?.[0] || asset.hostname?.[0] || asset.netbios_name?.[0] || asset.ipv4?.[0] || '';
-          if (!hostname) continue;
-          const ip = asset.ipv4?.[0] || '';
-          const os = asset.operating_system?.[0] || 'Unknown';
-          const lastSeen = asset.last_seen ? new Date(asset.last_seen).getTime() : Date.now();
-          results.push({
-            id: safeId('tenable-asset', asset.id || hostname),
-            source: 'Tenable Assets',
-            sourceId: asset.id || hostname,
-            title: `Asset: ${hostname}`,
-            severity: 'Low',
-            device: hostname,
-            ip,
-            time: new Date(lastSeen).toISOString(),
-            rawTime: lastSeen,
-            description: `Tenable-scanned asset — ${os}`,
-            verdict: 'Pending',
-            confidence: 80,
-            tags: ['tenable', 'asset', 'coverage'],
-            raw: { hostname, ip, os, lastSeen, sources: asset.sources?.map(s=>s.name) || [], _isCoverageDevice: true },
-          });
-        }
-        console.log(`[tenable] emitted ${tenableAssets.length} coverage device records`);
       }
     } catch(e) {
-      console.log('[tenable] asset/coverage fetch failed (non-critical):', e);
+      console.log('[tenable] OS enrichment fetch failed (non-critical):', e);
     }
 
     return results;
@@ -792,7 +764,7 @@ export const taegis: IntegrationAdapter = {
     const totalResults = searchResult?.alerts?.total_results || 0;
     console.log(`[taegis] detections total=${totalResults} returned=${alertList.length}`);
 
-    const detectionResults: NormalisedAlert[] = alertList.map((a: any): NormalisedAlert => {
+    return alertList.map((a: any): NormalisedAlert => {
       const meta = a.metadata || {};
       const createdMs = meta.created_at?.seconds ? meta.created_at.seconds * 1000 : Date.now();
       const engineName = meta.engine?.name || '';
@@ -815,58 +787,5 @@ export const taegis: IntegrationAdapter = {
         raw: a,
       };
     });
-
-    // Step 3: fetch Taegis endpoint assets for coverage enrichment
-    try {
-      const epQuery = `query ListEndpoints {
-        endpointsQuery(limit: 500) {
-          assets {
-            id
-            hostnames
-            os
-            sensorVersion
-            lastSeen
-            isolationStatus
-            networkInterfaces { addresses }
-          }
-        }
-      }`;
-      const epRes = await fetch(`https://${graphqlHost}/graphql`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: epQuery }),
-        signal: AbortSignal.timeout(8000),
-      });
-      if (epRes.ok) {
-        const epData = await epRes.json();
-        const epAssets = epData.data?.endpointsQuery?.assets || [];
-        console.log(`[taegis] endpoints returned=${epAssets.length}`);
-        for (const asset of epAssets) {
-          const hostname = (asset.hostnames || [])[0] || asset.id || 'Unknown';
-          const ip = asset.networkInterfaces?.[0]?.addresses?.[0] || '';
-          const lastSeen = asset.lastSeen ? new Date(asset.lastSeen).getTime() : Date.now();
-          detectionResults.push({
-            id: safeId('taegis-ep', asset.id || hostname),
-            source: 'Taegis Endpoints',
-            sourceId: asset.id || hostname,
-            title: `Endpoint: ${hostname}`,
-            severity: 'Low',
-            device: hostname,
-            ip,
-            time: new Date(lastSeen).toISOString(),
-            rawTime: lastSeen,
-            description: `Taegis XDR agent ${asset.sensorVersion || ''} — ${asset.os || 'Unknown OS'}`,
-            verdict: 'Pending',
-            confidence: 90,
-            tags: ['taegis', 'endpoint', 'coverage', asset.isolationStatus || ''].filter(Boolean),
-            raw: { hostname, ip, os: asset.os || 'Unknown', sensorVersion: asset.sensorVersion, isolationStatus: asset.isolationStatus, lastSeen, _isCoverageDevice: true },
-          });
-        }
-      }
-    } catch(e) {
-      console.log('[taegis] endpoint coverage fetch failed (non-critical):', e);
-    }
-
-    return detectionResults;
   },
 };
