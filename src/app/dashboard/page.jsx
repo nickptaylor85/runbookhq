@@ -528,6 +528,36 @@ export default function DashboardPage() {
       .catch(()=>{ setCredentialsLoaded(true); });
   },[]);
 
+  // ── Coverage assets — dedicated fetch separate from sync ────────────────────
+  useEffect(()=>{
+    if (demoMode) return;
+    const fetchCoverage = async () => {
+      try {
+        const r = await fetch('/api/coverage-assets', { headers: {'x-tenant-id': tenantRef.current} });
+        const d = await r.json();
+        if (!d.ok) return;
+        const allDevs = [...(d.tenableDevices||[]), ...(d.taegisDevices||[])];
+        if (!allDevs.length) return;
+        setLiveCoverageDevices(prev => {
+          const merged = new Map((prev||[]).map(dev => [dev.hostname, dev]));
+          allDevs.forEach(dev => {
+            if (!dev.hostname || dev.hostname === 'Unknown') return;
+            if (merged.has(dev.hostname)) {
+              const ex = merged.get(dev.hostname);
+              merged.set(dev.hostname, {...ex, ip:dev.ip||ex.ip, os:dev.os!=='Unknown'?dev.os:ex.os, source:dev.source, sensorVersion:dev.sensorVersion, isolationStatus:dev.isolationStatus});
+            } else {
+              merged.set(dev.hostname, {hostname:dev.hostname, ip:dev.ip||'', os:dev.os||'Unknown', source:dev.source, lastSeen:dev.lastSeen||Date.now(), lastSeenDays:0, missing:[], reason:`Scanned by ${dev.source}`, sensorVersion:dev.sensorVersion, isolationStatus:dev.isolationStatus});
+            }
+          });
+          return Array.from(merged.values());
+        });
+      } catch(e) { /* non-critical */ }
+    };
+    fetchCoverage();
+    const t = setInterval(fetchCoverage, 10*60*1000);
+    return ()=>clearInterval(t);
+  },[demoMode]);
+
   // Sync live data — only after credentials loaded, only in LIVE mode
   const doSync = React.useCallback((toolIds) => {
     if (demoMode || Object.keys(connectedTools).length === 0) return;
