@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
   }
   const tenantId = req.headers.get('x-tenant-id') || 'global';
   try {
-    const { action, userId, name, email, role, status } = await req.json();
+    const { action, userId, name, email, role, status, tempPassword } = await req.json();
     if (action === 'update' && userId) {
       await updateUser(tenantId, userId, { ...(role && { role }), ...(status && { status }) });
       return NextResponse.json({ ok: true });
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
     if (action === 'create' && name && email && role) {
-      const user = await createUser(tenantId, { name, email, role, tenantId, status: 'active', mustChangePassword: !!body.tempPassword });
+      const user = await createUser(tenantId, { name, email, role, tenantId, status: 'active', mustChangePassword: !!tempPassword });
       return NextResponse.json({ ok: true, user });
     }
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
