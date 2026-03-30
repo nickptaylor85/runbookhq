@@ -20,7 +20,7 @@ export interface KnowledgeEntry {
 }
 
 export async function POST(req: NextRequest) {
-  const userId = req.headers.get(\'x-user-id\') || \'anon\';
+  const userId = req.headers.get('x-user-id') || 'anon';
   const rl = await checkRateLimit(`knowledge:${userId}`, 60, 60);
   if (!rl.ok) return NextResponse.json({ ok: false, error: `Rate limit exceeded. Resets in ${rl.reset}s.` }, { status: 429 });
   try {
