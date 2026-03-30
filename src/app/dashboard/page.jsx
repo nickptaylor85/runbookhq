@@ -879,7 +879,7 @@ export default function DashboardPage() {
           assets.forEach(hostname => {
             if (!deviceMap.has(hostname)) {
               // Attempt OS enrichment: check Tenable _osMap first, then live EDR alerts
-              const tenableOsMap = (v.raw as any)?._osMap as Record<string,string> | undefined;
+              const tenableOsMap = v.raw?._osMap;
               const osFromTenable = tenableOsMap ? (tenableOsMap[hostname.toLowerCase()] || '') : '';
               const matchedAlert = liveAlerts.find(a => a.device === hostname && (a.raw?.device_details?.os_version || a.raw?.os_version));
               const osFromAlert = matchedAlert ? (matchedAlert.raw?.device_details?.os_version || matchedAlert.raw?.os_version || '') : '';
