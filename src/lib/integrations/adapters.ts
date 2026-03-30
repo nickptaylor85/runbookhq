@@ -123,70 +123,6 @@ export const tenable: IntegrationAdapter = {
     console.log(`[tenable] after scan-info filter: ${plugins.length}/${rawVulns.length}`);
     if (plugins.length === 0) return [];
 
-    // Step 3: fetch asset OS data from /workbenches/assets to enrich coverage
-    // RUNS FIRST before heavy parallel vuln fetch to ensure it fits in Vercel timeout budget
-    // Limit 500, 3s timeout — non-critical, fail-open
-    try {
-      const assetRes = await fetch(
-        `https://cloud.tenable.com/workbenches/assets?date_range=30&limit=500`,
-        { headers, signal: AbortSignal.timeout(3000) }
-      );
-      if (assetRes.ok) {
-        const assetData = await assetRes.json() as { assets?: Array<{ id?: string; fqdn?: string[]; hostname?: string[]; ipv4?: string[]; ipv6?: string[]; operating_system?: string[]; netbios_name?: string[]; last_seen?: string; sources?: Array<{name:string}> }> };
-        const osMap = new Map<string, string>();
-        const tenableAssets = assetData.assets || [];
-        for (const asset of tenableAssets) {
-          const os = asset.operating_system?.[0] || '';
-          if (!os) continue;
-          const names = [
-            ...(asset.fqdn || []),
-            ...(asset.hostname || []),
-            ...(asset.netbios_name || []),
-            ...(asset.ipv4 || []),
-          ];
-          for (const name of names) {
-            if (name) osMap.set(name.toLowerCase(), os);
-          }
-        }
-        // Enrich vuln results with OS
-        for (const r of results) {
-          if (!r.raw) r.raw = {};
-          (r.raw as any)._osMap = Object.fromEntries(osMap);
-          const primaryOs = osMap.get(r.device?.toLowerCase() || '');
-          if (primaryOs) (r.raw as any).os = primaryOs;
-        }
-        console.log(`[tenable] enriched with OS data for ${osMap.size} assets`);
-
-        // Emit coverage device records — one per Tenable-scanned asset
-        // Source = 'Tenable Assets' → picked up by COVERAGE_SOURCES in dashboard
-        for (const asset of tenableAssets) {
-          const hostname = asset.fqdn?.[0] || asset.hostname?.[0] || asset.netbios_name?.[0] || asset.ipv4?.[0] || '';
-          if (!hostname) continue;
-          const ip = asset.ipv4?.[0] || '';
-          const os = asset.operating_system?.[0] || 'Unknown';
-          const lastSeen = asset.last_seen ? new Date(asset.last_seen).getTime() : Date.now();
-          results.push({
-            id: safeId('tenable-asset', asset.id || hostname),
-            source: 'Tenable Assets',
-            sourceId: asset.id || hostname,
-            title: `Asset: ${hostname}`,
-            severity: 'Low',
-            device: hostname,
-            ip,
-            time: new Date(lastSeen).toISOString(),
-            rawTime: lastSeen,
-            description: `Tenable-scanned asset — ${os}`,
-            verdict: 'Pending',
-            confidence: 80,
-            tags: ['tenable', 'asset', 'coverage'],
-            raw: { hostname, ip, os, lastSeen, sources: asset.sources?.map(s=>s.name) || [], _isCoverageDevice: true },
-          });
-        }
-        console.log(`[tenable] emitted ${tenableAssets.length} coverage device records`);
-      }
-    } catch(e) {
-      console.log('[tenable] asset/coverage fetch failed (non-critical):', e);
-    }
 
         // Step 2: fetch /outputs for each plugin in parallel to get per-asset hostnames
     const settled = await Promise.allSettled(
@@ -252,6 +188,71 @@ export const tenable: IntegrationAdapter = {
     }
     console.log(`[tenable] ${results.length} unique plugins, ${results.reduce((n,r)=>n+(r.affectedAssets?.length||1),0)} total asset-findings`);
 
+
+
+    // Step 3: fetch asset OS data from /workbenches/assets to enrich coverage
+    // Limit 500 assets, 3s timeout — non-critical, fail-open
+    try {
+      const assetRes = await fetch(
+        `https://cloud.tenable.com/workbenches/assets?date_range=30&limit=500`,
+        { headers, signal: AbortSignal.timeout(3000) }
+      );
+      if (assetRes.ok) {
+        const assetData = await assetRes.json() as { assets?: Array<{ id?: string; fqdn?: string[]; hostname?: string[]; ipv4?: string[]; ipv6?: string[]; operating_system?: string[]; netbios_name?: string[]; last_seen?: string; sources?: Array<{name:string}> }> };
+        const osMap = new Map<string, string>();
+        const tenableAssets = assetData.assets || [];
+        for (const asset of tenableAssets) {
+          const os = asset.operating_system?.[0] || '';
+          if (!os) continue;
+          const names = [
+            ...(asset.fqdn || []),
+            ...(asset.hostname || []),
+            ...(asset.netbios_name || []),
+            ...(asset.ipv4 || []),
+          ];
+          for (const name of names) {
+            if (name) osMap.set(name.toLowerCase(), os);
+          }
+        }
+        // Enrich vuln results with OS
+        for (const r of results) {
+          if (!r.raw) r.raw = {};
+          (r.raw as any)._osMap = Object.fromEntries(osMap);
+          const primaryOs = osMap.get(r.device?.toLowerCase() || '');
+          if (primaryOs) (r.raw as any).os = primaryOs;
+        }
+        console.log(`[tenable] enriched with OS data for ${osMap.size} assets`);
+
+        // Emit coverage device records — one per Tenable-scanned asset
+        // Source = 'Tenable Assets' → picked up by COVERAGE_SOURCES in dashboard
+        for (const asset of tenableAssets) {
+          const hostname = asset.fqdn?.[0] || asset.hostname?.[0] || asset.netbios_name?.[0] || asset.ipv4?.[0] || '';
+          if (!hostname) continue;
+          const ip = asset.ipv4?.[0] || '';
+          const os = asset.operating_system?.[0] || 'Unknown';
+          const lastSeen = asset.last_seen ? new Date(asset.last_seen).getTime() : Date.now();
+          results.push({
+            id: safeId('tenable-asset', asset.id || hostname),
+            source: 'Tenable Assets',
+            sourceId: asset.id || hostname,
+            title: `Asset: ${hostname}`,
+            severity: 'Low',
+            device: hostname,
+            ip,
+            time: new Date(lastSeen).toISOString(),
+            rawTime: lastSeen,
+            description: `Tenable-scanned asset — ${os}`,
+            verdict: 'Pending',
+            confidence: 80,
+            tags: ['tenable', 'asset', 'coverage'],
+            raw: { hostname, ip, os, lastSeen, sources: asset.sources?.map(s=>s.name) || [], _isCoverageDevice: true },
+          });
+        }
+        console.log(`[tenable] emitted ${tenableAssets.length} coverage device records`);
+      }
+    } catch(e) {
+      console.log('[tenable] asset/coverage fetch failed (non-critical):', e);
+    }
 
     return results;
   },
