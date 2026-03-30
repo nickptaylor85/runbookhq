@@ -12,6 +12,7 @@ export interface WTUser {
   passwordHash?: string;
   inviteToken?: string;
   inviteExpiry?: number;
+  mustChangePassword?: boolean;
   createdAt: string;
   lastSeen?: string;
 }
