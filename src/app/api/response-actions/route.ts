@@ -107,13 +107,13 @@ async function isolateHost(creds: Record<string, Record<string, string>>, hostna
   // SentinelOne
   if (creds.sentinelone) {
     try {
-      const agentsRes = await fetch(`${creds.sentinelone.host}/web/api/v2.1/agents?computerName=${hostname}`, {
+      const agentsRes = await fetch(`${safeCredHost(creds.sentinelone.host)}/web/api/v2.1/agents?computerName=${hostname}`, {
         headers: { Authorization: `ApiToken ${creds.sentinelone.api_token}` },
       });
       const agentsData = await agentsRes.json() as { data?: { id: string }[] };
       const agentId = agentsData.data?.[0]?.id;
       if (agentId) {
-        const r = await fetch(`${creds.sentinelone.host}/web/api/v2.1/agents/actions/disconnect`, {
+        const r = await fetch(`${safeCredHost(creds.sentinelone.host)}/web/api/v2.1/agents/actions/disconnect`, {
           method: 'POST',
           headers: { Authorization: `ApiToken ${creds.sentinelone.api_token}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ filter: { ids: [agentId] } }),
@@ -170,7 +170,7 @@ async function isolateHost(creds: Record<string, Record<string, string>>, hostna
     try {
       const ts = Date.now().toString();
       const sig = await computeHmac(creds.darktrace.private_token, `/antigena/host/${hostname}/quarantine${ts}`);
-      const r = await fetch(`https://${creds.darktrace.host}/antigena/host/${hostname}/quarantine`, {
+      const r = await fetch(`https://${safeCredHost(creds.darktrace.host)}/antigena/host/${hostname}/quarantine`, {
         method: 'POST',
         headers: {
           DTAPI: creds.darktrace.public_token,
@@ -197,7 +197,7 @@ async function blockIp(creds: Record<string, Record<string, string>>, ipAddr: st
   if (creds.zscaler) {
     try {
       // Zscaler: add to custom deny list via URL category
-      const authR = await fetch(`https://${creds.zscaler.host}/api/v1/authenticatedSession`, {
+      const authR = await fetch(`https://${safeCredHost(creds.zscaler.host)}/api/v1/authenticatedSession`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ apiKey: await zscalerObfuscate(creds.zscaler.api_key), username: creds.zscaler.username, password: creds.zscaler.password, timestamp: Date.now() }),
@@ -206,14 +206,14 @@ async function blockIp(creds: Record<string, Record<string, string>>, ipAddr: st
         const cookies = authR.headers.get('set-cookie') || '';
         const jsessionId = cookies.match(/JSESSIONID=([^;]+)/)?.[1];
         if (jsessionId) {
-          const blockR = await fetch(`https://${creds.zscaler.host}/api/v1/security/advanced`, {
+          const blockR = await fetch(`https://${safeCredHost(creds.zscaler.host)}/api/v1/security/advanced`, {
             method: 'PUT',
             headers: { Cookie: `JSESSIONID=${jsessionId}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ blacklistUrls: [ipAddr] }),
           });
           results.push({ ok: blockR.ok, tool: 'Zscaler', action: 'ip_blocked', detail: `${ipAddr} added to deny list` });
           // Activate changes
-          await fetch(`https://${creds.zscaler.host}/api/v1/status/activate`, {
+          await fetch(`https://${safeCredHost(creds.zscaler.host)}/api/v1/status/activate`, {
             method: 'POST', headers: { Cookie: `JSESSIONID=${jsessionId}` },
           });
         }
@@ -462,6 +462,20 @@ async function zscalerObfuscate(apiKey: string): Promise<string> {
 }
 
 // ── Main handler ─────────────────────────────────────────────────────────────
+
+// Validate a stored credential URL/host to prevent SSRF via compromised creds
+function safeCredHost(host: string | undefined): string {
+  if (!host) return '';
+  try {
+    const u = new URL(host.startsWith('http') ? host : `https://${host}`);
+    if (!['https:','http:'].includes(u.protocol)) return '';
+    const h = u.hostname.toLowerCase();
+    if (h === 'localhost' || h === '127.0.0.1' || h.endsWith('.local') ||
+        /^10\./.test(h) || /^192\.168\./.test(h) || /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(h) ||
+        h === '169.254.169.254' || h === 'metadata.google.internal') return '';
+    return host;
+  } catch { return ''; }
+}
 
 export async function POST(req: NextRequest) {
   try {

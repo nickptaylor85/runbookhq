@@ -1473,9 +1473,9 @@ export default function DashboardPage() {
               )}
 
               {/* ── LIVE THREAT INTEL + RECENT INCIDENTS ────────────────────── */}
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}} className='wt-two-col'>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,minWidth:0}} className='wt-two-col'>
                 {/* Emerging threats */}
-                <div style={{background:'var(--wt-card)',border:'1px solid #f0405e18',borderRadius:12,padding:'14px'}}>
+                <div style={{background:'var(--wt-card)',border:'1px solid #f0405e18',borderRadius:12,padding:'14px',overflow:'hidden',minWidth:0}}>
                   <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
                     <span style={{fontSize:'0.86rem',fontWeight:800,color:'#f0405e',textTransform:'uppercase',letterSpacing:'0.5px'}}>Emerging Threats</span>
                     <span style={{fontSize:'0.86rem',color:'var(--wt-dim)',marginLeft:'auto'}}>for {industry}</span>
@@ -1513,7 +1513,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Recent incident activity */}
-                <div style={{background:'var(--wt-card)',border:'1px solid #8b6fff18',borderRadius:12,padding:'14px'}}>
+                <div style={{background:'var(--wt-card)',border:'1px solid #8b6fff18',borderRadius:12,padding:'14px',overflow:'hidden',minWidth:0}}>
                   <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
                     <span style={{fontSize:'0.86rem',fontWeight:800,color:'#8b6fff',textTransform:'uppercase',letterSpacing:'0.5px'}}>Active Incidents</span>
                     <button onClick={()=>setActiveTab('incidents')} style={{fontSize:'0.8rem',color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',padding:0,marginLeft:'auto'}}>View all ↗</button>
@@ -1524,7 +1524,7 @@ export default function DashboardPage() {
                     return (
                       <div key={inc.id} onClick={()=>{setActiveTab('incidents');}} style={{padding:'7px 0',borderBottom:'1px solid var(--wt-border)',display:'flex',gap:8,alignItems:'center',cursor:'pointer'}}>
                         <div style={{width:6,height:6,borderRadius:'50%',background:sc,flexShrink:0}} />
-                        <div style={{flex:1,minWidth:0}}>
+                        <div style={{flex:1,minWidth:0,overflow:'hidden'}}>
                           <div style={{fontSize:'0.86rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{inc.title}</div>
                           <div style={{display:'flex',gap:6,marginTop:1}}>
                             <span style={{fontSize:'0.86rem',fontWeight:700,color:sc}}>{st}</span>
@@ -1546,7 +1546,7 @@ export default function DashboardPage() {
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}} className='wt-two-col'>
 
                 {/* Quadrant 1: Active Alerts breakdown */}
-                <div onClick={()=>setActiveTab('alerts')} style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px',cursor:'pointer',transition:'border-color .15s'}}
+                <div onClick={()=>setActiveTab('alerts')} style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px',overflow:'hidden',cursor:'pointer',transition:'border-color .15s'}}
                   onMouseEnter={e=>e.currentTarget.style.borderColor='#f0405e40'} onMouseLeave={e=>e.currentTarget.style.borderColor='var(--wt-border)'}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
                     <span style={{fontSize:'0.86rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Alerts by Severity</span>
@@ -1577,7 +1577,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Quadrant 2: Coverage status */}
-                <div onClick={()=>setModal({type:'gaps'})} style={{background:'var(--wt-card)',border:`1px solid ${coveredPct<80?'#f0405e':'var(--wt-border)'}20`,borderRadius:12,padding:'14px',cursor:'pointer',transition:'border-color .15s'}}
+                <div onClick={()=>setModal({type:'gaps'})} style={{background:'var(--wt-card)',border:`1px solid ${coveredPct<80?'#f0405e':'var(--wt-border)'}20`,borderRadius:12,padding:'14px',overflow:'hidden',cursor:'pointer',transition:'border-color .15s'}}
                   onMouseEnter={e=>e.currentTarget.style.borderColor=(coveredPct<80?'#f0405e':'#22d49a')+'60'} onMouseLeave={e=>e.currentTarget.style.borderColor=(coveredPct<80?'#f0405e':'var(--wt-border)')+'20'}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
                     <span style={{fontSize:'0.86rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Estate Coverage</span>
@@ -1600,7 +1600,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Quadrant 3: Top vulns */}
-                <div onClick={()=>setActiveTab('vulns')} style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px',cursor:'pointer',transition:'border-color .15s'}}
+                <div onClick={()=>setActiveTab('vulns')} style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px',overflow:'hidden',cursor:'pointer',transition:'border-color .15s'}}
                   onMouseEnter={e=>e.currentTarget.style.borderColor='#8b6fff40'} onMouseLeave={e=>e.currentTarget.style.borderColor='var(--wt-border)'}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
                     <span style={{fontSize:'0.86rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Top Vulnerabilities</span>
@@ -1626,7 +1626,7 @@ export default function DashboardPage() {
                 {/* Quadrant 4: Open cases + tool status */}
                 <div style={{display:'flex',flexDirection:'column',gap:8}}>
                   {/* Cases */}
-                  <div onClick={()=>setActiveTab('incidents')} style={{flex:1,background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px',cursor:'pointer',transition:'border-color .15s'}}
+                  <div onClick={()=>setActiveTab('incidents')} style={{flex:1,background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px',overflow:'hidden',cursor:'pointer',transition:'border-color .15s'}}
                     onMouseEnter={e=>e.currentTarget.style.borderColor='#f0a03040'} onMouseLeave={e=>e.currentTarget.style.borderColor='var(--wt-border)'}>
                     <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:8}}>
                       <span style={{fontSize:'0.86rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Active Cases</span>
@@ -2683,7 +2683,7 @@ export default function DashboardPage() {
                     w.document.write('<html><body style="background:#050508;color:#e8ecf4;font-family:Inter;display:flex;align-items:center;justify-content:center;height:100vh">Generating compliance report…</body></html>');
                     try{
                       const r=await fetch('/api/exec-summary',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current,'x-is-admin':isAdmin?'true':'false','x-user-tier':userTier},body:JSON.stringify({org:'Watchtower SOC',period:'Last 30 days',totalAlerts,critAlerts:critAlerts.length,openCases,closedCases:incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Resolved').length,slaBreaches,fpsClosed:fpAlerts.length,tpConfirmed:tpAlerts.length,posture,coverage:coveredPct,tools:Object.keys(connectedTools).length,topAlerts:critAlerts.slice(0,5).map(a=>a.title),topVulns:vulns.slice(0,3).map(v=>v.title)})});
-                      const d=await r.json();if(d.html&&w){w.document.open();w.document.write(d.html);w.document.close();setTimeout(()=>w.print(),500);}else if(!d.ok&&w){w.document.open();w.document.write('<html><body style="font-family:sans-serif;padding:40px;color:#333"><h2>Report generation failed</h2><p>'+((d.error)||'Check your Anthropic API key in Tools tab.')+'</p></body></html>');w.document.close();}
+                      const d=await r.json();if(d.html&&w){w.document.open();w.document.write(d.html);w.document.close();setTimeout(()=>w.print(),500);}else if(!d.ok&&w){w.document.open();w.document.write('<html><body style="font-family:sans-serif;padding:40px;color:#333"><h2>Report generation failed</h2><p>'+((d.error||'Check your Anthropic API key in the Tools tab.').replace(/</g,'&lt;').replace(/>/g,'&gt;'))+'</p></body></html>');w.document.close();}
                     }catch(e){if(w)w.close();}
                   }} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #22d49a30',background:'#22d49a12',color:'#22d49a',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                     📊 Board Report PDF
