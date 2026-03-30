@@ -712,31 +712,36 @@ export const taegis: IntegrationAdapter = {
     // Taegis Cases = analyst-worked incidents. Use allInvestigations (standard list API).
     // investigationsSearch uses different args; allInvestigations is the standard listing query.
     // Ref: Taegis SDK — python_sdk_getting_started, allInvestigations with page/search params
-    // allInvestigations — correct Taegis schema confirmed from API error hints
-    // Types: PageInput for pagination, no search filter (returns open investigations)
-    const query = `query allInvestigations($page: PageInput, $orderByField: InvestigationsOrderByInput) {
-      allInvestigations(page: $page, orderByField: $orderByField) {
-        id
-        description
-        created_at
-        updated_at
-        status
-        priority
-        key_findings
-        assignee { name email }
-        assets {
+    // Step 2: Query Cases (Investigations) via GraphQL
+    // SDK reference: service.investigations.query.investigations_search(page, per_page, query)
+    // investigationsSearch takes page: Int, perPage: Int, query: String (CQL)
+    const query = `query investigationsSearch($page: Int, $perPage: Int, $query: String) {
+      investigationsSearch(page: $page, perPage: $perPage, query: $query) {
+        investigations {
           id
-          hostnames
-          sensor_type
+          description
+          created_at
+          updated_at
+          status
+          priority
+          key_findings
+          assignee { name email }
+          assets {
+            id
+            hostnames { hostname }
+            sensor_type
+          }
+          alerts { id }
+          tags
         }
-        alerts { id }
-        tags
+        totalCount
       }
     }`;
 
     const variables = {
-      page: { limit: 100, offset: 0 },
-      orderByField: { field: 'created_at', direction: 'desc' },
+      page: 1,
+      perPage: 100,
+      query: 'WHERE status != CLOSED EARLIEST=-7d',
     };
 
     const res = await fetch(`https://${graphqlHost}/graphql`, {
@@ -757,9 +762,9 @@ export const taegis: IntegrationAdapter = {
       throw new Error(`Taegis query errors: ${data.errors.map((e:any)=>e.message).join('; ')}`);
     }
 
-    const caseList = data.data?.allInvestigations || [];
-    const totalResults = caseList.length;
-    console.log(`[taegis] cases returned=${caseList.length}`);
+    const caseList = data.data?.investigationsSearch?.investigations || [];
+    const totalResults = data.data?.investigationsSearch?.totalCount || caseList.length;
+    console.log(`[taegis] cases total=${totalResults} returned=${caseList.length}`);
 
     // Map priority int to severity string
     function taegisCaseSev(priority: number | undefined): 'Critical'|'High'|'Medium'|'Low' {
@@ -772,7 +777,7 @@ export const taegis: IntegrationAdapter = {
 
     return caseList.map((c: any): NormalisedAlert => {
       const createdMs = c.created_at ? new Date(c.created_at).getTime() : Date.now();
-      const hostname = c.assets?.[0]?.hostnames?.[0] || c.assets?.[0]?.sensor_type || 'Unknown';
+      const hostname = c.assets?.[0]?.hostnames?.[0]?.hostname || c.assets?.[0]?.sensor_type || 'Unknown';
       const assigneeName = c.assignee?.name || c.assignee?.email || '';
       const alertCount = c.alerts?.length || 0;
       return {
