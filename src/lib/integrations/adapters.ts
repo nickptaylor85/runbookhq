@@ -712,9 +712,8 @@ export const taegis: IntegrationAdapter = {
     // Taegis Cases = analyst-worked incidents. Use allInvestigations (standard list API).
     // investigationsSearch uses different args; allInvestigations is the standard listing query.
     // Ref: Taegis SDK — python_sdk_getting_started, allInvestigations with page/search params
-    // Step 2: Query Cases (Investigations) via GraphQL
-    // SDK reference: service.investigations.query.investigations_search(page, per_page, query)
-    // investigationsSearch takes page: Int, perPage: Int, query: String (CQL)
+    // Minimal query — scalar fields only, no nested types that could fail schema validation
+    // Once this works we can progressively add assets/assignee back
     const query = `query investigationsSearch($page: Int, $perPage: Int, $query: String) {
       investigationsSearch(page: $page, perPage: $perPage, query: $query) {
         investigations {
@@ -725,13 +724,6 @@ export const taegis: IntegrationAdapter = {
           status
           priority
           key_findings
-          assignee { name email }
-          assets {
-            id
-            hostnames { hostname }
-            sensor_type
-          }
-          alerts { id }
           tags
         }
         totalCount
@@ -777,16 +769,13 @@ export const taegis: IntegrationAdapter = {
 
     return caseList.map((c: any): NormalisedAlert => {
       const createdMs = c.created_at ? new Date(c.created_at).getTime() : Date.now();
-      const hostname = c.assets?.[0]?.hostnames?.[0]?.hostname || c.assets?.[0]?.sensor_type || 'Unknown';
-      const assigneeName = c.assignee?.name || c.assignee?.email || '';
-      const alertCount = c.alerts?.length || 0;
       return {
         id: safeId('taegis', c.id),
         source: 'Taegis XDR',
         sourceId: c.id,
-        title: c.description || `Taegis Case ${c.id?.slice(-8) || ''}`,
+        title: c.description || `Taegis Case ${(c.id||'').slice(-8)}`,
         severity: taegisCaseSev(c.priority),
-        device: hostname,
+        device: 'Unknown',
         ip: undefined,
         time: new Date(createdMs).toISOString(),
         rawTime: createdMs,
@@ -795,8 +784,8 @@ export const taegis: IntegrationAdapter = {
           : c.status === 'CLOSED' || c.status === 'RESOLVED' ? 'TP'
           : 'Pending',
         confidence: c.status === 'ACTIVE' ? 85 : 70,
-        tags: ['taegis', 'case', c.status, ...(c.tags || []), assigneeName].filter(Boolean),
-        raw: { ...c, _alertCount: alertCount },
+        tags: ['taegis', 'case', c.status, ...(c.tags || [])].filter(Boolean),
+        raw: c,
       };
     });
   },
