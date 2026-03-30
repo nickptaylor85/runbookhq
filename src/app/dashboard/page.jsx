@@ -722,6 +722,32 @@ export default function DashboardPage() {
     return ()=>{ if(incidentSaveTimer.current) clearTimeout(incidentSaveTimer.current); };
   },[createdIncidents, incidentStatuses, incidentNotes, demoMode]);
 
+  // Auto-investigate: when a new Active incident lands, kick off Deep Investigate automatically
+  // Only runs in live mode, only for Essentials+ (team), only if an Anthropic key is configured
+  const autoInvestigatedRef = React.useRef(new Set());
+  const isAdminRef = React.useRef(isAdmin);
+  useEffect(() => { isAdminRef.current = isAdmin; }, [isAdmin]);
+  useEffect(()=>{
+    if (demoMode) return;
+    // Use ref to avoid stale closure on isAdmin (isAdmin loads async from session)
+    const adminOrTeam = isAdminRef.current || tierLevel >= 1;
+    if (!adminOrTeam) return;
+    const activeIncidents = createdIncidents.filter(inc => {
+      const status = incidentStatuses[inc.id] || inc.status;
+      return status === 'Active' || status === 'Escalated';
+    });
+    activeIncidents.forEach(inc => {
+      if (autoInvestigatedRef.current.has(inc.id)) return;
+      if (investResults[inc.id] || investLoading.has(inc.id)) return;
+      autoInvestigatedRef.current.add(inc.id);
+      setTimeout(() => {
+        setShowInvest(prev => { const n = new Set(prev); n.add(inc.id); return n; });
+        runInvestigation(inc);
+      }, 800);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[createdIncidents.length, demoMode, isAdmin, tierLevel]);
+
   // Keyboard shortcuts: G+key to navigate tabs, ? for help
   useEffect(()=>{
     let lastKey=''; let lastTime=0;
@@ -1717,6 +1743,28 @@ export default function DashboardPage() {
                 autoClosedIds={autoClosedIds}
                 isAdmin={isAdmin}
                 syncStatus={syncStatus}
+                onAutoIncident={(alert, triageResult)=>{
+                  // Called by AlertsTab when Full Auto triage confirms TP — create incident + auto-investigate
+                  const incId='INC-AUTO-'+String(Date.now()).slice(-6);
+                  const inc={
+                    id:incId,
+                    title:`[AI] ${alert.title}`,
+                    severity:alert.severity,
+                    status:'Active',
+                    created:new Date().toLocaleString(),
+                    updated:new Date().toLocaleString(),
+                    alertCount:1,
+                    devices:alert.device?[alert.device]:[],
+                    mitreTactics:alert.mitre?[alert.mitre]:[],
+                    aiSummary:triageResult?.reasoning||`APEX confirmed True Positive: ${alert.title}. Auto-created by Full Auto mode.`,
+                    alerts:[alert.id],
+                    timeline:[{time:new Date().toLocaleString(),event:'APEX AI confirmed True Positive',actor:'APEX AI',type:'detection'},{time:new Date().toLocaleString(),event:'Incident auto-created by Full Auto mode',actor:'Watchtower',type:'action'}],
+                    assignedTo:'AI',
+                  };
+                  setCreatedIncidents(prev=>[inc,...prev]);
+                  setActiveTab('incidents');
+                  // Auto-investigate will fire via the effect watching createdIncidents.length
+                }}
               />
             )}
 
@@ -2465,7 +2513,7 @@ export default function DashboardPage() {
                         )}
                         <div style={{display:'flex',gap:6,marginTop:10,flexWrap:'wrap'}}>
                           <button onClick={()=>setAddingNoteTo(addingNoteTo===inc.id?null:inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid var(--wt-border2)',background:addingNoteTo===inc.id?'#4f8fff12':'transparent',color:'#8a9ab0',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📝 Add Note</button>
-                          {canUse('team')&&<button onClick={()=>{const si=showInvest;const n=new Set(si);if(!n.has(inc.id)){n.add(inc.id);setShowInvest(n);runInvestigation(inc);}else{n.delete(inc.id);setShowInvest(n);}}} style={{padding:'5px 12px',borderRadius:6,border:`1px solid ${showInvest.has(inc.id)?'#8b6fff':'#8b6fff30'}`,background:showInvest.has(inc.id)?'#8b6fff20':'#8b6fff0a',color:'#8b6fff',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✦ {investLoading.has(inc.id)?'Investigating…':'Deep Investigate'}</button>}
+                          {canUse('team')&&<button onClick={()=>{const si=showInvest;const n=new Set(si);if(!n.has(inc.id)){n.add(inc.id);setShowInvest(n);runInvestigation(inc);}else{n.delete(inc.id);setShowInvest(n);}}} style={{padding:'5px 12px',borderRadius:6,border:`1px solid ${showInvest.has(inc.id)?'#8b6fff':'#8b6fff30'}`,background:showInvest.has(inc.id)?'#8b6fff20':'#8b6fff0a',color:'#8b6fff',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✦ {investLoading.has(inc.id)?'Investigating…':investResults[inc.id]&&!investResults[inc.id]._error?'Investigation complete ▲':'Deep Investigate'}</button>}
                           <button onClick={()=>{setIncidentStatuses(prev=>({...prev,[inc.id]:'Escalated'}));fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({type:'incident_status',incidentId:inc.id,status:'Escalated',analyst:'Analyst'})}).catch(()=>{});}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0a03030',background:'#f0a03008',color:'#f0a030',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>⬆ Escalate</button>
                           <button onClick={()=>closeIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✓ Close</button>
                           <button onClick={()=>deleteIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0405e25',background:'#f0405e0a',color:'#f0405e',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🗑 Delete</button>

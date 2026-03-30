@@ -57,6 +57,7 @@ export default function AlertsTab({
   autoClosedIds,
   isAdmin,
   syncStatus,
+  onAutoIncident,
 }) {
   const canVote = isAdmin || userTier !== 'community';
   const canTeam = isAdmin || userTier !== 'community';
@@ -178,6 +179,16 @@ export default function AlertsTab({
                 setAutoExecutedActions(prev => ({ ...prev, [alert.id]: res.executedActions }));
               }
             }).catch(() => {});
+          }
+          // Auto-create an incident and trigger deep investigation
+          if (onAutoIncident) {
+            setTimeout(() => onAutoIncident(alert, d.result), 400);
+          }
+        }
+        // Auto+Notify (level 1): create incident for Critical/High TPs without executing actions
+        if (automation === 1 && d.result.verdict === 'TP' && ['Critical','High'].includes(alert.severity) && d.result.confidence >= 80) {
+          if (onAutoIncident) {
+            setTimeout(() => onAutoIncident(alert, d.result), 400);
           }
         }
       }
