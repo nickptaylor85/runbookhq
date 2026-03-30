@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { signSession } from '@/lib/encrypt';
-import { sendEmail, welcomeEmailHtml } from '@/lib/email';
+import { sendEmail } from '@/lib/email';
 import { checkRateLimit } from '@/lib/ratelimit';
 import { hashPassword, saveUsers, getUsers } from '@/lib/users';
 import { redisGet, redisSet } from '@/lib/redis';
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
       sendEmail({
         to: email,
         subject: 'Welcome to Watchtower — your SOC dashboard is ready',
-        html: welcomeEmailHtml({ name: body.name, email }),
+        html: `<div style='font-family:Inter,sans-serif;padding:32px 20px;background:#050508;color:#e8ecf4'><h2 style='font-size:1.2rem;font-weight:800;margin:0 0 12px'>Welcome to Watchtower</h2><p style='color:#6b7a94;line-height:1.7;margin:0 0 20px'>Your account is ready. Connect your security tools and let APEX start triaging alerts.</p><a href='https://getwatchtower.io/dashboard' style='display:inline-block;padding:11px 24px;background:#4f8fff;color:#fff;text-decoration:none;border-radius:8px;font-weight:700'>Open Dashboard →</a></div>`,
       }).catch(() => {}); // non-blocking
 
       const res = NextResponse.json({ ok: true, role: 'owner', plan, redirect: '/setup-2fa' });
