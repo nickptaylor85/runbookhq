@@ -123,7 +123,7 @@ Provide a comprehensive Tier 2/3 investigation. Respond with exactly this JSON:
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 2000, messages: [{ role: 'user', content: prompt }] }),
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4000, system: 'You are a Tier 3 incident responder. You respond ONLY with valid JSON. No preamble, no explanation, no markdown fences. Raw JSON only.', messages: [{ role: 'user', content: prompt }] }),
     });
 
     if (!resp.ok) return NextResponse.json({ ok: false, error: `AI error: ${resp.status}` }, { status: 502 });
@@ -133,10 +133,15 @@ Provide a comprehensive Tier 2/3 investigation. Respond with exactly this JSON:
 
     let parsed: any;
     try {
-      const clean = text.replace(/^```json\s*/m, '').replace(/^```\s*/m, '').replace(/```\s*$/m, '').trim();
+      // Strip markdown fences and any prose before/after the JSON object
+      let clean = text.replace(/^```json\s*/m, '').replace(/^```\s*/m, '').replace(/```\s*$/m, '').trim();
+      const start = clean.indexOf('{');
+      const end = clean.lastIndexOf('}');
+      if (start !== -1 && end !== -1 && end > start) clean = clean.slice(start, end + 1);
       parsed = JSON.parse(clean);
     } catch {
-      return NextResponse.json({ ok: false, error: 'Malformed AI response', raw: text.slice(0, 300) }, { status: 502 });
+      console.error('[investigate] JSON parse failed. Raw:', text.slice(0, 500));
+      return NextResponse.json({ ok: false, error: 'Malformed AI response — the model returned invalid JSON. Retry usually fixes this.' }, { status: 502 });
     }
 
     const result: InvestigationResult = {

@@ -478,6 +478,8 @@ export default function DashboardPage() {
   const [investLoading, setInvestLoading] = React.useState(new Set());
   const [showInvest, setShowInvest] = React.useState(new Set());
   const [incidentAssignees, setIncidentAssignees] = useState({}); // {incidentId: analystName}
+  const [analystFilter, setAnalystFilter] = useState(null); // filter incidents by analyst name
+  const [assignDropdown, setAssignDropdown] = useState(null); // incidentId with open dropdown
   const [noteInput, setNoteInput] = useState('');
   const [addingNoteTo, setAddingNoteTo] = useState(null);
   const [gapToolFilter, setGapToolFilter] = useState(null);
@@ -1279,7 +1281,7 @@ export default function DashboardPage() {
               {DEMO_TENANTS.map(t=>(<option key={t.id} value={t.id}>{t.type==='client'?'◦ ':''}{t.name}</option>))}
             </select>}
             {/* Utils */}
-            {canUse('team')&&<button onClick={async()=>{const d=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});const s=`SHIFT HANDOVER — ${d}\n\nAlerts: ${alerts.length} | FPs: ${fpAlerts.length} | TPs: ${tpAlerts.length}\nCritical: ${critAlerts.length} | KEV: ${kevVulns.length} | Posture: ${posture}/100\n\nOpen incidents: ${incidents.filter(i=>(incidentStatuses[i.id]||i.status)!=='Closed').map(i=>i.id).join(', ')||'None'}`;const w=window.open('','_blank');w.document.write('<pre style="font-family:monospace;padding:32px;max-width:700px;line-height:1.8;white-space:pre-wrap">'+s+'</pre>');w.document.close();}} style={{padding:'3px 8px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff0a',color:'#8b6fff',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Handover</button>}
+            {canUse('team')&&<button onClick={()=>setActiveTab('incidents')} style={{padding:'3px 8px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff0a',color:'#8b6fff',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>⇄ Handover</button>}
             <button onClick={toggleTheme} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem',flexShrink:0}}>{theme==='dark'?'☀️':'🌙'}</button>
             <a href='/settings' style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.82rem',color:'inherit',textDecoration:'none',flexShrink:0}}>⚙️</a>
             <button onClick={async()=>{await fetch('/api/auth/logout',{method:'POST'});window.location.href='/login';}} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.8rem',color:'var(--wt-dim)',flexShrink:0}} title='Sign out'>↩</button>
@@ -1376,13 +1378,13 @@ export default function DashboardPage() {
               {/* ── COMMAND STRIP: 5 hero numbers ────────────────────────────────── */}
               <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:8}} className='wt-five-col'>
                 {[
-                  {val:critAlerts.length, label:'Critical Alerts', color:'#f0405e', sub:critAlerts.length>0?'Immediate action':demoMode?'Demo data':'Live', tab:'alerts', icon:'🔴'},
+                  {val:critAlerts.length, label:'Critical Alerts', color:'#f0405e', sub:critAlerts.length>0?'Immediate action':demoMode?'Demo data':'Live', tab:'alerts', icon:'🔴', onClickExtra:()=>setAlertSevFilter('Critical')},
                   {val:totalAlerts, label:'Total Alerts', color:'#f97316', sub:(!demoMode&&liveAlerts.length>0?'Live from tools':'Today'), tab:'alerts', icon:'🔔'},
                   {val:openCases, label:'Open Cases', color:'#f0a030', sub:slaBreaches>0?`${slaBreaches} SLA breach`:'All on track', tab:'incidents', icon:'📋'},
                   {val:critVulns.length, label:'Critical Vulns', color:'#8b6fff', sub:kevVulns.length>0?`${kevVulns.length} CISA KEV`:'High/Crit only', tab:'vulns', icon:'🔍'},
                   {val:posture, label:'Posture Score', color:postureColor, sub:posture>=80?'Good standing':posture>=60?'Needs attention':'At risk', tab:'overview', icon:'🛡'},
                 ].map(s=>(
-                  <div key={s.label} onClick={()=>s.tab!=='overview'&&setActiveTab(s.tab)} style={{padding:'14px 12px',background:'var(--wt-card)',border:`1px solid ${s.color}25`,borderRadius:10,cursor:s.tab!=='overview'?'pointer':'default',transition:'border-color .15s,transform .1s'}}
+                  <div key={s.label} onClick={()=>{if(s.tab!=='overview'){setActiveTab(s.tab);if(s.onClickExtra)s.onClickExtra();}}} style={{padding:'14px 12px',background:'var(--wt-card)',border:`1px solid ${s.color}25`,borderRadius:10,cursor:s.tab!=='overview'?'pointer':'default',transition:'border-color .15s,transform .1s'}}
                     onMouseEnter={e=>{if(s.tab!=='overview'){e.currentTarget.style.borderColor=s.color+'60';e.currentTarget.style.transform='translateY(-1px)';}}}
                     onMouseLeave={e=>{e.currentTarget.style.borderColor=s.color+'25';e.currentTarget.style.transform='none';}}>
                     <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:4}}>
@@ -1835,7 +1837,8 @@ export default function DashboardPage() {
               {/* OS Breakdown — from connected tools */}
               {(()=>{
                 const devices = demoMode ? DEMO_GAP_DEVICES : liveKnownDevices.length > 0 ? liveKnownDevices : DEMO_GAP_DEVICES;
-                const OS_COLORS = {'Windows':'#00a4ef','macOS':'#555','Linux':'#f97316','Ubuntu':'#e95420','RHEL':'#cc0000','iOS':'#555','Android':'#3ddc84','Unknown':'#6b7a94'};
+                const OS_COLORS = {'Windows':'#00a4ef','macOS':'#a8b2c1','Linux':'#f97316','Ubuntu':'#e95420','RHEL':'#cc0000','iOS':'#a8b2c1','Android':'#3ddc84','Unknown':'#6b7a94'};
+                const OS_ICONS = {'Windows':'🪟','macOS':'🍎','Linux':'🐧','Ubuntu':'🐧','RHEL':'🎩','iOS':'📱','Android':'🤖','Unknown':'💻'};
                 const breakdown = devices.reduce((acc,d)=>{
                   const raw = d.os || 'Unknown';
                   // Normalise: strip version numbers, map to family
@@ -1867,7 +1870,7 @@ export default function DashboardPage() {
                         const col = OS_COLORS[os]||'#6b7a94';
                         return (
                           <div key={os} style={{display:'flex',alignItems:'center',gap:7,padding:'5px 8px',background:`${col}08`,border:`1px solid ${col}20`,borderRadius:7}}>
-                            <div style={{width:8,height:8,borderRadius:2,background:col,flexShrink:0}} />
+                            <span style={{fontSize:'0.7rem',flexShrink:0}}>{OS_ICONS[os]||'💻'}</span>
                             <div style={{flex:1,minWidth:0}}>
                               <div style={{fontSize:'0.68rem',fontWeight:700,color:'var(--wt-text)'}}>{os}</div>
                               <div style={{fontSize:'0.56rem',color:'var(--wt-dim)'}}>{n.toLocaleString()} devices</div>
@@ -1981,13 +1984,14 @@ export default function DashboardPage() {
                           <div>
                             <div style={{fontSize:'0.7rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:10}}>{vuln.description}</div>
                             <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Affected Devices</div>
-                            <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap'}}>
+                            <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',marginBottom:6}}>
                               <span style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:'#f0a030'}}>{(vuln.affectedAssets||vuln.affectedDevices||[vuln.device].filter(Boolean)).length}</span>
                               <span style={{fontSize:'0.64rem',color:'var(--wt-secondary)'}}>device{(vuln.affectedAssets||vuln.affectedDevices||[]).length!==1?'s':''} affected</span>
                               {(vuln.affectedAssets||vuln.affectedDevices||[]).length > 0 && (
-                                <button onClick={e=>{e.stopPropagation();const assets=vuln.affectedAssets||vuln.affectedDevices||[vuln.device].filter(Boolean);const csv=['Hostname,CVE,Severity,Plugin'].concat(assets.map(h=>`${h},${vuln.cve||'N/A'},${vuln.severity},${vuln.sourceId||''}`)).join('\n');const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`${(vuln.cve||vuln.id).replace(/[^a-z0-9]/gi,'_')}_assets.csv`;a.click();URL.revokeObjectURL(url);}} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>⬇ Export Assets CSV</button>
+                                <button onClick={e=>{e.stopPropagation();const assets=vuln.affectedAssets||vuln.affectedDevices||[vuln.device].filter(Boolean);const csv=['Hostname,CVE,Severity,Plugin'].concat(assets.map(h=>`${h},${vuln.cve||'N/A'},${vuln.severity},${vuln.sourceId||''}`)).join('\n');const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`${(vuln.cve||vuln.id).replace(/[^a-z0-9]/gi,'_')}_assets.csv`;a.click();URL.revokeObjectURL(url);}} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>⬇ Export CSV</button>
                               )}
                             </div>
+                            {(()=>{const assets=(vuln.affectedAssets||vuln.affectedDevices||[vuln.device].filter(Boolean));if(!assets.length) return null;const show=assets.slice(0,8);const rest=assets.length-8;return(<div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:4}}>{show.map(d=>(<span key={d} style={{fontSize:'0.6rem',fontFamily:'JetBrains Mono,monospace',padding:'2px 7px',borderRadius:4,background:'#f0a03010',border:'1px solid #f0a03025',color:'#f0c070'}}>{d}</span>))}{rest>0&&<span style={{fontSize:'0.6rem',color:'var(--wt-dim)',padding:'2px 7px'}}>+{rest} more</span>}</div>);})()}
                             <div style={{marginTop:10,display:'flex',gap:6,flexWrap:'wrap'}}>
                               {vuln.patch && <div style={{fontSize:'0.64rem',color:'#22d49a',width:'100%'}}>📦 Patch: <strong>{vuln.patch}</strong></div>}
                               {vuln.cve && vuln.cve!=='null' && <a href={`https://nvd.nist.gov/vuln/detail/${vuln.cve}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'5px 10px',borderRadius:6,background:'#4f8fff15',border:'1px solid #4f8fff30',color:'#4f8fff',textDecoration:'none',fontSize:'0.66rem',fontWeight:700}}>🔗 NVD</a>}
@@ -2312,12 +2316,12 @@ export default function DashboardPage() {
                   Tenable Research
                   <span style={{fontSize:'0.54rem',fontWeight:600,color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>in the news</span>
                 </div>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}} className='wt-three-col'>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,minWidth:0}} className='wt-three-col'>
                 {tenableNewsItems.slice(0,3).map(item=>(
-                  <div key={item.id} style={{background:'var(--wt-card)',border:'1px solid #00b3e318',borderRadius:10,padding:'12px 14px'}}>
+                  <div key={item.id} style={{background:'var(--wt-card)',border:'1px solid #00b3e318',borderRadius:10,padding:'12px 14px',minWidth:0,overflow:'hidden'}}>
                     <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4}}>
                       <SevBadge sev={item.severity} />
-                      <span style={{fontSize:'0.74rem',fontWeight:700,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.title}</span>
+                      <span style={{fontSize:'0.74rem',fontWeight:700,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',minWidth:0}}>{item.title}</span>
                     </div>
                     <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:6}}>{item.summary}</div>
                     <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
@@ -2387,14 +2391,18 @@ export default function DashboardPage() {
                 if (entries.length < 2) return null;
                 return (
                   <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'12px 16px'}}>
-                    <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:10}}>Analyst Workload</div>
+                    <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                      <span style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Analyst Workload</span>
+                      {analystFilter && <button onClick={()=>setAnalystFilter(null)} style={{fontSize:'0.58rem',padding:'1px 8px',borderRadius:4,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Showing: {analystFilter} ×</button>}
+                    </div>
                     <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
                       {entries.map(([name,stats])=>{
                         const initials = name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
                         const load = stats.active + stats.escalated;
                         const loadColor = load>=3?'#f0405e':load>=2?'#f97316':load>=1?'#f0a030':'#22d49a';
+                        const isFiltered = analystFilter === name;
                         return (
-                          <div key={name} style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',background:'var(--wt-card2)',border:`1px solid ${loadColor}20`,borderRadius:8,minWidth:160}}>
+                          <div key={name} onClick={()=>setAnalystFilter(isFiltered?null:name)} style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',background:isFiltered?`${loadColor}15`:'var(--wt-card2)',border:`1px solid ${isFiltered?loadColor:loadColor+'20'}`,borderRadius:8,minWidth:160,cursor:'pointer',transition:'all .15s'}}>
                             <div style={{width:28,height:28,borderRadius:'50%',background:`linear-gradient(135deg,${loadColor}30,${loadColor}10)`,border:`1px solid ${loadColor}40`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.6rem',fontWeight:800,color:loadColor,flexShrink:0}}>{initials}</div>
                             <div style={{flex:1,minWidth:0}}>
                               <div style={{fontSize:'0.7rem',fontWeight:700,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{name.split(' ')[0]}</div>
@@ -2413,7 +2421,7 @@ export default function DashboardPage() {
                   </div>
                 );
               })()}
-              {incidents.filter(inc=>!deletedIncidents.has(inc.id)).map(inc=>{
+              {incidents.filter(inc=>!deletedIncidents.has(inc.id)&&(!analystFilter||(inc.assignedTo||'')===(analystFilter))).map(inc=>{
                 const isSel = selectedIncident?.id===inc.id;
                 const incStatus = incidentStatuses[inc.id] || inc.status; const statusColor = incStatus==='Active'?'#f0405e':incStatus==='Contained'?'#f0a030':'#22d49a';
                 return (
@@ -2511,13 +2519,33 @@ export default function DashboardPage() {
                             </div>
                           </div>
                         )}
-                        <div style={{display:'flex',gap:6,marginTop:10,flexWrap:'wrap'}}>
-                          <button onClick={()=>setAddingNoteTo(addingNoteTo===inc.id?null:inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid var(--wt-border2)',background:addingNoteTo===inc.id?'#4f8fff12':'transparent',color:'#8a9ab0',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📝 Add Note</button>
-                          {canUse('team')&&<button onClick={()=>{const si=showInvest;const n=new Set(si);if(!n.has(inc.id)){n.add(inc.id);setShowInvest(n);runInvestigation(inc);}else{n.delete(inc.id);setShowInvest(n);}}} style={{padding:'5px 12px',borderRadius:6,border:`1px solid ${showInvest.has(inc.id)?'#8b6fff':'#8b6fff30'}`,background:showInvest.has(inc.id)?'#8b6fff20':'#8b6fff0a',color:'#8b6fff',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✦ {investLoading.has(inc.id)?'Investigating…':investResults[inc.id]&&!investResults[inc.id]._error?'Investigation complete ▲':'Deep Investigate'}</button>}
-                          <button onClick={()=>{setIncidentStatuses(prev=>({...prev,[inc.id]:'Escalated'}));fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({type:'incident_status',incidentId:inc.id,status:'Escalated',analyst:'Analyst'})}).catch(()=>{});}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0a03030',background:'#f0a03008',color:'#f0a030',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>⬆ Escalate</button>
+                        <div style={{display:'flex',gap:6,marginTop:10,flexWrap:'wrap',alignItems:'center',position:'relative'}}>
+                          <button onClick={()=>setAddingNoteTo(addingNoteTo===inc.id?null:inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid var(--wt-border2)',background:addingNoteTo===inc.id?'#4f8fff12':'transparent',color:'#8a9ab0',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📝 Note</button>
+                          {canUse('team')&&<button onClick={()=>{const si=showInvest;const n=new Set(si);if(!n.has(inc.id)){n.add(inc.id);setShowInvest(n);runInvestigation(inc);}else{n.delete(inc.id);setShowInvest(n);}}} style={{padding:'5px 12px',borderRadius:6,border:`1px solid ${showInvest.has(inc.id)?'#8b6fff':'#8b6fff30'}`,background:showInvest.has(inc.id)?'#8b6fff20':'#8b6fff0a',color:'#8b6fff',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✦ {investLoading.has(inc.id)?'Investigating…':investResults[inc.id]&&!investResults[inc.id]._error?'Investigation ▲':'Deep Investigate'}</button>}
+                          <button onClick={()=>setIncidentStatuses(prev=>({...prev,[inc.id]:'Escalated'}))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0a03030',background:'#f0a03008',color:'#f0a030',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>⬆ Escalate</button>
                           <button onClick={()=>closeIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✓ Close</button>
-                          <button onClick={()=>deleteIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0405e25',background:'#f0405e0a',color:'#f0405e',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🗑 Delete</button>
-                          {inc.alerts&&inc.alerts.length>0&&<button onClick={()=>{setAlertSevFilter('all');setAlertSearch('');inc.alerts.forEach(id=>setExpandedAlerts(prev=>{const n=new Set(prev);n.add(id);return n;}));setActiveTab('alerts');}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff08',color:'#4f8fff',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🔗 View source alerts</button>}
+                          {/* Assign to me */}
+                          <button onClick={()=>setCreatedIncidents(prev=>prev.map(i=>i.id===inc.id?{...i,assignedTo:'Nick Taylor'}:i))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff08',color:'#4f8fff',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>👤 Assign to me</button>
+                          {/* Assign to analyst dropdown */}
+                          {(()=>{
+                            const allAnalysts=[...new Set(incidents.map(i=>i.assignedTo).filter(Boolean)),'Nick Taylor','Sarah Chen','James Harlow','Emma Wilson'].filter((v,i,a)=>a.indexOf(v)===i);
+                            return (
+                              <div style={{position:'relative'}}>
+                                <button onClick={e=>{e.stopPropagation();setAssignDropdown(assignDropdown===inc.id?null:inc.id);}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff08',color:'#8b6fff',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Assign ▾</button>
+                                {assignDropdown===inc.id && (
+                                  <div onClick={e=>e.stopPropagation()} style={{position:'absolute',bottom:'100%',left:0,marginBottom:4,background:'var(--wt-sidebar)',border:'1px solid #1d2535',borderRadius:8,boxShadow:'0 4px 20px rgba(0,0,0,0.5)',zIndex:200,minWidth:160,padding:4}}>
+                                    {allAnalysts.map(name=>(
+                                      <button key={name} onClick={()=>{setCreatedIncidents(prev=>prev.map(i=>i.id===inc.id?{...i,assignedTo:name}:i));setAssignDropdown(null);}} style={{display:'block',width:'100%',padding:'7px 12px',border:'none',borderRadius:5,background:inc.assignedTo===name?'#4f8fff18':'transparent',color:inc.assignedTo===name?'#4f8fff':'var(--wt-secondary)',fontSize:'0.72rem',fontWeight:inc.assignedTo===name?700:400,cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>
+                                        {inc.assignedTo===name?'✓ ':''}{name}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
+                          <button onClick={()=>deleteIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0405e25',background:'#f0405e0a',color:'#f0405e',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🗑</button>
+                          {inc.alerts&&inc.alerts.length>0&&<button onClick={()=>{setAlertSevFilter('all');setAlertSearch('');inc.alerts.forEach(id=>setExpandedAlerts(prev=>{const n=new Set(prev);n.add(id);return n;}));setActiveTab('alerts');}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff08',color:'#4f8fff',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🔗 Alerts</button>}
                         </div>
                         {addingNoteTo===inc.id && (
                           <div style={{marginTop:8,display:'flex',gap:6}}>
