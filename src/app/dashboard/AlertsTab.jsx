@@ -702,7 +702,7 @@ export default function AlertsTab({
                             <div style={{marginBottom:10}}>
                               <div style={{fontSize:'0.7rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8,display:'flex',alignItems:'center',gap:6}}>
                                 ⚡ Immediate Actions
-                                {connectedTools&&Object.keys(connectedTools).length>0&&<span style={{fontSize:'0.62rem',fontWeight:600,color:'var(--wt-dim)',textTransform:'none',letterSpacing:0}}>— steps for your connected tools</span>}
+                                {<span style={{fontSize:'0.7rem',fontWeight:600,color:'var(--wt-dim)',textTransform:'none',letterSpacing:0}}>— steps for your connected tools only</span>}
                               </div>
                               {structTriage.immediateActions.map((a,i)=>{
                                 const action = typeof a === 'string' ? a : a.action;

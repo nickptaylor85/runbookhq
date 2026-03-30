@@ -1,3 +1,5 @@
+import React from 'react';
+
 /**
  * WtMarkdown — Watchtower AI response renderer
  * Converts markdown-style AI output into polished, readable React elements.

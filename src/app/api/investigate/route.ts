@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAnthropicKey } from '@/lib/redis';
-import { verifySession } from '@/lib/encrypt';
 import { cookies } from 'next/headers';
 import { checkRateLimit } from '@/lib/ratelimit';
 
@@ -17,42 +16,47 @@ export interface InvestigationResult {
   iocs: string[];
 }
 
-async function getAuthContext(req: NextRequest): Promise<{ isAdmin: boolean; userTier: string }> {
-  // Primary: middleware-injected headers
-  const headerAdmin = req.headers.get('x-is-admin') === 'true';
-  const headerTier = req.headers.get('x-user-tier') || 'community';
-  if (headerAdmin || headerTier !== 'community') return { isAdmin: headerAdmin, userTier: headerTier };
-
-  // Fallback: verify session cookie directly (catches cases where middleware headers are missing)
-  try {
-    const cookieStore = await cookies();
-    const token = req.cookies.get('wt_session')?.value || cookieStore.get('wt_session')?.value;
-    if (token) {
-      const payload = verifySession(token) as any;
-      if (payload) {
-        return {
-          isAdmin: payload.isAdmin === true,
-          userTier: payload.isAdmin ? 'mssp' : (payload.tier || 'community'),
-        };
-      }
-    }
-  } catch {}
-  return { isAdmin: false, userTier: 'community' };
-}
-
 export async function POST(req: NextRequest) {
   try {
-    const userId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+    // Auth: decode session cookie directly (same pattern as triage route — most reliable)
+    let sessionIsAdmin = false;
+    let sessionTier = 'community';
+    let sessionUserId = 'anon';
+    const sessionToken = req.cookies.get('wt_session')?.value
+      || (await cookies()).get('wt_session')?.value;
+    if (sessionToken) {
+      try {
+        const secret = process.env.WATCHTOWER_SESSION_SECRET || 'watchtower-dev-session-secret';
+        const [encoded, sig] = sessionToken.split('.');
+        if (encoded && sig) {
+          const { createHmac } = await import('crypto');
+          const expectedSig = createHmac('sha256', secret).update(encoded).digest('base64url');
+          if (sig === expectedSig) {
+            const payload = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8'));
+            if (Date.now() - payload.iat <= 86400000) {
+              sessionIsAdmin = payload.isAdmin === true;
+              sessionTier = payload.tier || 'community';
+              sessionUserId = payload.userId || sessionUserId;
+            }
+          }
+        }
+      } catch {}
+    }
+    const isAdmin = req.headers.get('x-is-admin') === 'true' || sessionIsAdmin;
+    const userTier = req.headers.get('x-user-tier') || sessionTier;
+    const userId = req.headers.get('x-user-id') || sessionUserId;
+
+    console.log(`[investigate] userId=${userId} tier=${userTier} isAdmin=${isAdmin} sessionIsAdmin=${sessionIsAdmin}`);
+
     const rl = await checkRateLimit(`ai:${userId}`, 30, 60);
     if (!rl.ok) return NextResponse.json({ ok: false, error: `Rate limit exceeded. Resets in ${rl.reset}s.` }, { status: 429 });
 
-  // Tier enforcement: requires Essentials (team) or above. Admins always pass.
-  const { isAdmin, userTier } = await getAuthContext(req);
-  const tierLevels: Record<string, number> = { community: 0, team: 1, business: 2, mssp: 3 };
-  if (!isAdmin && (tierLevels[userTier] || 0) < 1) {
-    console.error('[investigate] 403 — isAdmin:', isAdmin, 'tier:', userTier, 'x-is-admin header:', req.headers.get('x-is-admin'));
-    return NextResponse.json({ ok: false, error: 'This feature requires Essentials plan or above. Upgrade at /pricing.' }, { status: 403 });
-  }
+    const tierLevels: Record<string, number> = { community: 0, team: 1, business: 2, mssp: 3 };
+    if (!isAdmin && (tierLevels[userTier] || 0) < 1) {
+      console.error(`[investigate] 403 — isAdmin:${isAdmin} tier:${userTier} sessionIsAdmin:${sessionIsAdmin} sessionTier:${sessionTier}`);
+      return NextResponse.json({ ok: false, error: 'This feature requires Essentials plan or above. Upgrade at /pricing.' }, { status: 403 });
+    }
+
     const tenantId = req.headers.get('x-tenant-id') ||
       (await cookies()).get('wt_tenant')?.value || 'global';
 
@@ -71,7 +75,7 @@ export async function POST(req: NextRequest) {
     }
 
     const apiKey = await getAnthropicKey(tenantId);
-    if (!apiKey) return NextResponse.json({ ok: false, error: 'No Anthropic API key configured.' }, { status: 503 });
+    if (!apiKey) return NextResponse.json({ ok: false, error: 'No Anthropic API key configured. Add your key in the Tools tab.' }, { status: 503 });
 
     const hasAlerts = Array.isArray(body.alerts) && body.alerts.length > 0;
     const alertsText = hasAlerts
@@ -80,26 +84,24 @@ export async function POST(req: NextRequest) {
         ).join('\n')
       : `  1. [SOC Platform] ${body.title} — ${body.severity} severity incident`;
 
-    const prompt = `You are a Tier 3 incident responder performing deep investigation. Analyse this security incident and respond ONLY with valid JSON.
+    const prompt = `You are a Tier 3 incident responder performing deep investigation. Analyse this security incident and respond ONLY with valid JSON — no markdown, no preamble, no explanation.
 
 INCIDENT: ${body.incidentId}
 Title: ${body.title}
 Severity: ${body.severity}
 ${body.mitreTactics?.length ? `MITRE Tactics: ${body.mitreTactics.join(', ')}` : ''}
-${body.devices?.length ? `Affected Devices: ${body.devices.join(', ')}` : ''}
+${body.aiSummary ? `AI Summary: ${body.aiSummary}` : ''}
 
 ALERTS IN THIS INCIDENT:
 ${alertsText}
 
-${body.aiSummary ? `AI Summary: ${body.aiSummary}` : ''}
-
-Provide a comprehensive Tier 2/3 investigation. Respond with exactly this JSON:
+Provide a comprehensive Tier 2/3 investigation. Respond with exactly this JSON structure:
 {
   "attackTimeline": [
     {"time": "T+0m", "event": "Initial compromise vector", "source": "tool source", "significance": "why this matters"},
     {"time": "T+Xm", "event": "Next stage", "source": "...", "significance": "..."}
   ],
-  "lateralMovementPaths": ["From X, attacker could reach Y via Z", "..."],
+  "lateralMovementPaths": ["From X, attacker could reach Y via Z"],
   "affectedScope": {
     "users": ["compromised/at-risk user accounts"],
     "devices": ["compromised/at-risk hostnames"],
@@ -108,16 +110,13 @@ Provide a comprehensive Tier 2/3 investigation. Respond with exactly this JSON:
   "rootCause": "single paragraph root cause analysis",
   "attackerObjective": "likely goal (ransomware staging / credential theft / data exfil / etc)",
   "forensicCommands": [
-    {"tool": "PowerShell/Linux/CrowdStrike RTR", "command": "exact command", "purpose": "what you are looking for"},
-    {"tool": "...", "command": "...", "purpose": "..."}
+    {"tool": "PowerShell/Linux/CrowdStrike RTR", "command": "exact command", "purpose": "what you are looking for"}
   ],
   "remediationSteps": [
-    {"priority": "Critical", "action": "Specific action", "owner": "SOC analyst / IT / CISO"},
-    {"priority": "High", "action": "...", "owner": "..."},
-    {"priority": "Medium", "action": "...", "owner": "..."}
+    {"priority": "Critical", "action": "Specific action", "owner": "SOC analyst / IT / CISO"}
   ],
-  "detectionGaps": ["What detection rule was missing that would have caught this earlier", "..."],
-  "iocs": ["file hash", "IP:port", "domain", "registry key — specific IOCs"]
+  "detectionGaps": ["What detection rule was missing that would have caught this earlier"],
+  "iocs": ["file hash", "IP:port", "domain", "registry key"]
 }`;
 
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
@@ -133,7 +132,6 @@ Provide a comprehensive Tier 2/3 investigation. Respond with exactly this JSON:
 
     let parsed: any;
     try {
-      // Strip markdown fences and any prose before/after the JSON object
       let clean = text.replace(/^```json\s*/m, '').replace(/^```\s*/m, '').replace(/```\s*$/m, '').trim();
       const start = clean.indexOf('{');
       const end = clean.lastIndexOf('}');
