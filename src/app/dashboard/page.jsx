@@ -932,7 +932,7 @@ export default function DashboardPage() {
   });
   // autoFiredRef effect — declared AFTER actedAlerts to avoid temporal dead zone
   const autoFiredRef = React.useRef(new Set());
-  React.useEffect(()=>{\
+  React.useEffect(()=>{
     if(automation===0||demoMode) return;
     if(automation>=1) {
       const fpCandidates = alerts.filter(a=>a.verdict==='FP'&&a.confidence>=90&&!autoFiredRef.current.has('fp_'+a.id));
