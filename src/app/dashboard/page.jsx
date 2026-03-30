@@ -485,7 +485,13 @@ export default function DashboardPage() {
   const [iocQueries, setIocQueries] = useState({});
   const [iocQueryLoading, setIocQueryLoading] = useState(null);
   const [iocQueryTool, setIocQueryTool] = useState({}); // {itemId: 'splunk'|'sentinel'|'defender'|'elastic'}
-  const [demoMode, setDemoMode] = useState(true);
+  // Read demoMode from localStorage synchronously so the correct mode is set on first render.
+  // This prevents demo data flashing briefly before /api/settings/user responds.
+  const [demoMode, setDemoMode] = useState(()=>{
+    if (typeof window === 'undefined') return true; // SSR: default to demo
+    const saved = localStorage.getItem('wt_demo_mode');
+    return saved === null ? true : saved === 'true';
+  });
   const [clientBanner, setClientBanner] = useState(null);
   const [adminBannerInput, setAdminBannerInput] = useState('');
   const [connectedTools, setConnectedTools] = useState({});
@@ -804,11 +810,11 @@ export default function DashboardPage() {
     ? (TENANT_ALERTS[currentTenant] || DEMO_ALERTS)
     : liveAlerts.length > 0
       ? liveAlerts.slice(0, ALERT_LIMIT)
-      : (TENANT_ALERTS[currentTenant] || DEMO_ALERTS); // Show demo as baseline until live data arrives
+      : []; // Live mode: empty until sync completes — no demo bleed-through
   const alerts = rawAlerts.map(a => alertOverrides[a.id] ? {...a, ...alertOverrides[a.id]} : a);
   const vulns = demoMode
     ? (TENANT_VULNS[currentTenant] || DEMO_VULNS)
-    : liveVulns.length > 0 ? liveVulns : (TENANT_VULNS[currentTenant] || DEMO_VULNS);
+    : liveVulns.length > 0 ? liveVulns : []; // Live mode: empty until Tenable syncs
   const incidents = [...createdIncidents, ...(!demoMode ? [] : (TENANT_INCIDENTS[currentTenant]||DEMO_INCIDENTS)).filter(i=>!createdIncidents.find(c=>c.id===i.id))];
 
   const activeTools = tools.filter(t=>t.active);
@@ -926,7 +932,7 @@ export default function DashboardPage() {
   });
   // autoFiredRef effect — declared AFTER actedAlerts to avoid temporal dead zone
   const autoFiredRef = React.useRef(new Set());
-  React.useEffect(()=>{
+  React.useEffect(()=>{\
     if(automation===0||demoMode) return;
     if(automation>=1) {
       const fpCandidates = alerts.filter(a=>a.verdict==='FP'&&a.confidence>=90&&!autoFiredRef.current.has('fp_'+a.id));
@@ -939,13 +945,24 @@ export default function DashboardPage() {
           if(webhook) fetch('/api/slack-webhook',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({webhook,alert:{title:`[Auto-closed FP] ${a.title}`,severity:a.severity,source:a.source,verdict:'FP',confidence:a.confidence}})}).catch(()=>{});
         }).catch(()=>{});
       });
+      // Auto+Notify: also send Slack notification for new high-confidence TPs
+      if(automation===1) {
+        const tpNotifyCandidates = alerts.filter(a=>a.verdict==='TP'&&['Critical','High'].includes(a.severity)&&a.confidence>=80&&!autoFiredRef.current.has('tp_notify_'+a.id));
+        tpNotifyCandidates.forEach(a=>{
+          autoFiredRef.current.add('tp_notify_'+a.id);
+          fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({type:'auto_notify_tp',alertId:a.id,alertTitle:a.title,confidence:a.confidence,severity:a.severity,automation,analyst:'AI'})}).catch(()=>{});
+          fetch('/api/settings/user',{headers:{'x-tenant-id':tenantRef.current}}).then(r=>r.json()).then(d=>{
+            const webhook=d.settings?.slack_webhook;
+            if(webhook) fetch('/api/slack-webhook',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({webhook,alert:{title:`[⚠ Alert — action required] ${a.title}`,severity:a.severity,source:a.source,verdict:'TP',confidence:a.confidence,message:'Auto+Notify: analyst action required for this True Positive.'}})}).catch(()=>{});
+          }).catch(()=>{});
+        });
+      }
     }
     if(automation===2) {
       // Full Auto: isolate high-confidence Critical/High TPs + disable accounts where applicable
       const tpCandidates = alerts.filter(a=>a.verdict==='TP'&&['Critical','High'].includes(a.severity)&&a.confidence>=80&&!autoFiredRef.current.has('tp_'+a.id));
       tpCandidates.forEach(a=>{
         autoFiredRef.current.add('tp_'+a.id);
-        // Build immediate actions based on alert context
         const immediateActions = [];
         if(a.device) immediateActions.push({priority:'CRITICAL',action:`Isolate host ${a.device} from network`,timeframe:'immediately',owner:'SOC L2'});
         if(a.ip) immediateActions.push({priority:'HIGH',action:`Block IP ${a.ip} at perimeter`,timeframe:'within 5 minutes',owner:'SOC L2'});
@@ -954,19 +971,12 @@ export default function DashboardPage() {
         fetch('/api/response-actions',{
           method:'POST',
           headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},
-          body:JSON.stringify({
-            action:'full_auto_batch',
-            immediateActions,
-            alertId:a.id,alertTitle:a.title,
-            verdict:a.verdict,confidence:a.confidence,
-            device:a.device,ip:a.ip,user:a.user,
-            analyst:'APEX Full Auto',
-          }),
+          body:JSON.stringify({action:'full_auto_batch',immediateActions,alertId:a.id,alertTitle:a.title,verdict:a.verdict,confidence:a.confidence,device:a.device,ip:a.ip,user:a.user,analyst:'APEX Full Auto'}),
         }).catch(()=>{});
         fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({type:'auto_response_full',alertId:a.id,alertTitle:a.title,automation,analyst:'AI',actionsCount:immediateActions.length})}).catch(()=>{});
       });
     }
-  },[actedAlerts.length,automation,demoMode]);
+  },[alerts.length, automation, demoMode]); // alerts.length (not actedAlerts.length) so it fires when alerts arrive OR automation changes
   const automationBannerText = automation === 0
     ? 'AI is recommending only — all actions require analyst approval.'
     : automation === 1
@@ -1289,6 +1299,21 @@ export default function DashboardPage() {
               </div>
             </div>
           )}
+          {!demoMode && automation >= 1 && (
+            <div style={{display:'flex',alignItems:'center',gap:10,padding:'7px 18px',background:automation===2?'#22d49a0c':'#f0a0300c',borderBottom:`1px solid ${automation===2?'#22d49a20':'#f0a03020'}`,flexShrink:0}}>
+              <span style={{fontSize:'0.8rem'}}>{automation===2?'🤖':'✦'}</span>
+              <span style={{fontSize:'0.72rem',fontWeight:700,color:automation===2?'#22d49a':'#f0a030'}}>{autLabel} active</span>
+              <span style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>—</span>
+              <span style={{fontSize:'0.68rem',color:'var(--wt-muted)'}}>
+                {automation===1
+                  ? `Auto-closing FPs ≥90% confidence · notifying team on Critical/High TPs · ${actedAlerts.length > 0 ? `${actedAlerts.length} actioned this session` : 'no actions yet this session'}`
+                  : `Acting autonomously on all high-confidence alerts · ${actedAlerts.length > 0 ? `${actedAlerts.length} actioned this session` : 'no actions yet this session'}`
+                }
+              </span>
+              {actedAlerts.length > 0 && <span style={{marginLeft:'auto',fontSize:'0.62rem',padding:'2px 8px',borderRadius:4,background:`${autColor}15`,color:autColor,fontWeight:700,border:`1px solid ${autColor}25`}}>{actedAlerts.length} action{actedAlerts.length!==1?'s':''}</span>}
+            </div>
+          )}
+
           {!demoMode && Object.keys(connectedTools).length === 0 && (
             <div style={{background:'linear-gradient(145deg,#0d111e,#0a0d18)',border:'1px solid #4f8fff25',borderRadius:14,marginBottom:14,overflow:'hidden'}}>
               <div style={{padding:'16px 20px',borderBottom:'1px solid #1a2535'}}>
@@ -1691,6 +1716,7 @@ export default function DashboardPage() {
                 onAudit={(entry)=>fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify(entry)}).catch(()=>{})}
                 autoClosedIds={autoClosedIds}
                 isAdmin={isAdmin}
+                syncStatus={syncStatus}
               />
             )}
 

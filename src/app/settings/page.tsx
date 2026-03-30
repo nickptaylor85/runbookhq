@@ -29,6 +29,37 @@ const INDUSTRIES = [
 
 
 
+
+function PasswordStrength({ password }: { password: string }) {
+  const checks = [
+    { label: '8+ chars', ok: password.length >= 8 },
+    { label: 'Uppercase', ok: /[A-Z]/.test(password) },
+    { label: 'Number', ok: /[0-9]/.test(password) },
+    { label: 'Symbol', ok: /[^A-Za-z0-9]/.test(password) },
+  ];
+  const score = checks.filter(c => c.ok).length;
+  const color = score <= 1 ? '#f0405e' : score === 2 ? '#f97316' : score === 3 ? '#f0a030' : '#22d49a';
+  const label = score <= 1 ? 'Weak' : score === 2 ? 'Fair' : score === 3 ? 'Good' : 'Strong';
+  if (!password) return null;
+  return (
+    <div style={{ marginTop: 6 }}>
+      <div style={{ display: 'flex', gap: 3, marginBottom: 4 }}>
+        {[1,2,3,4].map(i => (
+          <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, background: i <= score ? color : '#1d2535', transition: 'background .2s' }} />
+        ))}
+      </div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {checks.map(c => (
+          <span key={c.label} style={{ fontSize: '0.6rem', color: c.ok ? '#22d49a' : '#3a4050', fontWeight: c.ok ? 700 : 400 }}>
+            {c.ok ? '✓' : '○'} {c.label}
+          </span>
+        ))}
+        <span style={{ fontSize: '0.6rem', color, fontWeight: 700, marginLeft: 'auto' }}>{label}</span>
+      </div>
+    </div>
+  );
+}
+
 function ChangePasswordForm() {
   const [current, setCurrent] = React.useState('');
   const [next, setNext] = React.useState('');
@@ -54,6 +85,7 @@ function ChangePasswordForm() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <input type="password" placeholder="Current password" value={current} onChange={e => setCurrent(e.target.value)} style={INPUT_S} />
       <input type="password" placeholder="New password (min 8 chars)" value={next} onChange={e => setNext(e.target.value)} style={INPUT_S} />
+      <PasswordStrength password={next} />
       <input type="password" placeholder="Confirm new password" value={confirm} onChange={e => setConfirm(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} style={INPUT_S} />
       {msg && <div style={{ fontSize: '0.72rem', color: status === 'ok' ? '#22d49a' : '#f0405e', fontWeight: 600 }}>{status === 'ok' ? '✓ ' : ''}{msg}</div>}
       <button onClick={submit} disabled={status === 'saving'} style={{ alignSelf: 'flex-start', padding: '8px 18px', borderRadius: 8, border: 'none', background: '#4f8fff', color: '#fff', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
@@ -115,9 +147,13 @@ function MfaSetup() {
   }, []);
 
   async function startSetup() {
-    const res = await fetch('/api/auth/totp', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action: 'setup' }) });
-    const d = await res.json();
-    if (d.ok) { setQrUrl(d.qrUrl); setSecret(d.secret); setStep('setup'); }
+    setError('');
+    try {
+      const res = await fetch('/api/auth/totp', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action: 'setup' }) });
+      const d = await res.json();
+      if (d.ok) { setQrUrl(d.qrUrl); setSecret(d.secret); setStep('setup'); }
+      else setError(d.error || `Setup failed (${res.status}) — check your session and try again`);
+    } catch(e: any) { setError('Network error: ' + e.message); }
   }
 
   async function verifyCode() {
@@ -148,7 +184,10 @@ function MfaSetup() {
         </div>
       )}
       {!mfaStatus.enabled && step === 'idle' && (
-        <button onClick={startSetup} style={BTN}>Enable MFA →</button>
+        <div>
+          <button onClick={startSetup} style={BTN}>Enable MFA →</button>
+          {error && <div style={{ marginTop: 8, fontSize: '0.7rem', color: '#f0405e', background: '#f0405e08', border: '1px solid #f0405e25', borderRadius: 6, padding: '6px 10px' }}>{error}</div>}
+        </div>
       )}
       {step === 'setup' && (
         <div>

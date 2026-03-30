@@ -56,6 +56,7 @@ export default function AlertsTab({
   onAudit,
   autoClosedIds,
   isAdmin,
+  syncStatus,
 }) {
   const canVote = isAdmin || userTier !== 'community';
   const canTeam = isAdmin || userTier !== 'community';
@@ -392,6 +393,12 @@ export default function AlertsTab({
             </div>
           ) : demoMode ? (
             <div style={{fontSize:'0.84rem'}}>No demo alerts loaded.</div>
+          ) : syncStatus === 'syncing' ? (
+            <div>
+              <div style={{width:28,height:28,borderRadius:'50%',border:'3px solid #4f8fff',borderTopColor:'transparent',margin:'0 auto 12px',animation:'spin 0.8s linear infinite'}} />
+              <div style={{fontSize:'0.9rem',fontWeight:700,color:'var(--wt-text)',marginBottom:4}}>Syncing live data…</div>
+              <div style={{fontSize:'0.74rem',color:'var(--wt-muted)'}}>Fetching alerts from your connected tools</div>
+            </div>
           ) : (
             <div>
               <div style={{fontSize:'2.2rem',marginBottom:10}}>✓</div>
