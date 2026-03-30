@@ -2770,7 +2770,7 @@ export default function DashboardPage() {
                   {name:'NIST CSF',   score:hasLiveData?nistScore:69, gaps:hasLiveData?[...nistFail].map(f=>`${f} function — alerts map here`):['DE.CM-4 Malware detection coverage','PR.IP-12 Vuln management','RS.CO-3 Escalation docs'], color:'#8b6fff'},
                 ];
                 return (
-                  <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}} className='wt-three-col'>
+                  <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
                     {fws.map(fw=>(
                       <div key={fw.name} style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px'}}>
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
