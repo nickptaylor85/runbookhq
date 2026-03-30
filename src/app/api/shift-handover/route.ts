@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAnthropicKey } from '@/lib/redis';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 function getTenantId(req: NextRequest): string {
   return req.headers.get('x-tenant-id') || 'global';
@@ -7,6 +8,9 @@ function getTenantId(req: NextRequest): string {
 
 export async function POST(req: NextRequest) {
   try {
+    const userId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+    const rl = await checkRateLimit(`ai:${userId}`, 30, 60);
+    if (!rl.ok) return NextResponse.json({ ok: false, error: `Rate limit exceeded. Resets in ${rl.reset}s.` }, { status: 429 });
     const tenantId = getTenantId(req);
     const body = await req.json().catch(()=>({})) as Record<string,unknown>;
     const apiKey = await getAnthropicKey(tenantId);
@@ -32,7 +36,7 @@ export async function POST(req: NextRequest) {
 - Posture score: ${posture}/100
 - Top alert: ${topAlert || 'None'}
 
-Return JSON only: { "summary": "2 sentence brief", "openIncidents": ["list key open cases"], "pendingAlerts": ["top 3 alerts needing action"], "keyActions": ["3 recommended actions for incoming analyst"], "recommendation": "one sentence priority" }`;
+Return JSON only with markdown formatting in string values: { "summary": "**2-3 sentence brief** using **bold** for critical items", "openIncidents": ["list key open cases"], "pendingAlerts": ["top 3 alerts needing action"], "keyActions": ["3 recommended actions for incoming analyst"], "recommendation": "one sentence priority" }`;
 
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',

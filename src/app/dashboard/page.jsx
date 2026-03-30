@@ -1,5 +1,6 @@
 'use client';
 import AlertsTab from './AlertsTab';
+import WtMarkdown from './WtMarkdown';
 import React, { useState, useEffect } from 'react';
 import MSSPPortfolio from './MSSPPortfolio';
 import ToolsTab from './ToolsTab';
@@ -1460,9 +1461,9 @@ export default function DashboardPage() {
                 <div style={{background:'#06100e',border:'1px solid #22d49a25',borderRadius:10,padding:'12px 16px',position:'relative'}}>
                   <button onClick={()=>setShiftHandover(null)} style={{position:'absolute',top:8,right:10,background:'none',border:'none',color:'var(--wt-dim)',cursor:'pointer',fontSize:'0.8rem'}}>×</button>
                   <div style={{fontSize:'0.84rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>⇄ Shift Handover Brief</div>
-                  <div style={{fontSize:'0.82rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:8}}>{shiftHandover.summary}</div>
-                  {shiftHandover.recommendation&&<div style={{fontSize:'0.84rem',color:'#22d49a',fontWeight:600,marginBottom:8}}>Priority: {shiftHandover.recommendation}</div>}
-                  {(shiftHandover.keyActions||[]).length>0&&(<div style={{marginTop:6}}><div style={{fontSize:'0.82rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Actions for incoming analyst</div>{(shiftHandover.keyActions||[]).map((a,i)=><div key={i} style={{fontSize:'0.84rem',color:'var(--wt-secondary)',padding:'2px 0 2px 12px',position:'relative',lineHeight:1.5}}><span style={{position:'absolute',left:0,top:8,width:4,height:4,borderRadius:'50%',background:'#22d49a',display:'block'}} />{a}</div>)}</div>)}
+                  <WtMarkdown text={shiftHandover.summary} accent='#22d49a' />
+                  {shiftHandover.recommendation&&<div style={{marginTop:8,padding:'8px 12px',background:'#22d49a08',border:'1px solid #22d49a20',borderRadius:7,fontSize:'0.84rem',color:'#22d49a',fontWeight:600}}>🎯 Priority: {shiftHandover.recommendation}</div>}
+                  {(shiftHandover.keyActions||[]).length>0&&(<div style={{marginTop:10}}><div style={{fontSize:'0.72rem',fontWeight:800,color:'#22d49a',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Actions for incoming analyst</div>{(shiftHandover.keyActions||[]).map((a,i)=><div key={i} style={{display:'flex',gap:8,padding:'6px 8px',marginBottom:4,background:'rgba(34,212,154,0.04)',border:'1px solid rgba(34,212,154,0.12)',borderRadius:6,alignItems:'flex-start'}}><span style={{width:20,height:20,borderRadius:5,background:'#22d49a',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:'0.7rem',fontWeight:900,color:'#050810'}}>{i+1}</span><span style={{fontSize:'0.84rem',color:'var(--wt-secondary)',lineHeight:1.55}}>{a}</span></div>)}</div>)}
                   <div style={{marginTop:6,fontSize:'0.86rem',color:'var(--wt-dim)'}}>Generated {new Date(shiftHandover.generatedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
                 </div>
               )}
@@ -2600,8 +2601,8 @@ export default function DashboardPage() {
                             {investResults[inc.id]?._error && <div style={{padding:'12px 14px',background:'#f0405e08',border:'1px solid #f0405e25',borderRadius:8,display:'flex',alignItems:'center',gap:8}}><span style={{color:'#f0405e',fontSize:'0.8rem'}}>⚠</span><div><div style={{fontSize:'0.8rem',color:'#f0405e',fontWeight:600,marginBottom:2}}>Investigation failed</div><div style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>{investResults[inc.id]._error}</div></div><button onClick={()=>{setInvestResults(prev=>{const n={...prev};delete n[inc.id];return n;});runInvestigation(inc);}} style={{marginLeft:'auto',padding:'4px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>↺ Retry</button></div>}
                             {investResults[inc.id] && !investResults[inc.id]._error && (()=>{const inv=investResults[inc.id];return(
                               <div style={{padding:'14px',display:'flex',flexDirection:'column',gap:14}}>
-                                {inv.rootCause&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Root Cause</div><div style={{fontSize:'0.8rem',color:'var(--wt-secondary)',lineHeight:1.65}}>{inv.rootCause}</div></div>}
-                                {inv.attackerObjective&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#f97316',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>Attacker Objective</div><div style={{fontSize:'0.8rem',color:'#f97316',padding:'5px 10px',background:'#f9731612',borderRadius:6}}>{inv.attackerObjective}</div></div>}
+                                {inv.rootCause&&<div style={{marginBottom:10}}><div style={{fontSize:'0.72rem',fontWeight:800,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',marginBottom:6}}>Root Cause</div><div style={{padding:'10px 12px',background:'rgba(240,64,94,0.04)',border:'1px solid rgba(240,64,94,0.12)',borderRadius:7}}><WtMarkdown text={inv.rootCause} accent='#f0405e' compact={true} /></div></div>}
+                                {inv.attackerObjective&&<div style={{marginBottom:10,padding:'10px 12px',background:'#f9731608',border:'1px solid #f9731620',borderRadius:7,display:'flex',gap:8,alignItems:'flex-start'}}><span style={{fontSize:'1rem',flexShrink:0}}>🎯</span><div><div style={{fontSize:'0.72rem',fontWeight:800,color:'#f97316',textTransform:'uppercase',letterSpacing:'1px',marginBottom:3}}>Attacker Objective</div><div style={{fontSize:'0.84rem',color:'#f97316',lineHeight:1.6}}>{inv.attackerObjective}</div></div></div>}
                                 {inv.affectedScope&&<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}><div><div style={{fontSize:'0.8rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Users at Risk</div>{(inv.affectedScope.users||[]).map((u,i)=><div key={i} style={{fontSize:'0.8rem',color:'var(--wt-secondary)',marginBottom:1}}>👤 {u}</div>)}</div><div><div style={{fontSize:'0.8rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Devices at Risk</div>{(inv.affectedScope.devices||[]).map((d,i)=><div key={i} style={{fontSize:'0.8rem',color:'var(--wt-secondary)',marginBottom:1}}>💻 {d}</div>)}</div></div>}
                                 {inv.attackTimeline?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',marginBottom:6}}>Reconstructed Timeline</div>{inv.attackTimeline.map((ev,i)=>(<div key={i} style={{display:'flex',gap:8,padding:'5px 0',borderBottom:'1px solid var(--wt-border)',alignItems:'flex-start'}}><span style={{fontSize:'0.84rem',fontFamily:'JetBrains Mono,monospace',color:'#4f8fff',flexShrink:0,minWidth:36}}>{ev.time}</span><div style={{flex:1}}><div style={{fontSize:'0.82rem',fontWeight:600,color:'var(--wt-text)',marginBottom:1}}>{ev.event}</div><div style={{fontSize:'0.84rem',color:'var(--wt-dim)'}}>{ev.significance}</div></div><span style={{fontSize:'0.84rem',color:'#4f8fff',fontWeight:700,flexShrink:0,padding:'1px 5px',background:'#4f8fff12',borderRadius:3}}>{ev.source}</span></div>))}</div>}
                                 {inv.lateralMovementPaths?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#f97316',textTransform:'uppercase',marginBottom:4}}>Lateral Movement Paths</div>{inv.lateralMovementPaths.map((path,i)=><div key={i} style={{fontSize:'0.8rem',color:'#f97316',marginBottom:2}}>→ {path}</div>)}</div>}
@@ -3112,23 +3113,9 @@ export default function DashboardPage() {
                 )}
                 {copilotMessages.map((msg,i)=>(
                   <div key={i} style={{display:'flex',flexDirection:'column',alignItems:msg.role==='user'?'flex-end':'flex-start',gap:3}}>
-                    <div style={{maxWidth:'88%',padding:'9px 13px',borderRadius:msg.role==='user'?'12px 12px 4px 12px':'12px 12px 12px 4px',background:msg.role==='user'?'#4f8fff':'var(--wt-card)',border:msg.role==='user'?'none':'1px solid var(--wt-border)',fontSize:'0.86rem',color:msg.role==='user'?'#fff':'var(--wt-text)',lineHeight:1.65,whiteSpace:'pre-wrap',wordBreak:'break-word'}}>
-                      {msg.role==='assistant' && <span style={{fontSize:'0.82rem',fontWeight:700,color:'#4f8fff',display:'block',marginBottom:4}}>✦ WATCHTOWER AI</span>}
-                      {msg.role==='assistant' ? (()=>{
-                        const lines = (msg.text||'').split('\n');
-                        return lines.map((line,li)=>{
-                          if(!line.trim()) return <div key={li} style={{height:6}} />;
-                          // Bold headers: **text** or line ending with :
-                          const isBold = /^\*\*.*\*\*$/.test(line.trim()) || /^#{1,3}\s/.test(line) || (line.trim().endsWith(':') && line.trim().length < 50);
-                          const isCode = line.startsWith('  ') || line.startsWith('\t') || /^`.*`$/.test(line.trim());
-                          const isBullet = /^[-•*]\s/.test(line.trim()) || /^\d+\.\s/.test(line.trim());
-                          const cleaned = line.replace(/^\*\*|\*\*$/g,'').replace(/^#{1,3}\s/,'').replace(/^[-•*]\s/,'').replace(/^\d+\.\s/,'');
-                          if(isCode) return <code key={li} style={{display:'block',fontSize:'0.86rem',fontFamily:'JetBrains Mono,monospace',background:'#050810',color:'#22c992',padding:'2px 6px',borderRadius:4,marginBottom:2,whiteSpace:'pre-wrap',wordBreak:'break-all'}}>{line.trim().replace(/^`|`$/g,'')}</code>;
-                          if(isBullet) return <div key={li} style={{display:'flex',gap:6,marginBottom:2}}><span style={{color:'#4f8fff',flexShrink:0,marginTop:2}}>›</span><span style={{fontSize:'0.84rem',lineHeight:1.55}}>{cleaned}</span></div>;
-                          if(isBold) return <div key={li} style={{fontSize:'0.8rem',fontWeight:700,color:'#4f8fff',marginTop:li>0?6:0,marginBottom:2}}>{cleaned}</div>;
-                          return <div key={li} style={{fontSize:'0.84rem',lineHeight:1.6,marginBottom:1}}>{line}</div>;
-                        });
-                      })() : msg.text}
+                    <div style={{maxWidth:'92%',padding:msg.role==='user'?'9px 13px':'12px 16px',borderRadius:msg.role==='user'?'12px 12px 4px 12px':'12px 12px 12px 4px',background:msg.role==='user'?'#4f8fff':'var(--wt-card)',border:msg.role==='user'?'none':'1px solid var(--wt-border)',fontSize:'0.86rem',color:msg.role==='user'?'#fff':'var(--wt-text)',lineHeight:1.65,wordBreak:'break-word'}}>
+                      {msg.role==='assistant' && <div style={{fontSize:'0.66rem',fontWeight:800,color:'#4f8fff',letterSpacing:'1px',marginBottom:8,display:'flex',alignItems:'center',gap:5}}><span>✦</span><span>WATCHTOWER AI</span></div>}
+                      {msg.role==='assistant' ? <WtMarkdown text={msg.text} compact={true} /> : msg.text}
                     </div>
                     {msg.ts && <span style={{fontSize:'0.55rem',color:'var(--wt-dim)',padding:'0 4px'}}>{msg.ts}</span>}
                   </div>

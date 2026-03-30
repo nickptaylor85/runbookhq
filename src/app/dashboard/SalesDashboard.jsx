@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import WtMarkdown from './WtMarkdown';
 
 export default function SalesDashboard() {
   const [mrrTarget, setMrrTarget] = useState('');
@@ -286,19 +287,8 @@ QUICK WINS: [2-3 immediate actions this week that could close deals fast]`;
               </div>
             )}
             {aiAnalysis && !analysisLoading && (
-              <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.8}}>
-                {aiAnalysis.split('\n').filter(l=>l.trim()).map((line,i)=>{
-                  const isHeader = /^(ICP|CHANNELS|CONVERSION|TIMELINE|QUICK WINS):/i.test(line.trim());
-                  const isError = line.startsWith('No Anthropic')||line.startsWith('Connection error')||line.startsWith('Add your');
-                  return (
-                    <div key={i} style={{marginBottom:isHeader?8:3}}>
-                      {isHeader
-                        ? <div style={{fontSize:'0.58rem',fontWeight:800,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1px',marginBottom:2,marginTop:i>0?10:0}}>{line.trim()}</div>
-                        : <div style={{color:isError?'#f0a030':'var(--wt-secondary)'}}>{line.trim()}</div>
-                      }
-                    </div>
-                  );
-                })}
+              <div style={{padding:'2px 0'}}>
+                <WtMarkdown text={aiAnalysis} accent='#22d49a' />
               </div>
             )}
             {!aiAnalysis && !analysisLoading && (
