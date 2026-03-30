@@ -19,12 +19,13 @@ async function auditLog(tenantId: string, entry: object) {
   } catch {}
 }
 
-// ── CrowdStrike helpers ───────────────────────────────────────────────────────
-async function csToken(creds: Record<string,string>) {
-  const region = creds.base_url?.replace('https://api.','').replace('.crowdstrike.com','') || 'us-2';
+// ── Tool helpers ─────────────────────────────────────────────────────────────
+
+async function csToken(c: Record<string,string>) {
+  const region = c.base_url?.replace('https://api.','').replace('.crowdstrike.com','') || 'us-2';
   const r = await fetch(`https://api.${region}.crowdstrike.com/oauth2/token`, {
     method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: `client_id=${creds.client_id}&client_secret=${creds.client_secret}`,
+    body: `client_id=${c.client_id}&client_secret=${c.client_secret}`,
   });
   if (!r.ok) throw new Error(`CS auth ${r.status}`);
   const d = await r.json() as { access_token: string };
@@ -40,248 +41,519 @@ async function csDeviceId(token: string, region: string, hostname: string): Prom
   return d.resources?.[0] || null;
 }
 
+async function entraToken(c: Record<string,string>): Promise<string> {
+  const r = await fetch(`https://login.microsoftonline.com/${c.tenant_id}/oauth2/v2.0/token`, {
+    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `grant_type=client_credentials&client_id=${c.client_id}&client_secret=${c.client_secret}&scope=https://graph.microsoft.com/.default`,
+  });
+  if (!r.ok) throw new Error(`Entra token ${r.status}`);
+  const d = await r.json() as { access_token: string };
+  return d.access_token;
+}
+
+async function mdeToken(c: Record<string,string>): Promise<string> {
+  const r = await fetch(`https://login.microsoftonline.com/${c.tenant_id}/oauth2/v2.0/token`, {
+    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `grant_type=client_credentials&client_id=${c.client_id}&client_secret=${c.client_secret}&scope=https://api.securitycenter.microsoft.com/.default`,
+  });
+  if (!r.ok) throw new Error(`MDE token ${r.status}`);
+  const d = await r.json() as { access_token: string };
+  return d.access_token;
+}
+
+async function mdeDeviceId(token: string, hostname: string): Promise<string | null> {
+  const r = await fetch(`https://api.securitycenter.microsoft.com/api/machines?$filter=computerDnsName eq '${hostname}'`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!r.ok) return null;
+  const d = await r.json() as { value?: { id: string }[] };
+  return d.value?.[0]?.id || null;
+}
+
+async function findOktaUser(c: Record<string,string>, identifier: string): Promise<string | null> {
+  const r = await fetch(`https://${c.domain}/api/v1/users/${encodeURIComponent(identifier)}`, {
+    headers: { Authorization: `SSWS ${c.api_token}`, Accept: 'application/json' },
+  });
+  if (!r.ok) return null;
+  const d = await r.json() as { id?: string };
+  return d.id || null;
+}
+
+// ── Action executors ──────────────────────────────────────────────────────────
+
+type ActionResult = { ok: boolean; tool: string; action: string; detail?: string; error?: string };
+
+async function isolateHost(creds: Record<string, Record<string, string>>, hostname: string): Promise<ActionResult[]> {
+  const results: ActionResult[] = [];
+
+  // CrowdStrike
+  if (creds.crowdstrike) {
+    try {
+      const { token, region } = await csToken(creds.crowdstrike);
+      const deviceId = await csDeviceId(token, region, hostname);
+      if (deviceId) {
+        const r = await fetch(`https://api.${region}.crowdstrike.com/devices/entities/devices-actions/v2?action_name=contain`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: [deviceId] }),
+        });
+        results.push({ ok: r.ok, tool: 'CrowdStrike', action: 'host_isolated', detail: `Device ${deviceId} contained` });
+      } else {
+        results.push({ ok: false, tool: 'CrowdStrike', action: 'host_isolated', error: `Device ${hostname} not found` });
+      }
+    } catch(e: any) { results.push({ ok: false, tool: 'CrowdStrike', action: 'host_isolated', error: e.message }); }
+  }
+
+  // SentinelOne
+  if (creds.sentinelone) {
+    try {
+      const agentsRes = await fetch(`${creds.sentinelone.host}/web/api/v2.1/agents?computerName=${hostname}`, {
+        headers: { Authorization: `ApiToken ${creds.sentinelone.api_token}` },
+      });
+      const agentsData = await agentsRes.json() as { data?: { id: string }[] };
+      const agentId = agentsData.data?.[0]?.id;
+      if (agentId) {
+        const r = await fetch(`${creds.sentinelone.host}/web/api/v2.1/agents/actions/disconnect`, {
+          method: 'POST',
+          headers: { Authorization: `ApiToken ${creds.sentinelone.api_token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filter: { ids: [agentId] } }),
+        });
+        results.push({ ok: r.ok, tool: 'SentinelOne', action: 'host_isolated', detail: `Agent ${agentId} disconnected` });
+      } else {
+        results.push({ ok: false, tool: 'SentinelOne', action: 'host_isolated', error: `Agent ${hostname} not found` });
+      }
+    } catch(e: any) { results.push({ ok: false, tool: 'SentinelOne', action: 'host_isolated', error: e.message }); }
+  }
+
+  // Microsoft Defender for Endpoint
+  if (creds.defender) {
+    try {
+      const token = await mdeToken(creds.defender);
+      const machineId = await mdeDeviceId(token, hostname);
+      if (machineId) {
+        const r = await fetch(`https://api.securitycenter.microsoft.com/api/machines/${machineId}/isolate`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ Comment: 'Watchtower APEX auto-isolation', IsolationType: 'Full' }),
+        });
+        results.push({ ok: r.ok, tool: 'Defender', action: 'host_isolated', detail: `Machine ${machineId} isolated` });
+      } else {
+        results.push({ ok: false, tool: 'Defender', action: 'host_isolated', error: `Machine ${hostname} not found` });
+      }
+    } catch(e: any) { results.push({ ok: false, tool: 'Defender', action: 'host_isolated', error: e.message }); }
+  }
+
+  // Carbon Black Cloud
+  if (creds.carbonblack) {
+    try {
+      // Get device ID
+      const searchR = await fetch(`https://api.confer.net/appservices/v6/orgs/${creds.carbonblack.org_key}/devices/_search`, {
+        method: 'POST',
+        headers: { 'X-Auth-Token': `${creds.carbonblack.api_secret_key}/${creds.carbonblack.api_id}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ criteria: { name: [hostname] } }),
+      });
+      const searchData = await searchR.json() as { results?: { id: number }[] };
+      const cbDeviceId = searchData.results?.[0]?.id;
+      if (cbDeviceId) {
+        const r = await fetch(`https://api.confer.net/appservices/v6/orgs/${creds.carbonblack.org_key}/devices/actions`, {
+          method: 'POST',
+          headers: { 'X-Auth-Token': `${creds.carbonblack.api_secret_key}/${creds.carbonblack.api_id}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action_type: 'QUARANTINE', device_id: [cbDeviceId] }),
+        });
+        results.push({ ok: r.ok, tool: 'Carbon Black', action: 'host_isolated', detail: `Device ${cbDeviceId} quarantined` });
+      }
+    } catch(e: any) { results.push({ ok: false, tool: 'Carbon Black', action: 'host_isolated', error: e.message }); }
+  }
+
+  // Darktrace
+  if (creds.darktrace) {
+    try {
+      const ts = Date.now().toString();
+      const sig = await computeHmac(creds.darktrace.private_token, `/antigena/host/${hostname}/quarantine${ts}`);
+      const r = await fetch(`https://${creds.darktrace.host}/antigena/host/${hostname}/quarantine`, {
+        method: 'POST',
+        headers: {
+          DTAPI: creds.darktrace.public_token,
+          'X-Dt-Auth-Timestamp': ts,
+          'X-Dt-Auth-Hmac': sig,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ duration: 3600, comment: 'Watchtower APEX auto-quarantine' }),
+      });
+      results.push({ ok: r.ok, tool: 'Darktrace', action: 'host_isolated', detail: `${hostname} quarantined for 1h` });
+    } catch(e: any) { results.push({ ok: false, tool: 'Darktrace', action: 'host_isolated', error: e.message }); }
+  }
+
+  if (results.length === 0) {
+    results.push({ ok: false, tool: 'none', action: 'host_isolated', error: 'No EDR/NDR connected. Connect CrowdStrike, SentinelOne, Defender, Carbon Black, or Darktrace.' });
+  }
+  return results;
+}
+
+async function blockIp(creds: Record<string, Record<string, string>>, ipAddr: string): Promise<ActionResult[]> {
+  const results: ActionResult[] = [];
+
+  // Zscaler
+  if (creds.zscaler) {
+    try {
+      // Zscaler: add to custom deny list via URL category
+      const authR = await fetch(`https://${creds.zscaler.host}/api/v1/authenticatedSession`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: await zscalerObfuscate(creds.zscaler.api_key), username: creds.zscaler.username, password: creds.zscaler.password, timestamp: Date.now() }),
+      });
+      if (authR.ok) {
+        const cookies = authR.headers.get('set-cookie') || '';
+        const jsessionId = cookies.match(/JSESSIONID=([^;]+)/)?.[1];
+        if (jsessionId) {
+          const blockR = await fetch(`https://${creds.zscaler.host}/api/v1/security/advanced`, {
+            method: 'PUT',
+            headers: { Cookie: `JSESSIONID=${jsessionId}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ blacklistUrls: [ipAddr] }),
+          });
+          results.push({ ok: blockR.ok, tool: 'Zscaler', action: 'ip_blocked', detail: `${ipAddr} added to deny list` });
+          // Activate changes
+          await fetch(`https://${creds.zscaler.host}/api/v1/status/activate`, {
+            method: 'POST', headers: { Cookie: `JSESSIONID=${jsessionId}` },
+          });
+        }
+      }
+    } catch(e: any) { results.push({ ok: false, tool: 'Zscaler', action: 'ip_blocked', error: e.message }); }
+  }
+
+  // Defender firewall rule via MDE
+  if (creds.defender && !creds.zscaler) {
+    try {
+      const token = await mdeToken(creds.defender);
+      // Use MDE indicator to block IP
+      const r = await fetch('https://api.securitycenter.microsoft.com/api/indicators', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          indicatorValue: ipAddr, indicatorType: 'IpAddress',
+          action: 'Block', title: `Watchtower APEX block: ${ipAddr}`,
+          description: 'Auto-blocked by Watchtower APEX', severity: 'High',
+        }),
+      });
+      results.push({ ok: r.ok, tool: 'Defender', action: 'ip_blocked', detail: `${ipAddr} blocked via MDE indicator` });
+    } catch(e: any) { results.push({ ok: false, tool: 'Defender', action: 'ip_blocked', error: e.message }); }
+  }
+
+  if (results.length === 0) {
+    results.push({ ok: true, tool: 'logged', action: 'ip_blocked', detail: `${ipAddr} — apply via Zscaler or perimeter firewall. No perimeter tool connected.` });
+  }
+  return results;
+}
+
+async function disableUser(creds: Record<string, Record<string, string>>, identifier: string): Promise<ActionResult[]> {
+  const results: ActionResult[] = [];
+
+  // Okta — actual suspend
+  if (creds.okta) {
+    try {
+      const userId = await findOktaUser(creds.okta, identifier);
+      if (userId) {
+        const r = await fetch(`https://${creds.okta.domain}/api/v1/users/${userId}/lifecycle/suspend`, {
+          method: 'POST',
+          headers: { Authorization: `SSWS ${creds.okta.api_token}`, Accept: 'application/json' },
+        });
+        results.push({ ok: r.ok, tool: 'Okta', action: 'user_suspended', detail: `User ${identifier} (${userId}) suspended` });
+      } else {
+        results.push({ ok: false, tool: 'Okta', action: 'user_suspended', error: `User ${identifier} not found` });
+      }
+    } catch(e: any) { results.push({ ok: false, tool: 'Okta', action: 'user_suspended', error: e.message }); }
+  }
+
+  // Entra ID / Azure AD — actual account disable via Graph API
+  if (creds.entra || creds.defender) {
+    const c = creds.entra || creds.defender;
+    try {
+      const token = await entraToken(c);
+      // Find user first
+      const findR = await fetch(`https://graph.microsoft.com/v1.0/users?$filter=userPrincipalName eq '${identifier}' or mail eq '${identifier}'`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const findData = await findR.json() as { value?: { id: string }[] };
+      const userId = findData.value?.[0]?.id;
+      if (userId) {
+        const r = await fetch(`https://graph.microsoft.com/v1.0/users/${userId}`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ accountEnabled: false }),
+        });
+        results.push({ ok: r.status === 204 || r.ok, tool: 'Entra ID', action: 'user_disabled', detail: `Account ${identifier} disabled` });
+      } else {
+        results.push({ ok: false, tool: 'Entra ID', action: 'user_disabled', error: `User ${identifier} not found in directory` });
+      }
+    } catch(e: any) { results.push({ ok: false, tool: 'Entra ID', action: 'user_disabled', error: e.message }); }
+  }
+
+  if (results.length === 0) {
+    results.push({ ok: true, tool: 'logged', action: 'user_disabled', detail: `${identifier} — no identity provider connected. Connect Okta or Entra ID.` });
+  }
+  return results;
+}
+
+async function resetMfa(creds: Record<string, Record<string, string>>, identifier: string): Promise<ActionResult[]> {
+  const results: ActionResult[] = [];
+
+  if (creds.okta) {
+    try {
+      const userId = await findOktaUser(creds.okta, identifier);
+      if (userId) {
+        // Expire all sessions
+        const sessionR = await fetch(`https://${creds.okta.domain}/api/v1/users/${userId}/sessions`, {
+          method: 'DELETE', headers: { Authorization: `SSWS ${creds.okta.api_token}` },
+        });
+        // Reset all factors
+        const factorsR = await fetch(`https://${creds.okta.domain}/api/v1/users/${userId}/lifecycle/reset_factors`, {
+          method: 'POST', headers: { Authorization: `SSWS ${creds.okta.api_token}`, Accept: 'application/json' },
+        });
+        results.push({ ok: factorsR.ok, tool: 'Okta', action: 'mfa_reset', detail: `Sessions expired + factors reset for ${identifier}` });
+      }
+    } catch(e: any) { results.push({ ok: false, tool: 'Okta', action: 'mfa_reset', error: e.message }); }
+  }
+
+  if (creds.entra || creds.defender) {
+    const c = creds.entra || creds.defender;
+    try {
+      const token = await entraToken(c);
+      const findR = await fetch(`https://graph.microsoft.com/v1.0/users?$filter=userPrincipalName eq '${identifier}' or mail eq '${identifier}'`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const findData = await findR.json() as { value?: { id: string }[] };
+      const userId = findData.value?.[0]?.id;
+      if (userId) {
+        // Revoke all sign-in sessions
+        const r = await fetch(`https://graph.microsoft.com/v1.0/users/${userId}/revokeSignInSessions`, {
+          method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        });
+        results.push({ ok: r.ok, tool: 'Entra ID', action: 'sessions_revoked', detail: `All sessions revoked for ${identifier}` });
+      }
+    } catch(e: any) { results.push({ ok: false, tool: 'Entra ID', action: 'sessions_revoked', error: e.message }); }
+  }
+
+  if (results.length === 0) {
+    results.push({ ok: true, tool: 'logged', action: 'mfa_reset', detail: `${identifier} — no identity provider connected.` });
+  }
+  return results;
+}
+
+async function notifySlack(creds: Record<string, Record<string, string>>, message: string, alertTitle: string, severity: string): Promise<ActionResult | null> {
+  const webhook = creds.slack?.webhook_url || creds.slack_webhook?.url;
+  if (!webhook) return null;
+  try {
+    const severityColor = severity === 'Critical' ? '#f0405e' : severity === 'High' ? '#f97316' : '#f0a030';
+    const r = await fetch(webhook, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        attachments: [{
+          color: severityColor,
+          title: `🛡 Watchtower APEX — ${alertTitle}`,
+          text: message,
+          footer: 'Watchtower APEX Auto-Response',
+          ts: Math.floor(Date.now() / 1000),
+        }],
+      }),
+    });
+    return { ok: r.ok, tool: 'Slack', action: 'notified', detail: 'Team notification sent' };
+  } catch(e: any) {
+    return { ok: false, tool: 'Slack', action: 'notified', error: (e as any).message };
+  }
+}
+
+async function createTicket(creds: Record<string, Record<string, string>>, alertTitle: string, alertId: string, verdict: string, confidence: number, priority: string): Promise<ActionResult[]> {
+  const results: ActionResult[] = [];
+
+  // ServiceNow
+  if (creds.servicenow) {
+    try {
+      const auth = Buffer.from(`${creds.servicenow.username}:${creds.servicenow.password}`).toString('base64');
+      const r = await fetch(`${creds.servicenow.instance}/api/now/table/incident`, {
+        method: 'POST',
+        headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          short_description: `[WATCHTOWER AUTO] ${alertTitle}`,
+          description: `Auto-created by Watchtower APEX.\nVerdict: ${verdict} (${confidence}% confidence)\nAlert ID: ${alertId}`,
+          urgency: priority === 'CRITICAL' ? '1' : priority === 'HIGH' ? '2' : '3',
+          impact: priority === 'CRITICAL' ? '1' : '2',
+        }),
+      });
+      if (r.ok) {
+        const d = await r.json() as { result?: { number?: string } };
+        results.push({ ok: true, tool: 'ServiceNow', action: 'ticket_created', detail: `Ticket ${d.result?.number} created` });
+      } else {
+        results.push({ ok: false, tool: 'ServiceNow', action: 'ticket_created', error: `HTTP ${r.status}` });
+      }
+    } catch(e: any) { results.push({ ok: false, tool: 'ServiceNow', action: 'ticket_created', error: e.message }); }
+  }
+
+  // PagerDuty
+  if (creds.pagerduty) {
+    try {
+      const r = await fetch('https://events.pagerduty.com/v2/enqueue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          routing_key: creds.pagerduty.integration_key || creds.pagerduty.service_id,
+          event_action: 'trigger',
+          dedup_key: alertId,
+          payload: {
+            summary: `[APEX AUTO] ${alertTitle}`,
+            severity: priority === 'CRITICAL' ? 'critical' : priority === 'HIGH' ? 'error' : 'warning',
+            source: 'Watchtower APEX',
+            custom_details: { verdict, confidence, alertId },
+          },
+        }),
+      });
+      results.push({ ok: r.ok, tool: 'PagerDuty', action: 'alert_triggered', detail: 'On-call paged' });
+    } catch(e: any) { results.push({ ok: false, tool: 'PagerDuty', action: 'alert_triggered', error: e.message }); }
+  }
+
+  // Jira (simplified — create issue via API token)
+  if (creds.jira) {
+    try {
+      const auth = Buffer.from(`${creds.jira.email}:${creds.jira.api_token}`).toString('base64');
+      const r = await fetch(`https://${creds.jira.domain}/rest/api/3/issue`, {
+        method: 'POST',
+        headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fields: {
+            project: { key: creds.jira.project_key },
+            summary: `[WATCHTOWER] ${alertTitle}`,
+            description: { type: 'doc', version: 1, content: [{ type: 'paragraph', content: [{ type: 'text', text: `Auto-created by Watchtower APEX. Verdict: ${verdict} (${confidence}%)` }] }] },
+            issuetype: { name: 'Bug' },
+            priority: { name: priority === 'CRITICAL' ? 'Highest' : priority === 'HIGH' ? 'High' : 'Medium' },
+          },
+        }),
+      });
+      if (r.ok) {
+        const d = await r.json() as { key?: string };
+        results.push({ ok: true, tool: 'Jira', action: 'ticket_created', detail: `Issue ${d.key} created` });
+      } else {
+        results.push({ ok: false, tool: 'Jira', action: 'ticket_created', error: `HTTP ${r.status}` });
+      }
+    } catch(e: any) { results.push({ ok: false, tool: 'Jira', action: 'ticket_created', error: e.message }); }
+  }
+
+  return results;
+}
+
+// Simple HMAC for Darktrace signature
+async function computeHmac(secret: string, message: string): Promise<string> {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(message));
+  return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Zscaler API key obfuscation
+async function zscalerObfuscate(apiKey: string): Promise<string> {
+  const now = Date.now().toString().slice(-6);
+  const high = parseInt(now.slice(-6));
+  const key = apiKey + now;
+  let obf = '';
+  for (let i = 0; i < now.length; i++) {
+    const r = parseInt(now[i]);
+    obf += apiKey[parseInt(now[i]) < 6 ? r + 2 : r - 1];
+  }
+  return `${high}${obf}`;
+}
+
+// ── Main handler ─────────────────────────────────────────────────────────────
+
 export async function POST(req: NextRequest) {
   try {
     const tenantId = req.headers.get('x-tenant-id') || 'global';
-    // Tier gate: response actions require Essentials or admin
     const userTier = req.headers.get('x-user-tier') || 'community';
     const isAdminReq = req.headers.get('x-is-admin') === 'true';
     if (!isAdminReq && !['team','business','mssp'].includes(userTier)) {
       return NextResponse.json({ ok: false, error: 'Response actions require Essentials plan or above.' }, { status: 403 });
     }
+
     const body = await req.json() as {
       action: string;
-      // Target identifiers
       device?: string; ip?: string; user?: string; filePath?: string;
-      processId?: string; hash?: string;
-      // Context
       alertId?: string; alertTitle?: string; analyst?: string;
-      // Full Auto batch: array of APEX immediateActions to execute
       immediateActions?: { priority: string; action: string; timeframe: string; owner: string }[];
-      verdict?: string; confidence?: number;
+      verdict?: string; confidence?: number; severity?: string;
     };
 
-    const { action, device, ip, user, filePath, alertId, alertTitle, analyst = 'AI Auto', verdict, confidence } = body;
+    const { action, device, ip, user, alertId = '', alertTitle = '', analyst = 'AI Auto', verdict = 'TP', confidence = 90, severity = 'High' } = body;
     if (!action && !body.immediateActions?.length) {
       return NextResponse.json({ ok: false, error: 'action or immediateActions required' }, { status: 400 });
     }
 
     const creds = await getCredentials(tenantId);
-    const results: Record<string, unknown> = {};
+    const allResults: ActionResult[] = [];
     const executedActions: string[] = [];
 
-    // ── BATCH MODE: execute all APEX immediateActions automatically ──────────
-    // Called by Full Auto when APEX returns TP verdict
+    const pushResults = (results: ActionResult[]) => {
+      allResults.push(...results);
+      for (const r of results) {
+        if (r.ok) executedActions.push(`${r.action.replace('_', ' ')}: ${r.detail} [${r.tool}]`);
+        else console.warn(`[response-actions] ${r.tool} ${r.action} failed: ${r.error}`);
+      }
+    };
+
+    // ── BATCH MODE ────────────────────────────────────────────────────────────
     if (body.immediateActions?.length) {
+      let didIsolate = false, didBlockIp = false, didDisableUser = false, didTicket = false;
+
       for (const apexAction of body.immediateActions) {
-        const actionText = apexAction.action.toLowerCase();
+        const t = apexAction.action.toLowerCase();
 
-        // Isolate / contain host
-        if ((actionText.includes('isolat') || actionText.includes('contain') || actionText.includes('quarantine host')) && device) {
-          if (creds.crowdstrike) {
-            try {
-              const { token, region } = await csToken(creds.crowdstrike);
-              const deviceId = await csDeviceId(token, region, device);
-              if (deviceId) {
-                await fetch(`https://api.${region}.crowdstrike.com/devices/entities/devices-actions/v2?action_name=contain`, {
-                  method: 'POST',
-                  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ ids: [deviceId] }),
-                });
-                results.crowdstrike_isolate = { ok: true, deviceId };
-                executedActions.push(`Host isolated: ${device} (CrowdStrike)`);
-              }
-            } catch(e: any) { results.crowdstrike_isolate = { ok: false, error: e.message }; }
-          } else if (creds.sentinelone) {
-            // SentinelOne isolation
-            try {
-              const agentsRes = await fetch(`${creds.sentinelone.host}/web/api/v2.1/agents?computerName=${device}`, {
-                headers: { Authorization: `ApiToken ${creds.sentinelone.api_token}` },
-              });
-              const agentsData = await agentsRes.json() as { data?: { id: string }[] };
-              const agentId = agentsData.data?.[0]?.id;
-              if (agentId) {
-                await fetch(`${creds.sentinelone.host}/web/api/v2.1/agents/actions/disconnect`, {
-                  method: 'POST',
-                  headers: { Authorization: `ApiToken ${creds.sentinelone.api_token}`, 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ filter: { ids: [agentId] } }),
-                });
-                results.sentinelone_isolate = { ok: true, agentId };
-                executedActions.push(`Host isolated: ${device} (SentinelOne)`);
-              }
-            } catch(e: any) { results.sentinelone_isolate = { ok: false, error: e.message }; }
-          } else {
-            results.isolate = { ok: false, note: 'No EDR with isolation capability connected' };
-          }
+        if (!didIsolate && (t.includes('isolat') || t.includes('contain') || t.includes('quarantine')) && device) {
+          pushResults(await isolateHost(creds, device));
+          didIsolate = true;
         }
-
-        // Block IP
-        if ((actionText.includes('block') && actionText.includes('ip')) || actionText.includes('block ip')) {
-          const ipToBlock = body.ip || actionText.match(/(\d{1,3}(?:\.\d{1,3}){3})/)?.[1];
-          if (ipToBlock) {
-            if (creds.zscaler) {
-              results.zscaler_block = { ok: true, action: 'ip_block_queued', ip: ipToBlock, note: 'Zscaler policy update triggered' };
-              executedActions.push(`IP blocked: ${ipToBlock} (Zscaler)`);
-            } else {
-              results.ip_block = { ok: true, logged: true, ip: ipToBlock, note: 'Logged — apply via connected perimeter tool' };
-              executedActions.push(`IP block logged: ${ipToBlock}`);
-            }
-          }
+        if (!didBlockIp && t.includes('block') && (t.includes('ip') || t.includes('perimeter'))) {
+          const ipToBlock = ip || t.match(/\b(\d{1,3}(?:\.\d{1,3}){3})\b/)?.[1];
+          if (ipToBlock) { pushResults(await blockIp(creds, ipToBlock)); didBlockIp = true; }
         }
-
-        // Disable/suspend user account
-        if (actionText.includes('disable') || actionText.includes('suspend') || actionText.includes('revoke') && actionText.includes('account')) {
-          const targetUser = user || device;
-          if (targetUser) {
-            if (creds.entra || creds.defender) {
-              results.entra_disable = { ok: true, user: targetUser, action: 'disable_account_queued', note: 'Entra ID account disable queued — requires Graph API write permission' };
-              executedActions.push(`Account disable queued: ${targetUser} (Entra ID)`);
-            } else if (creds.okta) {
-              results.okta_suspend = { ok: true, user: targetUser, action: 'suspend_queued', note: 'Okta user suspend queued' };
-              executedActions.push(`Account suspended: ${targetUser} (Okta)`);
-            } else {
-              results.account_action = { logged: true, user: targetUser, note: 'No identity provider connected — action logged' };
-              executedActions.push(`Account disable logged: ${targetUser}`);
-            }
-          }
+        if (!didDisableUser && (t.includes('disable') || t.includes('suspend')) && (user || device)) {
+          pushResults(await disableUser(creds, user || device || ''));
+          didDisableUser = true;
+          const mfaResults = await resetMfa(creds, user || device || '');
+          pushResults(mfaResults);
         }
-
-        // Force MFA re-enrollment / revoke session
-        if (actionText.includes('mfa') || actionText.includes('session') && actionText.includes('revok')) {
-          const targetUser = user || device;
-          if (targetUser && creds.okta) {
-            results.okta_mfa = { ok: true, user: targetUser, action: 'mfa_reset_queued' };
-            executedActions.push(`MFA reset queued: ${targetUser} (Okta)`);
-          } else if (targetUser) {
-            executedActions.push(`MFA reset logged: ${targetUser}`);
-          }
-        }
-
-        // Create incident ticket
-        if (actionText.includes('ticket') || actionText.includes('incident') && actionText.includes('creat')) {
-          if (creds.servicenow) {
-            try {
-              const auth = Buffer.from(`${creds.servicenow.username}:${creds.servicenow.password}`).toString('base64');
-              const ticketRes = await fetch(`${creds.servicenow.instance}/api/now/table/incident`, {
-                method: 'POST',
-                headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  short_description: `[WATCHTOWER AUTO] ${alertTitle || alertId}`,
-                  description: `Auto-created by Watchtower APEX in Full Auto mode.\nVerdict: ${verdict} (${confidence}% confidence)\nAction: ${apexAction.action}`,
-                  urgency: apexAction.priority === 'CRITICAL' ? '1' : apexAction.priority === 'HIGH' ? '2' : '3',
-                  impact: apexAction.priority === 'CRITICAL' ? '1' : '2',
-                }),
-              });
-              if (ticketRes.ok) {
-                const ticketData = await ticketRes.json() as { result?: { number?: string } };
-                results.servicenow = { ok: true, ticket: ticketData.result?.number };
-                executedActions.push(`ServiceNow ticket created: ${ticketData.result?.number}`);
-              }
-            } catch(e: any) { results.servicenow = { ok: false, error: e.message }; }
-          } else if (creds.pagerduty) {
-            // PagerDuty alert
-            try {
-              const pdRes = await fetch('https://events.pagerduty.com/v2/enqueue', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Token token=${creds.pagerduty.api_key}` },
-                body: JSON.stringify({
-                  routing_key: creds.pagerduty.service_id,
-                  event_action: 'trigger',
-                  payload: {
-                    summary: `[APEX AUTO] ${alertTitle || alertId} — ${apexAction.priority}`,
-                    severity: apexAction.priority === 'CRITICAL' ? 'critical' : apexAction.priority === 'HIGH' ? 'error' : 'warning',
-                    source: 'Watchtower APEX',
-                  },
-                }),
-              });
-              results.pagerduty = { ok: pdRes.ok };
-              if (pdRes.ok) executedActions.push(`PagerDuty alert triggered`);
-            } catch(e: any) { results.pagerduty = { ok: false, error: e.message }; }
-          } else if (creds.jira) {
-            results.jira = { logged: true, note: 'Jira ticket creation logged — API call requires project write token' };
-            executedActions.push(`Jira ticket queued`);
-          }
-        }
-
-        // Slack notification
-        if (actionText.includes('notify') || actionText.includes('alert team') || actionText.includes('slack')) {
-          results.notification = { ok: true, logged: true, note: 'Team notified via connected notification channels' };
-          executedActions.push('Team notification sent');
-        }
-
-        // Memory dump / forensic capture — log intent
-        if (actionText.includes('memory') || actionText.includes('forensic') || actionText.includes('snapshot')) {
-          executedActions.push(`Forensic action logged: ${apexAction.action} (requires manual execution)`);
-          results.forensic = { logged: true, action: apexAction.action, note: 'Memory/forensic actions require direct endpoint access' };
+        if (!didTicket && (t.includes('ticket') || t.includes('incident') || t.includes('page'))) {
+          pushResults(await createTicket(creds, alertTitle, alertId, verdict, confidence, apexAction.priority));
+          didTicket = true;
         }
       }
 
-      const logEntry = {
-        action: 'full_auto_batch',
-        alertId, alertTitle, verdict, confidence, analyst,
-        apexActionsCount: body.immediateActions.length,
-        executedActions,
-        results,
-        tenantId,
-      };
+      // Always send Slack notification for batch mode
+      const slackMsg = `*${verdict}* confirmed (${confidence}% confidence) on alert: *${alertTitle}*\nActions taken: ${executedActions.length > 0 ? executedActions.join(', ') : 'logged only — check tool connections'}`;
+      const slackResult = await notifySlack(creds, slackMsg, alertTitle, severity);
+      if (slackResult) pushResults([slackResult]);
+
+      const logEntry = { action: 'full_auto_batch', alertId, alertTitle, verdict, confidence, analyst, executedActions, results: allResults, tenantId };
       await auditLog(tenantId, logEntry);
       await redisLPush(actionLogKey(tenantId), JSON.stringify(logEntry));
       await redisLTrim(actionLogKey(tenantId), 0, 499);
 
-      return NextResponse.json({ ok: true, action: 'full_auto_batch', executedActions, results });
+      return NextResponse.json({ ok: true, action: 'full_auto_batch', executedActions, results: allResults });
     }
 
-    // ── SINGLE ACTION MODE (manual or legacy) ────────────────────────────────
-    if (action === 'isolate_device' && device) {
-      if (creds.crowdstrike) {
-        try {
-          const { token, region } = await csToken(creds.crowdstrike);
-          const deviceId = await csDeviceId(token, region, device);
-          if (deviceId) {
-            await fetch(`https://api.${region}.crowdstrike.com/devices/entities/devices-actions/v2?action_name=contain`, {
-              method: 'POST',
-              headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-              body: JSON.stringify({ ids: [deviceId] }),
-            });
-            results.crowdstrike = { ok: true, action: 'isolated', deviceId };
-          }
-        } catch(e: any) { results.crowdstrike = { ok: false, error: e.message }; }
-      }
-      if (creds.taegis) {
-        try {
-          const { token, region = 'us1' } = creds.taegis as any;
-          const host = region === 'us1' ? 'api.ctpx.secureworks.com' : `api.${region}.taegis.secureworks.com`;
-          const tRes = await fetch(`https://${host}/auth/api/v2/auth/token`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ client_id: token, client_secret: creds.taegis.client_secret }),
-          });
-          if (tRes.ok) {
-            const { access_token } = await tRes.json() as { access_token: string };
-            await fetch(`https://${host}/graphql`, {
-              method: 'POST',
-              headers: { Authorization: `Bearer ${access_token}`, 'Content-Type': 'application/json' },
-              body: JSON.stringify({ query: `mutation { isolateAsset(assetId: "${device}") { id status } }` }),
-            });
-            results.taegis = { ok: true, action: 'isolation_requested' };
-          }
-        } catch(e: any) { results.taegis = { ok: false, error: e.message }; }
-      }
+    // ── SINGLE ACTION MODE ────────────────────────────────────────────────────
+    if (action === 'isolate_device' && device) pushResults(await isolateHost(creds, device));
+    if (action === 'block_ip' && ip) pushResults(await blockIp(creds, ip));
+    if (action === 'disable_user' && user) pushResults(await disableUser(creds, user));
+    if (action === 'reset_mfa' && user) pushResults(await resetMfa(creds, user));
+    if (action === 'create_ticket') pushResults(await createTicket(creds, alertTitle, alertId, verdict, confidence, 'HIGH'));
+    if (action === 'notify_slack') {
+      const r = await notifySlack(creds, `Alert: ${alertTitle}`, alertTitle, severity);
+      if (r) pushResults([r]);
     }
 
-    if (action === 'block_ip' && ip) {
-      results.logged = { ok: true, action: 'block_ip', ip, note: 'Logged — apply via perimeter tool if connected' };
-    }
-
-    if (action === 'disable_user' && user) {
-      results.account = { ok: true, action: 'disable_user_queued', user, note: 'Requires identity provider write permissions' };
-    }
-
-    const logEntry = { action, device, ip, user, filePath, alertId, alertTitle, analyst, results, tenantId };
+    const logEntry = { action, device, ip, user, alertId, alertTitle, analyst, executedActions, results: allResults, tenantId };
     await auditLog(tenantId, logEntry);
     await redisLPush(actionLogKey(tenantId), JSON.stringify(logEntry));
     await redisLTrim(actionLogKey(tenantId), 0, 499);
 
-    return NextResponse.json({ ok: true, action, results });
+    return NextResponse.json({ ok: true, action, executedActions, results: allResults });
   } catch(e: any) {
     return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
   }
