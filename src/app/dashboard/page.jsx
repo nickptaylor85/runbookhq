@@ -730,7 +730,7 @@ export default function DashboardPage() {
   useEffect(()=>{
     if (demoMode) return;
     // Use ref to avoid stale closure on isAdmin (isAdmin loads async from session)
-    const adminOrTeam = isAdminRef.current || tierLevel >= 1;
+    const adminOrTeam = isAdminRef.current || {community:0,team:1,business:2,mssp:3}[userTier] >= 1;
     if (!adminOrTeam) return;
     const activeIncidents = createdIncidents.filter(inc => {
       const status = incidentStatuses[inc.id] || inc.status;
@@ -746,7 +746,7 @@ export default function DashboardPage() {
       }, 800);
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[createdIncidents.length, demoMode, isAdmin, tierLevel]);
+  },[createdIncidents.length, demoMode, isAdmin]);
 
   // Keyboard shortcuts: G+key to navigate tabs, ? for help
   useEffect(()=>{
