@@ -712,8 +712,10 @@ export const taegis: IntegrationAdapter = {
     // Taegis Cases = analyst-worked incidents. Use allInvestigations (standard list API).
     // investigationsSearch uses different args; allInvestigations is the standard listing query.
     // Ref: Taegis SDK — python_sdk_getting_started, allInvestigations with page/search params
-    const query = `query allInvestigations($page: PageInput, $search: InvestigationSearchInput) {
-      allInvestigations(page: $page, search: $search) {
+    // allInvestigations — correct Taegis schema confirmed from API error hints
+    // Types: PageInput for pagination, no search filter (returns open investigations)
+    const query = `query allInvestigations($page: PageInput, $orderByArgs: InvestigationsOrderByInput) {
+      allInvestigations(page: $page, orderByArgs: $orderByArgs) {
         investigations {
           id
           description
@@ -737,7 +739,7 @@ export const taegis: IntegrationAdapter = {
 
     const variables = {
       page: { limit: 100, offset: 0 },
-      search: { status: ['Open', 'Active', 'Awaiting Action', 'Suspended'] },
+      orderByArgs: { field: 'created_at', direction: 'desc' },
     };
 
     const res = await fetch(`https://${graphqlHost}/graphql`, {
