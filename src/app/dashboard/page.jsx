@@ -455,6 +455,7 @@ export default function DashboardPage() {
   const [alertSnoozes, setAlertSnoozes] = useState({}); // {alertId: snoozedUntil ms}
   const [alertAssignees, setAlertAssignees] = useState({}); // {alertId: analystName}
   const [showShortcuts, setShowShortcuts] = useState(false); // keyboard shortcut overlay
+  const [showMobileMore, setShowMobileMore] = useState(false); // mobile bottom nav More drawer
   // Co-Pilot
   const [showCopilot, setShowCopilot] = useState(false);
   const copilotBottomRef = React.useRef(null);
@@ -3175,17 +3176,49 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* MOBILE BOTTOM NAV */}
+      {/* MOBILE BOTTOM NAV — 5 primary tabs + More drawer */}
       <nav className="wt-bottom-nav">
-        {[{t:'overview',i:'📊',l:'Overview'},{t:'alerts',i:'🔔',l:'Alerts'},{t:'coverage',i:'🛡',l:'Coverage'},{t:'vulns',i:'🔍',l:'Vulns'},{t:'intel',i:'🌐',l:'Intel'},{t:'incidents',i:'📋',l:'Cases'},{t:'tools',i:'🔌',l:'Tools'},...((isAdmin||canUse('business'))?[{t:'compliance',i:'🗂',l:'Comply'}]:[]),...((isAdmin||userTier==='mssp')?[{t:'mssp',i:'🏢',l:'MSSP'}]:[]),...(isAdmin?[{t:'admin',i:'🔧',l:'Admin'}]:[])].map(({t,i,l})=>(
-          <button key={t} className={activeTab===t?'active':''} onClick={()=>setActiveTab(t)}>
+        {[{t:'overview',i:'📊',l:'Overview'},{t:'alerts',i:'🔔',l:'Alerts'},{t:'incidents',i:'📋',l:'Cases'},{t:'tools',i:'🔌',l:'Tools'}].map(({t,i,l})=>(
+          <button key={t} className={activeTab===t?'active':''} onClick={()=>setActiveTab(t)} style={{position:'relative'}}>
             <span className="bnav-icon">{i}</span>{l}
             {t==='alerts'&&critAlerts.length>0&&<span style={{position:'absolute',top:4,right:'calc(50% - 12px)',width:7,height:7,borderRadius:'50%',background:'#f0405e',display:'block'}} />}
           </button>
         ))}
-        <a href='/changelog' className={''} style={{display:'flex',flexDirection:'column',alignItems:'center',gap:2,color:'var(--wt-muted)',textDecoration:'none',fontSize:'0.42rem',fontWeight:700,fontFamily:'Inter,sans-serif',padding:'4px 6px',borderRadius:6,minWidth:44}}>
-          <span className="bnav-icon">📝</span>Log
+        {/* Settings direct link */}
+        <a href='/settings' style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:2,flex:1,minWidth:0,padding:'5px 4px 3px',textDecoration:'none',color:'var(--wt-muted)',fontSize:'0.62rem',fontWeight:600,fontFamily:'Inter,sans-serif',borderTop:'2px solid transparent',transition:'color .12s,border-color .12s'}}>
+          <span className="bnav-icon">⚙️</span>Settings
         </a>
+        {/* More button — opens drawer with all other tabs */}
+        <button onClick={()=>setShowMobileMore(s=>!s)} className={showMobileMore?'active':''}>
+          <span className="bnav-icon">⋯</span>More
+        </button>
+        {/* More drawer */}
+        {showMobileMore&&(
+          <div onClick={()=>setShowMobileMore(false)} style={{position:'fixed',inset:0,zIndex:300,background:'rgba(0,0,0,0.6)'}}>
+            <div onClick={e=>e.stopPropagation()} style={{position:'absolute',bottom:64,left:0,right:0,background:'var(--wt-sidebar)',borderTop:'1px solid var(--wt-border2)',borderRadius:'16px 16px 0 0',padding:'12px 0 8px'}}>
+              <div style={{width:36,height:4,borderRadius:2,background:'var(--wt-border2)',margin:'0 auto 12px'}} />
+              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:0}}>
+                {[
+                  {t:'coverage',i:'🛡',l:'Coverage'},
+                  {t:'vulns',i:'🔍',l:'Vulns'},
+                  {t:'intel',i:'🌐',l:'Intel'},
+                  ...((isAdmin||canUse('business'))?[{t:'compliance',i:'🗂',l:'Comply'}]:[]),
+                  ...((isAdmin||userTier==='mssp')?[{t:'mssp',i:'🏢',l:'MSSP'}]:[]),
+                  ...(isAdmin?[{t:'admin',i:'🔧',l:'Admin'}]:[]),
+                ].map(({t,i,l})=>(
+                  <button key={t} onClick={()=>{setActiveTab(t);setShowMobileMore(false);}}
+                    style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'10px 4px',background:'none',border:'none',cursor:'pointer',color:activeTab===t?'#4f8fff':'var(--wt-muted)',fontFamily:'Inter,sans-serif',fontSize:'0.62rem',fontWeight:600}}>
+                    <span style={{fontSize:'1.3rem'}}>{i}</span>{l}
+                  </button>
+                ))}
+                <a href='/changelog' onClick={()=>setShowMobileMore(false)}
+                  style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'10px 4px',color:'var(--wt-muted)',textDecoration:'none',fontFamily:'Inter,sans-serif',fontSize:'0.62rem',fontWeight:600}}>
+                  <span style={{fontSize:'1.3rem'}}>📝</span>Log
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
     </div>
   );
