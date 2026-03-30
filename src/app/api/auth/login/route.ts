@@ -30,8 +30,8 @@ export async function POST(req: NextRequest) {
       if (!user) return NextResponse.json({ error: 'Invalid or expired invite' }, { status: 400 });
       if (user.inviteExpiry && Date.now() > user.inviteExpiry)
         return NextResponse.json({ error: 'Invite has expired. Request a new one.' }, { status: 400 });
-      if (!password || password.length < 8)
-        return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 });
+      if (!password || password.length < 12)
+        return NextResponse.json({ error: 'Password must be at least 12 characters' }, { status: 400 });
       await updateUser('global', user.id, {
         passwordHash: hashPassword(password),
         status: 'active',
@@ -59,16 +59,18 @@ export async function POST(req: NextRequest) {
     const adminMatch = email === adminEmail &&
       timingSafeEqual(Buffer.from(password || ''), Buffer.from(adminPass));
     if (adminMatch) {
-      // Check if MFA is enabled for admin
+      // ASVS V2.7.1: MFA is MANDATORY for admin accounts
       const mfaRaw = await redisGet(`wt:user:${email}:mfa`).catch(() => null);
+      let mfaEnabled = false;
       if (mfaRaw) {
         try {
           const mfa = JSON.parse(decrypt(mfaRaw));
-          if (mfa.enabled && !mfaCode) {
+          mfaEnabled = mfa.enabled === true;
+          if (mfaEnabled && !mfaCode) {
             // Password correct but MFA needed — return challenge
             return NextResponse.json({ ok: true, mfaRequired: true, userId: email });
           }
-          if (mfa.enabled && mfaCode) {
+          if (mfaEnabled && mfaCode) {
             const { verifyTotp } = await import('@/lib/totp');
             if (!verifyTotp(mfa.secret, mfaCode))
               return NextResponse.json({ error: 'Invalid MFA code' }, { status: 401 });
@@ -76,10 +78,14 @@ export async function POST(req: NextRequest) {
         } catch {}
       }
       const token = signSession({ userId: email, tenantId: 'global', isAdmin: true, email, role: 'owner', tier: 'mssp' });
-      const res = NextResponse.json({ ok: true, role: 'owner' });
+      const res = NextResponse.json({ ok: true, role: 'owner', mfaSetupRequired: !mfaEnabled });
       res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 86400, path: '/' });
-      // Clear any stale MFA-pending cookie to prevent redirect loop
-      res.cookies.set('wt_mfa_pending', '', { httpOnly: false, maxAge: 0, path: '/' });
+      if (!mfaEnabled) {
+        // Admin has no MFA — issue pending cookie and force them to /setup-2fa
+        res.cookies.set('wt_mfa_pending', '1', { httpOnly: false, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 3600, path: '/' });
+      } else {
+        res.cookies.set('wt_mfa_pending', '', { httpOnly: false, maxAge: 0, path: '/' });
+      }
       return res;
     }
 
@@ -92,6 +98,12 @@ export async function POST(req: NextRequest) {
       const userTier = (user as any).plan || tenantSettings.userTier || 'community';
 
       const token = signSession({ userId: user.id, tenantId: user.tenantId || 'global', isAdmin: false, email: user.email, role: user.role, tier: userTier });
+      // V2.3.1: Force password change if admin set a temporary password
+      if ((user as any).mustChangePassword) {
+        const res = NextResponse.json({ ok: true, mustChangePassword: true });
+        res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 1800, path: '/' });
+        return res;
+      }
       await updateUser('global', user.id, { lastSeen: new Date().toISOString() });
       const res = NextResponse.json({ ok: true, role: user.role });
       res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 86400, path: '/' });

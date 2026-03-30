@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true });
     }
     if (action === 'create' && name && email && role) {
-      const user = await createUser(tenantId, { name, email, role, tenantId, status: 'active' });
+      const user = await createUser(tenantId, { name, email, role, tenantId, status: 'active', mustChangePassword: !!body.tempPassword });
       return NextResponse.json({ ok: true, user });
     }
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 });

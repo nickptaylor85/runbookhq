@@ -19,7 +19,7 @@ function LoginPageInner() {
   const router = useRouter();
   const params = useSearchParams();
 
-  const [step, setStep] = useState<'login'|'mfa'|'invite'|'reset-request'|'reset-confirm'>('login');
+  const [step, setStep] = useState<'login'|'mfa'|'invite'|'reset-request'|'reset-confirm'|'force_change'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [mfaCode, setMfaCode] = useState('');
@@ -48,10 +48,13 @@ function LoginPageInner() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      const data = await res.json() as { ok?: boolean; error?: string; mfaRequired?: boolean; userId?: string };
+      const data = await res.json() as { ok?: boolean; error?: string; mfaRequired?: boolean; userId?: string; mustChangePassword?: boolean };
       if (data.mfaRequired && data.userId) {
         setUserId(data.userId);
         setStep('mfa');
+      } else if (data.mustChangePassword && res.ok) {
+        // V2.3.1: First login with temp password — force password change
+        setStep('force_change');
       } else if (res.ok && data.ok) {
         // Nuke any stale MFA-pending cookie before entering dashboard
         document.cookie = 'wt_mfa_pending=; max-age=0; path=/';
@@ -185,7 +188,24 @@ function LoginPageInner() {
     </form>
   );
 
-  if (step === 'reset-request') return container('Reset password', 'Enter your email and we\'ll send a reset link',
+  if (step === 'force_change') return container('Set your password', 'Your account was created with a temporary password. Set a permanent one to continue.',
+    <form onSubmit={async(e)=>{e.preventDefault();setLoading(true);setError('');
+      try {
+        const res = await fetch('/api/auth/reset-password', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'force_change',email,currentPassword:password,newPassword})});
+        const data = await res.json() as {ok?:boolean;error?:string};
+        if (data.ok) { document.cookie = 'wt_mfa_pending=; max-age=0; path=/'; router.push('/dashboard'); }
+        else setError(data.error||'Failed to update password');
+      } catch { setError('Network error'); }
+      setLoading(false);
+    }}>
+      {error && <div style={{ padding:'8px 12px', background:'#f0405e12', border:'1px solid #f0405e30', borderRadius:7, fontSize:'0.76rem', color:'#f0405e', marginBottom:12 }}>{error}</div>}
+      <input type='password' value={newPassword} onChange={e=>setNewPassword(e.target.value)} placeholder='New password (min 12 chars)' required minLength={12}
+        style={{ width:'100%', padding:'10px 12px', background:'#0a0d18', border:'1px solid #1d2535', borderRadius:8, color:'#e8ecf4', fontSize:'0.86rem', fontFamily:'Inter,sans-serif', outline:'none', boxSizing:'border-box', marginBottom:10 }} />
+      <button type='submit' disabled={loading||newPassword.length<12} style={{ ...BTN, opacity:loading||newPassword.length<12?0.6:1 }}>{loading?'Setting password…':'Set Password & Continue'}</button>
+    </form>
+  );
+
+    if (step === 'reset-request') return container('Reset password', 'Enter your email and we\'ll send a reset link',
     <form onSubmit={handleResetRequest}>
       <div style={{ marginBottom:20 }}>
         <label style={{ display:'block', fontSize:'0.72rem', color:'#6b7a94', fontWeight:600, marginBottom:6 }}>Email</label>

@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 import { useState, useEffect, useRef } from 'react';
 
 const ALERTS = [
@@ -269,6 +270,96 @@ function LiveDashPreview() {
   );
 }
 
+function IntegrationsFloatButton({ tools }: { tools: typeof TOOLS }) {
+  const [open, setOpen] = React.useState(false);
+  const [filter, setFilter] = React.useState('');
+  const cats = ['All','EDR','SIEM','XDR','Cloud','Identity','Vuln','ITSM','SOAR','Intel','OT'];
+  const [cat, setCat] = React.useState('All');
+
+  const filtered = tools.filter(t => {
+    const name = t.name.toLowerCase();
+    const matchFilter = !filter || name.includes(filter.toLowerCase());
+    const catMap: Record<string,string[]> = {
+      'EDR':['crowdstrike','sentinelone','defender','carbonblack','sophos','tanium','cylance','bitdefender','trellix','elastic'],
+      'SIEM':['splunk','sentinel','qradar','elastic','sumo','datadog','logrhythm','securonix'],
+      'XDR':['cortex','taegis','vectra','darktrace','cybereason'],
+      'Cloud':['aws','azure','gcp','wiz','orca','aqua','prisma'],
+      'Identity':['okta','entra','duo','cyberark','ping'],
+      'Vuln':['tenable','nessus','qualys','rapid7'],
+      'ITSM':['servicenow','jira','pagerduty','opsgenie'],
+      'SOAR':['palo','xsoar','demisto'],
+      'Intel':['misp','anomali','recorded'],
+      'OT':['dragos','claroty','nozomi'],
+    };
+    const matchCat = cat === 'All' || (catMap[cat]||[]).some(k => name.toLowerCase().includes(k));
+    return matchFilter && matchCat;
+  });
+
+  return (
+    <>
+      <div style={{ display:'flex', justifyContent:'center', gap:12, flexWrap:'wrap' }}>
+        <button onClick={() => setOpen(true)}
+          style={{ padding:'12px 28px', background:'linear-gradient(135deg,#4f8fff,#7c3aff)', color:'#fff', border:'none', borderRadius:10, fontSize:'0.9rem', fontWeight:700, cursor:'pointer', fontFamily:'Inter,sans-serif', display:'flex', alignItems:'center', gap:8, boxShadow:'0 4px 20px rgba(79,143,255,0.3)', transition:'all .2s' }}
+          onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.transform='translateY(-2px)';(e.currentTarget as HTMLElement).style.boxShadow='0 8px 28px rgba(79,143,255,0.4)';}}
+          onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.transform='none';(e.currentTarget as HTMLElement).style.boxShadow='0 4px 20px rgba(79,143,255,0.3)';}}>
+          <span>🔌</span> See all 80+ integrations
+        </button>
+        <a href='/signup' style={{ padding:'12px 28px', background:'transparent', color:'#4f8fff', border:'1px solid #4f8fff30', borderRadius:10, fontSize:'0.9rem', fontWeight:600, cursor:'pointer', fontFamily:'Inter,sans-serif', textDecoration:'none', display:'flex', alignItems:'center', gap:6 }}>
+          Don&apos;t see yours? Request →
+        </a>
+      </div>
+
+      {open && (
+        <div onClick={() => setOpen(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.75)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background:'#0d1122', border:'1px solid #1d2535', borderRadius:18, width:'100%', maxWidth:680, maxHeight:'82vh', display:'flex', flexDirection:'column', overflow:'hidden', boxShadow:'0 24px 80px rgba(0,0,0,0.6)' }}>
+            {/* Header */}
+            <div style={{ padding:'18px 20px', borderBottom:'1px solid #1d2535', display:'flex', alignItems:'center', gap:12 }}>
+              <div style={{ flex:1 }}>
+                <div style={{ fontSize:'1rem', fontWeight:800 }}>80+ Integrations</div>
+                <div style={{ fontSize:'0.74rem', color:'#6b7a94', marginTop:2 }}>Connects to your existing security stack — no rip-and-replace</div>
+              </div>
+              <button onClick={() => setOpen(false)} style={{ background:'none', border:'1px solid #1d2535', borderRadius:8, color:'#6b7a94', cursor:'pointer', fontSize:'1rem', width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter,sans-serif' }}>×</button>
+            </div>
+            {/* Search + filter */}
+            <div style={{ padding:'12px 20px', borderBottom:'1px solid #1d2535', display:'flex', gap:8, flexDirection:'column' }}>
+              <input value={filter} onChange={e => setFilter(e.target.value)} placeholder='Search integrations…'
+                style={{ width:'100%', padding:'8px 12px', background:'#0a0d18', border:'1px solid #1d2535', borderRadius:8, color:'#e8ecf4', fontSize:'0.84rem', fontFamily:'Inter,sans-serif', outline:'none', boxSizing:'border-box' as const }} />
+              <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+                {cats.map(ct => (
+                  <button key={ct} onClick={() => setCat(ct)}
+                    style={{ padding:'3px 10px', borderRadius:20, border:`1px solid ${cat===ct?'#4f8fff':'#1d2535'}`, background:cat===ct?'#4f8fff15':'transparent', color:cat===ct?'#4f8fff':'#6b7a94', fontSize:'0.72rem', fontWeight:600, cursor:'pointer', fontFamily:'Inter,sans-serif' }}>
+                    {ct}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* Grid */}
+            <div style={{ overflowY:'auto', padding:'16px 20px' }}>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(150px,1fr))', gap:8 }}>
+                {filtered.map((t, i) => (
+                  <div key={t.name+i} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', background:'#131929', border:'1px solid #1d2535', borderRadius:10, transition:'border-color .12s' }}
+                    onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor=t.color+'40';}}
+                    onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor='#1d2535';}}>
+                    <div style={{ width:28, height:28, borderRadius:7, background:t.color+'18', border:`1px solid ${t.color}30`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.62rem', fontWeight:900, color:t.color, flexShrink:0, fontFamily:'JetBrains Mono,monospace' }}>{t.abbr}</div>
+                    <span style={{ fontSize:'0.78rem', fontWeight:600, color:'#e8ecf4' }}>{t.name}</span>
+                  </div>
+                ))}
+                {filtered.length === 0 && (
+                  <div style={{ gridColumn:'1/-1', textAlign:'center', padding:'32px', color:'#6b7a94', fontSize:'0.84rem' }}>No integrations match &ldquo;{filter}&rdquo;</div>
+                )}
+              </div>
+              <div style={{ marginTop:16, padding:'14px 16px', background:'#4f8fff08', border:'1px solid #4f8fff18', borderRadius:10, textAlign:'center' }}>
+                <div style={{ fontSize:'0.84rem', color:'#4f8fff', fontWeight:600, marginBottom:4 }}>Don&apos;t see your tool?</div>
+                <div style={{ fontSize:'0.76rem', color:'#6b7a94' }}>New integrations added weekly. <a href='mailto:hello@getwatchtower.io' style={{ color:'#4f8fff', textDecoration:'none' }}>Request one →</a></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function LandingPage() {
   const toolsRef = useRef<HTMLElement>(null);
   const [toolsVisible, setToolsVisible] = useState(false);
@@ -440,23 +531,14 @@ export default function LandingPage() {
       {/* INTEGRATIONS */}
       <section id='integrations' ref={toolsRef as React.RefObject<HTMLElement>} style={{ padding:'60px 24px', textAlign:'center', background:'#0c1020', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
         <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>INTEGRATIONS</div>
-        <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:-1.5, marginBottom:10 }}>Connects to everything you run</h2>
-        <p style={{ color:'#6b7a94', fontSize:'0.88rem', marginBottom:12 }}>80+ integrations across EDR, SIEM, XDR, Cloud, Identity, ITSM, SOAR, Threat Intel, OT/ICS and more. No rip-and-replace — plugs into your existing stack in minutes.</p>
-        <div style={{ display:'flex', justifyContent:'center', gap:8, flexWrap:'wrap', marginBottom:28 }}>
-          {['EDR','SIEM','XDR/NDR','Cloud','Identity','Vuln/CSPM','ITSM','SOAR','Threat Intel','OT/ICS','Email','Firewall'].map(cat => (
-            <span key={cat} style={{ padding:'4px 12px', background:'#4f8fff12', border:'1px solid #4f8fff25', borderRadius:20, fontSize:'0.66rem', color:'#4f8fff', fontWeight:600 }}>{cat}</span>
+        <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:-1.5, marginBottom:12 }}>Connects to everything you run</h2>
+        <p style={{ color:'#6b7a94', fontSize:'0.88rem', lineHeight:1.8, marginBottom:24, maxWidth:580, margin:'0 auto 24px' }}>80+ integrations across EDR, SIEM, XDR, Cloud, Identity, ITSM, SOAR, Threat Intel, OT/ICS and more. No rip-and-replace — live in minutes.</p>
+        <div style={{ display:'flex', justifyContent:'center', gap:10, flexWrap:'wrap', marginBottom:32 }}>
+          {['EDR · XDR','SIEM · SOAR','Cloud Security','Identity','Vuln Management','ITSM','Threat Intel','OT/ICS'].map(cat => (
+            <span key={cat} style={{ padding:'5px 14px', background:'#4f8fff10', border:'1px solid #4f8fff20', borderRadius:20, fontSize:'0.72rem', color:'#4f8fff', fontWeight:600 }}>{cat}</span>
           ))}
         </div>
-        <div style={{ display:'flex', flexWrap:'wrap', justifyContent:'center', gap:8, maxWidth:820, margin:'0 auto' }}>
-          {TOOLS.map((t,i)=>(
-            <span key={t.name+i} style={{ opacity:toolsVisible?1:0, transform:toolsVisible?'none':'translateY(8px)', transition:`all 0.4s ease ${i*0.04}s` }}>
-              <ToolChip name={t.name} color={t.color} abbr={t.abbr} id={(t as any).id}/>
-            </span>
-          ))}
-          <span style={{ opacity:toolsVisible?1:0, transition:'all 0.4s ease 0.7s', display:'inline-flex', alignItems:'center', padding:'6px 14px', background:'transparent', border:'1px dashed #4f8fff40', borderRadius:20, fontSize:'0.72rem', color:'#4f8fff', fontWeight:600 }}>
-            + your tool →
-          </span>
-        </div>
+        <IntegrationsFloatButton tools={TOOLS} />
       </section>
 
       {/* FEATURES */}

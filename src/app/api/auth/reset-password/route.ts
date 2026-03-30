@@ -3,6 +3,7 @@ import { redisSet, redisGet } from '@/lib/redis';
 import { sendEmail, resetEmailHtml } from '@/lib/email';
 import { randomBytes } from 'crypto';
 import { checkRateLimit } from '@/lib/ratelimit';
+import { isPasswordBreached } from '@/lib/hibp';
 import { hashPassword, getUsers, updateUser } from '@/lib/users';
 
 export async function POST(req: NextRequest) {
@@ -29,8 +30,10 @@ export async function POST(req: NextRequest) {
       // Rate limit confirm step too — prevents timing oracle on token validity
       const rlConfirm = await checkRateLimit(`reset-confirm:${ip}`, 10, 3600);
       if (!rlConfirm.ok) return NextResponse.json({ error: 'Too many attempts.' }, { status: 429 });
-      if (!token || !newPassword || newPassword.length < 8)
-        return NextResponse.json({ error: 'Token and password (min 8 chars) required' }, { status: 400 });
+      const isBreached = await isPasswordBreached(newPassword || '');
+      if (isBreached) return NextResponse.json({ error: 'This password has appeared in a data breach. Choose a different password.' }, { status: 400 });
+      if (!token || !newPassword || newPassword.length < 12)
+        return NextResponse.json({ error: 'Token and password (min 12 chars) required' }, { status: 400 });
       const email = await redisGet(`wt:reset:${token}`);
       if (!email) return NextResponse.json({ error: 'Invalid or expired reset token' }, { status: 400 });
       // Update password in env for admin, or in Redis for non-admin users
@@ -44,6 +47,22 @@ export async function POST(req: NextRequest) {
       const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
       if (user) await updateUser('global', user.id, { passwordHash: hashPassword(newPassword), status: 'active' });
       await redisSet(`wt:reset:${token}`, '', 1); // Invalidate token
+      return NextResponse.json({ ok: true });
+    }
+
+    if (action === 'force_change') {
+      const { email: fcemail, currentPassword, newPassword: fcnew } = body;
+      if (!fcemail || !currentPassword || !fcnew || fcnew.length < 12)
+        return NextResponse.json({ error: 'Email, current password, and new password (min 12 chars) required' }, { status: 400 });
+      const fcBreached = await isPasswordBreached(fcnew);
+      if (fcBreached) return NextResponse.json({ error: 'This password has appeared in a data breach. Choose a different one.' }, { status: 400 });
+      const { getUsers, updateUser, hashPassword, verifyPassword } = await import('@/lib/users');
+      const users = await getUsers('global');
+      const user = users.find(u => u.email.toLowerCase() === fcemail.toLowerCase());
+      if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      const passwordOk = verifyPassword(currentPassword, user.passwordHash || '');
+      if (!passwordOk) return NextResponse.json({ error: 'Current password incorrect' }, { status: 401 });
+      await updateUser('global', user.id, { passwordHash: hashPassword(fcnew), mustChangePassword: false, status: 'active' });
       return NextResponse.json({ ok: true });
     }
 

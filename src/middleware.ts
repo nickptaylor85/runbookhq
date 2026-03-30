@@ -69,13 +69,8 @@ export async function middleware(req: NextRequest) {
           isAdminSession = payload.isAdmin === true;
         } catch {}
       }
-      if (!isAdminSession) {
-        return NextResponse.redirect(new URL('/setup-2fa', req.url));
-      }
-      // Admin: clear stale cookie and proceed
-      const res = NextResponse.next({ request: { headers: cleanHeaders } });
-      res.cookies.set('wt_mfa_pending', '', { maxAge: 0, path: '/' });
-      return res;
+      // V2.7.1: ALL users including admin must complete MFA setup
+      return NextResponse.redirect(new URL('/setup-2fa', req.url));
     }
     return NextResponse.next({ request: { headers: cleanHeaders } });
   }
@@ -103,6 +98,23 @@ export async function middleware(req: NextRequest) {
         { error: 'Unauthorized. Provide a valid session cookie or X-API-Key header.' },
         { status: 401 }
       );
+    }
+
+    // Check JTI blacklist — ensures logged-out tokens are immediately rejected
+    if ((session as any).jti) {
+      try {
+        const blacklistRes = await fetch(`${process.env.UPSTASH_REDIS_REST_URL}`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(['GET', `wt:jti:blacklisted:${(session as any).jti}`]),
+        });
+        if (blacklistRes.ok) {
+          const data = await blacklistRes.json() as { result: string | null };
+          if (data.result === '1') {
+            return NextResponse.json({ error: 'Session revoked. Please log in again.' }, { status: 401 });
+          }
+        }
+      } catch { /* Redis unavailable — fail open to avoid locking users out */ }
     }
 
     // Inject verified identity into REQUEST headers — this is how route handlers read them

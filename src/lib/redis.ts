@@ -126,3 +126,15 @@ export async function redisLRange(key: string, start: number, stop: number): Pro
 export async function redisLTrim(key: string, start: number, stop: number): Promise<void> {
   await redisCommand('LTRIM', key, start, stop);
 }
+
+// ─── JTI Blacklist (session revocation) ──────────────────────────────────────
+const JTI_BLACKLIST_KEY = (jti: string) => `wt:jti:blacklisted:${jti}`;
+
+export async function blacklistJti(jti: string, ttlSeconds: number = 86400): Promise<void> {
+  await redisSet(JTI_BLACKLIST_KEY(jti), '1', ttlSeconds);
+}
+
+export async function isJtiBlacklisted(jti: string): Promise<boolean> {
+  const val = await redisGet(JTI_BLACKLIST_KEY(jti)).catch(() => null);
+  return val === '1';
+}

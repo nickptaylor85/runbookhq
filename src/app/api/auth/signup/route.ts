@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { signSession } from '@/lib/encrypt';
-import { sendEmail } from '@/lib/email';
+import { sendEmail, welcomeEmailHtml } from '@/lib/email';
 import { checkRateLimit } from '@/lib/ratelimit';
 import { hashPassword, saveUsers, getUsers } from '@/lib/users';
 import { redisGet, redisSet } from '@/lib/redis';
 import { randomBytes } from 'crypto';
+import { isPasswordBreached } from '@/lib/hibp';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -25,11 +26,18 @@ export async function POST(req: NextRequest) {
     if (!body.email || typeof body.email !== 'string' || !EMAIL_RE.test(body.email) || body.email.length > 254) {
       return NextResponse.json({ error: 'Valid email required' }, { status: 400 });
     }
-    if (!body.password || typeof body.password !== 'string' || body.password.length < 8) {
-      return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 });
+    if (!body.password || typeof body.password !== 'string' || body.password.length < 12) {
+      return NextResponse.json({ error: 'Password must be at least 12 characters' }, { status: 400 });
     }
     if (body.password.length > 128) {
       return NextResponse.json({ error: 'Password too long' }, { status: 400 });
+    }
+    // ASVS V2.1.7: Check against known breached passwords (HIBP k-anonymity)
+    const breached = await isPasswordBreached(body.password);
+    if (breached) {
+      return NextResponse.json({
+        error: 'This password has appeared in a data breach. Choose a different password to protect your account.',
+      }, { status: 400 });
     }
     if (!body.name || typeof body.name !== 'string' || body.name.trim().length < 1) {
       return NextResponse.json({ error: 'Name required' }, { status: 400 });
@@ -113,19 +121,7 @@ export async function POST(req: NextRequest) {
       sendEmail({
         to: email,
         subject: 'Welcome to Watchtower — your SOC dashboard is ready',
-        html: `<div style="font-family:Inter,sans-serif;max-width:520px;margin:0 auto;padding:32px 20px;background:#050508;color:#e8ecf4">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:28px">
-            <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#4f8fff,#8b6fff);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.1rem;color:#fff">W</div>
-            <span style="font-weight:800;font-size:1.1rem">Watchtower</span>
-          </div>
-          <h1 style="font-size:1.5rem;font-weight:900;margin-bottom:12px;letter-spacing:-0.5px">Your SOC dashboard is live</h1>
-          <p style="font-size:0.9rem;color:#8a9ab0;line-height:1.7;margin-bottom:20px">Hi ${body.name || email} — welcome to Watchtower. Connect your first security tool and let AI triage your alerts from day one.</p>
-          <a href="https://getwatchtower.io/dashboard" style="display:inline-block;padding:12px 28px;background:#4f8fff;color:#fff;border-radius:9px;font-weight:700;text-decoration:none;font-size:0.9rem;margin-bottom:28px">Open Dashboard →</a>
-          <div style="border-top:1px solid #1d2535;padding-top:20px;margin-top:8px">
-            <p style="font-size:0.78rem;color:#4a5568;line-height:1.7">First steps: Connect a tool in the Tools tab → add your Anthropic key for AI triage → your first alert will be triaged in seconds.</p>
-            <p style="font-size:0.74rem;color:#3a4050;margin-top:12px">Questions? Reply to this email or reach us at <a href="mailto:hello@getwatchtower.io" style="color:#4f8fff">hello@getwatchtower.io</a></p>
-          </div>
-        </div>`,
+        html: welcomeEmailHtml({ name: body.name, email }),
       }).catch(() => {}); // non-blocking
 
       const res = NextResponse.json({ ok: true, role: 'owner', plan, redirect: '/setup-2fa' });
