@@ -123,7 +123,7 @@ Provide a comprehensive Tier 2/3 investigation. Respond with exactly this JSON:
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4000, system: 'You are a Tier 3 incident responder. You respond ONLY with valid JSON. No preamble, no explanation, no markdown fences. Raw JSON only.', messages: [{ role: 'user', content: prompt }] }),
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 4000, system: 'You are a Tier 3 incident responder. You respond ONLY with valid JSON. No preamble, no explanation, no markdown fences. Raw JSON only.', messages: [{ role: 'user', content: prompt }] }),
     });
 
     if (!resp.ok) return NextResponse.json({ ok: false, error: `AI error: ${resp.status}` }, { status: 502 });

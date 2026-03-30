@@ -633,6 +633,8 @@ export default function DashboardPage() {
     return () => { if (intelAutoRefreshRef.current) clearInterval(intelAutoRefreshRef.current); };
   },[demoMode]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [currentUserName, setCurrentUserName] = useState('');
+  const [staffUsers, setStaffUsers] = useState([]); // real users from Redis — populated in live mode
   const [userRole, setUserRole] = useState(null); // null=owner, 'tech_admin', 'viewer', 'sales'
   const [userTier, setUserTier] = useState('community');
   const [theme, setTheme] = useState('dark');
@@ -660,12 +662,22 @@ export default function DashboardPage() {
       .then(d=>{
         if (d.authenticated) {
           setIsAdmin(d.isAdmin || false);
+          if (d.name) setCurrentUserName(d.name);
+          else if (d.email) setCurrentUserName(d.email.split('@')[0]);
           if (d.role) setUserRole(d.role);
           if (d.tenantId) { setCurrentTenant(d.tenantId); tenantRef.current = d.tenantId; }
         }
-              })
+      })
       .catch(()=>{ setSessionLoaded(true); });
   },[]);
+
+  // Load real staff users for analyst assignment in live mode
+  useEffect(()=>{
+    if (demoMode) return;
+    fetch('/api/admin/users').then(r=>r.json()).then(d=>{
+      if (d.ok && Array.isArray(d.users)) setStaffUsers(d.users);
+    }).catch(()=>{});
+  },[demoMode]);
 
   // Theme preference intentionally uses localStorage — it must apply synchronously
   // before React hydrates to avoid a dark→light flash. Not user data, pure display state.
@@ -890,7 +902,7 @@ export default function DashboardPage() {
         return Array.from(deviceMap.values());
       })()
     : [];
-  const osBreakdown = (demoMode?DEMO_GAP_DEVICES:liveKnownDevices.length>0?liveKnownDevices:DEMO_GAP_DEVICES).reduce((acc,d)=>{const os=d.os?.split(' ')[0]||'Unknown';acc[os]=(acc[os]||0)+1;return acc;},{});
+  const osBreakdown = (demoMode?DEMO_GAP_DEVICES:liveKnownDevices.length>0?liveKnownDevices:[]).reduce((acc,d)=>{const os=d.os?.split(' ')[0]||'Unknown';acc[os]=(acc[os]||0)+1;return acc;},{});
   // In live mode: gap devices = only those with actual missing connected tools
   // If no EDR connected, liveKnownDevices.missing=[] so no devices appear as gaps
   const gapDevices = !demoMode && liveKnownDevices.length > 0
@@ -1284,6 +1296,7 @@ export default function DashboardPage() {
             {canUse('team')&&<button onClick={()=>setActiveTab('incidents')} style={{padding:'3px 8px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff0a',color:'#8b6fff',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>⇄ Handover</button>}
             <button onClick={toggleTheme} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem',flexShrink:0}}>{theme==='dark'?'☀️':'🌙'}</button>
             <a href='/settings' style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.82rem',color:'inherit',textDecoration:'none',flexShrink:0}}>⚙️</a>
+            {canUse('business')&&<button onClick={()=>setActiveTab('compliance')} style={{padding:'3px 8px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}} title='CISO Board Report'>📊 CISO</button>}
             <button onClick={async()=>{await fetch('/api/auth/logout',{method:'POST'});window.location.href='/login';}} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.8rem',color:'var(--wt-dim)',flexShrink:0}} title='Sign out'>↩</button>
           </div>
           {/* Mobile: logo + demo toggle only */}
@@ -1420,7 +1433,7 @@ export default function DashboardPage() {
                       <div style={{marginLeft:'auto',display:'flex',gap:6,alignItems:'center'}}>
                         <span style={{fontSize:'0.54rem',color:'var(--wt-dim)'}}>{demoMode?'Demo':'Live'} · {new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span>
                         {canUse('team') ? <button onClick={()=>{setShowCopilot(s=>!s);setTimeout(()=>copilotBottomRef.current?.scrollIntoView({behavior:'auto'}),100);}} style={{fontSize:'0.58rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:`1px solid ${tlColor}30`,background:`${tlColor}0a`,color:tlColor,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✦ Co-Pilot</button> : <a href='/pricing' style={{fontSize:'0.58rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff30',background:'#4f8fff0a',color:'#4f8fff',textDecoration:'none'}}>🔒 Co-Pilot</a>}
-                        <button onClick={async()=>{setHandoverLoading(true);try{const r=await fetch('/api/shift-handover',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({openAlerts:totalAlerts,critAlerts:critAlerts.length,openCases,slaBreaches,tools:Object.keys(connectedTools).length,posture,topAlert:critAlerts[0]?.title||alerts[0]?.title||''})});const d=await r.json();if(d.handover)setShiftHandover(d.handover);}catch(e){}setHandoverLoading(false);}} disabled={handoverLoading} style={{fontSize:'0.58rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',cursor:handoverLoading?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:3}}>{handoverLoading&&<span style={{display:'inline-block',width:7,height:7,borderRadius:'50%',border:'1.5px solid #22d49a',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />}⇄ Handover</button>
+                        <button onClick={async()=>{setHandoverLoading(true);setShiftHandover(null);try{const activeIncs=incidents.filter(i=>!deletedIncidents.has(i.id)&&(incidentStatuses[i.id]||i.status)==='Active');const r=await fetch('/api/shift-handover',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({openAlerts:totalAlerts,critAlerts:critAlerts.length,openCases,slaBreaches,tools:Object.keys(connectedTools).length,posture,topAlert:critAlerts[0]?.title||alerts[0]?.title||'',openIncidents:activeIncs.map(i=>i.title).slice(0,5),analyst:currentUserName||'Analyst'})});const d=await r.json();if(d.ok&&d.handover)setShiftHandover(d.handover);else setShiftHandover({summary:d.error||'Generation failed — check your Anthropic API key in Tools.',keyActions:[],generatedAt:new Date().toISOString()});}catch(e){setShiftHandover({summary:'Connection error: '+e.message,keyActions:[],generatedAt:new Date().toISOString()});}setHandoverLoading(false);}} disabled={handoverLoading} style={{fontSize:'0.58rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',cursor:handoverLoading?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:3}}>{handoverLoading&&<span style={{display:'inline-block',width:7,height:7,borderRadius:'50%',border:'1.5px solid #22d49a',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />}⇄ Handover</button>
                       </div>
                     </div>
                     <div style={{padding:'10px 16px',display:'flex',flexDirection:'column',gap:5}}>
@@ -2525,10 +2538,16 @@ export default function DashboardPage() {
                           <button onClick={()=>setIncidentStatuses(prev=>({...prev,[inc.id]:'Escalated'}))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0a03030',background:'#f0a03008',color:'#f0a030',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>⬆ Escalate</button>
                           <button onClick={()=>closeIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✓ Close</button>
                           {/* Assign to me */}
-                          <button onClick={()=>setCreatedIncidents(prev=>prev.map(i=>i.id===inc.id?{...i,assignedTo:'Nick Taylor'}:i))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff08',color:'#4f8fff',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>👤 Assign to me</button>
+                          <button onClick={()=>setCreatedIncidents(prev=>prev.map(i=>i.id===inc.id?{...i,assignedTo:currentUserName||'Me'}:i))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff08',color:'#4f8fff',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>👤 Assign to me</button>
                           {/* Assign to analyst dropdown */}
                           {(()=>{
-                            const allAnalysts=[...new Set(incidents.map(i=>i.assignedTo).filter(Boolean)),'Nick Taylor','Sarah Chen','James Harlow','Emma Wilson'].filter((v,i,a)=>a.indexOf(v)===i);
+                            // Live: pull from staffUsers (Redis); demo: derive from demo incident assignedTo
+                            const baseAnalysts = demoMode
+                              ? [...new Set(incidents.map(i=>i.assignedTo).filter(Boolean))]
+                              : staffUsers.length > 0
+                                ? staffUsers.filter(u=>u.status==='Active'||u.status==='active').map(u=>u.name).filter(Boolean)
+                                : [...new Set(createdIncidents.map(i=>i.assignedTo).filter(Boolean))];
+                            const allAnalysts=[...new Set([...baseAnalysts,...(!demoMode&&staffUsers.length>0?[]:[])])].filter(Boolean);
                             return (
                               <div style={{position:'relative'}}>
                                 <button onClick={e=>{e.stopPropagation();setAssignDropdown(assignDropdown===inc.id?null:inc.id);}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff08',color:'#8b6fff',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Assign ▾</button>
@@ -3088,7 +3107,21 @@ export default function DashboardPage() {
                   <div key={i} style={{display:'flex',flexDirection:'column',alignItems:msg.role==='user'?'flex-end':'flex-start',gap:3}}>
                     <div style={{maxWidth:'88%',padding:'9px 13px',borderRadius:msg.role==='user'?'12px 12px 4px 12px':'12px 12px 12px 4px',background:msg.role==='user'?'#4f8fff':'var(--wt-card)',border:msg.role==='user'?'none':'1px solid var(--wt-border)',fontSize:'0.78rem',color:msg.role==='user'?'#fff':'var(--wt-text)',lineHeight:1.65,whiteSpace:'pre-wrap',wordBreak:'break-word'}}>
                       {msg.role==='assistant' && <span style={{fontSize:'0.58rem',fontWeight:700,color:'#4f8fff',display:'block',marginBottom:4}}>✦ WATCHTOWER AI</span>}
-                      {msg.text}
+                      {msg.role==='assistant' ? (()=>{
+                        const lines = (msg.text||'').split('\n');
+                        return lines.map((line,li)=>{
+                          if(!line.trim()) return <div key={li} style={{height:6}} />;
+                          // Bold headers: **text** or line ending with :
+                          const isBold = /^\*\*.*\*\*$/.test(line.trim()) || /^#{1,3}\s/.test(line) || (line.trim().endsWith(':') && line.trim().length < 50);
+                          const isCode = line.startsWith('  ') || line.startsWith('\t') || /^`.*`$/.test(line.trim());
+                          const isBullet = /^[-•*]\s/.test(line.trim()) || /^\d+\.\s/.test(line.trim());
+                          const cleaned = line.replace(/^\*\*|\*\*$/g,'').replace(/^#{1,3}\s/,'').replace(/^[-•*]\s/,'').replace(/^\d+\.\s/,'');
+                          if(isCode) return <code key={li} style={{display:'block',fontSize:'0.7rem',fontFamily:'JetBrains Mono,monospace',background:'#050810',color:'#22c992',padding:'2px 6px',borderRadius:4,marginBottom:2,whiteSpace:'pre-wrap',wordBreak:'break-all'}}>{line.trim().replace(/^`|`$/g,'')}</code>;
+                          if(isBullet) return <div key={li} style={{display:'flex',gap:6,marginBottom:2}}><span style={{color:'#4f8fff',flexShrink:0,marginTop:2}}>›</span><span style={{fontSize:'0.76rem',lineHeight:1.55}}>{cleaned}</span></div>;
+                          if(isBold) return <div key={li} style={{fontSize:'0.72rem',fontWeight:700,color:'#4f8fff',marginTop:li>0?6:0,marginBottom:2}}>{cleaned}</div>;
+                          return <div key={li} style={{fontSize:'0.76rem',lineHeight:1.6,marginBottom:1}}>{line}</div>;
+                        });
+                      })() : msg.text}
                     </div>
                     {msg.ts && <span style={{fontSize:'0.55rem',color:'var(--wt-dim)',padding:'0 4px'}}>{msg.ts}</span>}
                   </div>

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHmac } from 'crypto';
 import { redisGet } from '@/lib/redis';
+import { getUserByEmail } from '@/lib/users';
 
-function verifyToken(token: string): { userId: string; tenantId: string; isAdmin: boolean; role?: string } | null {
+function verifyToken(token: string): Record<string, any> | null {
   try {
     const secret = process.env.WATCHTOWER_SESSION_SECRET || (process.env.NODE_ENV === 'production' ? (() => { throw new Error('WATCHTOWER_SESSION_SECRET env var not set'); })() : 'watchtower-dev-session-secret');
     const [encoded, sig] = token.split('.');
@@ -19,17 +20,48 @@ export async function GET(req: NextRequest) {
   const userId = req.headers.get('x-user-id');
   if (userId) {
     const mfaFlag = await redisGet(`wt:user:${userId}:mfa_setup_required`).catch(() => null);
+    const isAdmin = req.headers.get('x-is-admin') === 'true';
+    // Try to get name from users store
+    let name = '';
+    if (!isAdmin) {
+      try {
+        const email = req.headers.get('x-user-email') || '';
+        if (email) {
+          const user = await getUserByEmail('global', email);
+          if (user?.name) name = user.name;
+          else name = email.split('@')[0];
+        }
+      } catch {}
+    } else {
+      name = 'Admin';
+    }
     return NextResponse.json({
       authenticated: true, userId,
       tenantId: req.headers.get('x-tenant-id') || 'global',
-      isAdmin: req.headers.get('x-is-admin') === 'true',
+      isAdmin,
+      name,
+      email: req.headers.get('x-user-email') || '',
       mfaSetupRequired: mfaFlag === '1',
     });
   }
   const token = req.cookies.get('wt_session')?.value;
   if (token) {
     const session = verifyToken(token);
-    if (session) return NextResponse.json({ authenticated: true, ...session });
+    if (session) {
+      // Enrich with name from users store
+      let name = session.name || '';
+      if (!name && session.email) {
+        try {
+          if (session.isAdmin) {
+            name = 'Admin';
+          } else {
+            const user = await getUserByEmail(session.tenantId || 'global', session.email);
+            name = user?.name || session.email.split('@')[0];
+          }
+        } catch { name = session.email?.split('@')[0] || ''; }
+      }
+      return NextResponse.json({ authenticated: true, ...session, name });
+    }
   }
   return NextResponse.json({ authenticated: false, isAdmin: false }, { status: 401 });
 }
