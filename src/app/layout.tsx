@@ -7,8 +7,8 @@ import CookieBanner from './cookie-banner';
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  themeColor: '#050508',
+  maximumScale: 5,
+  themeColor: '#090d18',
 };
 
 export const metadata: Metadata = {
@@ -48,6 +48,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <>
       {children}
       <CookieBanner />
+      <Script id="sw-register" strategy="afterInteractive">{`
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').catch(() => {});
+          });
+        }
+      `}</Script>
       {/* Google Analytics / GTM — set NEXT_PUBLIC_GA_ID in Vercel env vars */}
       {GA_ID && (
         <>

@@ -1,15 +1,45 @@
 {
-  "name": "Watchtower SOC Dashboard",
+  "name": "Watchtower SOC",
   "short_name": "Watchtower",
-  "description": "AI-powered SOC dashboard — single pane of glass for security operations",
+  "description": "AI-powered SOC dashboard — triage alerts, manage incidents, monitor your estate.",
   "start_url": "/dashboard",
   "display": "standalone",
-  "background_color": "#050508",
-  "theme_color": "#4f8fff",
-  "orientation": "landscape-primary",
+  "background_color": "#090d18",
+  "theme_color": "#090d18",
+  "orientation": "portrait-primary",
   "icons": [
-    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ],
-  "categories": ["security", "productivity", "business"],
-  "lang": "en-GB"
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "categories": ["security", "business", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Alerts",
+      "url": "/dashboard?tab=alerts",
+      "description": "View active alerts"
+    },
+    {
+      "name": "Cases",
+      "url": "/dashboard?tab=incidents",
+      "description": "View open cases"
+    }
+  ]
 }
