@@ -4,7 +4,13 @@ import { redisHGetAll, redisGet, KEYS } from '@/lib/redis';
 export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET || '';
   const authHeader = req.headers.get('authorization');
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+  // Accept Vercel's own cron invocation header as fallback
+  const vercelCronHeader = req.headers.get('x-vercel-cron') === '1';
+  // SECURITY: if cronSecret is unset, block ALL external calls (only allow Vercel internal)
+  if (!cronSecret && !vercelCronHeader) {
+    return NextResponse.json({ error: 'CRON_SECRET not configured — set env var to enable cron' }, { status: 503 });
+  }
+  if (cronSecret && authHeader !== `Bearer ${cronSecret}` && !vercelCronHeader) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

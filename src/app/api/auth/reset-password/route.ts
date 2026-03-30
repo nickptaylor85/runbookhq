@@ -26,6 +26,9 @@ export async function POST(req: NextRequest) {
     }
 
     if (action === 'confirm') {
+      // Rate limit confirm step too — prevents timing oracle on token validity
+      const rlConfirm = await checkRateLimit(`reset-confirm:${ip}`, 10, 3600);
+      if (!rlConfirm.ok) return NextResponse.json({ error: 'Too many attempts.' }, { status: 429 });
       if (!token || !newPassword || newPassword.length < 8)
         return NextResponse.json({ error: 'Token and password (min 8 chars) required' }, { status: 400 });
       const email = await redisGet(`wt:reset:${token}`);

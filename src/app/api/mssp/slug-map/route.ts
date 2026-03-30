@@ -1,5 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redisGet, redisSet } from '@/lib/redis';
+import { verifySession } from '@/lib/encrypt';
+import { cookies } from 'next/headers';
+
+async function requireAdmin(req: NextRequest): Promise<boolean> {
+  if (req.headers.get('x-is-admin') === 'true') return true;
+  try {
+    const cookieStore = await cookies();
+    const token = req.cookies.get('wt_session')?.value || cookieStore.get('wt_session')?.value;
+    if (token) { const p = verifySession(token) as any; if (p?.isAdmin) return true; }
+  } catch {}
+  return false;
+}
 
 const SLUG_MAP_KEY = 'wt:mssp:slug_map';
 const DEFAULT_MAP: Record<string, string> = {
@@ -19,6 +31,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (!(await requireAdmin(req))) return NextResponse.json({ ok: false, error: 'Admin only' }, { status: 403 });
   try {
     const body = await req.json() as { slug: string; tenantId: string };
     const { slug, tenantId } = body;
@@ -35,11 +48,13 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  if (!(await requireAdmin(req))) return NextResponse.json({ ok: false, error: 'Admin only' }, { status: 403 });
   try {
     const body = await req.json() as { slug: string };
     const raw = await redisGet(SLUG_MAP_KEY);
     const map: Record<string, string> = raw ? JSON.parse(raw) : { ...DEFAULT_MAP };
-    delete map[(body as any).slug];
+    const slugToDelete = typeof body === 'object' && body && 'slug' in (body as Record<string,unknown>) ? (body as Record<string,string>).slug : '';
+    if (slugToDelete) delete map[slugToDelete];
     await redisSet(SLUG_MAP_KEY, JSON.stringify(map));
     return NextResponse.json({ ok: true, map });
   } catch(e: any) {

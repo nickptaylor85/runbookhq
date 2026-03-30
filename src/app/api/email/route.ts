@@ -16,6 +16,10 @@ export async function POST(req: NextRequest) {
     const { type, to, alert, incident, digest, customHtml } = body;
 
     if (!to) return NextResponse.json({ ok: false, error: 'to required' }, { status: 400 });
+    // Validate email format to prevent header injection
+    if (typeof to !== 'string' || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to) || to.length > 254) {
+      return NextResponse.json({ ok: false, error: 'Invalid recipient email' }, { status: 400 });
+    }
 
     let subject = body.subject || 'Watchtower Security Notification';
     let html = '';

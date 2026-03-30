@@ -17,6 +17,11 @@ export async function POST(req: NextRequest) {
     const config = await getSamlConfig(tenantId);
     if (!config?.enabled) return NextResponse.redirect(`${base}/login?error=saml_disabled`);
 
+    // SECURITY: parseSamlResponse does not yet verify the XML digital signature.
+    // Until xmldsig verification is implemented, reject all SAML responses to prevent
+    // account takeover via forged assertions. SAML SSO must remain disabled.
+    return NextResponse.redirect(`${base}/login?error=saml_signature_verification_required`);
+    // eslint-disable-next-line no-unreachable
     const attrs = parseSamlResponse(samlResponse, config);
     if (!attrs) return NextResponse.redirect(`${base}/login?error=saml_parse_failed`);
 
