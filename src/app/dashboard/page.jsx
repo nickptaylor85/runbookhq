@@ -167,19 +167,39 @@ const DEMO_VULNS = [
 ];
 
 const DEMO_INCIDENTS = [
-  {id:'INC-0847',title:'Domain Controller Compromise — admin_svc Credential Dump',severity:'Critical',status:'Active',created:'2026-03-22 09:14',updated:'2026-03-22 09:47',alertCount:4,devices:['DC01','SRV-FINANCE01','laptop-CFO01'],mitreTactics:['Initial Access','Credential Access','Lateral Movement'],aiSummary:'Multi-stage credential theft attack targeting domain infrastructure. Attacker gained initial access via spear-phish, executed LSASS dump on DC01, and used compromised admin_svc credentials to move laterally to SRV-FINANCE01. C2 beacon detected and blocked. Domain credentials at high risk — immediate reset recommended.',timeline:[
-    {t:'09:14',actor:'AI',action:'Initial alert correlated',detail:'LSASS access on DC01 — Incident created, Tier 2 paged',cmd:'CrowdStrikeFalcon.exe -policy isolate --host DC01 --reason "LSASS dump detected T1003.001"'},
-    {t:'09:15',actor:'AI',action:'admin_svc account disabled',detail:'Auto-response: account suspended across all domain controllers',cmd:'Disable-ADAccount -Identity admin_svc; Get-ADUser admin_svc | Set-ADUser -Enabled $false'},
-    {t:'09:16',actor:'AI',action:'C2 traffic blocked',detail:'IP 185.220.101.42 blocked at Zscaler perimeter',cmd:'zscli policy add-block --ip 185.220.101.42 --reason "C2 T1071.001" --scope all-users'},
-    {t:'09:22',actor:'Analyst',action:'Confirmed TP — escalated to IC',detail:'DC01 isolated. Memory forensic image requested',cmd:'winpmem_mini.exe DC01_memdump_0922.raw && sha256sum DC01_memdump_0922.raw'},
-    {t:'09:31',actor:'AI',action:'Lateral movement path mapped',detail:'admin_svc path: laptop-CFO01 → DC01 → SRV-FINANCE01',cmd:'Get-WinEvent -ComputerName DC01 -FilterHashtable @{LogName="Security";Id=4624} | Where-Object {$_.Properties[5].Value -eq "admin_svc"} | Select -Last 50'},
-    {t:'09:47',actor:'AI',action:'Kill chain analysis complete',detail:'MITRE mapping: T1566.001 → T1003.001 → T1078 → T1021.002',cmd:'python3 sigma_converter.py --rule lsass_access.yml --target splunk --output hunt_query.spl'},
+  {id:'INC-0847',title:'Domain Controller Compromise — admin_svc Credential Dump',severity:'Critical',status:'Active',assignedTo:'Sarah Chen',created:'2026-03-30 09:14',updated:'2026-03-30 09:47',alertCount:4,devices:['DC01','SRV-FINANCE01','laptop-CFO01'],mitreTactics:['Initial Access','Credential Access','Lateral Movement'],aiSummary:'Multi-stage credential theft attack targeting domain infrastructure. Attacker gained initial access via spear-phish, executed LSASS dump on DC01, and used compromised admin_svc credentials to move laterally to SRV-FINANCE01. C2 beacon detected and blocked. Domain credentials at high risk — immediate reset recommended.',timeline:[
+    {t:'09:14',actor:'AI',action:'Initial alert correlated',detail:'LSASS access on DC01 — Incident created, Tier 2 paged'},
+    {t:'09:15',actor:'AI',action:'admin_svc account disabled',detail:'Auto-response: account suspended across all domain controllers'},
+    {t:'09:16',actor:'AI',action:'C2 traffic blocked',detail:'IP 185.220.101.42 blocked at Zscaler perimeter'},
+    {t:'09:22',actor:'Sarah Chen',action:'Confirmed TP — escalated to IC',detail:'DC01 isolated. Memory forensic image requested'},
+    {t:'09:47',actor:'AI',action:'Kill chain analysis complete',detail:'MITRE mapping: T1566.001 to T1003.001 to T1078 to T1021.002'},
   ]},
-  {id:'INC-0846',title:'Suspected Insider Threat — Data Exfiltration',severity:'High',status:'Contained',created:'2026-03-22 08:45',updated:'2026-03-22 09:12',alertCount:3,devices:['laptop-HR03','cloud-email'],mitreTactics:['Collection','Exfiltration'],aiSummary:'HR employee with active resignation notice uploaded 18GB of payroll and personnel data to personal Google Drive. Email forwarding rule discovered directing inbox to personal Gmail. DLP policies enforced, legal team notified. Data exfiltration contained — no external breach confirmed.',timeline:[
+  {id:'INC-0846',title:'Suspected Insider Threat — Data Exfiltration',severity:'High',status:'Contained',assignedTo:'James Harlow',created:'2026-03-30 08:45',updated:'2026-03-30 09:12',alertCount:3,devices:['laptop-HR03','cloud-email'],mitreTactics:['Collection','Exfiltration'],aiSummary:'HR employee with active resignation notice uploaded 18GB of payroll and personnel data to personal Google Drive. Email forwarding rule discovered directing inbox to personal Gmail. DLP policies enforced, legal team notified. Data exfiltration contained — no external breach confirmed.',timeline:[
     {t:'08:45',actor:'AI',action:'DLP alert correlated with HR data',detail:'Zscaler flagged 18GB upload. HR system integration confirmed resignation notice'},
     {t:'08:47',actor:'AI',action:'Upload throttled',detail:'Zscaler policy updated to block personal cloud storage for this user'},
     {t:'09:00',actor:'AI',action:'Email forwarding rule discovered and deleted',detail:'3,200 emails forwarded to personal Gmail in 48h. Rule removed. HR and Legal auto-notified'},
-    {t:'09:12',actor:'Analyst',action:'Incident contained — legal review underway',detail:'IT forensics preserving audit trail. Device remote wipe scheduled for departure date'},
+    {t:'09:12',actor:'James Harlow',action:'Incident contained — legal review underway',detail:'IT forensics preserving audit trail. Device remote wipe scheduled for departure date'},
+  ]},
+  {id:'INC-0845',title:'C2 Beacon — Cobalt Strike HTTPS via Proxy',severity:'High',status:'Active',assignedTo:'Sarah Chen',created:'2026-03-30 07:30',updated:'2026-03-30 08:15',alertCount:5,devices:['WS-DEV03','WS-DEV07'],mitreTactics:['Command and Control','Defense Evasion'],aiSummary:'Cobalt Strike HTTPS beacon on two developer workstations using Akamai masquerade profile. Attacker maintaining persistent access — likely pre-ransomware staging.',timeline:[
+    {t:'07:30',actor:'AI',action:'Darktrace anomaly correlated',detail:'Unusual HTTPS POST to cdn-delivery[.]io — Cobalt Strike beacon signature'},
+    {t:'07:35',actor:'AI',action:'DNS blocked at Zscaler',detail:'IOC cdn-delivery[.]io blocked network-wide'},
+    {t:'08:15',actor:'Sarah Chen',action:'Escalated — IR team engaged',detail:'Forensic triage underway on WS-DEV03. SentinelOne deep scan initiated'},
+  ]},
+  {id:'INC-0844',title:'Brute Force Success — VPN Admin Account Compromised',severity:'High',status:'Escalated',assignedTo:'Emma Wilson',created:'2026-03-29 22:41',updated:'2026-03-30 06:00',alertCount:2,devices:['vpn-gw01'],mitreTactics:['Initial Access','Persistence'],aiSummary:'VPN admin account brute-forced after 847 failed attempts. Attacker changed DNS settings. MFA was not enabled on this account — corrected immediately.',timeline:[
+    {t:'22:41',actor:'AI',action:'Brute force threshold exceeded',detail:'847 failed logins in 18min. Account locked automatically'},
+    {t:'22:44',actor:'AI',action:'Account compromise detected',detail:'Successful login from RO/185.220.0.0/16 after lockout reset'},
+    {t:'06:00',actor:'Emma Wilson',action:'MFA enforced — root cause addressed',detail:'All VPN admin accounts now require MFA. Password policy hardened'},
+  ]},
+  {id:'INC-0843',title:'Ransomware Precursor — LOTL Activity on 3 Servers',severity:'Critical',status:'Active',assignedTo:'Nick Taylor',created:'2026-03-29 14:22',updated:'2026-03-30 05:30',alertCount:8,devices:['SRV-APP01','SRV-APP02','SRV-DB01'],mitreTactics:['Discovery','Lateral Movement','Persistence','Defense Evasion'],aiSummary:'Cluster of living-off-the-land techniques consistent with pre-ransomware staging. WMI enumeration, scheduled task creation, shadow copy deletion attempt. 3 servers affected. Immediate IR engagement required.',timeline:[
+    {t:'14:22',actor:'AI',action:'LOTL cluster detected',detail:'WMI queries + scheduled tasks on 3 servers in 4min — ransomware precursor signature'},
+    {t:'14:23',actor:'AI',action:'Servers isolated via CrowdStrike',detail:'SRV-APP01, APP02, DB01 quarantined. SOC Tier 3 paged'},
+    {t:'14:30',actor:'AI',action:'Shadow copy deletion blocked',detail:'Defender blocked vssadmin delete shadows'},
+    {t:'05:30',actor:'Nick Taylor',action:'Update: lateral movement paths mapped',detail:'Pivot point: compromised service account from phishing 6 weeks ago'},
+  ]},
+  {id:'INC-0842',title:'OAuth App Consent Phishing — Admin Directory Access',severity:'Medium',status:'Resolved',assignedTo:'James Harlow',created:'2026-03-28 11:15',updated:'2026-03-28 14:30',alertCount:2,devices:['cloud-identity'],mitreTactics:['Initial Access','Privilege Escalation'],aiSummary:'Malicious OAuth app granted Directory.ReadWrite.All by admin via consent phishing. Revoked in 45 minutes. No data exfil confirmed. Admin consent workflow now enforced.',timeline:[
+    {t:'11:15',actor:'AI',action:'Suspicious OAuth consent detected',detail:'Unverified app granted Directory.ReadWrite.All — T1528'},
+    {t:'11:18',actor:'AI',action:'App access suspended',detail:'Conditional access blocked app. Admin alerted'},
+    {t:'14:30',actor:'James Harlow',action:'Incident resolved',detail:'Admin consent workflow enforced. Security awareness triggered for affected user'},
   ]},
 ];
 
@@ -442,6 +462,7 @@ export default function DashboardPage() {
   const [expandedIntel, setExpandedIntel] = useState(new Set());
   const [iocQueries, setIocQueries] = useState({});
   const [iocQueryLoading, setIocQueryLoading] = useState(null);
+  const [iocQueryTool, setIocQueryTool] = useState({}); // {itemId: 'splunk'|'sentinel'|'defender'|'elastic'}
   const [demoMode, setDemoMode] = useState(true);
   const [clientBanner, setClientBanner] = useState(null);
   const [adminBannerInput, setAdminBannerInput] = useState('');
@@ -1550,7 +1571,7 @@ Generated by Watchtower`;
 
               {/* ── SHIFT METRICS ───────────────────────────────────────────── */}
               <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px'}}>
-                <div style={{fontSize:'0.62rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:10}}>⏱ Shift Metrics</div>
+                <div style={{fontSize:'0.62rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:10}}>Shift Metrics</div>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
                   {[
                     {label:'Unacked Criticals',value:unackedCritCount,color:unackedCritCount>0?'#f0405e':'#22d49a',sub:'need triage now'},
@@ -1564,6 +1585,72 @@ Generated by Watchtower`;
                       <div style={{fontSize:'0.54rem',color:'var(--wt-dim)',marginTop:1}}>{m.sub}</div>
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* ── LIVE THREAT INTEL + RECENT INCIDENTS ────────────────────── */}
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}} className='wt-two-col'>
+                {/* Emerging threats */}
+                <div style={{background:'var(--wt-card)',border:'1px solid #f0405e18',borderRadius:12,padding:'14px'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                    <span style={{fontSize:'0.62rem',fontWeight:800,color:'#f0405e',textTransform:'uppercase',letterSpacing:'0.5px'}}>Emerging Threats</span>
+                    <span style={{fontSize:'0.54rem',color:'var(--wt-dim)',marginLeft:'auto'}}>for {industry}</span>
+                    <button onClick={()=>setActiveTab('intel')} style={{fontSize:'0.56rem',color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',padding:0}}>View all ↗</button>
+                  </div>
+                  {(customIntel||intelItems).slice(0,3).map((item,i)=>{
+                    const c={Critical:'#f0405e',High:'#f97316',Medium:'#f0a030',Low:'#4f8fff'}[item.severity]||'#6b7a94';
+                    return (
+                      <div key={item.id||i} style={{padding:'8px 0',borderBottom:'1px solid var(--wt-border)',display:'flex',gap:8,alignItems:'flex-start'}}>
+                        <span style={{width:6,height:6,borderRadius:'50%',background:c,flexShrink:0,marginTop:5}} />
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:'0.7rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.title}</div>
+                          <div style={{fontSize:'0.6rem',color:'var(--wt-muted)',marginTop:1}}>{item.source} · {item.time}</div>
+                        </div>
+                        <span style={{fontSize:'0.5rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:`${c}18`,color:c,flexShrink:0}}>{item.severity}</span>
+                      </div>
+                    );
+                  })}
+                  {(customIntel||intelItems).length===0 && (
+                    <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',padding:'8px 0',textAlign:'center'}}>
+                      {demoMode?'Demo intel loading…':'Connect Threat Intel tools to see live feeds'}
+                    </div>
+                  )}
+                  {livetenableNews.length>0 && (
+                    <div style={{marginTop:8,paddingTop:8,borderTop:'1px solid var(--wt-border)'}}>
+                      <div style={{fontSize:'0.56rem',fontWeight:700,color:'#00b3e3',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Tenable Research</div>
+                      {livetenableNews.slice(0,2).map((item,i)=>(
+                        <div key={i} style={{fontSize:'0.64rem',color:'var(--wt-secondary)',padding:'3px 0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.title}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Recent incident activity */}
+                <div style={{background:'var(--wt-card)',border:'1px solid #8b6fff18',borderRadius:12,padding:'14px'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
+                    <span style={{fontSize:'0.62rem',fontWeight:800,color:'#8b6fff',textTransform:'uppercase',letterSpacing:'0.5px'}}>Active Incidents</span>
+                    <button onClick={()=>setActiveTab('incidents')} style={{fontSize:'0.56rem',color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',padding:0,marginLeft:'auto'}}>View all ↗</button>
+                  </div>
+                  {incidents.filter(i=>(incidentStatuses[i.id]||i.status)!=='Resolved'&&!deletedIncidents.has(i.id)).slice(0,4).map(inc=>{
+                    const st=incidentStatuses[inc.id]||inc.status;
+                    const sc=st==='Active'?'#f0405e':st==='Escalated'?'#8b6fff':st==='Contained'?'#f0a030':'#22d49a';
+                    return (
+                      <div key={inc.id} onClick={()=>{setActiveTab('incidents');}} style={{padding:'7px 0',borderBottom:'1px solid var(--wt-border)',display:'flex',gap:8,alignItems:'center',cursor:'pointer'}}>
+                        <div style={{width:6,height:6,borderRadius:'50%',background:sc,flexShrink:0}} />
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{fontSize:'0.7rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{inc.title}</div>
+                          <div style={{display:'flex',gap:6,marginTop:1}}>
+                            <span style={{fontSize:'0.54rem',fontWeight:700,color:sc}}>{st}</span>
+                            {inc.assignedTo && <span style={{fontSize:'0.54rem',color:'var(--wt-dim)'}}>{inc.assignedTo.split(' ')[0]}</span>}
+                          </div>
+                        </div>
+                        <span style={{fontSize:'0.5rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:`${SEV_COLOR[inc.severity]||'#6b7a94'}18`,color:SEV_COLOR[inc.severity]||'#6b7a94',flexShrink:0}}>{inc.severity}</span>
+                      </div>
+                    );
+                  })}
+                  {incidents.filter(i=>(incidentStatuses[i.id]||i.status)!=='Resolved'&&!deletedIncidents.has(i.id)).length===0 && (
+                    <div style={{fontSize:'0.68rem',color:'#22d49a',padding:'8px 0',textAlign:'center'}}>No active incidents</div>
+                  )}
                 </div>
               </div>
 
@@ -1714,14 +1801,17 @@ Generated by Watchtower`;
 
           {/* ═══════════════════════════════ VULNS ══════════════════════════════════ */}
           {activeTab==='vulns' && (
-            <div style={{display:'flex',flexDirection:'column',gap:0}}>
-              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
+            <div style={{display:'flex',flexDirection:'column',gap:12}}>
+              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4,flexWrap:'wrap'}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Vulnerabilities</h2>
                 {!demoMode && liveVulns.length>0 && <span style={{fontSize:'0.6rem',color:'#22d49a',background:'#22d49a0a',padding:'2px 8px',borderRadius:4,border:'1px solid #22d49a25',fontWeight:600}}>✦ Live · {liveVulns.length} from Tenable</span>}
                 {demoMode && <span style={{fontSize:'0.6rem',color:'#f0a030',background:'#f0a03010',padding:'2px 8px',borderRadius:4,fontWeight:600}}>Demo data</span>}
-                <span style={{fontSize:'0.62rem',color:'#f0405e',background:'#f0405e12',padding:'2px 8px',borderRadius:4}}>Ranked by severity × prevalence in your estate</span>
-                <span style={{marginLeft:'auto',fontSize:'0.62rem',color:'#f97316',background:'#f9731612',padding:'2px 8px',borderRadius:4}}>{kevVulns.length} CISA KEV — 72h deadline</span>
+                <span style={{fontSize:'0.62rem',color:'#f0405e',background:'#f0405e12',padding:'2px 8px',borderRadius:4}}>Ranked by severity × prevalence</span>
+                {kevVulns.length>0 && <span style={{fontSize:'0.62rem',color:'#f97316',background:'#f9731612',padding:'2px 8px',borderRadius:4,border:'1px solid #f9731625',fontWeight:700}}>{kevVulns.length} CISA KEV — 72h</span>}
               </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 290px',gap:14,alignItems:'start'}} className='wt-two-col'>
+              {/* LEFT — vuln list */}
+              <div>
               <div style={{display:'flex',flexDirection:'column',gap:14}}>
                 {(()=>{
                   const getProduct = (title) => {
@@ -1847,6 +1937,102 @@ Generated by Watchtower`;
                   ));
                 })()}
               </div>
+              </div>
+
+              {/* RIGHT — donut + metrics */}
+              <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                {(()=>{
+                  const sevColors={Critical:'#f0405e',High:'#f97316',Medium:'#f0a030',Low:'#4f8fff'};
+                  const counts=['Critical','High','Medium','Low'].map(s=>({sev:s,n:vulns.filter(v=>v.severity===s).length,color:sevColors[s]})).filter(x=>x.n>0);
+                  const total=counts.reduce((a,b)=>a+b.n,0);
+                  if(!total) return null;
+                  const R=50,SW=11,CX=68,CY=68,CIRC=2*Math.PI*R;
+                  let offset=0;
+                  const segs=counts.map(c=>{const pct=c.n/total;const dash=pct*CIRC;const seg={...c,dash,gap:CIRC-dash,offset};offset+=dash;return seg;});
+                  return (
+                    <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px'}}>
+                      <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:12}}>Severity Breakdown</div>
+                      <div style={{display:'flex',alignItems:'center',gap:12}}>
+                        <svg width={136} height={136} viewBox={`0 0 ${CX*2} ${CY*2}`} style={{flexShrink:0}}>
+                          {segs.map((seg,i)=>(
+                            <circle key={i} cx={CX} cy={CY} r={R} fill='none' stroke={seg.color} strokeWidth={SW}
+                              strokeDasharray={`${seg.dash} ${seg.gap}`} strokeDashoffset={-seg.offset}
+                              style={{transform:'rotate(-90deg)',transformOrigin:`${CX}px ${CY}px`}} />
+                          ))}
+                          <text x={CX} y={CY-5} textAnchor='middle' fill='#e8ecf4' fontSize={20} fontWeight={900} fontFamily='JetBrains Mono,monospace'>{total}</text>
+                          <text x={CX} y={CY+12} textAnchor='middle' fill='#6b7a94' fontSize={10} fontFamily='Inter,sans-serif'>vulns</text>
+                        </svg>
+                        <div style={{display:'flex',flexDirection:'column',gap:7,flex:1}}>
+                          {segs.map(seg=>(
+                            <div key={seg.sev} style={{display:'flex',alignItems:'center',gap:6}}>
+                              <span style={{width:7,height:7,borderRadius:'50%',background:seg.color,flexShrink:0}} />
+                              <span style={{fontSize:'0.68rem',fontWeight:600,flex:1}}>{seg.sev}</span>
+                              <span style={{fontSize:'0.72rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:seg.color}}>{seg.n}</span>
+                              <span style={{fontSize:'0.56rem',color:'var(--wt-dim)',minWidth:28,textAlign:'right'}}>{Math.round(seg.n/total*100)}%</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Key metrics */}
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
+                  {[
+                    {label:'KEV Active',val:kevVulns.length,color:'#f97316',icon:'⚠'},
+                    {label:'Avg CVSS',val:vulns.length?(vulns.reduce((a,v)=>a+(v.cvss||0),0)/vulns.length).toFixed(1):'—',color:'#8b6fff',icon:'📊'},
+                    {label:'Devices Exposed',val:[...new Set(vulns.flatMap(v=>v.affectedAssets||v.affectedDevices||[]))].length,color:'#f0405e',icon:'💻'},
+                    {label:'Total Vulns',val:vulns.length,color:'#4f8fff',icon:'🔍'},
+                  ].map(m=>(
+                    <div key={m.label} style={{padding:'10px 12px',background:'var(--wt-card)',border:`1px solid ${m.color}18`,borderRadius:9,textAlign:'center'}}>
+                      <div style={{fontSize:'0.75rem',marginBottom:2}}>{m.icon}</div>
+                      <div style={{fontSize:'1.3rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:m.color,lineHeight:1}}>{m.val}</div>
+                      <div style={{fontSize:'0.54rem',color:'var(--wt-dim)',marginTop:2}}>{m.label}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* CVSS distribution */}
+                <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px 16px'}}>
+                  <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:10}}>CVSS Distribution</div>
+                  {[{label:'Critical 9+',min:9,max:11,color:'#f0405e'},{label:'High 7–9',min:7,max:9,color:'#f97316'},{label:'Medium 4–7',min:4,max:7,color:'#f0a030'},{label:'Low 0–4',min:0,max:4,color:'#4f8fff'}].map(b=>{
+                    const n=vulns.filter(v=>(v.cvss||0)>=b.min&&(v.cvss||0)<b.max).length;
+                    if(!n) return null;
+                    return (
+                      <div key={b.label} style={{marginBottom:7}}>
+                        <div style={{display:'flex',justifyContent:'space-between',marginBottom:2}}>
+                          <span style={{fontSize:'0.62rem',color:'var(--wt-muted)'}}>{b.label}</span>
+                          <span style={{fontSize:'0.62rem',fontWeight:700,color:b.color}}>{n}</span>
+                        </div>
+                        <div style={{height:4,borderRadius:2,background:'var(--wt-border)',overflow:'hidden'}}>
+                          <div style={{height:'100%',borderRadius:2,background:b.color,width:`${Math.round(n/Math.max(vulns.length,1)*100)}%`,transition:'width .5s'}} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Most vulnerable devices */}
+                {(()=>{
+                  const dc={};
+                  vulns.forEach(v=>(v.affectedAssets||v.affectedDevices||[]).forEach(d=>{dc[d]=(dc[d]||0)+1;}));
+                  const top=Object.entries(dc).sort((a,b)=>b[1]-a[1]).slice(0,5);
+                  if(!top.length) return null;
+                  return (
+                    <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px 16px'}}>
+                      <div style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Most Exposed Devices</div>
+                      {top.map(([device,count])=>(
+                        <div key={device} style={{display:'flex',alignItems:'center',gap:8,padding:'4px 0',borderBottom:'1px solid var(--wt-border)'}}>
+                          <span style={{fontSize:'0.64rem',fontFamily:'JetBrains Mono,monospace',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{device}</span>
+                          <span style={{fontSize:'0.58rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#f0405e18',color:'#f0405e'}}>{count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+              </div>
             </div>
           )}
 
@@ -1925,14 +2111,32 @@ Generated by Watchtower`;
                         )}
                         {item.iocs && item.iocs.length>0 && (
                           <div style={{marginTop:10,paddingTop:10,borderTop:'1px solid #f0a03015'}}>
-                            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
-                              <span style={{fontSize:'0.6rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px'}}>🔍 Hunt in your environment</span>
-                              <button onClick={e=>{e.stopPropagation();setIocQueryLoading(item.id);fetch('/api/copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:'ioc_hunt',prompt:'Generate detection queries to hunt for these IOCs in a corporate environment: '+item.iocs.join(', ')+'. Provide: SPLUNK QUERY (SPL), MICROSOFT SENTINEL KQL, and MICROSOFT DEFENDER ADVANCED HUNTING queries. Each labelled clearly. No markdown, plain text only.'})}).then(r=>r.json()).then(d=>{setIocQueries(prev=>({...prev,[item.id]:d.response||''}));setIocQueryLoading(null);}).catch(()=>setIocQueryLoading(null));}} disabled={iocQueryLoading===item.id} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>
-                                {iocQueryLoading===item.id ? <span><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid #22d49a',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}/> Generating...</span> : <span>✦ Generate Hunt Queries</span>}
-                              </button>
-                              {iocQueries[item.id] && <button onClick={e=>{e.stopPropagation();setIocQueries(prev=>{const n={...prev};delete n[item.id];return n;});}} style={{padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-dim)',fontSize:'0.56rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear</button>}
+                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>🔍 Hunt in your environment</div>
+                            <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:8}}>
+                              {[{tool:'splunk',label:'Splunk SPL',color:'#f97316'},{tool:'sentinel',label:'Sentinel KQL',color:'#4f8fff'},{tool:'defender',label:'Defender AH',color:'#22d49a'},{tool:'elastic',label:'Elastic EQL',color:'#00bfb3'}].map(({tool,label,color})=>{
+                                const key=item.id+':'+tool;
+                                const isLoading=iocQueryLoading===key;
+                                const hasResult=!!iocQueries[key];
+                                return (
+                                  <button key={tool} onClick={e=>{e.stopPropagation();if(isLoading)return;setIocQueryTool(prev=>({...prev,[item.id]:tool}));setIocQueryLoading(key);const toolLabel={'splunk':'Splunk SPL','sentinel':'Microsoft Sentinel KQL','defender':'Microsoft Defender Advanced Hunting','elastic':'Elastic EQL'}[tool];fetch('/api/copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:'ioc_hunt',prompt:'Generate a '+toolLabel+' query to hunt for these IOCs: '+item.iocs.join(', ')+'. Provide ONLY the '+toolLabel+' query, no preamble, no markdown backticks, just the raw query.'})}).then(r=>r.json()).then(d=>{setIocQueries(prev=>({...prev,[key]:d.response||''}));setIocQueryLoading(null);}).catch(()=>setIocQueryLoading(null));}} disabled={isLoading} style={{padding:'4px 10px',borderRadius:5,border:`1px solid ${color}40`,background:hasResult?`${color}20`:'transparent',color,fontSize:'0.62rem',fontWeight:700,cursor:isLoading?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4,opacity:isLoading?0.7:1}}>
+                                    {isLoading && <span style={{display:'inline-block',width:7,height:7,borderRadius:'50%',border:`2px solid ${color}`,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />}
+                                    {!isLoading && hasResult && <span style={{fontSize:'0.6rem'}}>✓</span>}
+                                    {label}
+                                  </button>
+                                );
+                              })}
+                              {Object.keys(iocQueries).some(k=>k.startsWith(item.id+':')) && <button onClick={e=>{e.stopPropagation();setIocQueries(prev=>{const n={...prev};Object.keys(n).filter(k=>k.startsWith(item.id+':')).forEach(k=>delete n[k]);return n;});}} style={{marginLeft:'auto',fontSize:'0.56rem',padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-dim)',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear all</button>}
                             </div>
-                            {iocQueries[item.id] && <RemediationOutput text={iocQueries[item.id]} />}
+                            {[{tool:'splunk',label:'Splunk SPL',color:'#f97316'},{tool:'sentinel',label:'Sentinel KQL',color:'#4f8fff'},{tool:'defender',label:'Defender AH',color:'#22d49a'},{tool:'elastic',label:'Elastic EQL',color:'#00bfb3'}].map(({tool,label,color})=>{
+                              const key=item.id+':'+tool;
+                              if(!iocQueries[key]) return null;
+                              return (
+                                <div key={tool} style={{marginBottom:8}}>
+                                  <div style={{fontSize:'0.56rem',fontWeight:700,color,textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>{label}</div>
+                                  <RemediationOutput text={iocQueries[key]} />
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
@@ -1983,14 +2187,32 @@ Generated by Watchtower`;
                         )}
                         {item.iocs && item.iocs.length>0 && (
                           <div style={{marginTop:10,paddingTop:10,borderTop:'1px solid #f0a03015'}}>
-                            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
-                              <span style={{fontSize:'0.6rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px'}}>🔍 Hunt in your environment</span>
-                              <button onClick={e=>{e.stopPropagation();setIocQueryLoading(item.id);fetch('/api/copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:'ioc_hunt',prompt:'Generate detection queries to hunt for these IOCs in a corporate environment: '+item.iocs.join(', ')+'. Provide: SPLUNK QUERY (SPL), MICROSOFT SENTINEL KQL, and MICROSOFT DEFENDER ADVANCED HUNTING queries. Each labelled clearly. No markdown, plain text only.'})}).then(r=>r.json()).then(d=>{setIocQueries(prev=>({...prev,[item.id]:d.response||''}));setIocQueryLoading(null);}).catch(()=>setIocQueryLoading(null));}} disabled={iocQueryLoading===item.id} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>
-                                {iocQueryLoading===item.id ? <span><span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid #22d49a',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}}/> Generating...</span> : <span>✦ Generate Hunt Queries</span>}
-                              </button>
-                              {iocQueries[item.id] && <button onClick={e=>{e.stopPropagation();setIocQueries(prev=>{const n={...prev};delete n[item.id];return n;});}} style={{padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-dim)',fontSize:'0.56rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear</button>}
+                            <div style={{fontSize:'0.6rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>🔍 Hunt in your environment</div>
+                            <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:8}}>
+                              {[{tool:'splunk',label:'Splunk SPL',color:'#f97316'},{tool:'sentinel',label:'Sentinel KQL',color:'#4f8fff'},{tool:'defender',label:'Defender AH',color:'#22d49a'},{tool:'elastic',label:'Elastic EQL',color:'#00bfb3'}].map(({tool,label,color})=>{
+                                const key=item.id+':'+tool;
+                                const isLoading=iocQueryLoading===key;
+                                const hasResult=!!iocQueries[key];
+                                return (
+                                  <button key={tool} onClick={e=>{e.stopPropagation();if(isLoading)return;setIocQueryTool(prev=>({...prev,[item.id]:tool}));setIocQueryLoading(key);const toolLabel={'splunk':'Splunk SPL','sentinel':'Microsoft Sentinel KQL','defender':'Microsoft Defender Advanced Hunting','elastic':'Elastic EQL'}[tool];fetch('/api/copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:'ioc_hunt',prompt:'Generate a '+toolLabel+' query to hunt for these IOCs: '+item.iocs.join(', ')+'. Provide ONLY the '+toolLabel+' query, no preamble, no markdown backticks, just the raw query.'})}).then(r=>r.json()).then(d=>{setIocQueries(prev=>({...prev,[key]:d.response||''}));setIocQueryLoading(null);}).catch(()=>setIocQueryLoading(null));}} disabled={isLoading} style={{padding:'4px 10px',borderRadius:5,border:`1px solid ${color}40`,background:hasResult?`${color}20`:'transparent',color,fontSize:'0.62rem',fontWeight:700,cursor:isLoading?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4,opacity:isLoading?0.7:1}}>
+                                    {isLoading && <span style={{display:'inline-block',width:7,height:7,borderRadius:'50%',border:`2px solid ${color}`,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />}
+                                    {!isLoading && hasResult && <span style={{fontSize:'0.6rem'}}>✓</span>}
+                                    {label}
+                                  </button>
+                                );
+                              })}
+                              {Object.keys(iocQueries).some(k=>k.startsWith(item.id+':')) && <button onClick={e=>{e.stopPropagation();setIocQueries(prev=>{const n={...prev};Object.keys(n).filter(k=>k.startsWith(item.id+':')).forEach(k=>delete n[k]);return n;});}} style={{marginLeft:'auto',fontSize:'0.56rem',padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-dim)',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear all</button>}
                             </div>
-                            {iocQueries[item.id] && <RemediationOutput text={iocQueries[item.id]} />}
+                            {[{tool:'splunk',label:'Splunk SPL',color:'#f97316'},{tool:'sentinel',label:'Sentinel KQL',color:'#4f8fff'},{tool:'defender',label:'Defender AH',color:'#22d49a'},{tool:'elastic',label:'Elastic EQL',color:'#00bfb3'}].map(({tool,label,color})=>{
+                              const key=item.id+':'+tool;
+                              if(!iocQueries[key]) return null;
+                              return (
+                                <div key={tool} style={{marginBottom:8}}>
+                                  <div style={{fontSize:'0.56rem',fontWeight:700,color,textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:4}}>{label}</div>
+                                  <RemediationOutput text={iocQueries[key]} />
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
@@ -2052,12 +2274,59 @@ Generated by Watchtower`;
 
           {/* ═══════════════════════════════ INCIDENTS ══════════════════════════════ */}
           {activeTab==='incidents' && (
-            <GateWall feature='Incident Management' requiredTier='team' userTier={userTier} isAdmin={isAdmin}>
+            <GateWall feature='Incident Management' requiredTier='team' userTier={isAdmin?'team':userTier} isAdmin={isAdmin}>
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4,flexWrap:'wrap'}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Incidents</h2>
-                <span style={{fontSize:'0.62rem',color:'#f0405e',background:'#f0405e12',padding:'2px 8px',borderRadius:4}}>{incidents.filter(i=>i.status==='Active').length} Active</span>
+                <span style={{fontSize:'0.62rem',color:'#f0405e',background:'#f0405e12',padding:'2px 8px',borderRadius:4}}>{incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Active').length} Active</span>
+                <span style={{fontSize:'0.62rem',color:'#8b6fff',background:'#8b6fff12',padding:'2px 8px',borderRadius:4}}>{incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Escalated').length} Escalated</span>
+                {incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Resolved').length>0 && <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Resolved').length} Resolved</span>}
+                <span style={{marginLeft:'auto',fontSize:'0.58rem',color:'var(--wt-dim)'}}>{incidents.filter(i=>!deletedIncidents.has(i.id)).length} total</span>
               </div>
+
+              {/* Analyst workload */}
+              {(()=>{
+                const analysts = {};
+                incidents.filter(i=>!deletedIncidents.has(i.id)).forEach(inc=>{
+                  const name = inc.assignedTo || 'Unassigned';
+                  if (!analysts[name]) analysts[name] = {active:0,escalated:0,contained:0,resolved:0,total:0};
+                  const st = incidentStatuses[inc.id] || inc.status;
+                  analysts[name].total++;
+                  if (st==='Active') analysts[name].active++;
+                  else if (st==='Escalated') analysts[name].escalated++;
+                  else if (st==='Contained') analysts[name].contained++;
+                  else analysts[name].resolved++;
+                });
+                const entries = Object.entries(analysts).sort((a,b)=>b[1].total-a[1].total);
+                if (entries.length < 2) return null;
+                return (
+                  <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'12px 16px'}}>
+                    <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:10}}>Analyst Workload</div>
+                    <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                      {entries.map(([name,stats])=>{
+                        const initials = name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+                        const load = stats.active + stats.escalated;
+                        const loadColor = load>=3?'#f0405e':load>=2?'#f97316':load>=1?'#f0a030':'#22d49a';
+                        return (
+                          <div key={name} style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',background:'var(--wt-card2)',border:`1px solid ${loadColor}20`,borderRadius:8,minWidth:160}}>
+                            <div style={{width:28,height:28,borderRadius:'50%',background:`linear-gradient(135deg,${loadColor}30,${loadColor}10)`,border:`1px solid ${loadColor}40`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.6rem',fontWeight:800,color:loadColor,flexShrink:0}}>{initials}</div>
+                            <div style={{flex:1,minWidth:0}}>
+                              <div style={{fontSize:'0.7rem',fontWeight:700,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{name.split(' ')[0]}</div>
+                              <div style={{display:'flex',gap:4,marginTop:2,flexWrap:'wrap'}}>
+                                {stats.active>0&&<span style={{fontSize:'0.52rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:'#f0405e18',color:'#f0405e'}}>{stats.active} active</span>}
+                                {stats.escalated>0&&<span style={{fontSize:'0.52rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:'#8b6fff18',color:'#8b6fff'}}>{stats.escalated} escalated</span>}
+                                {stats.contained>0&&<span style={{fontSize:'0.52rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:'#f0a03018',color:'#f0a030'}}>{stats.contained} contained</span>}
+                                {stats.resolved>0&&<span style={{fontSize:'0.52rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:'#22d49a18',color:'#22d49a'}}>{stats.resolved} resolved</span>}
+                              </div>
+                            </div>
+                            <div style={{fontSize:'1.2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:loadColor,lineHeight:1}}>{stats.total}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
               {incidents.filter(inc=>!deletedIncidents.has(inc.id)).map(inc=>{
                 const isSel = selectedIncident?.id===inc.id;
                 const incStatus = incidentStatuses[inc.id] || inc.status; const statusColor = incStatus==='Active'?'#f0405e':incStatus==='Contained'?'#f0a030':'#22d49a';
@@ -2088,6 +2357,7 @@ Generated by Watchtower`;
                           {(inc.mitreTactics||[]).map(t=><span key={t} style={{fontSize:'0.52rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{t}</span>)}
                           <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{inc.alertCount} alert{inc.alertCount!==1?'s':''} · {(inc.devices||[]).length} device{(inc.devices||[]).length!==1?'s':''}</span>
                           <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>Updated {inc.updated&&inc.updated.split&&inc.updated.split(' ')[1]||'—'}</span>
+                          {inc.assignedTo && <span style={{fontSize:'0.54rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff25',flexShrink:0}}>{'\u{1f464}'} {inc.assignedTo.split(' ')[0]}</span>}
                           {(()=>{
                             if(!inc.created||(incidentStatuses[inc.id]||inc.status)!=='Active') return null;
                             const ageMs=Date.now()-new Date(inc.created).getTime();

@@ -3,8 +3,30 @@ import { redisGet, redisSet } from '@/lib/redis';
 
 const PLATFORM_KEY = 'wt:platform:settings';
 
+
+async function isAdmin(req: NextRequest): Promise<boolean> {
+  if (req.headers.get('x-is-admin') === 'true') return true;
+  if (req.headers.get('x-user-tier') === 'mssp') return true;
+  const sessionToken = req.cookies.get('wt_session')?.value;
+  if (sessionToken) {
+    try {
+      const { createHmac } = await import('crypto');
+      const secret = process.env.WATCHTOWER_SESSION_SECRET || 'watchtower-dev-session-secret';
+      const [encoded, sig] = sessionToken.split('.');
+      if (encoded && sig) {
+        const expectedSig = createHmac('sha256', secret).update(encoded).digest('base64url');
+        if (sig === expectedSig) {
+          const payload = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8'));
+          if (Date.now() - payload.iat <= 86400000 && (payload.isAdmin === true || payload.tier === 'mssp')) return true;
+        }
+      }
+    } catch {}
+  }
+  return false;
+}
+
 export async function GET(req: NextRequest) {
-  if ((req.headers.get('x-is-admin') !== 'true' && req.headers.get('x-user-tier') !== 'mssp')) {
+  if (!(await isAdmin(req))) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
   try {
@@ -17,7 +39,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if ((req.headers.get('x-is-admin') !== 'true' && req.headers.get('x-user-tier') !== 'mssp')) {
+  if (!(await isAdmin(req))) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
   try {

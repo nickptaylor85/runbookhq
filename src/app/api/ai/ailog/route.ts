@@ -24,18 +24,35 @@ export interface AILogEntry {
   industry?: string;
 }
 
-function requireAdmin(req: NextRequest): boolean {
-  // Admin session (middleware-injected from verified JWT)
+async function verifyAdminSession(req: NextRequest): Promise<boolean> {
+  // 1. Middleware-injected headers (normal path)
   if (req.headers.get('x-is-admin') === 'true') return true;
-  // MSSP tier = platform-level access (accounts that signed up before isAdmin flag was set)
   if (req.headers.get('x-user-tier') === 'mssp') return true;
-  // Internal server-to-server calls use the WATCHTOWER_API_KEY header
+  // 2. Internal key
   const internalKey = req.headers.get('x-internal-key');
   if (internalKey && internalKey === process.env.WATCHTOWER_API_KEY) return true;
-  // Authenticated session in dev (no admin email env var configured)
-  const hasSession = !!req.headers.get('x-user-id');
-  const isDev = !process.env.WATCHTOWER_ADMIN_EMAIL;
-  return hasSession && isDev;
+  // 3. Direct session cookie verification (fallback when middleware headers missing)
+  const sessionToken = req.cookies.get('wt_session')?.value;
+  if (sessionToken) {
+    try {
+      const { createHmac } = await import('crypto');
+      const secret = process.env.WATCHTOWER_SESSION_SECRET || 'watchtower-dev-session-secret';
+      const [encoded, sig] = sessionToken.split('.');
+      if (encoded && sig) {
+        const expectedSig = createHmac('sha256', secret).update(encoded).digest('base64url');
+        if (sig === expectedSig) {
+          const payload = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8'));
+          if (Date.now() - payload.iat <= 86400000 && (payload.isAdmin === true || payload.tier === 'mssp')) return true;
+        }
+      }
+    } catch {}
+  }
+  // 4. Dev fallback
+  return !!req.headers.get('x-user-id') && !process.env.WATCHTOWER_ADMIN_EMAIL;
+}
+
+function requireAdmin(req: NextRequest): boolean {
+  return req.headers.get('x-is-admin') === 'true' || req.headers.get('x-user-tier') === 'mssp';
 }
 
 // Allow any authenticated session to POST logs (internal writes)
@@ -50,7 +67,9 @@ function allowLog(req: NextRequest): boolean {
 
 // GET — admin only
 export async function GET(req: NextRequest) {
-  if (!requireAdmin(req)) {
+  const isAdmin = await verifyAdminSession(req);
+  if (!isAdmin) {
+    console.error('[ailog GET] auth failed - x-is-admin:', req.headers.get('x-is-admin'), 'tier:', req.headers.get('x-user-tier'));
     return NextResponse.json({ error: 'Unauthorised — admin only' }, { status: 403 });
   }
   try {

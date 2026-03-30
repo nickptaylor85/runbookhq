@@ -2,6 +2,105 @@
 import React, { useState, useEffect } from 'react';
 
 // Signup toggle sub-component — reads/writes signup_enabled flag from Redis via /api/admin/platform
+function AnalyticsView() {
+  const [data, setData] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  React.useEffect(()=>{
+    fetch('/api/admin/analytics',{headers:{'x-is-admin':'true'}})
+      .then(r=>r.json()).then(d=>{ setData(d); setLoading(false); }).catch(()=>setLoading(false));
+  },[]);
+
+  if (loading) return <div style={{fontSize:'0.72rem',color:'var(--wt-muted)',padding:'24px 0',textAlign:'center'}}>Loading analytics…</div>;
+  if (!data) return <div style={{fontSize:'0.72rem',color:'#f0405e',padding:'24px 0',textAlign:'center'}}>Failed to load analytics</div>;
+
+  const stats = [
+    {label:'Total Signups',    val: data.totalSignups   ?? 0, color:'#4f8fff', sub:'all time'},
+    {label:'This Week',        val: data.weeklySignups  ?? 0, color:'#22d49a', sub:'last 7 days'},
+    {label:'Paying Customers', val: data.paidCustomers  ?? 0, color:'#8b6fff', sub:'team + business + mssp'},
+    {label:'Community Free',   val: data.communityUsers ?? 0, color:'#f0a030', sub:'free tier'},
+    {label:'Churn (30d)',       val: data.churn30d       ?? 0, color:'#f0405e', sub:'cancellations'},
+    {label:'MRR',              val: `£${(data.mrr ?? 0).toLocaleString()}`, color:'#22d49a', sub:'monthly recurring'},
+  ];
+
+  const tierBreakdown = data.tierBreakdown || {community:0, team:0, business:0, mssp:0};
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',gap:14}}>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+        {stats.map(s=>(
+          <div key={s.label} style={{padding:'14px 16px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:12}}>
+            <div style={{fontSize:'1.8rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-2,lineHeight:1}}>{s.val}</div>
+            <div style={{fontSize:'0.66rem',fontWeight:700,color:s.color,marginTop:3}}>{s.label}</div>
+            <div style={{fontSize:'0.58rem',color:'var(--wt-muted)',marginTop:1}}>{s.sub}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
+        <div style={{fontSize:'0.72rem',fontWeight:700,marginBottom:12}}>Tier Distribution</div>
+        <div style={{display:'flex',flexDirection:'column',gap:8}}>
+          {[
+            {key:'mssp',     label:'Enterprise',   color:'#8b6fff'},
+            {key:'business', label:'Professional', color:'#22d49a'},
+            {key:'team',     label:'Essentials',   color:'#4f8fff'},
+            {key:'community',label:'Community',    color:'#6b7a94'},
+          ].map(t=>{
+            const total = Object.values(tierBreakdown).reduce((a,b)=>a+b,0) || 1;
+            const count = tierBreakdown[t.key] || 0;
+            const pct = Math.round(count/total*100);
+            return (
+              <div key={t.key} style={{display:'flex',alignItems:'center',gap:10}}>
+                <div style={{width:80,fontSize:'0.66rem',fontWeight:700,color:t.color,flexShrink:0}}>{t.label}</div>
+                <div style={{flex:1,height:8,background:'var(--wt-card2)',borderRadius:4,overflow:'hidden'}}>
+                  <div style={{width:`${pct}%`,height:'100%',background:t.color,borderRadius:4,transition:'width .5s ease'}} />
+                </div>
+                <div style={{width:40,fontSize:'0.66rem',color:'var(--wt-muted)',textAlign:'right',fontFamily:'JetBrains Mono,monospace'}}>{count}</div>
+                <div style={{width:32,fontSize:'0.62rem',color:t.color,textAlign:'right'}}>{pct}%</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      {data.weeklyTrend && data.weeklyTrend.length > 0 && (
+        <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
+          <div style={{fontSize:'0.72rem',fontWeight:700,marginBottom:14}}>Signup Trend — Last 8 Weeks</div>
+          <div style={{display:'flex',alignItems:'flex-end',gap:6,height:80}}>
+            {data.weeklyTrend.map((w,i)=>{
+              const maxCount = Math.max(...data.weeklyTrend.map(x=>x.count), 1);
+              const h = Math.round((w.count / maxCount) * 64);
+              return (
+                <div key={i} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+                  <div style={{fontSize:'0.52rem',color:'#4f8fff',fontWeight:700,fontFamily:'JetBrains Mono,monospace',minHeight:12}}>{w.count||''}</div>
+                  <div style={{width:'100%',background:'#4f8fff',borderRadius:'3px 3px 0 0',height:Math.max(h,2),transition:'height .4s ease'}} title={`${w.count} signups (${w.paid} paid)`} />
+                  <div style={{fontSize:'0.5rem',color:'var(--wt-muted)',textAlign:'center'}}>{w.week}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {data.recentSignups && data.recentSignups.length > 0 && (
+        <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
+          <div style={{fontSize:'0.72rem',fontWeight:700,marginBottom:10}}>Recent Signups</div>
+          <div style={{display:'flex',flexDirection:'column',gap:6}}>
+            {data.recentSignups.slice(0,10).map((u,i)=>(
+              <div key={i} style={{display:'flex',alignItems:'center',gap:10,padding:'6px 10px',background:'var(--wt-card2)',borderRadius:7}}>
+                <div style={{flex:1,fontSize:'0.72rem',fontFamily:'JetBrains Mono,monospace',color:'var(--wt-text)'}}>{u.email}</div>
+                <div style={{fontSize:'0.62rem',color:'var(--wt-muted)'}}>{u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-GB') : '—'}</div>
+                <span style={{fontSize:'0.56rem',fontWeight:800,padding:'2px 7px',borderRadius:4,
+                  background: u.plan==='mssp'?'#8b6fff18':u.plan==='business'?'#22d49a18':u.plan==='team'?'#4f8fff18':'#6b7a9418',
+                  color:       u.plan==='mssp'?'#8b6fff':u.plan==='business'?'#22d49a':u.plan==='team'?'#4f8fff':'#6b7a94',
+                  border:      `1px solid ${u.plan==='mssp'?'#8b6fff30':u.plan==='business'?'#22d49a30':u.plan==='team'?'#4f8fff30':'#6b7a9430'}`,
+                }}>{(u.plan||'community').toUpperCase()}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 function SignupToggle() {
   const [enabled, setEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -15,9 +114,14 @@ function SignupToggle() {
   const toggle = async () => {
     setSaving(true);
     try {
-      await fetch('/api/admin/platform',{method:'POST',headers:{'Content-Type':'application/json','x-is-admin':'true'},body:JSON.stringify({signup_enabled:!enabled})});
-      setEnabled(e=>!e);
-    } catch(e) {}
+      const newVal = !enabled;
+      const r = await fetch('/api/admin/platform',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({signup_enabled:newVal})});
+      if (r.ok) {
+        setEnabled(newVal);
+      } else {
+        console.error('[signup toggle] failed:', r.status, await r.text().catch(()=>''));
+      }
+    } catch(e) { console.error('[signup toggle] error:', e); }
     setSaving(false);
   };
   return (
@@ -82,9 +186,16 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
   async function fetchAiLog() {
     setAiLogLoading(true);
     try {
-      const r = await fetch('/api/ai/ailog?limit=200', {headers:{'x-is-admin':'true','x-tenant-id':currentTenant||'global'}});
-      if (r.ok) { const d = await r.json(); if (d.ok) setAiLog(d); }
-    } catch(e) {}
+      // Always fetch global tenant for AI log — entries are logged under admin's own tenant
+      const r = await fetch('/api/ai/ailog?limit=200', {headers:{'x-is-admin':'true','x-tenant-id':'global'}});
+      if (r.ok) {
+        const d = await r.json();
+        if (d.ok) setAiLog(d);
+        else console.error('[ailog] error:', d);
+      } else {
+        console.error('[ailog] HTTP', r.status, await r.text().catch(()=>''));
+      }
+    } catch(e) { console.error('[ailog] fetch error:', e); }
     setAiLogLoading(false);
   }
   const [filterPlan, setFilterPlan] = useState('All');
@@ -144,7 +255,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
           <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginTop:3}}>All organisations subscribed to Watchtower · Impersonate any tenant to view their dashboard</div>
         </div>
         <div style={{marginLeft:'auto',display:'flex',gap:4,background:'var(--wt-card2)',borderRadius:7,padding:3,overflowX:'auto',flexShrink:0}}>
-          {['subscribers','users','platform','stripe','saml','broadcast','ailog','audit'].map(v=>(
+          {['analytics','subscribers','users','platform','stripe','saml','broadcast','ailog','audit'].map(v=>(
             <button key={v} onClick={()=>{setAdminView(v);if(v==='ailog')fetchAiLog();}} style={{padding:'5px 11px',borderRadius:5,border:'none',background:adminView===v?'#f0a030':'transparent',color:adminView===v?'#fff':'var(--wt-muted)',fontSize:'0.64rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',whiteSpace:'nowrap',flexShrink:0}}>{v==='ailog'?'✦ AI Log':v.charAt(0).toUpperCase()+v.slice(1)}</button>
           ))}
         </div>
@@ -215,6 +326,12 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
             })}
             <div style={{marginLeft:'auto',fontSize:'0.66rem',color:'var(--wt-muted)'}}>Total ARR: <strong style={{color:'#22d49a'}}>£{(totalMRR*12).toLocaleString()}</strong></div>
           </div>
+        </div>
+      )}
+
+      {adminView==='analytics' && (
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          <AnalyticsView />
         </div>
       )}
 
@@ -658,8 +775,6 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
           )}
         </div>
       )}
-    </div>
-  );
 
         {adminView==='audit' && (
           <div style={{display:'flex',flexDirection:'column',gap:12}}>
@@ -668,4 +783,6 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
             <AuditLogView tenantId='global' />
           </div>
         )}
+    </div>
+  );
 }
