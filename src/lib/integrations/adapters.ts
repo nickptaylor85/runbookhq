@@ -192,7 +192,7 @@ export const tenable: IntegrationAdapter = {
     // Also emits coverage device records so the Coverage tab shows all Tenable-scanned devices
     try {
       const assetRes = await fetch(
-        `https://cloud.tenable.com/workbenches/assets?date_range=90&limit=5000`,
+        `https://cloud.tenable.com/workbenches/assets?date_range=30&limit=5000`,
         { headers, signal: AbortSignal.timeout(8000) }
       );
       if (assetRes.ok) {
@@ -840,8 +840,10 @@ export const taegis: IntegrationAdapter = {
       if (epRes.ok) {
         const epData = await epRes.json();
         const epAssets = epData.data?.endpointsQuery?.assets || [];
-        console.log(`[taegis] endpoints returned=${epAssets.length}`);
-        for (const asset of epAssets) {
+        const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+        const recentEpAssets = epAssets.filter((a: any) => !a.lastSeen || new Date(a.lastSeen).getTime() >= thirtyDaysAgo);
+        console.log(`[taegis] endpoints returned=${epAssets.length} active-30d=${recentEpAssets.length}`);
+        for (const asset of recentEpAssets) {
           const hostname = (asset.hostnames || [])[0] || asset.id || 'Unknown';
           const ip = asset.networkInterfaces?.[0]?.addresses?.[0] || '';
           const lastSeen = asset.lastSeen ? new Date(asset.lastSeen).getTime() : Date.now();
