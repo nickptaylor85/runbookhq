@@ -452,7 +452,7 @@ export default function LandingPage() {
         <div style={{ maxWidth:960, margin:'0 auto', display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:24, textAlign:'center' }}>
           {[
             { val:'3.2s', label:'Average AI triage time', color:'#4f8fff' },
-            { val:'80+', label:'Tool integrations across 20 categories', color:'#22d49a' },
+            { val:'80+', label:'Tool integrations — EDR, SIEM, XDR, Cloud, Identity, OT', color:'#22d49a' },
             { val:'85%', label:'Alerts auto-resolved with full audit trail', color:'#8b6fff' },
             { val:'10×', label:'Analyst capacity increase', color:'#f0a030' },
           ].map(s => (
@@ -586,30 +586,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
-      <section style={{ padding:'60px 24px', background:'#0c1020', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
-        <div style={{ maxWidth:980, margin:'0 auto' }}>
-          <div style={{ textAlign:'center', marginBottom:36 }}>
-            <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>TESTIMONIALS</div>
-            <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:-1.5 }}>Trusted by security teams</h2>
-          </div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:14 }}>
-            {TESTIMONIALS.map(t=>(
-              <div key={t.name} style={{ padding:24, background:'#131929', border:'1px solid #1d2535', borderRadius:14 }}>
-                <p style={{ fontSize:'0.84rem', color:'#8a9ab0', lineHeight:1.8, marginBottom:20, fontStyle:'italic' }}>"{t.quote}"</p>
-                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                  <div style={{ width:36, height:36, borderRadius:'50%', background:`linear-gradient(135deg,${t.color}33,${t.color}15)`, border:`1px solid ${t.color}30`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.7rem', fontWeight:800, color:t.color }}>{t.init}</div>
-                  <div>
-                    <div style={{ fontSize:'0.78rem', fontWeight:700 }}>{t.name}</div>
-                    <div style={{ fontSize:'0.62rem', color:'#4a5568' }}>{t.role}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* SECURITY / COMPLIANCE TRUST */}
       <section style={{ padding:'40px 24px', background:'#080b14', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
         <div style={{ maxWidth:860, margin:'0 auto', textAlign:'center' }}>
@@ -685,23 +661,6 @@ export default function LandingPage() {
             </a>
           </div>
           <div style={{ marginTop:16, fontSize:'0.72rem', color:'#3a4050' }}>No credit card · Community free forever · 14-day trial on paid plans</div>
-        </div>
-      </section>
-
-      {/* LINKEDIN CTA */}
-      <section style={{ padding:'40px 24px', background:'#050a18', borderTop:'1px solid #0e1824', borderBottom:'1px solid #0e1824' }}>
-        <div style={{ maxWidth:700, margin:'0 auto', display:'flex', alignItems:'center', gap:24, flexWrap:'wrap', justifyContent:'center' }}>
-          <div style={{ flex:1, minWidth:240 }}>
-            <div style={{ fontSize:'0.86rem', fontWeight:800, marginBottom:6 }}>Follow the build on LinkedIn</div>
-            <div style={{ fontSize:'0.74rem', color:'#6b7a94', lineHeight:1.6 }}>We post SOC automation tips, product updates, and real-world alert triage examples every week.</div>
-          </div>
-          <a href='https://www.linkedin.com/company/getwatchtower' target='_blank' rel='noopener noreferrer' style={{ padding:'10px 22px', borderRadius:9, background:'#0077b5', color:'#fff', fontWeight:700, fontSize:'0.82rem', textDecoration:'none', flexShrink:0, display:'flex', alignItems:'center', gap:8, whiteSpace:'nowrap' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2zm2-3a2 2 0 100-4 2 2 0 000 4z"/></svg>
-            Follow on LinkedIn
-          </a>
-          <a href='https://www.linkedin.com/company/getwatchtower' target='_blank' rel='noopener noreferrer' style={{ padding:'10px 22px', borderRadius:9, border:'1px solid #263044', background:'transparent', color:'#e8ecf4', fontWeight:600, fontSize:'0.82rem', textDecoration:'none', flexShrink:0, whiteSpace:'nowrap' }}>
-            For MSSPs — book a call →
-          </a>
         </div>
       </section>
 

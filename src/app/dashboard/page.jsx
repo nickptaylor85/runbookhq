@@ -896,12 +896,19 @@ export default function DashboardPage() {
             }
           });
         });
-        // MDM/Asset tool devices — enrich or add
+        // MDM/Asset tool devices — enrich or add (skip unknown/non-endpoint devices)
+        const isRelevantOs = (osStr) => {
+          if (!osStr || osStr === 'Unknown') return false;
+          const s = osStr.toLowerCase();
+          return s.includes('windows') || s.includes('mac') || s.includes('darwin') || s.includes('linux') || s.includes('ubuntu') || s.includes('rhel') || s.includes('centos') || s.includes('debian') || s.includes('suse') || s.includes('amazon');
+        };
         liveCoverageDevices.forEach(dev => {
+          if (!dev.hostname || dev.hostname === 'Unknown') return;
           if (deviceMap.has(dev.hostname)) {
             const existing = deviceMap.get(dev.hostname);
             deviceMap.set(dev.hostname, { ...existing, ip: dev.ip || existing.ip, os: dev.os !== 'Unknown' ? dev.os : existing.os, source: dev.source, complianceState: dev.complianceState });
           } else {
+            if (!isRelevantOs(dev.os)) return; // skip printers, network devices, etc.
             deviceMap.set(dev.hostname, {
               hostname: dev.hostname, ip: dev.ip || '', os: dev.os || 'Unknown',
               missing: connectedEdrNames.length > 0 ? connectedEdrNames.map(n=>`Verify: ${n}`) : [],
@@ -911,7 +918,8 @@ export default function DashboardPage() {
             });
           }
         });
-        return Array.from(deviceMap.values());
+        // Remove Unknown OS devices from Tenable-sourced entries too
+        return Array.from(deviceMap.values()).filter(d => d.os && d.os !== 'Unknown' && isRelevantOs(d.os));
       })()
     : [];
   const normaliseOs = (raw) => {
@@ -1817,13 +1825,32 @@ export default function DashboardPage() {
               {/* OS Breakdown — from connected tools */}
               {(()=>{
                 const devices = demoMode ? DEMO_GAP_DEVICES : liveKnownDevices.length > 0 ? liveKnownDevices : DEMO_GAP_DEVICES;
-                const OS_COLORS = {'Windows':'#00a4ef','macOS':'#a8b2c1','Linux':'#f97316','Ubuntu':'#e95420','RHEL':'#cc0000','iOS':'#a8b2c1','Android':'#3ddc84','Unknown':'#6b7a94'};
-                const OS_ICONS = {'Windows':'🪟','macOS':'🍎','Linux':'🐧','Ubuntu':'🐧','RHEL':'🎩','iOS':'📱','Android':'🤖','Unknown':'💻'};
+                const osVersionColor = (os) => { const s = (os||'').toLowerCase(); return s.includes('windows 11')?'#00a4ef':s.includes('windows 10')?'#0078d4':s.includes('server')?'#005a9e':s.includes('ubuntu')?'#e95420':s.includes('rhel')||s.includes('centos')||s.includes('amazon')?'#cc0000':s.includes('debian')||s.includes('suse')?'#a80030':s.includes('linux')?'#f97316':s.includes('macos')?'#a8b2c1':'#6b7a94'; };
+                const OS_COLORS = {}; const OS_ICONS = {};
+                const versionNormalise = (raw) => {
+                  if (!raw || raw === 'Unknown') return null;
+                  const s = raw.toLowerCase();
+                  if (s.includes('windows')) {
+                    if (s.includes('server')) { const yr = (raw.match(/20\d\d/)||[])[0]; const r2 = s.includes('r2')?' R2':''; return yr ? `Win Server ${yr}${r2}` : 'Win Server'; }
+                    if (s.includes('11')) return 'Windows 11';
+                    if (s.includes('10')) return 'Windows 10';
+                    if (s.includes('8.1')) return 'Windows 8.1';
+                    if (s.includes('7')) return 'Windows 7';
+                    return 'Windows';
+                  }
+                  if (s.includes('ubuntu')) { const v = (raw.match(/\d+\.\d+/)||[])[0]; return v ? `Ubuntu ${v}` : 'Ubuntu'; }
+                  if (s.includes('rhel')||s.includes('red hat')) { const v = (raw.match(/\d+/)||[])[0]; return v ? `RHEL ${v}` : 'RHEL'; }
+                  if (s.includes('centos')) { const v = (raw.match(/\d+/)||[])[0]; return v ? `CentOS ${v}` : 'CentOS'; }
+                  if (s.includes('debian')) { const v = (raw.match(/\d+/)||[])[0]; return v ? `Debian ${v}` : 'Debian'; }
+                  if (s.includes('amazon')) return 'Amazon Linux';
+                  if (s.includes('suse')||s.includes('sles')) return 'SUSE Linux';
+                  if (s.includes('linux')||s.includes('unix')) return 'Linux';
+                  if (s.includes('macos')||s.includes('mac os')||s.includes('darwin')) { const v = (raw.match(/\d+\.\d+/)||[])[0]; return v ? `macOS ${v}` : 'macOS'; }
+                  return null;
+                };
                 const breakdown = devices.reduce((acc,d)=>{
-                  const raw = d.os || 'Unknown';
-                  // Normalise: strip version numbers, map to family
-                  const family = raw.match(/windows/i)?'Windows':raw.match(/mac|darwin/i)?'macOS':raw.match(/ubuntu/i)?'Ubuntu':raw.match(/rhel|red hat/i)?'RHEL':raw.match(/linux/i)?'Linux':raw.match(/ios/i)?'iOS':raw.match(/android/i)?'Android':'Unknown';
-                  acc[family]=(acc[family]||0)+1;
+                  const ver = versionNormalise(d.os);
+                  if (ver) acc[ver]=(acc[ver]||0)+1;
                   return acc;
                 },{});
                 const entries = Object.entries(breakdown).sort((a,b)=>b[1]-a[1]);
@@ -1840,22 +1867,25 @@ export default function DashboardPage() {
                     {/* Stacked bar */}
                     <div style={{height:10,borderRadius:5,overflow:'hidden',display:'flex',marginBottom:10,gap:1}}>
                       {entries.map(([os,n])=>(
-                        <div key={os} title={`${os}: ${n} (${Math.round(n/total*100)}%)`} style={{height:'100%',background:OS_COLORS[os]||'#6b7a94',flex:n,transition:'flex 0.5s'}} />
+                        <div key={os} title={`${os}: ${n} (${Math.round(n/total*100)}%)`} style={{height:'100%',background:osVersionColor(os),flex:n,transition:'flex 0.5s'}} />
                       ))}
                     </div>
-                    {/* Legend rows */}
-                    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6}} className='wt-three-col'>
-                      {entries.map(([os,n])=>{
+                    {/* OS version rows with mini bars */}
+                    <div style={{display:'flex',flexDirection:'column',gap:5}}>
+                      {entries.slice(0,10).map(([os,n])=>{
                         const pct = Math.round(n/total*100);
-                        const col = OS_COLORS[os]||'#6b7a94';
+                        const s = os.toLowerCase();
+                        const col = s.includes('windows 11')?'#00a4ef':s.includes('windows 10')?'#0078d4':s.includes('server')?'#005a9e':s.includes('ubuntu')?'#e95420':s.includes('rhel')||s.includes('centos')||s.includes('amazon')?'#cc0000':s.includes('debian')||s.includes('suse')?'#a80030':s.includes('linux')?'#f97316':s.includes('macos')?'#a8b2c1':'#6b7a94';
+                        const icon = s.includes('windows')||s.includes('server')?'🪟':s.includes('ubuntu')||s.includes('linux')||s.includes('rhel')||s.includes('centos')||s.includes('debian')||s.includes('amazon')||s.includes('suse')?'🐧':s.includes('macos')?'🍎':'💻';
                         return (
-                          <div key={os} style={{display:'flex',alignItems:'center',gap:7,padding:'5px 8px',background:`${col}08`,border:`1px solid ${col}20`,borderRadius:7}}>
-                            <span style={{fontSize:'0.86rem',flexShrink:0}}>{OS_ICONS[os]||'💻'}</span>
-                            <div style={{flex:1,minWidth:0}}>
-                              <div style={{fontSize:'0.84rem',fontWeight:700,color:'var(--wt-text)'}}>{os}</div>
-                              <div style={{fontSize:'0.8rem',color:'var(--wt-dim)'}}>{n.toLocaleString()} devices</div>
+                          <div key={os} style={{display:'flex',alignItems:'center',gap:8}}>
+                            <span style={{fontSize:'0.8rem',flexShrink:0,width:18}}>{icon}</span>
+                            <div style={{width:110,fontSize:'0.8rem',fontWeight:600,color:'var(--wt-text)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',flexShrink:0}}>{os}</div>
+                            <div style={{flex:1,height:6,background:'var(--wt-border)',borderRadius:3,overflow:'hidden'}}>
+                              <div style={{height:'100%',width:`${pct}%`,background:col,borderRadius:3,transition:'width 0.8s ease'}} />
                             </div>
-                            <span style={{fontSize:'0.8rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:col}}>{pct}%</span>
+                            <span style={{fontSize:'0.78rem',fontWeight:800,color:col,fontFamily:'JetBrains Mono,monospace',minWidth:26,textAlign:'right'}}>{pct}%</span>
+                            <span style={{fontSize:'0.78rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',minWidth:28,textAlign:'right'}}>{n}</span>
                           </div>
                         );
                       })}
