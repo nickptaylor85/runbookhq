@@ -914,7 +914,41 @@ export default function DashboardPage() {
         return Array.from(deviceMap.values());
       })()
     : [];
-  const osBreakdown = (demoMode?DEMO_GAP_DEVICES:liveKnownDevices.length>0?liveKnownDevices:[]).reduce((acc,d)=>{const os=d.os?.split(' ')[0]||'Unknown';acc[os]=(acc[os]||0)+1;return acc;},{});
+  const normaliseOs = (raw) => {
+    if (!raw || raw === 'Unknown') return null; // exclude unknown
+    const s = raw.toLowerCase();
+    if (s.includes('windows')) {
+      if (s.includes('server')) {
+        // Server versions: Server 2019, Server 2022, Server 2016, etc.
+        const yr = (s.match(/20\d\d/) || [])[0];
+        const r2 = s.includes('r2') ? ' R2' : '';
+        return yr ? `Windows Server ${yr}${r2}` : 'Windows Server';
+      }
+      if (s.includes('11')) return 'Windows 11';
+      if (s.includes('10')) return 'Windows 10';
+      if (s.includes('8.1')) return 'Windows 8.1';
+      if (s.includes('8')) return 'Windows 8';
+      if (s.includes('7')) return 'Windows 7';
+      return 'Windows';
+    }
+    if (s.includes('ubuntu')) { const v = (raw.match(/\d+\.\d+/) || [])[0]; return v ? `Ubuntu ${v}` : 'Ubuntu'; }
+    if (s.includes('rhel') || s.includes('red hat')) { const v = (raw.match(/\d+/) || [])[0]; return v ? `RHEL ${v}` : 'RHEL'; }
+    if (s.includes('centos')) { const v = (raw.match(/\d+/) || [])[0]; return v ? `CentOS ${v}` : 'CentOS'; }
+    if (s.includes('debian')) { const v = (raw.match(/\d+/) || [])[0]; return v ? `Debian ${v}` : 'Debian'; }
+    if (s.includes('suse') || s.includes('sles')) return 'SUSE Linux';
+    if (s.includes('amazon linux') || s.includes('amazon amzn')) return 'Amazon Linux';
+    if (s.includes('linux') || s.includes('unix')) return 'Linux';
+    if (s.includes('macos') || s.includes('mac os') || s.includes('darwin')) {
+      const v = (raw.match(/\d+\.\d+/) || [])[0];
+      return v ? `macOS ${v}` : 'macOS';
+    }
+    return null; // skip iOS, Android, printers, network devices, etc.
+  };
+  const osBreakdown = (demoMode?DEMO_GAP_DEVICES:liveKnownDevices.length>0?liveKnownDevices:[]).reduce((acc,d)=>{
+    const os = normaliseOs(d.os);
+    if (os) acc[os] = (acc[os]||0) + 1;
+    return acc;
+  },{});
   // In live mode: gap devices = only those with actual missing connected tools
   // If no EDR connected, liveKnownDevices.missing=[] so no devices appear as gaps
   const gapDevices = !demoMode && liveKnownDevices.length > 0
@@ -1473,76 +1507,6 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* ── LIVE THREAT INTEL + RECENT INCIDENTS ────────────────────── */}
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,minWidth:0}} className='wt-two-col'>
-                {/* Emerging threats */}
-                <div style={{background:'var(--wt-card)',border:'1px solid #f0405e18',borderRadius:12,padding:'14px',overflow:'hidden',minWidth:0}}>
-                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
-                    <span style={{fontSize:'0.86rem',fontWeight:800,color:'#f0405e',textTransform:'uppercase',letterSpacing:'0.5px'}}>Emerging Threats</span>
-                    <span style={{fontSize:'0.86rem',color:'var(--wt-dim)',marginLeft:'auto'}}>for {industry}</span>
-                    <button onClick={()=>setActiveTab('intel')} style={{fontSize:'0.8rem',color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',padding:0}}>View all ↗</button>
-                  </div>
-                  {(customIntel && customIntel.length > 0 ? customIntel : (DEMO_INTEL_BY_INDUSTRY[industry]||DEMO_INTEL_BY_INDUSTRY['default']||[])).slice(0,3).map((item,i)=>{
-                    const c={Critical:'#f0405e',High:'#f97316',Medium:'#f0a030',Low:'#4f8fff'}[item.severity]||'#6b7a94';
-                    return (
-                      <div key={item.id||i} style={{padding:'8px 0',borderBottom:'1px solid var(--wt-border)',display:'flex',gap:8,alignItems:'flex-start'}}>
-                        <span style={{width:6,height:6,borderRadius:'50%',background:c,flexShrink:0,marginTop:5}} />
-                        <div style={{flex:1,minWidth:0}}>
-                          <div style={{fontSize:'0.86rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.title}</div>
-                          <div style={{fontSize:'0.84rem',color:'var(--wt-muted)',marginTop:1}}>{item.source} · {item.time}</div>
-                        </div>
-                        <span style={{fontSize:'0.84rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:`${c}18`,color:c,flexShrink:0}}>{item.severity}</span>
-                      </div>
-                    );
-                  })}
-                  {(!customIntel || customIntel.length === 0) && (!DEMO_INTEL_BY_INDUSTRY[industry]||DEMO_INTEL_BY_INDUSTRY[industry].length===0) && (
-                    <div style={{padding:'12px 0',textAlign:'center'}}>
-                      <div style={{fontSize:'0.84rem',color:'var(--wt-muted)',marginBottom:4}}>
-                        {demoMode?'Demo intel loading…':'No threat intel yet'}
-                      </div>
-                      {!demoMode&&<div style={{fontSize:'0.78rem',color:'var(--wt-dim)'}}>Connect an intel source in <button onClick={()=>setActiveTab('tools')} style={{background:'none',border:'none',color:'#4f8fff',cursor:'pointer',fontFamily:'Inter,sans-serif',fontSize:'0.78rem',padding:0,textDecoration:'underline'}}>Tools</button> to see live threat feeds</div>}
-                    </div>
-                  )}
-                  {livetenableNews.length>0 && (
-                    <div style={{marginTop:8,paddingTop:8,borderTop:'1px solid var(--wt-border)'}}>
-                      <div style={{fontSize:'0.8rem',fontWeight:700,color:'#00b3e3',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Tenable Research</div>
-                      {livetenableNews.slice(0,2).map((item,i)=>(
-                        <div key={i} style={{fontSize:'0.8rem',color:'var(--wt-secondary)',padding:'3px 0',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{item.title}</div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Recent incident activity */}
-                <div style={{background:'var(--wt-card)',border:'1px solid #8b6fff18',borderRadius:12,padding:'14px',overflow:'hidden',minWidth:0}}>
-                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
-                    <span style={{fontSize:'0.86rem',fontWeight:800,color:'#8b6fff',textTransform:'uppercase',letterSpacing:'0.5px'}}>Active Incidents</span>
-                    <button onClick={()=>setActiveTab('incidents')} style={{fontSize:'0.8rem',color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',padding:0,marginLeft:'auto'}}>View all ↗</button>
-                  </div>
-                  {incidents.filter(i=>(incidentStatuses[i.id]||i.status)!=='Resolved'&&!deletedIncidents.has(i.id)).slice(0,4).map(inc=>{
-                    const st=incidentStatuses[inc.id]||inc.status;
-                    const sc=st==='Active'?'#f0405e':st==='Escalated'?'#8b6fff':st==='Contained'?'#f0a030':'#22d49a';
-                    return (
-                      <div key={inc.id} onClick={()=>{setActiveTab('incidents');}} style={{padding:'7px 0',borderBottom:'1px solid var(--wt-border)',display:'flex',gap:8,alignItems:'center',cursor:'pointer'}}>
-                        <div style={{width:6,height:6,borderRadius:'50%',background:sc,flexShrink:0}} />
-                        <div style={{flex:1,minWidth:0,overflow:'hidden'}}>
-                          <div style={{fontSize:'0.86rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{inc.title}</div>
-                          <div style={{display:'flex',gap:6,marginTop:1}}>
-                            <span style={{fontSize:'0.86rem',fontWeight:700,color:sc}}>{st}</span>
-                            {inc.assignedTo && <span style={{fontSize:'0.86rem',color:'var(--wt-dim)'}}>{inc.assignedTo.split(' ')[0]}</span>}
-                          </div>
-                        </div>
-                        <span style={{fontSize:'0.84rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:`${SEV_COLOR[inc.severity]||'#6b7a94'}18`,color:SEV_COLOR[inc.severity]||'#6b7a94',flexShrink:0}}>{inc.severity}</span>
-                      </div>
-                    );
-                  })}
-                  {incidents.filter(i=>(incidentStatuses[i.id]||i.status)!=='Resolved'&&!deletedIncidents.has(i.id)).length===0 && (
-                    <div style={{fontSize:'0.84rem',color:demoMode?'#22d49a':'var(--wt-muted)',padding:'8px 0',textAlign:'center'}}>{demoMode?'No active incidents':'No cases yet — alerts will auto-escalate to cases when APEX confirms TPs'}</div>
-                  )}
-                </div>
-              </div>
-
-
               {/* ── FOUR QUADRANT DRILL-DOWN GRID ────────────────────────────────── */}
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}} className='wt-two-col'>
 
@@ -1643,18 +1607,7 @@ export default function DashboardPage() {
                     ))}
                     {openCases===0&&<div style={{fontSize:'0.82rem',color:'#22d49a',textAlign:'center',padding:'8px 0'}}>✓ No active cases</div>}
                   </div>
-                  {/* Tool health */}
-                  <div onClick={()=>setModal({type:'tools'})} style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'12px 14px',cursor:'pointer',transition:'border-color .15s'}}
-                    onMouseEnter={e=>e.currentTarget.style.borderColor='#4f8fff40'} onMouseLeave={e=>e.currentTarget.style.borderColor='var(--wt-border)'}>
-                    <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
-                      <span style={{fontSize:'0.8rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Tools</span>
-                      <span style={{fontSize:'0.86rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:'#22d49a'}}>{Object.keys(connectedTools).length} connected</span>
-                      <span style={{marginLeft:'auto',fontSize:'0.8rem',color:'#4f8fff'}}>Details ↗</span>
-                    </div>
-                    {Object.keys(connectedTools).length===0&&!demoMode&&(
-                      <div style={{fontSize:'0.86rem',color:'#f0a030',marginTop:6}}>No tools connected — <button onClick={e=>{e.stopPropagation();setShowOnboarding(true);setOnboardingStep(0);}} style={{color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:'inherit',padding:0,textDecoration:'underline'}}>Setup wizard →</button></div>
-                    )}
-                  </div>
+
                 </div>
 
               </div>
@@ -1806,7 +1759,7 @@ export default function DashboardPage() {
                 {!demoMode&&liveKnownDevices.length>0&&<span style={{fontSize:'0.84rem',color:'#00b3e3',background:'#00b3e310',padding:'2px 8px',borderRadius:4,border:'1px solid #00b3e325',fontWeight:600}}>✦ {liveKnownDevices.length} devices{liveCoverageDevices.length>0?` (${liveCoverageDevices.length} from MDM)`:' from Tenable'}</span>}
                 <div style={{display:'flex',gap:5,flexWrap:'wrap',marginLeft:'auto',alignItems:'center'}}>
                   <span style={{fontSize:'0.82rem',color:'var(--wt-dim)',marginRight:2}}>OS:</span>
-                  {Object.entries(osBreakdown).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([os,n])=>(
+                  {Object.entries(osBreakdown).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([os,n])=>(
                     <span key={os} style={{fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,background:'var(--wt-border)',color:'var(--wt-muted)',fontWeight:600}}>{os} <strong style={{color:'var(--wt-text)'}}>{n}</strong></span>
                   ))}
                   <span style={{fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,background:'#4f8fff12',color:'#4f8fff',fontWeight:700,border:'1px solid #4f8fff20',marginLeft:4}}>Total: {demoMode?totalDevices:liveKnownDevices.length||totalDevices}</span>
