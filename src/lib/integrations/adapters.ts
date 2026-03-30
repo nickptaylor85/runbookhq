@@ -709,41 +709,35 @@ export const taegis: IntegrationAdapter = {
     console.log('[taegis] token obtained, querying GraphQL...');
 
     // Step 2: Query Cases (Investigations) via GraphQL
-    // Taegis Cases are analyst-triaged groupings — the correct entity for a SOC alert feed.
-    // Raw detections (alertsServiceSearch) are low-level signals; Cases are the worked incidents.
-    const query = `query investigationsSearch($in: SearchRequestInput) {
-      investigationsSearch(in: $in) {
+    // Taegis Cases = analyst-worked incidents. Use allInvestigations (standard list API).
+    // investigationsSearch uses different args; allInvestigations is the standard listing query.
+    // Ref: Taegis SDK — python_sdk_getting_started, allInvestigations with page/search params
+    const query = `query allInvestigations($page: PageInput, $search: InvestigationSearchInput) {
+      allInvestigations(page: $page, search: $search) {
         investigations {
-          total_results
-          list {
+          id
+          description
+          created_at
+          updated_at
+          status
+          priority
+          key_findings
+          assignee { name email }
+          assets {
             id
-            description
-            created_at
-            updated_at
-            status
-            priority
-            key_findings
-            assignee { name email }
-            assets {
-              id
-              hostnames
-              sensor_type
-            }
-            alerts { id }
-            tags
+            hostnames
+            sensor_type
           }
+          alerts { id }
+          tags
         }
+        totalCount
       }
     }`;
 
-    // CQL: FROM investigation — pulls Cases not raw detections
-    // priority: LOW=1, MEDIUM=2, HIGH=3, CRITICAL=4
     const variables = {
-      in: {
-        limit: 100,
-        offset: 0,
-        cql_query: 'FROM investigation WHERE status != CLOSED EARLIEST=-7d',
-      }
+      page: { limit: 100, offset: 0 },
+      search: { status: ['Open', 'Active', 'Awaiting Action', 'Suspended'] },
     };
 
     const res = await fetch(`https://${graphqlHost}/graphql`, {
@@ -764,9 +758,9 @@ export const taegis: IntegrationAdapter = {
       throw new Error(`Taegis query errors: ${data.errors.map((e:any)=>e.message).join('; ')}`);
     }
 
-    const investigations = data.data?.investigationsSearch?.investigations;
-    const caseList = investigations?.list || [];
-    const totalResults = investigations?.total_results || 0;
+    const invResult = data.data?.allInvestigations;
+    const caseList = invResult?.investigations || [];
+    const totalResults = invResult?.totalCount || caseList.length;
     console.log(`[taegis] cases total=${totalResults} returned=${caseList.length}`);
 
     // Map priority int to severity string
