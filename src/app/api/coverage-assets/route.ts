@@ -55,6 +55,11 @@ export async function GET(req: NextRequest) {
           if (lastSeen < thirtyDaysAgo) continue;
           tenableDevices.push({
             hostname,
+            // All hostname variants for robust matching
+            fqdns: (asset.fqdn || []).map((h: string) => h.toLowerCase().split('.')[0]).filter(Boolean),
+            hostnames: (asset.hostname || []).map((h: string) => h.toLowerCase().split('.')[0]).filter(Boolean),
+            netbios: (asset.netbios_name || []).map((h: string) => h.toLowerCase().split('.')[0]).filter(Boolean),
+            ips: asset.ipv4 || [],
             ip: asset.ipv4?.[0] || '',
             os,
             lastSeen,
@@ -113,9 +118,13 @@ export async function GET(req: NextRequest) {
             if (!hostname) continue;
             const lastSeen = asset.lastSeen ? new Date(asset.lastSeen).getTime() : Date.now();
             if (lastSeen < thirtyDaysAgo) continue;
+            const allAddresses = (asset.networkInterfaces || []).flatMap((n: any) => n.addresses || []).filter(Boolean);
             taegisDevices.push({
               hostname,
-              ip: asset.networkInterfaces?.[0]?.addresses?.[0] || '',
+              // All hostname variants for matching
+              hostnames: (asset.hostnames || []).map((h: string) => h.toLowerCase().split('.')[0]).filter(Boolean),
+              ips: allAddresses,
+              ip: allAddresses[0] || '',
               os: asset.os || 'Unknown',
               sensorVersion: asset.sensorVersion || '',
               isolationStatus: asset.isolationStatus || '',

@@ -1936,22 +1936,46 @@ export default function DashboardPage() {
                 const tenableDevs = liveCoverageDevices.filter(d=>d.source==='Tenable Assets');
                 const taegisDevs  = liveCoverageDevices.filter(d=>d.source==='Taegis Endpoints');
                 if (!tenableDevs.length || !taegisDevs.length) return null;
-                const taegisMap = new Map();
+                // Multi-field matching: try all hostname variants + all IPs
+                // Priority: netbios > fqdn short > hostname short > IP
+                const taegisHostMap = new Map(); // short hostname → taegis device
+                const taegisIpMap = new Map();   // IP → taegis device
                 taegisDevs.forEach(d=>{
-                  const h = d.hostname.toLowerCase().split('.')[0]; // strip domain suffix
-                  taegisMap.set(h, d);
-                  if (d.ip) taegisMap.set(d.ip, d);
+                  (d.hostnames||[d.hostname.toLowerCase().split('.')[0]]).forEach(h=>{
+                    if (h) taegisHostMap.set(h, d);
+                  });
+                  (d.ips||[d.ip]).filter(Boolean).forEach(ip=>taegisIpMap.set(ip, d));
                 });
-                const rows = tenableDevs.slice(0,200).map(d=>{
-                  const h = d.hostname.toLowerCase().split('.')[0];
-                  const matched = taegisMap.get(h) || taegisMap.get(d.ip||'');
+                const matchTaegis = (ten) => {
+                  // Try netbios names first (most reliable for Windows)
+                  for (const n of (ten.netbios||[])) { if (taegisHostMap.has(n)) return taegisHostMap.get(n); }
+                  // Try all FQDN short names
+                  for (const n of (ten.fqdns||[])) { if (taegisHostMap.has(n)) return taegisHostMap.get(n); }
+                  // Try all hostnames
+                  for (const n of (ten.hostnames||[ten.hostname?.toLowerCase().split('.')[0]]).filter(Boolean)) {
+                    if (taegisHostMap.has(n)) return taegisHostMap.get(n);
+                  }
+                  // IP fallback
+                  for (const ip of (ten.ips||[ten.ip]).filter(Boolean)) {
+                    if (taegisIpMap.has(ip)) return taegisIpMap.get(ip);
+                  }
+                  return null;
+                };
+                const rows = tenableDevs.map(d=>{
+                  const matched = matchTaegis(d);
                   return {...d, taegisPresent:!!matched, taegisVersion:matched?.sensorVersion||null};
                 });
                 const bothCount   = rows.filter(r=>r.taegisPresent).length;
                 const tenableOnly = rows.filter(r=>!r.taegisPresent);
-                const taegisOnly  = taegisDevs.filter(d=>{
-                  const h = d.hostname.toLowerCase().split('.')[0];
-                  return !tenableDevs.some(t=>t.hostname.toLowerCase().split('.')[0]===h||t.ip===d.ip);
+                const taegisOnly  = taegisDevs.filter(d=>!matchTaegis({...d, netbios:[], fqdns:d.hostnames, hostnames:d.hostnames, ips:d.ips})||true).filter(d=>{
+                  // A Taegis device is "taegis only" if no Tenable device matched it
+                  for (const h of (d.hostnames||[d.hostname?.toLowerCase().split('.')[0]]).filter(Boolean)) {
+                    if (tenableDevs.some(t=>(t.netbios||[]).includes(h)||(t.fqdns||[]).includes(h)||(t.hostnames||[]).includes(h))) return false;
+                  }
+                  for (const ip of (d.ips||[d.ip]).filter(Boolean)) {
+                    if (tenableDevs.some(t=>(t.ips||[t.ip]).includes(ip))) return false;
+                  }
+                  return true;
                 });
                 const [cmpFilter,setCmpFilter] = React.useState('missing'); // 'all'|'missing'|'taegis-only'
                 const displayRows = cmpFilter==='missing'?tenableOnly:cmpFilter==='taegis-only'?taegisOnly:rows;
