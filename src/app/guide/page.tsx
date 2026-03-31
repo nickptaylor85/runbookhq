@@ -116,7 +116,26 @@ Structured triage includes: verdict, confidence, 4-step evidence chain, MITRE ma
       { heading: `Notifications`, body: `Configure Slack webhook URL and email address for critical alert notifications. Toggle the weekly digest on/off. Notifications only fire in Live mode.` },
       { heading: `API Keys`, body: `Generate, list, and revoke named API keys for programmatic access to the Watchtower API. Each key shows its creation date, last-used date, and can be revoked instantly. Professional+ plan.` },
     ],
+  },,
+  {
+    id: 'mobile', title: 'Mobile & PWA', icon: '📱',
+    items: [
+      { heading: `Android install`, body: `Open getwatchtower.io in Chrome on Android → ⋮ menu → Add to Home Screen → Add. Opens in standalone mode like a native app with offline fallback.` },
+      { heading: `Mobile navigation`, body: `Under 640px the top tab bar collapses. A bottom nav bar shows Overview, Alerts, Cases, Tools, Settings. The ⋯ More button reveals remaining tabs.` },
+      { heading: `Digital font toggle`, body: `The 01 button in the topbar switches the dashboard to JetBrains Mono terminal font. Persisted in localStorage.` },
+      { heading: `Offline mode`, body: `The service worker caches the dashboard shell on first load. An /offline fallback page shows when a page was never cached.` },
+    ],
   },
+  {
+    id: 'ot', title: 'OT / ICS Add-on', icon: '🏭',
+    items: [
+      { heading: `Overview`, body: `The OT/ICS add-on is a licensable extension for MSSPs serving operational technology clients. Enabled per-tenant from the Admin Portal. Pricing: £999/mo flat + £1/OT device/mo.` },
+      { heading: `Purdue Model Map`, body: `Interactive zone diagram showing L0 Field Devices, L1 Controllers, L2 SCADA, L3 MES, L3.5 DMZ, and L4 IT. Click any zone to see its assets and active alerts. Anomalous cross-zone traffic (e.g. IT bypassing DMZ to reach SCADA) is highlighted in red.` },
+      { heading: `OT Asset Inventory`, body: `Separate from IT Coverage. Shows PLCs, RTUs, HMIs, SCADA servers, historians, field sensors — with vendor, model, firmware, protocols, CVE count, and status (online/degraded/compromised/offline).` },
+      { heading: `OT-Safe APEX Triage`, body: `APEX operates under strict OT safety constraints when triaging OT alerts:\n\n• Never recommends isolating a live process device\n• Never auto-closes OT alerts as false positives\n• Always recommends notifying the plant/process engineer before any action\n• Returns otSafeActions (what to do) and otUnsafeActions (what not to do)\n• Severity is downgraded for devices in safe/monitored Purdue zones` },
+      { heading: `Enabling per client`, body: `In the Admin Portal, the OT Add-on panel shows toggle + device limit input. Toggle to enable — this activates the OT tab for that tenant. Set the device count to calculate the monthly cost (£999 + £1 × devices).` },
+    ],
+  }
 ];
 
 export default function GuidePage() {

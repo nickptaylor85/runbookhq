@@ -353,6 +353,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
 
       {/* Signup toggle — always visible at the top of admin portal */}
       <SignupToggle />
+      <OTLicensePanel tenantId={currentTenant} />
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
         {[

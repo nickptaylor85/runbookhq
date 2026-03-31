@@ -2899,7 +2899,7 @@ export default function DashboardPage() {
           {/* COMPLIANCE tab now accessible via admin only — hidden from main nav */}
           {activeTab==='ot' && (
             <div className='wt-tab-content'>
-              {otLicense.enabled || demoMode ? (
+              {otLicense.enabled || demoMode || isAdmin ? (
                 <OTTab tenantId={tenantRef.current} connectedTools={connectedTools} demoMode={demoMode} theme={theme} />
               ) : (
                 <div style={{padding:'40px 24px',textAlign:'center',maxWidth:560,margin:'0 auto'}}>

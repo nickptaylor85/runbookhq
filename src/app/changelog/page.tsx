@@ -4,6 +4,18 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.11.3',
+    date: '2026-03-31',
+    tag: 'Fix',
+    tagColor: '#f0405e',
+    summary: 'Admin portal crash fixed — OTLicensePanel render bug, OT tab admin access, guide sections added',
+    changes: [
+      { type: 'fix', text: 'AdminPortal crash: OTLicensePanel was defined but not rendered, and referenced an undeclared tenantId variable causing a ReferenceError that crashed the entire admin portal. Fixed to render correctly with currentTenant prop.' },
+      { type: 'fix', text: 'OT tab: admin accounts now always see the full OT dashboard (|| isAdmin gate). This fix was generated in v74.11.1 but never deployed — now correctly included.' },
+      { type: 'feat', text: 'User guide: Mobile/PWA and OT/ICS Add-on sections added to the guide sidebar.' },
+    ],
+  },
+  {
     version: 'v74.11.2',
     date: '2026-03-31',
     tag: 'Fix',
