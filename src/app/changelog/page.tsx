@@ -4,6 +4,17 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.11.2',
+    date: '2026-03-31',
+    tag: 'Fix',
+    tagColor: '#f0405e',
+    summary: 'Executive reports 403 fix — session cookie auth fallback, OT tab visible to admin accounts',
+    changes: [
+      { type: 'fix', text: 'Executive report (Board Report PDF) was returning 403 for admin accounts. Route now reads session cookie directly as auth fallback — same pattern as other admin routes. Middleware does not inject x-is-admin on all POST paths so header-only check was unreliable.' },
+      { type: 'fix', text: 'OT tab: admin accounts now always see the full OT dashboard regardless of whether the OT license is enabled for that tenant.' },
+    ],
+  },
+  {
     version: 'v74.10.0',
     date: '2026-03-31',
     tag: 'Major Release',

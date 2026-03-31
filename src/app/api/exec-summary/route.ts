@@ -1,15 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAnthropicKey } from '@/lib/redis';
 import { checkRateLimit } from '@/lib/ratelimit';
+import { verifySession } from '@/lib/encrypt';
+import { cookies } from 'next/headers';
 
 export async function POST(req: NextRequest) {
   try {
     const userId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
     const rl = await checkRateLimit(`ai:${userId}`, 30, 60);
     if (!rl.ok) return NextResponse.json({ ok: false, error: `Rate limit exceeded. Resets in ${rl.reset}s.` }, { status: 429 });
-  // Tier enforcement: requires Professional (business) or above
-  const userTier = req.headers.get('x-user-tier') || 'community';
-  const isAdminReq = req.headers.get('x-is-admin') === 'true';
+
+  // Resolve admin/tier — header first (middleware-injected), fall back to session cookie
+  let isAdminReq = req.headers.get('x-is-admin') === 'true';
+  let userTier = req.headers.get('x-user-tier') || 'community';
+  try {
+    const cookieStore = await cookies();
+    const token = req.cookies.get('wt_session')?.value || cookieStore.get('wt_session')?.value;
+    if (token) {
+      const payload = verifySession(token) as any;
+      if (payload?.isAdmin === true) isAdminReq = true;
+      if (payload?.tier) userTier = payload.tier;
+    }
+  } catch {}
+
   const tierLevels: Record<string, number> = { community: 0, team: 1, business: 2, mssp: 3 };
   if (!isAdminReq && (tierLevels[userTier] || 0) < 1) {
     return NextResponse.json({ ok: false, error: 'Executive reports require Essentials plan or above.' }, { status: 403 });
