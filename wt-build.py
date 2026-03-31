@@ -35,6 +35,30 @@ def save_state(s):
 def file_exists(rel):
     return os.path.exists(os.path.join(BASE, rel))
 
+
+def check_ts_strings(files):
+    """Catch apostrophes inside single-quoted TypeScript string literals — SWC build killer."""
+    import re
+    errors = []
+    contractions = ["hasn't","haven't","don't","won't","can't","it's","we're","you're",
+                    "they're","isn't","aren't","wasn't","weren't","couldn't","wouldn't",
+                    "shouldn't","didn't","doesn't","hadn't","I'm","you'll","we'll","that's"]
+    for rel in files:
+        full = os.path.join(BASE, rel)
+        if not full.endswith(('.ts', '.tsx', '.js', '.jsx')) or not os.path.exists(full):
+            continue
+        with open(full) as f:
+            for i, line in enumerate(f, 1):
+                for c in contractions:
+                    if c in line and ("'" + c in line or c + "'" in line.split(c)[0][-1:] if line.split(c) else False):
+                        errors.append(f"  {rel}:{i} — apostrophe in string: {line.strip()[:80]}")
+                        break
+    if errors:
+        print("\n⚠ APOSTROPHE WARNINGS (may break SWC build):")
+        for e in errors:
+            print(e)
+    return errors
+
 def build_zip(version, files, state):
     output = os.path.join(OUTPUTS, f'watchtower-{version}.zip')
     seen = set()
@@ -94,6 +118,7 @@ def main():
 
     all_files = merge_files(carry, args.files + core_files)
 
+    check_ts_strings(all_files)
     print(f'\n📦 Files in zip ({len(all_files)}):')
     output, included = build_zip(args.version, all_files, state)
 

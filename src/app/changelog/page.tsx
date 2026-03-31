@@ -12,7 +12,7 @@ const VERSIONS = [
     changes: [
       { type: 'feat', text: 'APEX proactive background triage: in auto mode, every incoming live alert is automatically triaged by APEX on arrival — no analyst interaction required. Up to 5 concurrent triages.' },
       { type: 'feat', text: 'Automation now uses APEX verdict+confidence for all decisions (TP/FP/SUS) instead of raw source data. getApexVerdict() helper ensures correct escalation.' },
-      { type: 'feat', text: 'Full Auto uses APEX-generated immediateActions for response (isolate, block, disable) — falls back to safety defaults only if APEX hasn't triaged yet.' },
+      { type: 'feat', text: 'Full Auto uses APEX-generated immediateActions for response (isolate, block, disable) — falls back to safety defaults only if APEX has not triaged yet.' },
       { type: 'feat', text: 'Taegis XDR isolation: response-actions now calls Taegis assetsV2 GraphQL to find asset by hostname, then sets desiredIsolationStatus=ISOLATED. Tries 3 mutation variants for API compatibility.' },
       { type: 'feat', text: 'Demo auto-simulation: scripted APEX timeline plays in demo mode when auto mode is enabled. 4 alerts triaged over 25 seconds with realistic timing, tool-specific action results, and live action feed panel.' },
       { type: 'feat', text: 'hasSynced guard: demo data never bleeds through during live sync. gapDevices, estateTotal, coveredPct all return zero/empty until first sync completes.' },
@@ -56,7 +56,7 @@ const VERSIONS = [
     changes: [
       { type: 'feat', text: 'Proactive background triage: when automation >= 1, every incoming live alert is automatically sent to APEX on arrival. Runs up to 5 concurrent triages, skipping already-cached alerts.' },
       { type: 'feat', text: 'getApexVerdict() helper: all automation decisions (FP auto-close, TP notification, Full Auto response) now use APEX verdict+confidence from aiTriageCache rather than raw source data.' },
-      { type: 'feat', text: 'Full Auto response uses APEX immediateActions array when available. Falls back to safe defaults (isolate, block IP, disable user) only when APEX hasn't run yet.' },
+      { type: 'feat', text: 'Full Auto response uses APEX immediateActions array when available. Falls back to safe defaults (isolate, block IP, disable user) only when APEX has not run yet.' },
       { type: 'fix',  text: 'Previously: Full Auto would act on raw alert verdicts (usually "Pending") without ever calling APEX. Now: APEX always triages first, then automation acts.' },
     ],
   },
