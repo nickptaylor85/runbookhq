@@ -4,6 +4,24 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.12.0',
+    date: '2026-03-31',
+    tag: 'Major Release',
+    tagColor: '#8b6fff',
+    summary: 'Feature assessment: Teams notifications, IOC search, NL query, Hunt panel, Case SLA, Asset risk scores, inbound webhooks, report sharing, push notifications, demo CTA',
+    changes: [
+      { type: 'feat', text: 'Microsoft Teams notifications: all response actions (isolate, block, disable, auto-triage) now notify Teams alongside Slack. Uses adaptive MessageCard format with severity colour coding.' },
+      { type: 'feat', text: 'Inbound webhook receiver (/api/inbound-alerts): accepts pushed alerts from CrowdStrike Falcon, SentinelOne, Splunk, Microsoft Sentinel, and generic JSON payloads. Normalises to standard alert format, stores in Redis stream. Eliminates polling latency for supported tools.' },
+      { type: 'feat', text: 'Co-Pilot expanded to 4 modes: Chat (existing), IOC Search (cross-tool indicator lookup), NL Query (natural language questions answered by APEX), and Hunt Queries (saved hunts from triage results with copy-to-clipboard).' },
+      { type: 'feat', text: 'Save Hunt button on every APEX triage result — saves the generated Splunk/Sentinel/Defender/Elastic queries to the Hunt panel with one click.' },
+      { type: 'feat', text: 'Case SLA badges on every incident card: Critical=4h, High=8h, Medium=24h from creation. Shows remaining time in green, turns amber at under 2h, red with overdue hours when breached.' },
+      { type: 'feat', text: 'Asset risk composite score in Coverage gap table: calculated from missing tool count, active alert count, and high-CVSS vuln count. Colour-coded red/amber/green.' },
+      { type: 'feat', text: 'Report share link: generates a 48-hour shareable URL for board reports via /api/report-share. URL copied to clipboard automatically and displayed next to the button.' },
+      { type: 'feat', text: 'Push notification bell in topbar: subscribes to browser push via service worker. Bell turns green with 🔔 when active.' },
+      { type: 'fix',  text: 'Landing page Get a Demo CTA now links to /demo (interactive self-serve demo) instead of mailto. OT add-on contact still uses mailto.' },
+    ],
+  },
+  {
     version: 'v74.11.5',
     date: '2026-03-31',
     tag: 'Fix',

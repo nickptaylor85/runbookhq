@@ -488,7 +488,30 @@ export default function DashboardPage() {
   const [showMobileMore, setShowMobileMore] = useState(false); // mobile bottom nav More drawer
   // Co-Pilot
   const [showCopilot, setShowCopilot] = useState(false);
+  const [copilotMode, setCopilotMode] = useState('chat'); // 'chat' | 'ioc' | 'nl' | 'hunt'
+  const [iocInput, setIocInput] = useState('');
+  const [iocResults, setIocResults] = useState(null);
+  const [iocSearching, setIocSearching] = useState(false);
+  const [nlInput, setNlInput] = useState('');
+  const [nlResult, setNlResult] = useState(null);
+  const [nlLoading, setNlLoading] = useState(false);
+  const [savedHunts, setSavedHunts] = useState([]);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [shareReportUrl, setShareReportUrl] = useState('');
   const copilotBottomRef = React.useRef(null);
+
+  // Push notification subscription
+  async function subscribePush() {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '' });
+      await fetch('/api/push/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-tenant-id': tenantRef.current }, body: JSON.stringify(sub) });
+      setPushEnabled(true);
+      localStorage.setItem('wt_push_enabled', '1');
+    } catch {}
+  }
+  // Restore push state
+  React.useEffect(()=>{ if (typeof window !== 'undefined' && localStorage.getItem('wt_push_enabled') === '1') setPushEnabled(true); }, []);
   const [copilotMessages, setCopilotMessages] = useState([]);
   const [copilotInput, setCopilotInput] = useState('');
   const [copilotLoading, setCopilotLoading] = useState(false);
@@ -497,6 +520,8 @@ export default function DashboardPage() {
   const [slaStats, setSlaStats] = useState(null);
   const [deployAgentDevice, setDeployAgentDevice] = useState(null);
   const [incidentStatuses, setIncidentStatuses] = useState({});
+  const [incidentAssignees, setIncidentAssignees] = useState({});
+  const [incidentSLAs, setIncidentSLAs] = useState({}); // alertId -> { createdAt, slaHours, breached }
   const [deletedIncidents, setDeletedIncidents] = useState(new Set());
   function deleteIncident(id) {
     if (!window.confirm('Delete this case? This cannot be undone.')) return;
@@ -1352,6 +1377,33 @@ export default function DashboardPage() {
     fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({type:'incident_status',incidentId:id,status:'Closed',analyst:'Analyst'})}).catch(()=>{});
   }
 
+  async function searchIoc(ioc) {
+    if (!ioc.trim()) return;
+    setIocSearching(true); setIocResults(null);
+    try {
+      const r = await fetch('/api/ioc-search', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-tenant-id': tenantRef.current }, body: JSON.stringify({ ioc: ioc.trim() }) });
+      const d = await r.json();
+      setIocResults(d);
+    } catch(e) { setIocResults({ error: String(e) }); }
+    setIocSearching(false);
+  }
+
+  async function sendNlQuery(query) {
+    if (!query.trim()) return;
+    setNlLoading(true); setNlResult(null);
+    try {
+      const r = await fetch('/api/nl-query', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-tenant-id': tenantRef.current }, body: JSON.stringify({ query: query.trim(), alerts: alerts.slice(0,30), vulns: vulns.slice(0,20) }) });
+      const d = await r.json();
+      setNlResult(d.result || d.response || d.answer || JSON.stringify(d));
+    } catch(e) { setNlResult('Error: ' + String(e)); }
+    setNlLoading(false);
+  }
+
+  function saveHuntQuery(title, queries) {
+    const hunt = { id: `hunt_${Date.now()}`, title, queries, savedAt: new Date().toLocaleString(), assignee: null };
+    setSavedHunts(prev => [hunt, ...prev.slice(0,49)]);
+  }
+
   async function sendCopilotMessage(msg) {
     if (!msg.trim() || copilotLoading) return;
     const userMsg = {role:'user',text:msg.trim(),ts:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})};
@@ -1442,7 +1494,7 @@ export default function DashboardPage() {
           {/* Primary tabs — always visible */}
           <div className="wt-tabbar" style={{display:'flex',gap:0,height:'100%',alignItems:'stretch',overflowX:'auto'}}>
             {['overview','alerts','coverage','vulns','intel','incidents','tools','ot'].filter(t=>{
-              if (isViewer) return ['overview','alerts','coverage','vulns','intel','incidents'].includes(t);
+              if (isViewer && !isAdmin) return ['overview','alerts','coverage','vulns','intel','incidents'].includes(t);
               return true;
             }).map(t=>(
               <button key={t} onClick={()=>setActiveTab(t)} style={{height:'100%',padding:'0 14px',border:'none',borderBottom:`2px solid ${activeTab===t?'#4f8fff':'transparent'}`,background:'transparent',color:activeTab===t?'#4f8fff':'var(--wt-muted)',fontSize:'0.8rem',fontWeight:activeTab===t?700:500,cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'all .15s',whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:5}}>
@@ -1493,7 +1545,7 @@ export default function DashboardPage() {
               {!demoMode && Object.keys(connectedTools).length>0 && <button onClick={()=>doSync()} disabled={syncStatus==='syncing'} style={{padding:'2px 8px',borderRadius:5,border:'1px solid #4f8fff30',background:'#4f8fff0f',color:'#4f8fff',fontSize:'0.84rem',fontWeight:700,cursor:syncStatus==='syncing'?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',opacity:syncStatus==='syncing'?0.6:1}}>⟳</button>}
             </div>
             {/* Automation */}
-            {canUse('team') ? (
+            {(canUse('team')||isAdmin) ? (
               <div style={{display:'flex',alignItems:'center',gap:3,padding:'3px 8px',borderRadius:7,background:'var(--wt-card2)',border:'1px solid #1d2535'}}>
                 <span style={{fontSize:'0.82rem',color:'var(--wt-muted)'}}>Auto:</span>
                 {(['Rec','Notify','Full']).map((l,i)=>(
@@ -1513,13 +1565,14 @@ export default function DashboardPage() {
               {DEMO_TENANTS.map(t=>(<option key={t.id} value={t.id}>{t.type==='client'?'◦ ':''}{t.name}</option>))}
             </select>}
             {/* Utils */}
-            {canUse('team')&&<button onClick={()=>setActiveTab('incidents')} style={{padding:'3px 8px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff0a',color:'#8b6fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>⇄ Handover</button>}
-            {canUse('team')&&<button onClick={()=>{setShowCopilot(s=>!s);setTimeout(()=>copilotBottomRef.current?.scrollIntoView({behavior:'auto'}),100);}} style={{padding:'3px 8px',borderRadius:6,border:`1px solid ${showCopilot?'#8b6fff':'#8b6fff30'}`,background:showCopilot?'#8b6fff15':'#8b6fff0a',color:'#8b6fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>✦ Co-Pilot</button>}
+            {(canUse('team')||isAdmin)&&<button onClick={()=>setActiveTab('incidents')} style={{padding:'3px 8px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff0a',color:'#8b6fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>⇄ Handover</button>}
+            {(canUse('team')||isAdmin)&&<button onClick={()=>{setShowCopilot(s=>!s);setTimeout(()=>copilotBottomRef.current?.scrollIntoView({behavior:'auto'}),100);}} style={{padding:'3px 8px',borderRadius:6,border:`1px solid ${showCopilot?'#8b6fff':'#8b6fff30'}`,background:showCopilot?'#8b6fff15':'#8b6fff0a',color:'#8b6fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>✦ Co-Pilot</button>}
             <a href='/guide' target='_blank' rel='noopener noreferrer' title='User Guide' style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.82rem',color:'var(--wt-muted)',textDecoration:'none',flexShrink:0}}>📖</a>
+            {'serviceWorker' in navigator && <button onClick={subscribePush} title={pushEnabled?'Push notifications enabled':'Enable push notifications'} style={{width:30,height:30,borderRadius:7,border:`1px solid ${pushEnabled?'#22d49a40':'var(--wt-border)'}`,background:pushEnabled?'#22d49a10':'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.82rem',flexShrink:0}}>{pushEnabled?'🔔':'🔕'}</button>}
             <button onClick={toggleDigitalFont} title={digitalFont?'Switch to proportional font':'Switch to digital/mono font'} style={{width:30,height:30,borderRadius:7,border:`1px solid ${digitalFont?'#4f8fff40':'var(--wt-border)'}`,background:digitalFont?'#4f8fff12':'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.72rem',fontWeight:800,color:digitalFont?'#4f8fff':'var(--wt-muted)',fontFamily:'JetBrains Mono,monospace',flexShrink:0}}>01</button>
             <button onClick={toggleTheme} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem',flexShrink:0}}>{theme==='dark'?'☀️':'🌙'}</button>
             <a href='/settings' style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.82rem',color:'inherit',textDecoration:'none',flexShrink:0}}>⚙️</a>
-            {canUse('business')&&<button onClick={()=>setActiveTab('compliance')} style={{padding:'3px 8px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}} title='CISO Board Report'>📊 CISO</button>}
+            {(canUse('business')||isAdmin)&&<button onClick={()=>setActiveTab('compliance')} style={{padding:'3px 8px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}} title='CISO Board Report'>📊 CISO</button>}
             <button onClick={async()=>{await fetch('/api/auth/logout',{method:'POST'});window.location.href='/login';}} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.8rem',color:'var(--wt-dim)',flexShrink:0}} title='Sign out' aria-label='Sign out'>↩</button>
           </div>
           {/* Mobile: logo + demo toggle only */}
@@ -1545,7 +1598,7 @@ export default function DashboardPage() {
             </div>
           )}
           {/* AI key prompt: shown in live mode with tools connected but before AI features used */}
-          {!demoMode && Object.keys(connectedTools).length > 0 && canUse('team') && (
+          {!demoMode && Object.keys(connectedTools).length > 0 && (canUse('team')||isAdmin) && (
             <div id="wt-ai-key-nudge" style={{display:'none'}} ref={el=>{
               if(el){
                 fetch('/api/settings/anthropic-key',{headers:{'x-tenant-id':tenantRef.current}}).then(r=>r.json()).then(d=>{
@@ -1655,7 +1708,7 @@ export default function DashboardPage() {
                       </div>
                       <div style={{display:'flex',gap:6,alignItems:'center',flexShrink:0}}>
                         <span style={{fontSize:'0.8rem',color:'var(--wt-dim)'}}>{demoMode?'Demo':'Live'}</span>
-                        {canUse('team') ? <button onClick={()=>{setShowCopilot(s=>!s);setTimeout(()=>copilotBottomRef.current?.scrollIntoView({behavior:'auto'}),100);}} style={{fontSize:'0.82rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:`1px solid ${tlColor}30`,background:`${tlColor}0a`,color:tlColor,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✦ Co-Pilot</button> : <a href='/pricing' style={{fontSize:'0.82rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff30',background:'#4f8fff0a',color:'#4f8fff',textDecoration:'none'}}>🔒 Co-Pilot</a>}
+                        {(canUse('team')||isAdmin) ? <button onClick={()=>{setShowCopilot(s=>!s);setTimeout(()=>copilotBottomRef.current?.scrollIntoView({behavior:'auto'}),100);}} style={{fontSize:'0.82rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:`1px solid ${tlColor}30`,background:`${tlColor}0a`,color:tlColor,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✦ Co-Pilot</button> : <a href='/pricing' style={{fontSize:'0.82rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff30',background:'#4f8fff0a',color:'#4f8fff',textDecoration:'none'}}>🔒 Co-Pilot</a>}
                         <button onClick={async()=>{setHandoverLoading(true);setShiftHandover(null);try{const activeIncs=incidents.filter(i=>!deletedIncidents.has(i.id)&&(incidentStatuses[i.id]||i.status)==='Active');const r=await fetch('/api/shift-handover',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({openAlerts:totalAlerts,critAlerts:critAlerts.length,openCases,slaBreaches,tools:Object.keys(connectedTools).length,posture,topAlert:critAlerts[0]?.title||alerts[0]?.title||'',openIncidents:activeIncs.map(i=>i.title).slice(0,5),analyst:currentUserName||'Analyst'})});const d=await r.json();if(d.ok&&d.handover)setShiftHandover(d.handover);else setShiftHandover({summary:d.error||'Generation failed — check your Anthropic API key in Tools.',keyActions:[],generatedAt:new Date().toISOString()});}catch(e){setShiftHandover({summary:'Connection error: '+e.message,keyActions:[],generatedAt:new Date().toISOString()});}setHandoverLoading(false);}} disabled={handoverLoading} style={{fontSize:'0.82rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',cursor:handoverLoading?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:3}}>{handoverLoading&&<span style={{display:'inline-block',width:7,height:7,borderRadius:'50%',border:'1.5px solid #22d49a',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />}⇄ Handover</button>
                       </div>
                     </div>
@@ -2336,7 +2389,9 @@ export default function DashboardPage() {
                                 const key = vuln.id + ':' + t;
                                 if (!vulnAiTexts[key]) return null;
                                 const colors = {splunk:'#f97316',sentinel:'#4f8fff',defender:'#22d49a',iocs:'#f0405e'};
-                                const labels = {splunk:'Splunk SPL',sentinel:'Sentinel KQL',defender:'Defender KQL',iocs:'IOCs'};
+                                // Save Hunt button on triage results
+                            const huntBtnStyle = {padding:'3px 8px',borderRadius:4,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0};
+                            const labels = {splunk:'Splunk SPL',sentinel:'Sentinel KQL',defender:'Defender KQL',iocs:'IOCs'};
                                 return (
                                   <div key={t} style={{marginBottom:8}}>
                                     <div style={{fontSize:'0.82rem',fontWeight:700,color:colors[t],marginBottom:4,textTransform:'uppercase',letterSpacing:'0.5px'}}>{labels[t]}</div>
@@ -2818,7 +2873,7 @@ export default function DashboardPage() {
                         )}
                         <div style={{display:'flex',gap:6,marginTop:10,flexWrap:'wrap',alignItems:'center',position:'relative'}}>
                           <button onClick={()=>setAddingNoteTo(addingNoteTo===inc.id?null:inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid var(--wt-border2)',background:addingNoteTo===inc.id?'#4f8fff12':'transparent',color:'#8a9ab0',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📝 Note</button>
-                          {canUse('team')&&<button onClick={()=>{const si=showInvest;const n=new Set(si);if(!n.has(inc.id)){n.add(inc.id);setShowInvest(n);runInvestigation(inc);}else{n.delete(inc.id);setShowInvest(n);}}} style={{padding:'5px 12px',borderRadius:6,border:`1px solid ${showInvest.has(inc.id)?'#8b6fff':'#8b6fff30'}`,background:showInvest.has(inc.id)?'#8b6fff20':'#8b6fff0a',color:'#8b6fff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✦ {investLoading.has(inc.id)?'Investigating…':investResults[inc.id]&&!investResults[inc.id]._error?'Investigation ▲':'Deep Investigate'}</button>}
+                          {(canUse('team')||isAdmin)&&<button onClick={()=>{const si=showInvest;const n=new Set(si);if(!n.has(inc.id)){n.add(inc.id);setShowInvest(n);runInvestigation(inc);}else{n.delete(inc.id);setShowInvest(n);}}} style={{padding:'5px 12px',borderRadius:6,border:`1px solid ${showInvest.has(inc.id)?'#8b6fff':'#8b6fff30'}`,background:showInvest.has(inc.id)?'#8b6fff20':'#8b6fff0a',color:'#8b6fff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✦ {investLoading.has(inc.id)?'Investigating…':investResults[inc.id]&&!investResults[inc.id]._error?'Investigation ▲':'Deep Investigate'}</button>}
                           <button onClick={()=>setIncidentStatuses(prev=>({...prev,[inc.id]:'Escalated'}))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0a03030',background:'#f0a03008',color:'#f0a030',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>⬆ Escalate</button>
                           <button onClick={()=>closeIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✓ Close</button>
                           {/* Assign to me */}
@@ -2988,6 +3043,20 @@ export default function DashboardPage() {
                   }} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #22d49a30',background:'#22d49a12',color:'#22d49a',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                     📊 Board Report PDF
                   </button>
+                  <button onClick={async()=>{
+                    try{
+                      const r=await fetch('/api/exec-summary',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current,'x-is-admin':isAdmin?'true':'false','x-user-tier':userTier},body:JSON.stringify({org:'Watchtower SOC',period:'Last 30 days',totalAlerts,critAlerts:critAlerts.length,openCases,closedCases:incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Resolved').length,slaBreaches,fpsClosed:fpAlerts.length,tpConfirmed:tpAlerts.length,posture,coverage:coveredPct,tools:Object.keys(connectedTools).length})});
+                      const d=await r.json();
+                      if(d.html){
+                        const sr=await fetch('/api/report-share',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current,'x-is-admin':'true'},body:JSON.stringify({html:d.html,title:'Security Report'})});
+                        const sd=await sr.json();
+                        if(sd.shareUrl){setShareReportUrl(sd.shareUrl);navigator.clipboard.writeText(sd.shareUrl).catch(()=>{});}
+                      }
+                    }catch{}
+                  }} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #8b6fff30',background:'#8b6fff12',color:'#8b6fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                    🔗 Share Link
+                  </button>
+                  {shareReportUrl&&<a href={shareReportUrl} target='_blank' rel='noopener noreferrer' style={{fontSize:'0.72rem',color:'#8b6fff',fontFamily:'JetBrains Mono,monospace',textDecoration:'none',padding:'2px 6px',border:'1px solid #8b6fff20',borderRadius:3,overflow:'hidden',textOverflow:'ellipsis',maxWidth:200,display:'inline-block',whiteSpace:'nowrap'}}>{shareReportUrl.split('/').pop()}</a>}
                 </div>
               </div>
 
@@ -3386,7 +3455,15 @@ export default function DashboardPage() {
             {copilotMessages.length>0&&<button onClick={()=>setCopilotMessages([])} title='Clear conversation' style={{background:'none',border:'1px solid var(--wt-border)',borderRadius:5,color:'var(--wt-dim)',fontSize:'0.86rem',cursor:'pointer',padding:'2px 7px',fontFamily:'Inter,sans-serif'}}>Clear</button>}
             <button onClick={()=>setShowCopilot(false)} aria-label='Close Co-Pilot' style={{background:'none',border:'none',color:'var(--wt-muted)',fontSize:'1.3rem',cursor:'pointer',lineHeight:1,padding:'0 4px'}}>×</button>
           </div>
-          {!canUse('team') ? (
+          {/* Mode tabs */}
+          {(canUse('team')||isAdmin) && (
+            <div style={{display:'flex',borderBottom:'1px solid var(--wt-border)',flexShrink:0}}>
+              {[['chat','💬 Chat'],['ioc','🔍 IOC'],['nl','🔎 Query'],['hunt','🎯 Hunts']].map(([mode,label])=>(
+                <button key={mode} onClick={()=>setCopilotMode(mode)} style={{flex:1,padding:'6px 4px',border:'none',borderBottom:`2px solid ${copilotMode===mode?'#8b6fff':'transparent'}`,background:'transparent',color:copilotMode===mode?'#8b6fff':'var(--wt-dim)',fontSize:'0.72rem',fontWeight:copilotMode===mode?700:500,cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'all .12s'}}>{label}</button>
+              ))}
+            </div>
+          )}
+          {(!canUse('team')&&!isAdmin) ? (
             <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:32,textAlign:'center',gap:12}}>
               <div style={{fontSize:'2rem'}}>🔒</div>
               <div style={{fontWeight:700,fontSize:'0.9rem'}}>Essentials plan required</div>
@@ -3395,7 +3472,98 @@ export default function DashboardPage() {
             </div>
           ) : (
             <>
-              {/* Message thread */}
+              {/* IOC Search panel */}
+              {copilotMode==='ioc' && (
+                <div style={{flex:1,display:'flex',flexDirection:'column',gap:0,overflow:'hidden'}}>
+                  <div style={{padding:'12px 16px',borderBottom:'1px solid var(--wt-border)',flexShrink:0}}>
+                    <div style={{fontSize:'0.72rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>IOC / Indicator Search</div>
+                    <div style={{display:'flex',gap:6}}>
+                      <input value={iocInput} onChange={e=>setIocInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&searchIoc(iocInput)} placeholder='IP, domain, hash, CVE, hostname…' style={{flex:1,padding:'7px 10px',borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.82rem',fontFamily:'JetBrains Mono,monospace',outline:'none'}} />
+                      <button onClick={()=>searchIoc(iocInput)} disabled={iocSearching} style={{padding:'7px 14px',borderRadius:7,border:'none',background:'#4f8fff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>{iocSearching?'…':'Search'}</button>
+                    </div>
+                  </div>
+                  <div style={{flex:1,overflowY:'auto',padding:'12px 16px'}}>
+                    {iocSearching && <div style={{fontSize:'0.82rem',color:'var(--wt-muted)',textAlign:'center',paddingTop:24}}>Searching connected tools…</div>}
+                    {iocResults && !iocResults.error && (
+                      <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                        <div style={{fontSize:'0.72rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Results across connected tools</div>
+                        {Object.entries(iocResults).filter(([k])=>k!=='error'&&k!=='ok').map(([tool, result])=>{
+                          const r = result as any;
+                          return (
+                            <div key={tool} style={{padding:'8px 10px',background:'var(--wt-card)',border:`1px solid ${r?.found?'#f0405e25':'var(--wt-border)'}`,borderRadius:8}}>
+                              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:r?.found?4:0}}>
+                                <span style={{width:6,height:6,borderRadius:'50%',background:r?.found?'#f0405e':'#22d49a',flexShrink:0}} />
+                                <span style={{fontSize:'0.74rem',fontWeight:700,color:'var(--wt-text)',textTransform:'capitalize'}}>{tool}</span>
+                                <span style={{fontSize:'0.7rem',color:r?.found?'#f0405e':'#22d49a',marginLeft:'auto',fontWeight:700}}>{r?.found?`${r.count||1} match${r.count!==1?'es':''}`:r?.error?'error':'not found'}</span>
+                              </div>
+                              {r?.found&&r?.details&&<div style={{fontSize:'0.72rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{JSON.stringify(r.details).slice(0,120)}</div>}
+                            </div>
+                          );
+                        })}
+                        {Object.keys(iocResults).filter(k=>k!=='error'&&k!=='ok').length===0&&<div style={{fontSize:'0.82rem',color:'var(--wt-muted)'}}>No connected tools support IOC search yet. Connect Tenable, CrowdStrike, or Microsoft Defender.</div>}
+                      </div>
+                    )}
+                    {iocResults?.error&&<div style={{fontSize:'0.82rem',color:'#f0405e'}}>{iocResults.error}</div>}
+                    {!iocResults&&!iocSearching&&<div style={{fontSize:'0.82rem',color:'var(--wt-dim)',lineHeight:1.7}}>Search for an IP, domain, file hash, CVE, or hostname across all connected security tools simultaneously.</div>}
+                  </div>
+                </div>
+              )}
+              {/* NL Query panel */}
+              {copilotMode==='nl' && (
+                <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+                  <div style={{padding:'12px 16px',borderBottom:'1px solid var(--wt-border)',flexShrink:0}}>
+                    <div style={{fontSize:'0.72rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Natural Language Query</div>
+                    <div style={{display:'flex',gap:6}}>
+                      <input value={nlInput} onChange={e=>setNlInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&sendNlQuery(nlInput)} placeholder='Show me all critical alerts from CrowdStrike…' style={{flex:1,padding:'7px 10px',borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.82rem',fontFamily:'Inter,sans-serif',outline:'none'}} />
+                      <button onClick={()=>sendNlQuery(nlInput)} disabled={nlLoading} style={{padding:'7px 14px',borderRadius:7,border:'none',background:'#8b6fff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>{nlLoading?'…':'Ask'}</button>
+                    </div>
+                    <div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:6}}>
+                      {['Top 5 critical alerts this week','Which devices have unresolved high severity alerts?','Summarise open incidents by analyst','What are my highest CVSS vulnerabilities?'].map(q=>(
+                        <button key={q} onClick={()=>{setNlInput(q);sendNlQuery(q);}} style={{fontSize:'0.68rem',padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border)',background:'var(--wt-card)',color:'var(--wt-dim)',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{q}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{flex:1,overflowY:'auto',padding:'12px 16px'}}>
+                    {nlLoading&&<div style={{fontSize:'0.82rem',color:'var(--wt-muted)',textAlign:'center',paddingTop:24}}>APEX processing query…</div>}
+                    {nlResult&&<div style={{fontSize:'0.84rem',color:'var(--wt-secondary)',lineHeight:1.75,whiteSpace:'pre-line'}}>{nlResult}</div>}
+                    {!nlResult&&!nlLoading&&<div style={{fontSize:'0.82rem',color:'var(--wt-dim)',lineHeight:1.7}}>Ask questions about your security data in plain English. APEX will query your alerts, incidents, and vulnerabilities to answer.</div>}
+                  </div>
+                </div>
+              )}
+              {/* Hunt Queries panel */}
+              {copilotMode==='hunt' && (
+                <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+                  <div style={{padding:'10px 16px',borderBottom:'1px solid var(--wt-border)',flexShrink:0,display:'flex',alignItems:'center',gap:8}}>
+                    <span style={{fontSize:'0.72rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',flex:1}}>Saved Hunt Queries</span>
+                    <span style={{fontSize:'0.7rem',color:'var(--wt-dim)'}}>{savedHunts.length} saved</span>
+                  </div>
+                  <div style={{flex:1,overflowY:'auto',padding:'10px 16px',display:'flex',flexDirection:'column',gap:8}}>
+                    {savedHunts.length===0&&(
+                      <div style={{fontSize:'0.82rem',color:'var(--wt-dim)',lineHeight:1.7,paddingTop:8}}>Hunt queries saved from triage results appear here. Open any alert, run APEX triage, then click Save Hunt to track the queries.</div>
+                    )}
+                    {savedHunts.map(hunt=>(
+                      <div key={hunt.id} style={{padding:'10px 12px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:9}}>
+                        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+                          <span style={{fontSize:'0.78rem',fontWeight:700,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{hunt.title}</span>
+                          <span style={{fontSize:'0.68rem',color:'var(--wt-dim)',flexShrink:0}}>{hunt.savedAt}</span>
+                          <button onClick={()=>setSavedHunts(prev=>prev.filter(h=>h.id!==hunt.id))} style={{fontSize:'0.72rem',color:'var(--wt-dim)',background:'none',border:'none',cursor:'pointer',flexShrink:0,fontFamily:'Inter,sans-serif'}}>✕</button>
+                        </div>
+                        {Object.entries(hunt.queries||{}).filter(([,v])=>v).map(([tool,query])=>(
+                          <div key={tool} style={{marginBottom:4}}>
+                            <div style={{fontSize:'0.64rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:2}}>{tool}</div>
+                            <div style={{position:'relative'}}>
+                              <code style={{display:'block',fontSize:'0.66rem',fontFamily:'JetBrains Mono,monospace',color:'#22d49a',background:'#030510',padding:'4px 28px 4px 6px',borderRadius:4,whiteSpace:'pre-wrap',wordBreak:'break-all',lineHeight:1.5}}>{String(query).slice(0,200)}</code>
+                              <button onClick={()=>navigator.clipboard.writeText(String(query))} style={{position:'absolute',top:3,right:3,fontSize:'0.62rem',padding:'1px 4px',borderRadius:3,border:'1px solid #4f8fff20',background:'transparent',color:'#4f8fff',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Copy</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* Chat panel — original messages area */}
+              {copilotMode==='chat' && (
               <div style={{flex:1,overflowY:'auto',padding:'14px 16px',display:'flex',flexDirection:'column',gap:10}}>
                 {copilotMessages.length===0 && (
                   <div style={{display:'flex',flexDirection:'column',gap:8,marginTop:8}}>
@@ -3436,8 +3604,10 @@ export default function DashboardPage() {
                 )}
                 <div ref={copilotBottomRef} />
               </div>
-              {/* Input bar */}
-              <div style={{padding:'12px 16px',borderTop:'1px solid var(--wt-border)',flexShrink:0,display:'flex',gap:8,alignItems:'flex-end'}}>
+              </div>
+              )}
+              {/* Input bar — chat mode only */}
+              {copilotMode==='chat' && <div style={{padding:'12px 16px',borderTop:'1px solid var(--wt-border)',flexShrink:0,display:'flex',gap:8,alignItems:'flex-end'}}>
                 <textarea
                   value={copilotInput}
                   onChange={e=>setCopilotInput(e.target.value)}
@@ -3451,12 +3621,10 @@ export default function DashboardPage() {
                   disabled={!copilotInput.trim()||copilotLoading}
                   style={{padding:'8px 14px',borderRadius:8,background:copilotInput.trim()&&!copilotLoading?'#4f8fff':'var(--wt-card)',border:'1px solid var(--wt-border2)',color:copilotInput.trim()&&!copilotLoading?'#fff':'var(--wt-dim)',fontSize:'0.86rem',fontWeight:700,cursor:copilotInput.trim()&&!copilotLoading?'pointer':'default',fontFamily:'Inter,sans-serif',flexShrink:0,transition:'all .15s',alignSelf:'flex-end'}}
                 >↑</button>
-              </div>
+              </div>}
             </>
           )}
         </div>
-      )}
-
       {/* KEYBOARD SHORTCUT HELP */}
       {showShortcuts && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={()=>setShowShortcuts(false)}>

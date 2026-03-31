@@ -412,6 +412,31 @@ async function resetMfa(creds: Record<string, Record<string, string>>, identifie
   return results;
 }
 
+async function notifyTeams(creds: Record<string, Record<string, string>>, message: string, alertTitle: string, severity: string): Promise<ActionResult | null> {
+  if (!creds.teams?.webhook_url) return null;
+  try {
+    const sevColor = severity === 'Critical' ? 'FF3B4A' : severity === 'High' ? 'F97316' : 'F0A030';
+    const card = {
+      '@type': 'MessageCard',
+      '@context': 'http://schema.org/extensions',
+      themeColor: sevColor,
+      summary: alertTitle,
+      sections: [{
+        activityTitle: `**${alertTitle}**`,
+        activitySubtitle: `Severity: ${severity}`,
+        activityText: message,
+        facts: [{ name: 'Source', value: 'Watchtower APEX' }, { name: 'Time', value: new Date().toLocaleString('en-GB') }],
+      }],
+    };
+    const r = await fetch(creds.teams.webhook_url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(card),
+    });
+    return { ok: r.ok, tool: 'Microsoft Teams', action: 'notified', detail: r.ok ? 'Teams channel notified' : undefined, error: r.ok ? undefined : `Teams HTTP ${r.status}` };
+  } catch(e: any) { return { ok: false, tool: 'Microsoft Teams', action: 'notified', error: e.message }; }
+}
+
 async function notifySlack(creds: Record<string, Record<string, string>>, message: string, alertTitle: string, severity: string): Promise<ActionResult | null> {
   const webhook = creds.slack?.webhook_url || creds.slack_webhook?.url;
   if (!webhook) return null;
@@ -626,9 +651,11 @@ export async function POST(req: NextRequest) {
       }
 
       // Always send Slack notification for batch mode
-      const slackMsg = `*${verdict}* confirmed (${confidence}% confidence) on alert: *${alertTitle}*\nActions taken: ${executedActions.length > 0 ? executedActions.join(', ') : 'logged only — check tool connections'}`;
-      const slackResult = await notifySlack(creds, slackMsg, alertTitle, severity);
+      const notifMsg = `*${verdict}* confirmed (${confidence}% confidence) on alert: *${alertTitle}*\nActions taken: ${executedActions.length > 0 ? executedActions.join(', ') : 'logged only — check tool connections'}`;
+      const slackResult = await notifySlack(creds, notifMsg, alertTitle, severity);
       if (slackResult) pushResults([slackResult]);
+      const teamsResult = await notifyTeams(creds, notifMsg, alertTitle, severity);
+      if (teamsResult) pushResults([teamsResult]);
 
       const logEntry = { action: 'full_auto_batch', alertId, alertTitle, verdict, confidence, analyst, executedActions, results: allResults, tenantId };
       await auditLog(tenantId, logEntry);
@@ -644,8 +671,9 @@ export async function POST(req: NextRequest) {
     if (action === 'disable_user' && user) pushResults(await disableUser(creds, user));
     if (action === 'reset_mfa' && user) pushResults(await resetMfa(creds, user));
     if (action === 'create_ticket') pushResults(await createTicket(creds, alertTitle, alertId, verdict, confidence, 'HIGH'));
-    if (action === 'notify_slack') {
+    if (action === 'notify_slack' || action === 'notify_teams') {
       const r = await notifySlack(creds, `Alert: ${alertTitle}`, alertTitle, severity);
+      const tr = await notifyTeams(creds, `Alert: ${alertTitle}`, alertTitle, severity);
       if (r) pushResults([r]);
     }
 
