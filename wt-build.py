@@ -78,16 +78,29 @@ def build_zip(version, files, state):
     return output, list(seen)
 
 def check_carry_forward(state, deployed_sha):
-    """Returns files from previous zip that need carrying forward."""
+    """Returns files from previous zip that need carrying forward.
+    
+    Carry-forward logic:
+    - If deployed_sha MATCHES last_deployed_sha: previous zip not yet deployed,
+      carry ALL undeployed files forward into this zip.
+    - If deployed_sha DIFFERS from last_deployed_sha: something was deployed
+      since our last build, reset undeployed tracking.
+    - If no undeployed files tracked yet: nothing to carry.
+    """
+    undeployed = list(state.get('undeployed_since', []))
+    if not undeployed:
+        return []
     if not deployed_sha:
-        return []
+        print(f'  → Carrying forward {len(undeployed)} undeployed files (no SHA provided)')
+        return undeployed
     if deployed_sha == state.get('last_deployed_sha'):
-        # Already up to date — no carry-forward needed
+        # SHA unchanged since last build = our previous zip was not deployed yet
+        print(f'  → Carrying forward {len(undeployed)} undeployed files (last zip not yet deployed)')
+        return undeployed
+    else:
+        # SHA changed = something was deployed, clear undeployed tracking
+        print(f'  → Deployed SHA changed — clearing undeployed tracking')
         return []
-    # Deployed SHA hasn't changed since last build — carry forward all undeployed files
-    carry = list(state.get('undeployed_since', []))
-    print(f'  → Carrying forward {len(carry)} files from undeployed builds')
-    return carry
 
 def merge_files(carry_files, new_files):
     """Merge carry-forward + new files, new_files take precedence (dedup by keeping last)."""

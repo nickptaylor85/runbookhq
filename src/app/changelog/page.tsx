@@ -4,6 +4,29 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.11.5',
+    date: '2026-03-31',
+    tag: 'Fix',
+    tagColor: '#f0405e',
+    summary: 'OT tab capitalised, Co-Pilot restored to topbar, Guide link added to topbar',
+    changes: [
+      { type: 'fix', text: 'OT tab label showed as "Ot" due to generic charAt capitalisation. Fixed with explicit special case: "OT". MSSP also fixed to "MSSP".' },
+      { type: 'fix', text: 'AI Co-Pilot button restored to topbar. It was only accessible by expanding an alert card — the persistent topbar button had been removed. Now always visible for Essentials+ users, highlights when panel is open.' },
+      { type: 'feat', text: 'Guide link (📖) added to topbar — opens the user guide in a new tab. Was previously only accessible via direct URL.' },
+    ],
+  },
+  {
+    version: 'v74.11.4',
+    date: '2026-03-31',
+    tag: 'Fix',
+    tagColor: '#f0405e',
+    summary: 'Threat intel article links fixed — real URLs for demo data, search fallback for all cards',
+    changes: [
+      { type: 'fix', text: 'Demo threat intel articles had hardcoded fake article URLs (made-up paths that 404). Replaced with real searchable URLs: NCSC search, BleepingComputer search, ThreatFox browse, CISA advisories.' },
+      { type: 'fix', text: 'Intel card link logic improved: the Read/arrow link now always renders and falls back to a Google search for the article title when no direct URL is available, rather than linking to #.' },
+    ],
+  },
+  {
     version: 'v74.11.3',
     date: '2026-03-31',
     tag: 'Fix',
