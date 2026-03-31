@@ -39,7 +39,9 @@ const SECTIONS = [
     id: 'live', title: 'Live Mode & Sync', icon: '⚡',
     items: [
       { heading: `Demo vs Live mode`, body: `Demo mode (default) pre-populates the dashboard with realistic data. Safe to show to prospects and stakeholders.\n\nLive mode fetches real alerts from your connected tools every 60 seconds. The first sync runs immediately on switch. Errors show inline next to the sync indicator.` },
-      { heading: `AI triage on live alerts`, body: `When you expand a live alert, structured triage fires automatically: verdict, confidence, 4-step evidence chain, MITRE mapping, and hunt queries. Results are cached 24h in Redis — expanding the same alert again is instant. Triage uses your BYOK Anthropic key.` },
+      { heading: `AI triage on live alerts`, body: `In auto mode (Auto + Notify or Full Auto), APEX proactively triages every incoming live alert on arrival — no analyst interaction required. In Recommend Only mode, triage fires when you expand an alert.
+
+Structured triage includes: verdict, confidence, 4-step evidence chain, MITRE mapping, and hunt queries. Results are cached 24h in Redis — expanding the same alert again is instant. Triage uses your BYOK Anthropic key.` },
       { heading: `Institutional knowledge`, body: `Every FP/TP verdict you confirm is stored per-tenant (last 100 decisions). The Co-Pilot injects the last 25 analyst decisions as context on every call. Over time Watchtower learns your environment — recognising patterns like "Defender ATP alerts from SRV-BACKUP01 are usually FP" without any manual rule-writing.` },
       { heading: `Slack & email notifications`, body: `In Live mode, Watchtower posts to your Slack webhook and sends email when new Critical alerts arrive (Essentials+). Configure in Settings → Notifications. Each notification includes alert title, severity, source, device, AI verdict, and confidence.` },
     ],

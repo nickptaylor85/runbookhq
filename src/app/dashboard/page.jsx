@@ -167,6 +167,35 @@ const DEMO_VULNS = [
   {id:'v10',cve:'CVE-2023-48788',title:'Fortinet EMS SQL Injection — RCE',severity:'High',cvss:9.3,prevalence:38,affected:1,affectedDevices:['EMS-SERVER01'],description:'SQL injection in Fortinet FortiClientEMS. Enables RCE without authentication. Widely exploited against internet-exposed EMS servers. DoJ charged attackers exploiting this.',remediation:['Upgrade FortiClientEMS to 7.2.3 or 7.0.10','Restrict EMS to internal network — no direct internet exposure','Check EMS logs for unauthorized SQL activity','Audit all managed endpoint agents for unexpected configuration changes'],kev:true,patch:'FortiClientEMS 7.2.3'},
 ];
 
+// ── Demo Auto-Mode Simulation Timeline ────────────────────────────────────────
+// Scripted APEX triage events that play out when demo mode + automation >= 1
+// Each event mimics exactly what happens in live mode: triage → verdict → action
+const DEMO_APEX_RESULTS = {
+  a7: { verdict:'TP', confidence:96, analystNarrative:'Taegis XDR and Sophos both flagging mass file rename with .wncry extension and shadow copy deletion on backup server. LockBit 3.0 TTP match. Highest priority — backup destruction in progress.', evidenceChain:['Mass file rename to .wncry — ransomware IOC','vssadmin delete shadows executed on backup server','Lateral movement from SRV-FINANCE01 confirmed','LockBit 3.0 TTP match across 3 detections','Backup server = patient zero for data destruction'], mitreMapping:{tactic:'Impact',technique:'Data Encrypted for Impact',id:'T1486'}, immediateActions:[{priority:'CRITICAL',action:'Isolate SRV-BACKUP01 from network immediately',timeframe:'0 seconds',owner:'APEX'},{priority:'CRITICAL',action:'Block VLAN 10.0.4.0/24 egress',timeframe:'30 seconds',owner:'APEX'},{priority:'HIGH',action:'Notify CISO and IR retainer',timeframe:'2 minutes',owner:'SOC L1'}], huntQueries:{splunk:'index=* sourcetype=wineventlog host=SRV-BACKUP01 (EventCode=4663 OR EventCode=7045) earliest=-1h',sentinel:'DeviceFileEvents | where DeviceName == "SRV-BACKUP01" and FileName endswith ".wncry"',defender:'DeviceFileEvents | where DeviceName == "SRV-BACKUP01" | where FileName matches regex ".wncry$"',elastic:'process.name:vssadmin AND process.args:delete'}, demoToolResults:[{tool:'Taegis XDR',action:'Host isolated',status:'success'},{tool:'Slack',action:'#incidents notified — P1',status:'success'}] },
+  a1: { verdict:'TP', confidence:98, analystNarrative:'Domain controller targeted by LSASS memory access via service account. T1003.001 — Mimikatz or similar. admin_svc account used laterally across 3 hosts. No maintenance window. Classic credential dumping attack pattern.', evidenceChain:['DC01 is domain controller — crown jewel asset','admin_svc lateral movement to 3 hosts in last 2h','T1003.001 — Mimikatz pattern confirmed by CrowdStrike','No maintenance window or IT ticket found','Sequence matches known APT29 initial access → credential dump'], mitreMapping:{tactic:'Credential Access',technique:'OS Credential Dumping: LSASS Memory',id:'T1003.001'}, immediateActions:[{priority:'CRITICAL',action:'Isolate DC01 via CrowdStrike Falcon — network contain',timeframe:'immediately',owner:'APEX'},{priority:'CRITICAL',action:'Disable admin_svc account via Entra ID',timeframe:'30 seconds',owner:'APEX'},{priority:'HIGH',action:'Reset all admin_svc credentials enterprise-wide',timeframe:'15 minutes',owner:'SOC L2'}], huntQueries:{splunk:'index=windows EventCode=10 TargetImage="*lsass.exe" host=DC01 earliest=-2h',sentinel:'SecurityEvent | where EventID == 4624 and Account == "admin_svc" | extend TimeDiff = datetime_diff("minute", TimeGenerated, ago(2h))',defender:'DeviceProcessEvents | where ProcessCommandLine contains "sekurlsa" or ProcessCommandLine contains "lsass"',elastic:'winlog.event_id:10 AND target.process.name:lsass.exe'}, demoToolResults:[{tool:'CrowdStrike Falcon',action:'DC01 contained',status:'success'},{tool:'Entra ID',action:'admin_svc disabled',status:'success'},{tool:'Slack',action:'#soc-critical notified',status:'success'}] },
+  a4: { verdict:'FP', confidence:99, analystNarrative:'PowerShell parent process is wuauclt.exe — Windows Update. Microsoft-signed certificate on payload. KB5034441 was scheduled for 09:30. Zero malicious indicators. Automated suppression rule created.', evidenceChain:['Parent: wuauclt.exe — legitimate Windows Update process','Microsoft-signed certificate chain — valid','KB5034441 scheduled at 09:30 — matches alert time','No network egress or download cradle','No payload — update only'], mitreMapping:{tactic:'Execution',technique:'Command and Scripting Interpreter: PowerShell',id:'T1059.001'}, immediateActions:[{priority:'LOW',action:'Auto-close FP — no action required',timeframe:'immediately',owner:'APEX'},{priority:'LOW',action:'Create suppression rule for this pattern',timeframe:'5 minutes',owner:'APEX'}], huntQueries:{splunk:'',sentinel:'',defender:'',elastic:''}, demoToolResults:[{tool:'APEX',action:'Alert auto-closed — FP 99%',status:'success'},{tool:'Splunk',action:'Suppression rule created',status:'success'}] },
+  a2: { verdict:'TP', confidence:94, analystNarrative:'Darktrace detected anomalous HTTPS beacon with JA3 fingerprint matching LockBit C2 infrastructure. IP 185.220.101.42 on ThreatFox with active C2 attribution. Beaconing interval 300s — classic C2 heartbeat. Finance server = high exfil risk.', evidenceChain:['IP 185.220.101.42 on ThreatFox — LockBit C2 confirmed','Darktrace device deviation 96/100 — extreme anomaly','JA3 fingerprint matches Cobalt Strike malleable C2','300-second beacon interval — textbook C2 heartbeat','Sector threat intel flagged same IP 48h ago'], mitreMapping:{tactic:'Command and Control',technique:'Application Layer Protocol: Web Protocols',id:'T1071.001'}, immediateActions:[{priority:'CRITICAL',action:'Block IP 185.220.101.42 at perimeter',timeframe:'immediately',owner:'APEX'},{priority:'HIGH',action:'Isolate SRV-FINANCE01 pending investigation',timeframe:'5 minutes',owner:'APEX'},{priority:'HIGH',action:'Initiate packet capture via Darktrace',timeframe:'immediately',owner:'APEX'}], huntQueries:{splunk:'index=paloalto dest_ip=185.220.101.42 earliest=-72h | stats count by src_ip, app',sentinel:'NetworkCommunicationEvents | where RemoteIP == "185.220.101.42" | summarize count() by DeviceName, bin(Timestamp, 1h)',defender:'DeviceNetworkEvents | where RemoteIP == "185.220.101.42" | summarize count() by DeviceName',elastic:'destination.ip:185.220.101.42 AND event.category:network'}, demoToolResults:[{tool:'Zscaler',action:'IP 185.220.101.42 blocked',status:'success'},{tool:'Darktrace',action:'Packet capture initiated',status:'success'},{tool:'Slack',action:'#soc-critical notified',status:'success'}] },
+};
+
+const DEMO_AUTO_TIMELINE = [
+  { delayMs:1800,  alertId:'a7', phase:'triaging',  msg:'Analyzing SRV-BACKUP01 — ransomware IOC pattern...' },
+  { delayMs:5200,  alertId:'a7', phase:'verdict',   msg:'Ransomware confirmed — LockBit 3.0 TTP match' },
+  { delayMs:5800,  alertId:'a7', phase:'action',    msg:'Taegis XDR: SRV-BACKUP01 isolated ✓', tool:'Taegis XDR', toolColor:'#4f8fff' },
+  { delayMs:6400,  alertId:'a7', phase:'action',    msg:'Slack: #incidents notified — P1 ✓', tool:'Slack', toolColor:'#4f8fff' },
+  { delayMs:8500,  alertId:'a1', phase:'triaging',  msg:'Analyzing DC01 — LSASS credential dump...' },
+  { delayMs:12100, alertId:'a1', phase:'verdict',   msg:'TP confirmed — Mimikatz pattern on domain controller' },
+  { delayMs:12700, alertId:'a1', phase:'action',    msg:'CrowdStrike Falcon: DC01 contained ✓', tool:'CrowdStrike', toolColor:'#f0405e' },
+  { delayMs:13200, alertId:'a1', phase:'action',    msg:'Entra ID: admin_svc account disabled ✓', tool:'Entra ID', toolColor:'#0078d4' },
+  { delayMs:15000, alertId:'a4', phase:'triaging',  msg:'Analyzing WS-SALES12 — PowerShell execution...' },
+  { delayMs:18200, alertId:'a4', phase:'verdict',   msg:'False positive — Windows Update (KB5034441)' },
+  { delayMs:18800, alertId:'a4', phase:'action',    msg:'APEX: auto-closed FP (99% confidence) ✓', tool:'APEX', toolColor:'#22d49a' },
+  { delayMs:20500, alertId:'a2', phase:'triaging',  msg:'Analyzing SRV-FINANCE01 — C2 beacon pattern...' },
+  { delayMs:24000, alertId:'a2', phase:'verdict',   msg:'C2 confirmed — LockBit infrastructure match' },
+  { delayMs:24600, alertId:'a2', phase:'action',    msg:'Zscaler: IP 185.220.101.42 blocked ✓', tool:'Zscaler', toolColor:'#f97316' },
+  { delayMs:25100, alertId:'a2', phase:'action',    msg:'Darktrace: packet capture initiated ✓', tool:'Darktrace', toolColor:'#8b6fff' },
+];
+
+
 const DEMO_INCIDENTS = [
   {id:'INC-0847',title:'Domain Controller Compromise — admin_svc Credential Dump',severity:'Critical',status:'Active',assignedTo:'Sarah Chen',created:'2026-03-30 09:14',updated:'2026-03-30 09:47',alertCount:4,devices:['DC01','SRV-FINANCE01','laptop-CFO01'],mitreTactics:['Initial Access','Credential Access','Lateral Movement'],aiSummary:'Multi-stage credential theft attack targeting domain infrastructure. Attacker gained initial access via spear-phish, executed LSASS dump on DC01, and used compromised admin_svc credentials to move laterally to SRV-FINANCE01. C2 beacon detected and blocked. Domain credentials at high risk — immediate reset recommended.',timeline:[
     {t:'09:14',actor:'AI',action:'Initial alert correlated',detail:'LSASS access on DC01 — Incident created, Tier 2 paged'},
@@ -528,7 +557,42 @@ export default function DashboardPage() {
       .catch(()=>{ setCredentialsLoaded(true); });
   },[]);
 
-  // ── Coverage assets — dedicated fetch separate from sync ────────────────────
+  // ── Demo auto-mode simulation: scripted APEX triage timeline ─────────────────
+  // Plays when demo mode + automation >= 1, showing AI working through alerts
+  React.useEffect(()=>{
+    if (!demoMode || automation === 0 || demoSimRef.current) return;
+    demoSimRef.current = true;
+    setDemoAutoFeed([]);
+    setDemoTriagingId(null);
+    const timers = [];
+    DEMO_AUTO_TIMELINE.forEach(event => {
+      timers.push(setTimeout(()=>{
+        if (event.phase === 'triaging') {
+          setDemoTriagingId(event.alertId);
+          setDemoAutoFeed(prev=>[{id:Date.now(),phase:'triaging',alertId:event.alertId,msg:event.msg,ts:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}, ...prev.slice(0,19)]);
+        } else if (event.phase === 'verdict') {
+          const apex = DEMO_APEX_RESULTS[event.alertId];
+          if (apex) {
+            setAiTriageCache(prev=>({...prev,[event.alertId]:{loading:false,result:{...apex,alertId:event.alertId,cachedAt:Date.now(),modelVersion:'apex-demo'}}}));
+            // Also auto-close FPs and track TPs
+            if (apex.verdict === 'FP') setAutoClosedIds(prev=>{const n=new Set(prev);n.add(event.alertId);return n;});
+          }
+          setDemoTriagingId(null);
+          setDemoAutoFeed(prev=>[{id:Date.now(),phase:'verdict',alertId:event.alertId,msg:event.msg,verdict:apex?.verdict,confidence:apex?.confidence,ts:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}, ...prev.slice(0,19)]);
+        } else if (event.phase === 'action') {
+          setDemoAutoFeed(prev=>[{id:Date.now(),phase:'action',alertId:event.alertId,msg:event.msg,tool:event.tool,toolColor:event.toolColor,ts:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}, ...prev.slice(0,19)]);
+        }
+      }, event.delayMs));
+    });
+    return ()=>timers.forEach(clearTimeout);
+  },[demoMode, automation]); // eslint-disable-line
+
+  // Reset simulation when demo mode or automation changes
+  React.useEffect(()=>{
+    if (!demoMode || automation === 0) { demoSimRef.current = false; setDemoAutoFeed([]); setDemoTriagingId(null); }
+  },[demoMode, automation]);
+
+  // ── Coverage assets — dedicated fetch separate from sync ─────────────────────
   useEffect(()=>{
     if (demoMode) return;
     const fetchCoverage = async () => {
@@ -624,7 +688,7 @@ export default function DashboardPage() {
         if (!toolIds) {
           if (errors.length > 0) { setSyncError(errors.join(' · ')); setSyncStatus('error'); }
           else {
-            setSyncStatus('ok');
+            setSyncStatus('ok'); setHasSynced(true);
             // For MSSP: post IOCs from this sync to cross-tenant correlation
             if (userTier==='mssp'||isAdmin) {
               const syncedAlerts = d.results.flatMap(r=>r.alerts||[]);
@@ -673,6 +737,12 @@ export default function DashboardPage() {
   const [userTier, setUserTier] = useState('community');
   const [theme, setTheme] = useState('dark');
   const [digitalFont, setDigitalFont] = useState(()=>typeof window!=='undefined'&&localStorage.getItem('wt_digital_font')==='1');
+  // hasSynced: becomes true after first successful live sync — prevents demo fallback bleed-through
+  const [hasSynced, setHasSynced] = useState(false);
+  // Demo auto-simulation state
+  const [demoAutoFeed, setDemoAutoFeed] = useState([]); // live action feed entries
+  const [demoTriagingId, setDemoTriagingId] = useState(null); // alert currently being analyzed
+  const demoSimRef = React.useRef(false); // prevent double-play
   // Load MSSP branding — must be after userTier and isAdmin are declared
   useEffect(()=>{
     if(userTier==='mssp'||isAdmin){fetch('/api/mssp/branding',{headers:{'x-tenant-id':tenantRef.current}}).then(r=>r.json()).then(d=>{if(d.branding?.name)setMsspBranding(d.branding);}).catch(()=>{});}
@@ -995,11 +1065,14 @@ export default function DashboardPage() {
   },{});
   // In live mode: gap devices = only those with actual missing connected tools
   // If no EDR connected, liveKnownDevices.missing=[] so no devices appear as gaps
-  const gapDevices = !demoMode && liveKnownDevices.length > 0
-    ? liveKnownDevices.filter(d => d.missing && d.missing.length > 0)
-    : DEMO_GAP_DEVICES;
-  const estateTotal = !demoMode && liveKnownDevices.length > 0 ? liveKnownDevices.length : totalDevices;
-  const coveredPct = estateTotal > 0 ? Math.round(((estateTotal - gapDevices.length) / estateTotal) * 100) : 0;
+  // In live mode: show real gaps after first sync; empty before sync completes (never show demo gaps in live mode)
+  const gapDevices = demoMode
+    ? DEMO_GAP_DEVICES
+    : hasSynced
+      ? liveKnownDevices.filter(d => d.missing && d.missing.length > 0)
+      : [];
+  const estateTotal = demoMode ? totalDevices : hasSynced ? liveKnownDevices.length : 0;
+  const coveredPct = (!demoMode && !hasSynced) ? 0 : estateTotal > 0 ? Math.round(((estateTotal - gapDevices.length) / estateTotal) * 100) : 0;
   const critAlerts = alerts.filter(a=>a.severity==='Critical');
   const tpAlerts = alerts.filter(a=>a.verdict==='TP');
   const fpAlerts = alerts.filter(a=>a.verdict==='FP');
@@ -1055,17 +1128,60 @@ export default function DashboardPage() {
   const autLabel = ['Recommend Only','Auto + Notify','Full Auto'][automation];
   const autColor = ['#6b7a94','#f0a030','#22d49a'][automation];
   // Automation effects: filter what's "acted on" based on level
+  // actedAlerts: uses APEX triage result if available, else raw alert verdict
+  // This ensures automation acts on AI-verified verdicts, not raw source data
+  const getApexVerdict = (a) => {
+    const apex = aiTriageCache[a.id]?.result;
+    if (apex) return { verdict: apex.verdict, confidence: apex.confidence, immediateActions: apex.immediateActions };
+    return { verdict: a.verdict, confidence: a.confidence || 0, immediateActions: [] };
+  };
   const actedAlerts = alerts.filter(a => {
     if (automation === 0) return false;
-    if (automation === 1) return a.verdict === 'FP' && a.confidence >= 90;
-    return a.confidence >= 80;
+    const { verdict, confidence } = getApexVerdict(a);
+    if (automation === 1) return verdict === 'FP' && confidence >= 90;
+    return confidence >= 80 && (verdict === 'TP' || verdict === 'FP');
   });
+  // ── Proactive background triage: auto-triage ALL incoming alerts in auto mode ─
+  // Without this, Full Auto only acts on raw source verdicts (usually 'Pending'), not APEX verdicts
+  const proactiveTriageRef = React.useRef(new Set());
+  React.useEffect(()=>{
+    if (demoMode || automation === 0 || !hasSynced) return;
+    const toTriage = liveAlerts.filter(a => {
+      if (proactiveTriageRef.current.has(a.id)) return false;
+      if (aiTriageCache[a.id]?.result) return false; // already triaged
+      if (automation === 1 && !['Critical','High'].includes(a.severity)) return false; // Auto+Notify: only High/Crit
+      return true;
+    });
+    if (toTriage.length === 0) return;
+    toTriage.slice(0, 5).forEach(al => { // max 5 concurrent background triages
+      proactiveTriageRef.current.add(al.id);
+      setAiTriageCache(prev=>({...prev,[al.id]:{loading:true,result:null}}));
+      const relatedAlerts = liveAlerts.filter(a=>a.id!==al.id&&(a.device===al.device||a.user===al.user)).slice(0,8);
+      const deviceVulns = liveVulns.filter(v=>(v.affectedDevices||[]).includes(al.device)||v.device===al.device).slice(0,5).map(v=>({cve:v.cve,title:v.title,cvss:v.cvss,kev:v.kev}));
+      fetch('/api/triage',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},
+        body:JSON.stringify({alertId:al.id,title:al.title,severity:al.severity,source:al.source,device:al.device,user:al.user,ip:al.ip,description:al.description,mitre:al.mitre,tags:al.tags,rawTime:al.rawTime,confidence:al.confidence,relatedAlerts,deviceVulns}),
+      })
+      .then(r=>r.json())
+      .then(d=>{
+        if(d.ok&&d.result) {
+          setAiTriageCache(prev=>({...prev,[al.id]:{loading:false,result:d.result}}));
+          console.log(`[proactive-triage] ${al.id} → ${d.result.verdict} (${d.result.confidence}%)`);
+        } else {
+          setAiTriageCache(prev=>({...prev,[al.id]:{loading:false,result:null}}));
+        }
+      })
+      .catch(()=>setAiTriageCache(prev=>({...prev,[al.id]:{loading:false,result:null}})));
+    });
+  },[liveAlerts.length, automation, demoMode, hasSynced]); // eslint-disable-line
+
   // autoFiredRef effect — declared AFTER actedAlerts to avoid temporal dead zone
   const autoFiredRef = React.useRef(new Set());
   React.useEffect(()=>{
     if(automation===0||demoMode) return;
     if(automation>=1) {
-      const fpCandidates = alerts.filter(a=>a.verdict==='FP'&&a.confidence>=90&&!autoFiredRef.current.has('fp_'+a.id));
+      const fpCandidates = alerts.filter(a=>{ const {verdict,confidence}=getApexVerdict(a); return verdict==='FP'&&confidence>=90&&!autoFiredRef.current.has('fp_'+a.id); });
       fpCandidates.forEach(a=>{
         autoFiredRef.current.add('fp_'+a.id);
         setAutoClosedIds(prev=>{const n=new Set(prev);n.add(a.id);return n;});
@@ -1077,7 +1193,7 @@ export default function DashboardPage() {
       });
       // Auto+Notify: also send Slack notification for new high-confidence TPs
       if(automation===1) {
-        const tpNotifyCandidates = alerts.filter(a=>a.verdict==='TP'&&['Critical','High'].includes(a.severity)&&a.confidence>=80&&!autoFiredRef.current.has('tp_notify_'+a.id));
+        const tpNotifyCandidates = alerts.filter(a=>{ const {verdict,confidence}=getApexVerdict(a); return verdict==='TP'&&['Critical','High'].includes(a.severity)&&confidence>=80&&!autoFiredRef.current.has('tp_notify_'+a.id); });
         tpNotifyCandidates.forEach(a=>{
           autoFiredRef.current.add('tp_notify_'+a.id);
           fetch('/api/audit',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({type:'auto_notify_tp',alertId:a.id,alertTitle:a.title,confidence:a.confidence,severity:a.severity,automation,analyst:'AI'})}).catch(()=>{});
@@ -1090,14 +1206,17 @@ export default function DashboardPage() {
     }
     if(automation===2) {
       // Full Auto: isolate high-confidence Critical/High TPs + disable accounts where applicable
-      const tpCandidates = alerts.filter(a=>a.verdict==='TP'&&['Critical','High'].includes(a.severity)&&a.confidence>=80&&!autoFiredRef.current.has('tp_'+a.id));
+      const tpCandidates = alerts.filter(a=>{ const {verdict,confidence}=getApexVerdict(a); return verdict==='TP'&&['Critical','High'].includes(a.severity)&&confidence>=80&&!autoFiredRef.current.has('tp_'+a.id); });
       tpCandidates.forEach(a=>{
         autoFiredRef.current.add('tp_'+a.id);
-        const immediateActions = [];
-        if(a.device) immediateActions.push({priority:'CRITICAL',action:`Isolate host ${a.device} from network`,timeframe:'immediately',owner:'SOC L2'});
-        if(a.ip) immediateActions.push({priority:'HIGH',action:`Block IP ${a.ip} at perimeter`,timeframe:'within 5 minutes',owner:'SOC L2'});
-        if(a.user&&a.verdict==='TP') immediateActions.push({priority:'HIGH',action:`Disable account ${a.user} pending investigation`,timeframe:'within 10 minutes',owner:'SOC L2'});
-        immediateActions.push({priority:'HIGH',action:`Create incident ticket for ${a.title}`,timeframe:'within 15 minutes',owner:'SOC L2'});
+        // Use APEX-generated immediateActions if available, fall back to safety defaults
+        const apex = aiTriageCache[a.id]?.result;
+        const immediateActions = apex?.immediateActions?.length > 0 ? apex.immediateActions : [
+          ...(a.device?[{priority:'CRITICAL',action:`Isolate host ${a.device} from network`,timeframe:'immediately',owner:'APEX Auto'}]:[]),
+          ...(a.ip?[{priority:'HIGH',action:`Block IP ${a.ip} at perimeter firewall`,timeframe:'within 5 minutes',owner:'APEX Auto'}]:[]),
+          ...(a.user&&apex?.verdict==='TP'?[{priority:'HIGH',action:`Disable account ${a.user} pending investigation`,timeframe:'within 10 minutes',owner:'APEX Auto'}]:[]),
+          {priority:'HIGH',action:`Create incident ticket: ${a.title}`,timeframe:'within 15 minutes',owner:'APEX Auto'},
+        ];
         fetch('/api/response-actions',{
           method:'POST',
           headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},
@@ -1358,7 +1477,8 @@ export default function DashboardPage() {
               {demoMode && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#f0a030',display:'block'}} />{tools.filter(t=>t.active).length} tools</span>}
               {!demoMode && syncStatus==='syncing' && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:8,height:8,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}} /><span style={{color:'#4f8fff'}}>Syncing</span></span>}
               {!demoMode && syncStatus==='error' && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#f0405e',display:'block'}} /><span style={{color:'#f0405e'}}>Error</span></span>}
-              {!demoMode && syncStatus==='ok' && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',display:'block'}} />{tools.filter(t=>t.active).length} live</span>}
+              {!demoMode && syncStatus==='ok' && hasSynced && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',display:'block'}} />{tools.filter(t=>t.active).length} live</span>}
+            {!demoMode && (syncStatus==='syncing'||!hasSynced) && Object.keys(connectedTools).length>0 && <span style={{display:'inline-flex',alignItems:'center',gap:4,animation:'pulse 1s ease infinite'}}><span style={{width:6,height:6,borderRadius:'50%',background:'#f0a030',display:'block'}} />syncing</span>}
               {!demoMode && syncStatus==='idle' && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#6b7a94',display:'block'}} />{Object.keys(connectedTools).length}</span>}
               {!demoMode && Object.keys(connectedTools).length>0 && <button onClick={()=>doSync()} disabled={syncStatus==='syncing'} style={{padding:'2px 8px',borderRadius:5,border:'1px solid #4f8fff30',background:'#4f8fff0f',color:'#4f8fff',fontSize:'0.84rem',fontWeight:700,cursor:syncStatus==='syncing'?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',opacity:syncStatus==='syncing'?0.6:1}}>⟳</button>}
             </div>
@@ -1405,7 +1525,7 @@ export default function DashboardPage() {
             <div style={{padding:'12px 16px',background:'#4f8fff08',border:'1px solid #4f8fff20',borderRadius:10,marginBottom:14,display:'flex',alignItems:'center',gap:10}}>
               {syncStatus==='syncing' ? <span style={{width:12,height:12,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite',flexShrink:0}} /> : <span style={{fontSize:'0.9rem'}}>📡</span>}
               <div style={{flex:1}}>
-                <div style={{fontSize:'0.82rem',fontWeight:700,color:'#4f8fff'}}>{syncStatus==='syncing'?'Fetching live data from connected tools…':'Live mode — awaiting first sync'}</div>
+                <div style={{fontSize:'0.82rem',fontWeight:700,color:'#4f8fff'}}>{syncStatus==='syncing'?'Syncing — demo data hidden until your first sync completes':'Live mode — awaiting first sync'}</div>
                 {syncError && <div style={{fontSize:'0.8rem',color:'#f0405e',marginTop:2}}>{syncError}</div>}
                 {!syncError && syncStatus!=='syncing' && <div style={{fontSize:'0.8rem',color:'var(--wt-muted)',marginTop:1}}>Connected: {Object.keys(connectedTools).slice(0,5).join(', ')}{Object.keys(connectedTools).length>5?` +${Object.keys(connectedTools).length-5} more`:''} · Syncs every 60s</div>}
               </div>
@@ -1658,6 +1778,51 @@ export default function DashboardPage() {
               </div>
 
               {/* ── POSTURE TREND + NOISE REDUCTION ─────────────────────────────── */}
+              {/* ── Demo AI Action Feed — visible when demo + auto mode ──────────────────── */}
+              {demoMode && automation >= 1 && (demoAutoFeed.length > 0 || demoTriagingId) && (
+                <div style={{background:'var(--wt-card)',border:'1px solid #22d49a25',borderRadius:12,overflow:'hidden'}}>
+                  <div style={{padding:'10px 14px',borderBottom:'1px solid #22d49a15',display:'flex',alignItems:'center',gap:8}}>
+                    <span style={{width:7,height:7,borderRadius:'50%',background:'#22d49a',boxShadow:'0 0 8px #22d49a',display:'block',animation:'pulse 1s ease infinite',flexShrink:0}} />
+                    <span style={{fontSize:'0.78rem',fontWeight:800,color:'#22d49a',letterSpacing:'0.5px'}}>APEX LIVE ACTION FEED</span>
+                    <span style={{fontSize:'0.72rem',color:'var(--wt-muted)',marginLeft:'auto'}}>{['Recommend Only','Auto + Notify','Full Auto'][automation]} · demo</span>
+                  </div>
+                  <div style={{maxHeight:240,overflowY:'auto'}}>
+                    {demoTriagingId && (
+                      <div style={{display:'flex',alignItems:'center',gap:10,padding:'8px 14px',borderBottom:'1px solid var(--wt-border)',background:'#4f8fff06'}}>
+                        <span style={{fontSize:'0.72rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',flexShrink:0}}>now</span>
+                        <span style={{fontSize:'0.84rem'}}>🔍</span>
+                        <span style={{fontSize:'0.78rem',color:'#4f8fff',fontWeight:600,animation:'pulse 1s ease infinite'}}>APEX analyzing: {alerts.find(a=>a.id===demoTriagingId)?.title||'alert'}…</span>
+                        <span style={{marginLeft:'auto',fontSize:'0.7rem',color:'#4f8fff',fontFamily:'JetBrains Mono,monospace'}}>claude-haiku</span>
+                      </div>
+                    )}
+                    {demoAutoFeed.map(entry=>(
+                      <div key={entry.id} style={{display:'flex',alignItems:'flex-start',gap:10,padding:'7px 14px',borderBottom:'1px solid var(--wt-border)',animation:'tab-fade 0.2s ease'}}>
+                        <span style={{fontSize:'0.7rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',flexShrink:0,marginTop:2}}>{entry.ts}</span>
+                        <span style={{fontSize:'0.82rem',flexShrink:0}}>
+                          {entry.phase==='triaging'?'🔍':entry.verdict==='FP'?'✅':entry.phase==='verdict'?'🚨':'⚡'}
+                        </span>
+                        <div style={{flex:1,minWidth:0,display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
+                          <span style={{fontSize:'0.78rem',color:entry.phase==='action'?(entry.toolColor||'#4f8fff'):entry.verdict==='FP'?'#22d49a':entry.verdict==='TP'?'#f0405e':'var(--wt-secondary)',fontWeight:entry.phase==='action'?600:400,lineHeight:1.4}}>
+                            {entry.msg}
+                          </span>
+                          {entry.verdict && (
+                            <span style={{fontSize:'0.7rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:entry.verdict==='TP'?'#f0405e':entry.verdict==='FP'?'#22d49a':'#f0a030',color:'#fff',flexShrink:0}}>
+                              {entry.verdict} {entry.confidence}%
+                            </span>
+                          )}
+                          {entry.tool && (
+                            <span style={{fontSize:'0.68rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',flexShrink:0}}>[{entry.tool}]</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {demoAutoFeed.length===0 && !demoTriagingId && (
+                      <div style={{padding:'12px 14px',fontSize:'0.78rem',color:'var(--wt-muted)'}}>APEX starting triage…</div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}} className='wt-two-col'>
                 {/* Posture trend */}
                 <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px'}}>
@@ -1861,7 +2026,7 @@ export default function DashboardPage() {
 
               {/* OS Breakdown — from connected tools */}
               {(()=>{
-                const devices = demoMode ? DEMO_GAP_DEVICES : liveKnownDevices.length > 0 ? liveKnownDevices : DEMO_GAP_DEVICES;
+                const devices = demoMode ? DEMO_GAP_DEVICES : liveKnownDevices;
                 const osVersionColor = (os) => { const s = (os||'').toLowerCase(); return s.includes('windows 11')?'#00a4ef':s.includes('windows 10')?'#0078d4':s.includes('server')?'#005a9e':s.includes('ubuntu')?'#e95420':s.includes('rhel')||s.includes('centos')||s.includes('amazon')?'#cc0000':s.includes('debian')||s.includes('suse')?'#a80030':s.includes('linux')?'#f97316':s.includes('macos')?'#a8b2c1':'#6b7a94'; };
                 const OS_COLORS = {}; const OS_ICONS = {};
                 const versionNormalise = (raw) => {

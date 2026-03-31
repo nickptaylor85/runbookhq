@@ -424,7 +424,7 @@ export default function LandingPage() {
         <div style={{ maxWidth:800, margin:'0 auto', position:'relative' }}>
           <div style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'5px 14px', background:'#4f8fff12', border:'1px solid #4f8fff25', borderRadius:20, fontSize:'0.7rem', color:'#4f8fff', fontWeight:600, marginBottom:24 }}>
             <span style={{width:6,height:6,borderRadius:'50%',background:'#4f8fff',boxShadow:'0 0 8px #4f8fff',display:'block',animation:'pulse 2s ease infinite'}}/>
-            80+ integrations · AI triage in 3.2s · MSSP-ready
+            80+ integrations · Autonomous AI triage + response · MSSP-ready
           </div>
           <h1 style={{ fontSize:'clamp(2.2rem,5vw,3.6rem)', fontWeight:900, lineHeight:1.08, letterSpacing:-2.5, marginBottom:20 }}>
             Your entire SOC.<br/>

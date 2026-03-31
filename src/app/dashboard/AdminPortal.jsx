@@ -105,36 +105,49 @@ function SignupToggle() {
   const [enabled, setEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [waitlistCount, setWaitlistCount] = useState(0);
   useEffect(()=>{
     fetch('/api/admin/platform',{headers:{'x-is-admin':'true'}}).then(r=>r.json()).then(d=>{
       if (typeof d.signup_enabled === 'boolean') setEnabled(d.signup_enabled);
       setLoaded(true);
     }).catch(()=>setLoaded(true));
+    fetch('/api/waitlist',{headers:{'x-is-admin':'true'}}).then(r=>r.json()).then(d=>{
+      if (d.count) setWaitlistCount(d.count);
+    }).catch(()=>{});
   },[]);
   const toggle = async () => {
     setSaving(true);
     try {
       const newVal = !enabled;
       const r = await fetch('/api/admin/platform',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':'global'},body:JSON.stringify({signup_enabled:newVal})});
-      if (r.ok) {
-        setEnabled(newVal);
-      } else {
-        console.error('[signup toggle] failed:', r.status, await r.text().catch(()=>''));
-      }
+      if (r.ok) { setEnabled(newVal); }
+      else { console.error('[signup toggle] failed:', r.status, await r.text().catch(()=>'')); }
     } catch(e) { console.error('[signup toggle] error:', e); }
     setSaving(false);
   };
   return (
-    <div style={{padding:'14px 16px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,display:'flex',alignItems:'center',gap:12}}>
-      <div style={{flex:1}}>
-        <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:2}}>Public Sign-ups</div>
-        <div style={{fontSize:'0.64rem',color:'var(--wt-muted)'}}>
-          {enabled ? 'New users can register at /signup' : 'Sign-up page is disabled — existing users unaffected'}
+    <div style={{background:'var(--wt-card)',border:`1px solid ${enabled?'var(--wt-border)':'#f0405e30'}`,borderRadius:12,overflow:'hidden'}}>
+      <div style={{padding:'14px 16px',display:'flex',alignItems:'center',gap:12}}>
+        <div style={{flex:1}}>
+          <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:2}}>Public Sign-ups</div>
+          <div style={{fontSize:'0.64rem',color:'var(--wt-muted)'}}>
+            {enabled
+              ? 'New users can register at /signup — form is live'
+              : 'Sign-up page shows waitlist form — existing users unaffected'}
+          </div>
         </div>
+        <button onClick={toggle} disabled={saving||!loaded} style={{padding:'6px 16px',borderRadius:7,border:`1px solid ${enabled?'#22d49a30':'#f0405e30'}`,background:enabled?'#22d49a15':'#f0405e12',color:enabled?'#22d49a':'#f0405e',fontSize:'0.72rem',fontWeight:700,cursor:saving?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>
+          {saving?'Saving…':enabled?'✓ Open — click to close':'✗ Closed — click to reopen'}
+        </button>
       </div>
-      <button onClick={toggle} disabled={saving||!loaded} style={{padding:'6px 16px',borderRadius:7,border:`1px solid ${enabled?'#22d49a30':'#f0405e30'}`,background:enabled?'#22d49a15':'#f0405e12',color:enabled?'#22d49a':'#f0405e',fontSize:'0.72rem',fontWeight:700,cursor:saving?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>
-        {saving?'Saving…':enabled?'✓ Enabled — click to disable':'✗ Disabled — click to enable'}
-      </button>
+      {!enabled && waitlistCount > 0 && (
+        <div style={{padding:'8px 16px',borderTop:'1px solid #f0405e15',background:'#f0405e06',display:'flex',alignItems:'center',gap:8}}>
+          <span style={{fontSize:'0.72rem',color:'#f0a030'}}>📋</span>
+          <span style={{fontSize:'0.72rem',color:'var(--wt-muted)'}}>
+            <span style={{fontWeight:700,color:'#f0a030',fontFamily:'JetBrains Mono,monospace'}}>{waitlistCount}</span> email{waitlistCount!==1?'s':''} on waitlist
+          </span>
+        </div>
+      )}
     </div>
   );
 }

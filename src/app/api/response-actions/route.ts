@@ -79,6 +79,41 @@ async function findOktaUser(c: Record<string,string>, identifier: string): Promi
   return d.id || null;
 }
 
+// ── Taegis GraphQL helper ─────────────────────────────────────────────────────
+
+async function taegisToken(c: Record<string,string>): Promise<{token:string; host:string}> {
+  const region = c.region || 'us1';
+  const host = region === 'us1' ? 'api.ctpx.secureworks.com'
+    : region === 'us2' ? 'api.delta.taegis.secureworks.com'
+    : region === 'eu1' ? 'api.echo.taegis.secureworks.com'
+    : `api.${region}.taegis.secureworks.com`;
+  const params = new URLSearchParams({
+    grant_type: 'client_credentials',
+    client_id: c.clientId || c.client_id || '',
+    client_secret: c.clientSecret || c.client_secret || '',
+  });
+  const r = await fetch(`https://${host}/auth/api/v2/auth/token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params.toString(),
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!r.ok) throw new Error(`Taegis auth ${r.status}`);
+  const d = await r.json() as { access_token: string };
+  return { token: d.access_token, host };
+}
+
+async function taegisGraphQL(host: string, token: string, query: string, variables?: Record<string,unknown>) {
+  const r = await fetch(`https://${host}/graphql`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables }),
+    signal: AbortSignal.timeout(12000),
+  });
+  if (!r.ok) throw new Error(`Taegis GraphQL ${r.status}`);
+  return r.json();
+}
+
 // ── Action executors ──────────────────────────────────────────────────────────
 
 type ActionResult = { ok: boolean; tool: string; action: string; detail?: string; error?: string };
@@ -184,8 +219,46 @@ async function isolateHost(creds: Record<string, Record<string, string>>, hostna
     } catch(e: any) { results.push({ ok: false, tool: 'Darktrace', action: 'host_isolated', error: e.message }); }
   }
 
+  // Taegis XDR — find asset by hostname, set desiredIsolationStatus = ISOLATED
+  if (creds.taegis) {
+    try {
+      const { token, host } = await taegisToken(creds.taegis);
+      const findQuery = `query FindAsset($filter: AssetFilter) {
+        assetsV2(first: 1, filter: $filter) {
+          assets { id isolationStatus desiredIsolationStatus hostnames { hostname } }
+        }
+      }`;
+      const findData = await taegisGraphQL(host, token, findQuery, {
+        filter: { where: { hostnames: { hostname_contains: hostname } } }
+      });
+      const asset = findData?.data?.assetsV2?.assets?.[0];
+      if (!asset) {
+        results.push({ ok: false, tool: 'Taegis XDR', action: 'host_isolated', error: `${hostname} not found in Taegis asset inventory` });
+      } else if (asset.isolationStatus === 'ISOLATED') {
+        results.push({ ok: true, tool: 'Taegis XDR', action: 'host_isolated', detail: `${hostname} already isolated in Taegis` });
+      } else {
+        // Try primary mutation, fall back to alternative naming
+        let isolated = false;
+        for (const mut of [
+          `mutation { updateAssetIsolation(id: "${asset.id}", desiredIsolationStatus: ISOLATED) { id desiredIsolationStatus } }`,
+          `mutation { isolateEndpointV2(id: "${asset.id}") { id desiredIsolationStatus } }`,
+          `mutation { endpointIsolate(endpointId: "${asset.id}") { id isolationStatus } }`,
+        ]) {
+          try {
+            const r = await taegisGraphQL(host, token, mut);
+            if (!r.errors) {
+              results.push({ ok: true, tool: 'Taegis XDR', action: 'host_isolated', detail: `${hostname} isolation requested in Taegis XDR` });
+              isolated = true; break;
+            }
+          } catch {}
+        }
+        if (!isolated) results.push({ ok: false, tool: 'Taegis XDR', action: 'host_isolated', error: `Taegis isolation mutation failed for ${hostname} — check API permissions` });
+      }
+    } catch(e: any) { results.push({ ok: false, tool: 'Taegis XDR', action: 'host_isolated', error: e.message }); }
+  }
+
   if (results.length === 0) {
-    results.push({ ok: false, tool: 'none', action: 'host_isolated', error: 'No EDR/NDR connected. Connect CrowdStrike, SentinelOne, Defender, Carbon Black, or Darktrace.' });
+    results.push({ ok: false, tool: 'none', action: 'host_isolated', error: 'No EDR/XDR connected. Connect CrowdStrike, SentinelOne, Defender, Carbon Black, Darktrace, or Taegis.' });
   }
   return results;
 }
