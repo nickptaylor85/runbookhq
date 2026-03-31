@@ -786,3 +786,236 @@ export const taegis: IntegrationAdapter = {
 
   },
 };
+// ─── Claroty CTD ──────────────────────────────────────────────────────────────
+export const claroty: IntegrationAdapter = {
+  id: 'claroty',
+  name: 'Claroty',
+  credentialFields: [
+    { key: 'host', label: 'CTD URL', placeholder: 'https://ctd.company.com' },
+    { key: 'username', label: 'Username' },
+    { key: 'password', label: 'Password', secret: true },
+  ],
+  async testConnection(creds) {
+    try {
+      const r = await fetch(`${creds.host}/api/v1/auth/authenticate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: creds.username, password: creds.password }),
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return { ok: true, message: 'Connected to Claroty CTD' };
+    } catch(e: any) { return { ok: false, message: e.message }; }
+  },
+  async fetchAlerts(creds) {
+    const authR = await fetch(`${creds.host}/api/v1/auth/authenticate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: creds.username, password: creds.password }),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!authR.ok) throw new Error(`Claroty auth failed: ${authR.status}`);
+    const { token } = await authR.json() as { token: string };
+    const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+    const alertR = await fetch(`${creds.host}/api/v1/alerts?state=UNRESOLVED&limit=200`, {
+      headers, signal: AbortSignal.timeout(15000),
+    });
+    if (!alertR.ok) throw new Error(`Claroty alerts ${alertR.status}`);
+    const alertData = await alertR.json() as { objects?: any[] };
+    const alerts = alertData.objects || [];
+    console.log(`[claroty] ${alerts.length} alerts`);
+
+    return alerts.map((a: any): NormalisedAlert => {
+      const sev = a.type_display_name?.toLowerCase().includes('critical') ? 'Critical'
+        : a.type_display_name?.toLowerCase().includes('high') ? 'High'
+        : a.score >= 7 ? 'High' : a.score >= 4 ? 'Medium' : 'Low';
+      const ts = a.time ? new Date(a.time).getTime() : Date.now();
+      return {
+        id: safeId('claroty', a.id),
+        source: 'Claroty',
+        sourceId: String(a.id),
+        title: a.type_display_name || a.description || 'Claroty OT Alert',
+        severity: sev,
+        device: a.assets?.[0]?.name || a.network_id || 'Unknown OT Device',
+        ip: a.assets?.[0]?.ip_v4 || a.src_ip,
+        time: new Date(ts).toISOString(),
+        rawTime: ts,
+        description: a.description || a.type_display_name || '',
+        verdict: a.status === 'resolved' ? 'FP' : 'Pending',
+        confidence: a.score ? Math.round(Math.min(a.score * 10, 95)) : 60,
+        tags: ['claroty', 'ot', a.protocol, a.type_display_name].filter(Boolean),
+        raw: { ...a, _otAlert: true, _zone: a.network_id, _protocol: a.protocol },
+      };
+    });
+  },
+};
+
+// ─── Nozomi Networks Vantage ──────────────────────────────────────────────────
+export const nozomi: IntegrationAdapter = {
+  id: 'nozomi',
+  name: 'Nozomi Networks',
+  credentialFields: [
+    { key: 'host', label: 'Vantage URL', placeholder: 'https://nozomi.company.com' },
+    { key: 'api_key', label: 'API Key', secret: true },
+  ],
+  async testConnection(creds) {
+    try {
+      const r = await fetch(`${creds.host}/api/v1/nodes/count`, {
+        headers: { 'Token': creds.api_key },
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return { ok: true, message: 'Connected to Nozomi Vantage' };
+    } catch(e: any) { return { ok: false, message: e.message }; }
+  },
+  async fetchAlerts(creds) {
+    const headers = { 'Token': creds.api_key, 'Content-Type': 'application/json' };
+    const r = await fetch(`${creds.host}/api/v1/alerts?limit=200&sort=-time`, {
+      headers, signal: AbortSignal.timeout(15000),
+    });
+    if (!r.ok) throw new Error(`Nozomi alerts ${r.status}`);
+    const data = await r.json() as { result?: any[] };
+    const alerts = data.result || [];
+    console.log(`[nozomi] ${alerts.length} alerts`);
+
+    return alerts.map((a: any): NormalisedAlert => {
+      const sev = a.severity === 'critical' ? 'Critical' : a.severity === 'high' ? 'High' : a.severity === 'medium' ? 'Medium' : 'Low';
+      const ts = a.time ? new Date(a.time).getTime() : Date.now();
+      return {
+        id: safeId('nozomi', a.id),
+        source: 'Nozomi Networks',
+        sourceId: String(a.id),
+        title: a.description || a.name || 'Nozomi OT Alert',
+        severity: sev,
+        device: a.node_id || a.source || 'Unknown OT Device',
+        ip: a.src_ip_addr,
+        time: new Date(ts).toISOString(),
+        rawTime: ts,
+        description: a.description || '',
+        verdict: a.status === 'closed' ? 'FP' : 'Pending',
+        confidence: a.risk_score ? Math.round(Math.min(a.risk_score, 95)) : 60,
+        tags: ['nozomi', 'ot', a.protocol, a.type].filter(Boolean),
+        raw: { ...a, _otAlert: true, _protocol: a.protocol },
+      };
+    });
+  },
+};
+
+// ─── Dragos Platform ──────────────────────────────────────────────────────────
+export const dragos: IntegrationAdapter = {
+  id: 'dragos',
+  name: 'Dragos',
+  credentialFields: [
+    { key: 'host', label: 'Platform URL', placeholder: 'https://platform.dragos.com' },
+    { key: 'api_key', label: 'API Token' },
+    { key: 'api_secret', label: 'API Secret', secret: true },
+  ],
+  async testConnection(creds) {
+    try {
+      const r = await fetch(`${creds.host}/api/v1/status`, {
+        headers: { 'X-Auth-Token': creds.api_key, 'X-Auth-Secret': creds.api_secret },
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return { ok: true, message: 'Connected to Dragos Platform' };
+    } catch(e: any) { return { ok: false, message: e.message }; }
+  },
+  async fetchAlerts(creds) {
+    const headers = { 'X-Auth-Token': creds.api_key, 'X-Auth-Secret': creds.api_secret };
+    const r = await fetch(`${creds.host}/api/v1/detections?status=open&limit=200`, {
+      headers, signal: AbortSignal.timeout(15000),
+    });
+    if (!r.ok) throw new Error(`Dragos detections ${r.status}`);
+    const data = await r.json() as { detections?: any[]; items?: any[] };
+    const items = data.detections || data.items || [];
+    console.log(`[dragos] ${items.length} detections`);
+
+    return items.map((a: any): NormalisedAlert => {
+      const sev = a.severity?.toLowerCase() === 'critical' ? 'Critical'
+        : a.severity?.toLowerCase() === 'high' ? 'High'
+        : a.severity?.toLowerCase() === 'medium' ? 'Medium' : 'Low';
+      const ts = a.created_at ? new Date(a.created_at).getTime() : Date.now();
+      return {
+        id: safeId('dragos', a.id || a.uuid),
+        source: 'Dragos',
+        sourceId: String(a.id || a.uuid),
+        title: a.title || a.description || 'Dragos ICS Detection',
+        severity: sev,
+        device: a.asset?.hostname || a.asset?.ip || a.ip || 'Unknown OT Device',
+        ip: a.asset?.ip || a.ip,
+        time: new Date(ts).toISOString(),
+        rawTime: ts,
+        description: a.description || a.title || '',
+        verdict: a.status === 'closed' || a.status === 'false_positive' ? 'FP' : 'Pending',
+        confidence: a.confidence ? Math.round(Math.min(a.confidence * 100, 95)) : 65,
+        tags: ['dragos', 'ics', 'ot', a.tactic, a.technique].filter(Boolean),
+        mitre: a.technique_id,
+        raw: { ...a, _otAlert: true },
+      };
+    });
+  },
+};
+
+// ─── Armis ────────────────────────────────────────────────────────────────────
+export const armis: IntegrationAdapter = {
+  id: 'armis',
+  name: 'Armis',
+  credentialFields: [
+    { key: 'host', label: 'Armis URL', placeholder: 'https://yourcompany.armis.com' },
+    { key: 'secret', label: 'API Secret Key', secret: true },
+  ],
+  async testConnection(creds) {
+    try {
+      const tokenR = await fetch(`${creds.host}/api/v1/access_token/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret_key: creds.secret }),
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!tokenR.ok) throw new Error(`Armis auth ${tokenR.status}`);
+      return { ok: true, message: 'Connected to Armis' };
+    } catch(e: any) { return { ok: false, message: e.message }; }
+  },
+  async fetchAlerts(creds) {
+    const tokenR = await fetch(`${creds.host}/api/v1/access_token/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ secret_key: creds.secret }),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!tokenR.ok) throw new Error(`Armis auth ${tokenR.status}`);
+    const { data: tokenData } = await tokenR.json() as { data: { access_token: string } };
+    const token = tokenData.access_token;
+    const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+    const r = await fetch(`${creds.host}/api/v1/alerts/?aql=status%3Aunhandled&length=200`, {
+      headers, signal: AbortSignal.timeout(15000),
+    });
+    if (!r.ok) throw new Error(`Armis alerts ${r.status}`);
+    const data = await r.json() as { data?: { alerts?: any[] } };
+    const alerts = data.data?.alerts || [];
+    console.log(`[armis] ${alerts.length} alerts`);
+
+    return alerts.map((a: any): NormalisedAlert => {
+      const sev = a.severity === 'critical' ? 'Critical' : a.severity === 'high' ? 'High' : a.severity === 'medium' ? 'Medium' : 'Low';
+      const ts = a.time ? new Date(a.time).getTime() : Date.now();
+      return {
+        id: safeId('armis', a.alertId || a.id),
+        source: 'Armis',
+        sourceId: String(a.alertId || a.id),
+        title: a.description || a.type || 'Armis Alert',
+        severity: sev,
+        device: a.deviceIds?.[0]?.toString() || 'Unknown Device',
+        ip: undefined,
+        time: new Date(ts).toISOString(),
+        rawTime: ts,
+        description: a.description || '',
+        verdict: a.status === 'RESOLVED' ? 'FP' : 'Pending',
+        confidence: a.severity === 'critical' ? 85 : a.severity === 'high' ? 72 : 55,
+        tags: ['armis', 'ot', a.type, a.connectionType].filter(Boolean),
+        raw: { ...a, _otAlert: true },
+      };
+    });
+  },
+};

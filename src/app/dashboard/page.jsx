@@ -1,6 +1,7 @@
 'use client';
 import AlertsTab from './AlertsTab';
 import WtMarkdown from './WtMarkdown';
+import OTTab from './OTTab';
 import React, { useState, useEffect } from 'react';
 import MSSPPortfolio from './MSSPPortfolio';
 import ToolsTab from './ToolsTab';
@@ -592,6 +593,14 @@ export default function DashboardPage() {
     if (!demoMode || automation === 0) { demoSimRef.current = false; setDemoAutoFeed([]); setDemoTriagingId(null); }
   },[demoMode, automation]);
 
+  // ── OT license check ────────────────────────────────────────────────────────
+  useEffect(()=>{
+    fetch('/api/ot/license', { headers: { 'x-tenant-id': tenantRef.current } })
+      .then(r=>r.json())
+      .then(d=>{ if (d.ok) setOtLicense(d); })
+      .catch(()=>{});
+  },[]);
+
   // ── Coverage assets — dedicated fetch separate from sync ─────────────────────
   useEffect(()=>{
     if (demoMode) return;
@@ -739,6 +748,7 @@ export default function DashboardPage() {
   const [digitalFont, setDigitalFont] = useState(()=>typeof window!=='undefined'&&localStorage.getItem('wt_digital_font')==='1');
   // hasSynced: becomes true after first successful live sync — prevents demo fallback bleed-through
   const [hasSynced, setHasSynced] = useState(false);
+  const [otLicense, setOtLicense] = useState({ enabled: false, deviceLimit: 0, deviceCount: 0 });
   // Demo auto-simulation state
   const [demoAutoFeed, setDemoAutoFeed] = useState([]); // live action feed entries
   const [demoTriagingId, setDemoTriagingId] = useState(null); // alert currently being analyzed
@@ -877,7 +887,7 @@ export default function DashboardPage() {
       const now=Date.now();
       if(e.key.toLowerCase()==='g'){lastKey='g';lastTime=now;return;}
       if(lastKey==='g'&&(now-lastTime)<1500){
-        const map={o:'overview',a:'alerts',c:'coverage',v:'vulns',i:'intel',n:'incidents',t:'tools',s:'sales',x:'compliance'};
+        const map={o:'overview',a:'alerts',c:'coverage',v:'vulns',i:'intel',n:'incidents',t:'tools',r:'ot',s:'sales',x:'compliance'};
         if(map[e.key.toLowerCase()]){setActiveTab(map[e.key.toLowerCase()]);}
         lastKey='';return;
       }
@@ -1378,7 +1388,7 @@ export default function DashboardPage() {
     setExpandedAlerts(prev => { const n = new Set(prev); n.has(id)?n.delete(id):n.add(id); return n; });
   }
 
-  const TABS = ['overview','alerts','coverage','vulns','intel','incidents','tools','mssp','compliance','sales','admin'];
+  const TABS = ['overview','alerts','coverage','vulns','intel','incidents','tools','ot','mssp','compliance','sales','admin'];
   const isSales = userRole === 'sales' || isAdmin;
   const isViewer = userRole === 'viewer';
   const isTechAdmin = userRole === 'tech_admin' || isAdmin;
@@ -1431,7 +1441,7 @@ export default function DashboardPage() {
 
           {/* Primary tabs — always visible */}
           <div className="wt-tabbar" style={{display:'flex',gap:0,height:'100%',alignItems:'stretch',overflowX:'auto'}}>
-            {['overview','alerts','coverage','vulns','intel','incidents','tools'].filter(t=>{
+            {['overview','alerts','coverage','vulns','intel','incidents','tools','ot'].filter(t=>{
               if (isViewer) return ['overview','alerts','coverage','vulns','intel','incidents'].includes(t);
               return true;
             }).map(t=>(
@@ -1823,26 +1833,7 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}} className='wt-two-col'>
-                {/* Posture trend */}
-                <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:12}}>
-                    <span style={{fontSize:'0.86rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>7-Day Posture Trend</span>
-                    <span style={{marginLeft:'auto',fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:postureColor}}>{posture}</span>
-                  </div>
-                  <svg viewBox='0 0 200 50' style={{width:'100%',height:50}}>
-                    <polyline fill='none' stroke={postureColor} strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'
-                      points={POSTURE_TREND.map((v,i)=>`${(i/(POSTURE_TREND.length-1))*200},${50-((v/100)*46)}`).join(' ')} />
-                    <polyline fill={postureColor+'18'} stroke='none'
-                      points={[`0,50`,...POSTURE_TREND.map((v,i)=>`${(i/(POSTURE_TREND.length-1))*200},${50-((v/100)*46)}`),`200,50`].join(' ')} />
-                    {POSTURE_TREND.map((v,i)=>(
-                      <circle key={i} cx={(i/(POSTURE_TREND.length-1))*200} cy={50-((v/100)*46)} r='3' fill={postureColor} />
-                    ))}
-                  </svg>
-                  <div style={{display:'flex',justifyContent:'space-between',marginTop:4}}>
-                    {['7d','6d','5d','4d','3d','2d','1d'].map(d=><span key={d} style={{fontSize:'0.84rem',color:'var(--wt-dim)'}}>{d}</span>)}
-                  </div>
-                </div>
+              <div>
                 {/* 7-day Alert Volume */}
                 <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px'}}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
@@ -1883,23 +1874,17 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* ── SHIFT METRICS ───────────────────────────────────────────── */}
-              <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px'}}>
-                <div style={{fontSize:'0.86rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:10}}>Shift Metrics</div>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}} className='wt-four-col'>
-                  {[
-                    {label:'Unacked Criticals',value:unackedCritCount,color:unackedCritCount>0?'#f0405e':'#22d49a',sub:'need triage now'},
-                    {label:'SLA Breaches',value:slaBreaches,color:slaBreaches>0?'#f0405e':'#22d49a',sub:'open cases over SLA'},
-                    {label:'FPs Auto-Closed',value:fpAlerts.length,color:'#22d49a',sub:'AI noise reduction'},
-                    {label:slaStats&&!demoMode?'MTTA Critical':'Tools Live',value:slaStats&&!demoMode?(slaStats.mttaMinutes&&slaStats.mttaMinutes.Critical!=null?slaStats.mttaMinutes.Critical+'m':'—'):Object.keys(connectedTools).length,color:Object.keys(connectedTools).length>0?'#4f8fff':'#f0a030',sub:slaStats&&!demoMode?'min avg to ack':'feeding alerts'},
-                  ].map(m=>(
-                    <div key={m.label} style={{textAlign:'center',padding:'10px',background:'var(--wt-card2)',borderRadius:8}}>
-                      <div style={{fontSize:'1.6rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:m.color}}>{m.value}</div>
-                      <div style={{fontSize:'0.84rem',fontWeight:700,color:'var(--wt-secondary)',marginTop:2}}>{m.label}</div>
-                      <div style={{fontSize:'0.86rem',color:'var(--wt-dim)',marginTop:1}}>{m.sub}</div>
-                    </div>
-                  ))}
-                </div>
+              {/* ── SHIFT SUMMARY — compact strip replacing 4-tile grid ──────── */}
+              <div style={{display:'flex',alignItems:'center',gap:12,padding:'10px 16px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:10,flexWrap:'wrap'}}>
+                <span style={{fontSize:'0.7rem',fontWeight:800,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'1px',flexShrink:0}}>Shift</span>
+                <div style={{display:'flex',alignItems:'center',gap:5}}><span style={{fontSize:'0.86rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:unackedCritCount>0?'#f0405e':'#22d49a'}}>{unackedCritCount}</span><span style={{fontSize:'0.76rem',color:'var(--wt-muted)'}}>unacked crits</span></div>
+                <span style={{color:'var(--wt-border)',fontSize:'0.8rem'}}>·</span>
+                <div style={{display:'flex',alignItems:'center',gap:5}}><span style={{fontSize:'0.86rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:slaBreaches>0?'#f0405e':'#22d49a'}}>{slaBreaches}</span><span style={{fontSize:'0.76rem',color:'var(--wt-muted)'}}>SLA {slaBreaches===1?'breach':'breaches'}</span></div>
+                <span style={{color:'var(--wt-border)',fontSize:'0.8rem'}}>·</span>
+                <div style={{display:'flex',alignItems:'center',gap:5}}><span style={{fontSize:'0.86rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:'#22d49a'}}>{fpAlerts.length}</span><span style={{fontSize:'0.76rem',color:'var(--wt-muted)'}}>FPs auto-closed</span></div>
+                <span style={{color:'var(--wt-border)',fontSize:'0.8rem'}}>·</span>
+                <div style={{display:'flex',alignItems:'center',gap:5}}><span style={{fontSize:'0.86rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:'#4f8fff'}}>{!demoMode?Object.keys(connectedTools).length:10}</span><span style={{fontSize:'0.76rem',color:'var(--wt-muted)'}}>tools live</span></div>
+                {!demoMode&&slaStats?.mttaMinutes?.Critical!=null&&(<><span style={{color:'var(--wt-border)',fontSize:'0.8rem'}}>·</span><div style={{display:'flex',alignItems:'center',gap:5}}><span style={{fontSize:'0.86rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:'#f0a030'}}>{slaStats.mttaMinutes.Critical}m</span><span style={{fontSize:'0.76rem',color:'var(--wt-muted)'}}>MTTA crit</span></div></>)}
               </div>
 
             </div>
@@ -2912,6 +2897,37 @@ export default function DashboardPage() {
           </GateWall>
           )}
           {/* COMPLIANCE tab now accessible via admin only — hidden from main nav */}
+          {activeTab==='ot' && (
+            <div className='wt-tab-content'>
+              {otLicense.enabled || demoMode ? (
+                <OTTab tenantId={tenantRef.current} connectedTools={connectedTools} demoMode={demoMode} theme={theme} />
+              ) : (
+                <div style={{padding:'40px 24px',textAlign:'center',maxWidth:560,margin:'0 auto'}}>
+                  <div style={{fontSize:'2.5rem',marginBottom:16}}>🏭</div>
+                  <h2 style={{fontSize:'1.2rem',fontWeight:800,marginBottom:8}}>OT / ICS Security Add-on</h2>
+                  <p style={{fontSize:'0.84rem',color:'var(--wt-muted)',lineHeight:1.7,marginBottom:24}}>
+                    Purdue model zone map, OT asset inventory, Claroty/Nozomi/Dragos/Armis integration,
+                    OT-safe APEX triage (never auto-isolates live devices), cross-zone anomaly detection,
+                    and IEC 62443 compliance posture.
+                  </p>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:24,textAlign:'left'}}>
+                    {[['Purdue Model Map','Interactive L0–L4 zone diagram'],['OT Asset Inventory','PLCs, RTUs, HMIs, SCADA servers'],['OT-Safe APEX Triage','Never auto-isolates live process devices'],['Claroty + Nozomi','OT-specific alert ingestion'],['Dragos + Armis','ICS threat detection'],['Cross-zone Anomalies','IT→OT bypass detection']].map(([t,d])=>(
+                      <div key={t} style={{padding:'10px 12px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:8}}>
+                        <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:2}}>{t}</div>
+                        <div style={{fontSize:'0.72rem',color:'var(--wt-muted)'}}>{d}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{padding:'14px 16px',background:'#8b6fff08',border:'1px solid #8b6fff25',borderRadius:10,marginBottom:20}}>
+                    <div style={{fontSize:'0.82rem',fontWeight:700,color:'#8b6fff',marginBottom:4}}>Pricing</div>
+                    <div style={{fontSize:'1.1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:'var(--wt-text)'}}>£999<span style={{fontSize:'0.72rem',fontWeight:400,color:'var(--wt-muted)'}}>/mo flat</span> <span style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>+</span> £1<span style={{fontSize:'0.72rem',fontWeight:400,color:'var(--wt-muted)'}}>/device/mo</span></div>
+                    <div style={{fontSize:'0.72rem',color:'var(--wt-muted)',marginTop:4}}>Per OT tenant — enable per client in Admin Portal</div>
+                  </div>
+                  <a href='mailto:hello@getwatchtower.io?subject=OT Add-on' style={{padding:'10px 24px',borderRadius:9,background:'#8b6fff',color:'#fff',fontWeight:700,fontSize:'0.88rem',textDecoration:'none',display:'inline-block'}}>Contact us to enable →</a>
+                </div>
+              )}
+            </div>
+          )}
           {activeTab==='compliance' && (
             <GateWall feature='Compliance Mapping' requiredTier='business' userTier={userTier} isAdmin={isAdmin}>
             <div style={{display:'flex',flexDirection:'column',gap:16,width:'100%'}}>

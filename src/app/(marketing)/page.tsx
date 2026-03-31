@@ -302,7 +302,7 @@ function IntegrationsFloatButton({ tools }: { tools: typeof TOOLS }) {
           style={{ padding:'12px 28px', background:'linear-gradient(135deg,#4f8fff,#7c3aff)', color:'#fff', border:'none', borderRadius:10, fontSize:'0.9rem', fontWeight:700, cursor:'pointer', fontFamily:'Inter,sans-serif', display:'flex', alignItems:'center', gap:8, boxShadow:'0 4px 20px rgba(79,143,255,0.3)', transition:'all .2s' }}
           onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.transform='translateY(-2px)';(e.currentTarget as HTMLElement).style.boxShadow='0 8px 28px rgba(79,143,255,0.4)';}}
           onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.transform='none';(e.currentTarget as HTMLElement).style.boxShadow='0 4px 20px rgba(79,143,255,0.3)';}}>
-          <span>🔌</span> See all 80+ integrations
+          <span>🔌</span> See all 80+ integrations + OT/ICS add-on
         </button>
         <a href='/signup' style={{ padding:'12px 28px', background:'transparent', color:'#4f8fff', border:'1px solid #4f8fff30', borderRadius:10, fontSize:'0.9rem', fontWeight:600, cursor:'pointer', fontFamily:'Inter,sans-serif', textDecoration:'none', display:'flex', alignItems:'center', gap:6 }}>
           Don&apos;t see yours? Request →
@@ -424,7 +424,7 @@ export default function LandingPage() {
         <div style={{ maxWidth:800, margin:'0 auto', position:'relative' }}>
           <div style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'5px 14px', background:'#4f8fff12', border:'1px solid #4f8fff25', borderRadius:20, fontSize:'0.7rem', color:'#4f8fff', fontWeight:600, marginBottom:24 }}>
             <span style={{width:6,height:6,borderRadius:'50%',background:'#4f8fff',boxShadow:'0 0 8px #4f8fff',display:'block',animation:'pulse 2s ease infinite'}}/>
-            80+ integrations · Autonomous AI triage + response · MSSP-ready
+            80+ integrations + OT/ICS add-on · Autonomous AI triage + response · MSSP-ready
           </div>
           <h1 style={{ fontSize:'clamp(2.2rem,5vw,3.6rem)', fontWeight:900, lineHeight:1.08, letterSpacing:-2.5, marginBottom:20 }}>
             Your entire SOC.<br/>
@@ -532,7 +532,7 @@ export default function LandingPage() {
       <section id='integrations' ref={toolsRef as React.RefObject<HTMLElement>} style={{ padding:'60px 24px', textAlign:'center', background:'#0c1020', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
         <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>INTEGRATIONS</div>
         <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:-1.5, marginBottom:12 }}>Connects to everything you run</h2>
-        <p style={{ color:'#6b7a94', fontSize:'0.88rem', lineHeight:1.8, marginBottom:24, maxWidth:580, margin:'0 auto 24px' }}>80+ integrations across EDR, SIEM, XDR, Cloud, Identity, ITSM, SOAR, Threat Intel, OT/ICS and more. No rip-and-replace — live in minutes.</p>
+        <p style={{ color:'#6b7a94', fontSize:'0.88rem', lineHeight:1.8, marginBottom:24, maxWidth:580, margin:'0 auto 24px' }}>80+ integrations + OT/ICS add-on across EDR, SIEM, XDR, Cloud, Identity, ITSM, SOAR, Threat Intel, OT/ICS and more. No rip-and-replace — live in minutes.</p>
         <div style={{ display:'flex', justifyContent:'center', gap:10, flexWrap:'wrap', marginBottom:32 }}>
           {['EDR · XDR','SIEM · SOAR','Cloud Security','Identity','Vuln Management','ITSM','Threat Intel','OT/ICS'].map(cat => (
             <span key={cat} style={{ padding:'5px 14px', background:'#4f8fff10', border:'1px solid #4f8fff20', borderRadius:20, fontSize:'0.72rem', color:'#4f8fff', fontWeight:600 }}>{cat}</span>
@@ -610,6 +610,41 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* OT ADD-ON */}
+      <section id="ot" style={{ padding:'60px 24px', background:'#0a0d16', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
+        <div style={{ maxWidth:860, margin:'0 auto' }}>
+          <div style={{ textAlign:'center', marginBottom:32 }}>
+            <div style={{ display:'inline-flex',alignItems:'center',gap:8,padding:'4px 12px',background:'#22d49a10',border:'1px solid #22d49a25',borderRadius:20,fontSize:'0.68rem',color:'#22d49a',fontWeight:700,marginBottom:12 }}>ADD-ON</div>
+            <h2 style={{ fontSize:'1.8rem', fontWeight:800, letterSpacing:-1.5, marginBottom:10 }}>🏭 OT / ICS Security</h2>
+            <p style={{ fontSize:'0.88rem', color:'#6b7a94', lineHeight:1.75, maxWidth:560, margin:'0 auto' }}>For MSSPs serving operational technology clients. Purdue model zone map, Claroty/Nozomi/Dragos/Armis integration, OT-specific AI triage — AI that knows never to auto-isolate a live PLC.</p>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:28 }} className="feat-grid">
+            {[
+              { icon:'🗺', title:'Purdue Model Map', desc:'Interactive L0–L4 zone diagram. Click any zone to drill into assets and active alerts. Cross-zone anomalies highlighted in real time.' },
+              { icon:'⚙', title:'OT Asset Inventory', desc:'PLCs, RTUs, HMIs, SCADA servers, historians — separate from IT Coverage. Device status, firmware version, CVE count, protocol.' },
+              { icon:'🧠', title:'OT-Safe APEX Triage', desc:'AI knows the difference between a PLC and a laptop. Never auto-isolates live process devices. Recommends plant engineer before any action.' },
+              { icon:'🔌', title:'5 OT Integrations', desc:'Claroty CTD, Nozomi Vantage, Dragos Platform, Armis — plus direct Modbus/DNP3 protocol detection via network tap.' },
+              { icon:'⚡', title:'Cross-zone Anomaly Detection', desc:'IT→OT bypass alerts. Flags traffic that crosses the L3.5 DMZ boundary unexpectedly. Real-time zone-to-zone traffic map.' },
+              { icon:'📋', title:'IEC 62443 Posture', desc:'Active alerts mapped to IEC 62443 security levels. Zone-by-zone compliance posture. NERC CIP mapping for energy sector.' },
+            ].map((f:any) => (
+              <div key={f.title} style={{ padding:'18px 20px', background:'#131929', border:'1px solid #1d2535', borderRadius:12 }}>
+                <div style={{ fontSize:'1.4rem', marginBottom:8 }}>{f.icon}</div>
+                <div style={{ fontSize:'0.82rem', fontWeight:700, marginBottom:5 }}>{f.title}</div>
+                <div style={{ fontSize:'0.72rem', color:'#6b7a94', lineHeight:1.7 }}>{f.desc}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'18px 24px', background:'#131929', border:'1px solid #22d49a20', borderRadius:12, flexWrap:'wrap', gap:16 }}>
+            <div>
+              <div style={{ fontSize:'0.72rem', color:'#22d49a', fontWeight:700, textTransform:'uppercase', letterSpacing:'1px', marginBottom:4 }}>OT ADD-ON PRICING</div>
+              <div style={{ fontSize:'1.5rem', fontWeight:900, fontFamily:'JetBrains Mono,monospace' }}>£999<span style={{ fontSize:'0.78rem', fontWeight:400, color:'#6b7a94' }}>/mo flat</span> <span style={{ color:'#3a4a60' }}>+</span> £1<span style={{ fontSize:'0.78rem', fontWeight:400, color:'#6b7a94' }}>/OT device/mo</span></div>
+              <div style={{ fontSize:'0.72rem', color:'#4a5568', marginTop:4 }}>Per OT tenant. Enable per client from the MSSP admin portal. Enterprise plan required.</div>
+            </div>
+            <a href='mailto:hello@getwatchtower.io?subject=OT Add-on Enquiry' style={{ padding:'10px 24px', borderRadius:9, background:'#22d49a', color:'#050810', fontWeight:700, fontSize:'0.84rem', textDecoration:'none', flexShrink:0 }}>Talk to us about OT →</a>
+          </div>
+        </div>
+      </section>
+
       {/* PRICING */}
       <section id='pricing' style={{ padding:'70px 24px', textAlign:'center' }}>
         <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>PRICING</div>
@@ -671,7 +706,7 @@ export default function LandingPage() {
           <h2 style={{ fontSize:'1.9rem', fontWeight:900, letterSpacing:'-1.5px', marginBottom:36, lineHeight:1.1, textAlign:'center' }}>Common questions</h2>
           {[
             { q:`Does my alert data stay secure with AI analysis?`, a:`Yes. Watchtower uses a BYOK (Bring Your Own Key) model — your Anthropic API key is yours. Alert data is processed under your own Anthropic account, not a shared platform account. For MSSPs, each client gets their own key with complete data isolation between tenants.` },
-            { q:`What if I don't use CrowdStrike or Splunk?`, a:`Watchtower connects to 80+ tools across 20 categories — including SentinelOne, Microsoft Defender, Elastic, QRadar, AWS Security Hub, Sophos, Vectra, Entra ID, Cisco Duo, Datadog, Panther, and many more. EDR, SIEM, XDR, Cloud, Identity, CSPM, AppSec, OT/ICS, SOAR, and ITSM are all covered. New integrations are added weekly based on customer requests.` },
+            { q:`What if I do not use CrowdStrike or Splunk?`, a:`Watchtower connects to 80+ tools across 20 categories — including SentinelOne, Microsoft Defender, Elastic, QRadar, AWS Security Hub, Sophos, Vectra, Entra ID, Cisco Duo, Datadog, Panther, and many more. EDR, SIEM, XDR, Cloud, Identity, CSPM, AppSec, OT/ICS, SOAR, and ITSM are all covered. New integrations are added weekly based on customer requests.` },
             { q:`Is there a minimum commitment or contract?`, a:`No. All plans are month-to-month. Community is free forever. Paid plans include a 14-day free trial with no credit card required. Cancel any time — no lock-in, no exit fees.` },
             { q:`How long does setup take?`, a:`Most teams connect their first tool and see live alerts within 15 minutes. Adding your Anthropic API key (or each client's key for MSSPs) takes another 2 minutes. Full onboarding — connecting 3–5 tools and configuring notifications — typically takes under an hour.` },
             { q:`Can community users access AI triage?`, a:`Community users see AI triage verdicts in read-only mode — the verdict and confidence score are visible without the evidence chain. Full AI Co-Pilot, response automation, and blast radius analysis require Essentials or above.` },

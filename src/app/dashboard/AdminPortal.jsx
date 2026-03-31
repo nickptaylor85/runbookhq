@@ -101,6 +101,51 @@ function AnalyticsView() {
 }
 
 
+function OTLicensePanel({ tenantId }) {
+  const [license, setLicense] = useState({ enabled: false, deviceLimit: 0 });
+  const [saving, setSaving] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [deviceLimit, setDeviceLimit] = useState('0');
+  useEffect(()=>{
+    fetch('/api/ot/license',{headers:{'x-is-admin':'true','x-tenant-id':tenantId||'global'}})
+      .then(r=>r.json()).then(d=>{ if(d.ok){setLicense(d);setDeviceLimit(String(d.deviceLimit||0));} setLoaded(true); }).catch(()=>setLoaded(true));
+  },[tenantId]);
+  const save = async (enabled) => {
+    setSaving(true);
+    const limit = parseInt(deviceLimit,10)||0;
+    const r = await fetch('/api/ot/license',{method:'POST',headers:{'Content-Type':'application/json','x-is-admin':'true','x-tenant-id':tenantId||'global'},body:JSON.stringify({enabled,deviceLimit:limit})});
+    const d = await r.json();
+    if(d.ok) setLicense(d);
+    setSaving(false);
+  };
+  const monthly = 999 + (parseInt(deviceLimit,10)||0);
+  return (
+    <div style={{background:'var(--wt-card)',border:`1px solid ${license.enabled?'#8b6fff30':'var(--wt-border)'}`,borderRadius:12,overflow:'hidden'}}>
+      <div style={{padding:'14px 16px',display:'flex',alignItems:'center',gap:12}}>
+        <div style={{flex:1}}>
+          <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:2}}>🏭 OT / ICS Add-on</div>
+          <div style={{fontSize:'0.64rem',color:'var(--wt-muted)'}}>
+            {license.enabled ? `Active — ${license.deviceLimit} device licence` : 'Disabled — OT tab hidden from this tenant'}
+          </div>
+        </div>
+        <button onClick={()=>save(!license.enabled)} disabled={saving||!loaded} style={{padding:'6px 14px',borderRadius:7,border:`1px solid ${license.enabled?'#f0405e30':'#8b6fff30'}`,background:license.enabled?'#f0405e12':'#8b6fff12',color:license.enabled?'#f0405e':'#8b6fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>
+          {saving?'Saving…':license.enabled?'Disable OT':'Enable OT'}
+        </button>
+      </div>
+      {license.enabled && (
+        <div style={{padding:'10px 16px',borderTop:'1px solid #8b6fff15',background:'#8b6fff06',display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+          <span style={{fontSize:'0.72rem',color:'var(--wt-muted)'}}>Device limit:</span>
+          <input type='number' min='0' value={deviceLimit} onChange={e=>setDeviceLimit(e.target.value)} style={{width:70,padding:'3px 7px',borderRadius:5,border:'1px solid var(--wt-border)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.78rem',fontFamily:'JetBrains Mono,monospace'}} />
+          <button onClick={()=>save(true)} disabled={saving} style={{padding:'4px 10px',borderRadius:5,border:'1px solid #8b6fff30',background:'#8b6fff12',color:'#8b6fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Save</button>
+          <span style={{marginLeft:'auto',fontSize:'0.76rem',fontFamily:'JetBrains Mono,monospace',color:'#8b6fff',fontWeight:700}}>£{monthly.toLocaleString()}/mo est.</span>
+          <span style={{fontSize:'0.68rem',color:'var(--wt-dim)'}}>£999 flat + £{parseInt(deviceLimit,10)||0} devices</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 function SignupToggle() {
   const [enabled, setEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
