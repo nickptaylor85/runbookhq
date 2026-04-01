@@ -3471,15 +3471,14 @@ export default function DashboardPage() {
                       <div style={{display:'flex',flexDirection:'column',gap:8}}>
                         <div style={{fontSize:'0.72rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Results across connected tools</div>
                         {Object.entries(iocResults).filter(([k])=>k!=='error'&&k!=='ok').map(([tool, result])=>{
-                          const r = result as any;
                           return (
-                            <div key={tool} style={{padding:'8px 10px',background:'var(--wt-card)',border:`1px solid ${r?.found?'#f0405e25':'var(--wt-border)'}`,borderRadius:8}}>
-                              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:r?.found?4:0}}>
-                                <span style={{width:6,height:6,borderRadius:'50%',background:r?.found?'#f0405e':'#22d49a',flexShrink:0}} />
+                            <div key={tool} style={{padding:'8px 10px',background:'var(--wt-card)',border:`1px solid ${result&&result.found?'#f0405e25':'var(--wt-border)'}`,borderRadius:8}}>
+                              <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:result&&result.found?4:0}}>
+                                <span style={{width:6,height:6,borderRadius:'50%',background:result&&result.found?'#f0405e':'#22d49a',flexShrink:0}} />
                                 <span style={{fontSize:'0.74rem',fontWeight:700,color:'var(--wt-text)',textTransform:'capitalize'}}>{tool}</span>
-                                <span style={{fontSize:'0.7rem',color:r?.found?'#f0405e':'#22d49a',marginLeft:'auto',fontWeight:700}}>{r?.found?`${r.count||1} match${r.count!==1?'es':''}`:r?.error?'error':'not found'}</span>
+                                <span style={{fontSize:'0.7rem',color:result&&result.found?'#f0405e':'#22d49a',marginLeft:'auto',fontWeight:700}}>{result&&result.found?`${result.count||1} match${result.count!==1?'es':''}`:result&&result.error?'error':'not found'}</span>
                               </div>
-                              {r?.found&&r?.details&&<div style={{fontSize:'0.72rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{JSON.stringify(r.details).slice(0,120)}</div>}
+                              {result&&result.found&&result.details&&<div style={{fontSize:'0.72rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{JSON.stringify(result.details).slice(0,120)}</div>}
                             </div>
                           );
                         })}
@@ -3586,7 +3585,6 @@ export default function DashboardPage() {
                   </div>
                 )}
                 <div ref={copilotBottomRef} />
-              </div>
               </div>
               )}
               {/* Input bar — chat mode only */}
