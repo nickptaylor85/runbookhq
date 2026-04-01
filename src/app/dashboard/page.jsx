@@ -517,7 +517,7 @@ export default function DashboardPage() {
     } catch {}
   }
   // Restore push state
-  React.useEffect(()=>{ if (typeof window !== 'undefined') { setHasSW('serviceWorker' in navigator); if (localStorage.getItem('wt_push_enabled') === '1') setPushEnabled(true); const stored=localStorage.getItem('wt_copilot_daily'); if(stored){try{const {count,date}=JSON.parse(stored);if(date===new Date().toDateString())setCopilotDailyCount(count||0);}catch{}} } }, []);
+  React.useEffect(()=>{ if (typeof window !== 'undefined') { setHasSW('serviceWorker' in navigator); if (localStorage.getItem('wt_push_enabled') === '1') setPushEnabled(true); if (localStorage.getItem('wt_digital_font') === '1') setDigitalFont(true); const stored=localStorage.getItem('wt_copilot_daily'); if(stored){try{const {count,date}=JSON.parse(stored);if(date===new Date().toDateString())setCopilotDailyCount(count||0);}catch{}} } }, []);
   const [copilotMessages, setCopilotMessages] = useState([]);
   const [copilotInput, setCopilotInput] = useState('');
   const [copilotLoading, setCopilotLoading] = useState(false);
@@ -778,7 +778,7 @@ export default function DashboardPage() {
   const [userRole, setUserRole] = useState(null); // null=owner, 'tech_admin', 'viewer', 'sales'
   const [userTier, setUserTier] = useState('community');
   const [theme, setTheme] = useState('dark');
-  const [digitalFont, setDigitalFont] = useState(()=>typeof window!=='undefined'&&localStorage.getItem('wt_digital_font')==='1');
+  const [digitalFont, setDigitalFont] = useState(false); // always false on SSR, loaded in effect
   // Prefetch top 3 critical alerts on load so triage feels instant on expansion
   React.useEffect(()=>{
     if (automation === 0) return; // only prefetch in auto modes (triage already runs proactively)
