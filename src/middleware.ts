@@ -30,10 +30,29 @@ async function verifySessionToken(token: string): Promise<{ userId: string; tena
   }
 }
 
-const PUBLIC_PATHS = ['/', '/demo', '/pricing', '/guide', '/login', '/signup',
-  '/setup-2fa', '/stripe/success', '/api/auth/login', '/api/auth/logout', '/api/auth/session',
-  '/api/auth/totp', '/api/auth/saml', '/api/stripe/webhook', '/_next/', '/favicon', '/robots.txt', '/sitemap',
-  '/press', '/blog', '/security', '/privacy', '/terms', '/changelog', '/docs', '/guide'];
+// Exact-match public pages (no prefix matching to avoid '/' matching everything)
+const PUBLIC_EXACT = new Set(['/', '/demo', '/pricing', '/guide', '/login', '/signup',
+  '/setup-2fa', '/stripe/success', '/press', '/blog', '/security', '/privacy', '/terms',
+  '/changelog', '/docs', '/robots.txt', '/sitemap.xml']);
+
+// Prefix-match public paths (must NOT start with /api/ to avoid auth bypass)
+const PUBLIC_PREFIXES = [
+  '/demo/', '/pricing/', '/guide/', '/login/', '/signup/', '/press/', '/blog/',
+  '/security/', '/privacy/', '/terms/', '/changelog/', '/docs/',
+  '/_next/', '/favicon', '/robots.', '/sitemap',
+  // Auth endpoints that must be public
+  '/api/auth/login', '/api/auth/logout', '/api/auth/session',
+  '/api/auth/totp', '/api/auth/saml', '/api/auth/signup', '/api/auth/register',
+  '/api/auth/reset-password', '/api/auth/verify', '/api/auth/invite',
+  '/api/stripe/webhook',
+  '/api/waitlist', '/api/widget', '/api/inbound-alerts',
+];
+
+function isPublicPath(pathname: string): boolean {
+  if (PUBLIC_EXACT.has(pathname)) return true;
+  // IMPORTANT: never treat bare '/' as a prefix — it would match everything
+  return PUBLIC_PREFIXES.some(p => pathname.startsWith(p));
+}
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -47,8 +66,8 @@ export async function middleware(req: NextRequest) {
   cleanHeaders.delete('x-user-role');
   // Note: x-tenant-id from client is overridden by session in authenticated routes
 
-  // Allow public paths
-  if (PUBLIC_PATHS.some(p => pathname.startsWith(p))) {
+  // Allow public paths — EXACT match for '/' prevents prefix match bypassing auth
+  if (isPublicPath(pathname)) {
     return NextResponse.next({ request: { headers: cleanHeaders } });
   }
 
