@@ -550,7 +550,7 @@ export default function DashboardPage() {
   const [investResults, setInvestResults] = React.useState({});
   const [investLoading, setInvestLoading] = React.useState(new Set());
   const [showInvest, setShowInvest] = React.useState(new Set());
-  const [incidentAssignees, setIncidentAssignees] = useState({}); // {incidentId: analystName}
+  // incidentAssignees declared above at line 537
   const [analystFilter, setAnalystFilter] = useState(null); // filter incidents by analyst name
   const [assignDropdown, setAssignDropdown] = useState(null); // incidentId with open dropdown
   const [noteInput, setNoteInput] = useState('');
