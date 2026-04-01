@@ -128,8 +128,8 @@ const TESTIMONIALS = [
 ];
 
 const PLANS = [
-  { name:'Community', price:'£0', annualPrice:'£0', period:'forever', color:'#6b7a94', features:['2 tool integrations','AI alert triage (read-only)','Up to 250 alerts/day','1 seat','Community support'] },
-  { name:'Essentials', price:'£149', annualPrice:'£127', period:'/seat/mo', annualPeriod:'/seat/mo billed annually', color:'#4f8fff', badge:'Most Popular', features:['Unlimited integrations','Full AI Co-Pilot + agentic triage','Automation & response actions','BYOK — your Anthropic key','SLA tracking (MTTA/MTTR)'] },
+  { name:'Community', price:'£0', annualPrice:'£0', period:'forever', color:'#6b7a94', features:['Up to 3 tool integrations','AI alert triage (read-only)','Up to 250 alerts/day','1 seat','Community support'] },
+  { name:'Essentials', price:'£149', annualPrice:'£127', period:'/seat/mo', annualPeriod:'/seat/mo billed annually', color:'#4f8fff', badge:'Most Popular', features:['Unlimited integrations','Full AI Co-Pilot + agentic triage','Automation & response actions','BYOK — your Anthropic key', 'RBAC & full audit log','SLA tracking (MTTA/MTTR)'] },
   { name:'Professional', price:'£1,199', annualPrice:'£1,019', period:'/mo flat', annualPeriod:'/mo billed annually', color:'#22d49a', features:['Everything in Essentials','Up to 15 analyst seats','PDF board reports + API','RBAC & full audit trail','MITRE compliance mapping'] },
   { name:'Enterprise', price:'£3,499', annualPrice:'£2,974', period:'/mo', annualPeriod:'/mo billed annually', color:'#8b6fff', badge:'MSSP', features:['Everything in Professional','Unlimited analysts & clients','White-label branding','Per-client BYOK isolation','Portfolio + cross-client AI intel','Dedicated account manager'] },
 ];

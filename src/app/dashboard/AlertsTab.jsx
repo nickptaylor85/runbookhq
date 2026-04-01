@@ -658,12 +658,17 @@ export default function AlertsTab({
                         <a href='/pricing' style={{padding:'4px 10px',borderRadius:6,background:'#4f8fff',color:'#fff',fontSize:'0.62rem',fontWeight:700,textDecoration:'none',flexShrink:0}}>Upgrade →</a>
                       </div>
                     )}
-                    {/* Loading state */}
+                    {/* Loading state with skeleton */}
                     {structLoading && (
-                      <div style={{display:'flex',alignItems:'center',gap:10,padding:'10px 16px',borderRadius:8,border:'1px solid #4f8fff25',background:'#4f8fff08',marginBottom:8}}>
-                        <span style={{width:12,height:12,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite',flexShrink:0}}/>
-                        <span style={{fontSize:'0.72rem',color:'#4f8fff',fontWeight:600}}>APEX investigating…</span>
-                        <span style={{fontSize:'0.64rem',color:'var(--wt-muted)',marginLeft:'auto'}}>evidence chain · MITRE mapping · hunt queries</span>
+                      <div style={{display:'flex',flexDirection:'column',gap:8,padding:'12px 16px',borderRadius:8,border:'1px solid #4f8fff20',background:'#4f8fff06',marginBottom:8}}>
+                        <div style={{display:'flex',alignItems:'center',gap:8}}>
+                          <span style={{width:12,height:12,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.7s linear infinite',flexShrink:0}} />
+                          <span style={{fontSize:'0.8rem',color:'#4f8fff',fontWeight:600}}>APEX analysing…</span>
+                        </div>
+                        <div style={{height:9,borderRadius:4,background:'var(--wt-card2)',width:'88%',animation:'skeleton-shimmer 1.4s ease infinite'}} />
+                        <div style={{height:9,borderRadius:4,background:'var(--wt-card2)',width:'65%',animation:'skeleton-shimmer 1.4s ease infinite',animationDelay:'0.15s'}} />
+                        <div style={{height:9,borderRadius:4,background:'var(--wt-card2)',width:'75%',animation:'skeleton-shimmer 1.4s ease infinite',animationDelay:'0.3s'}} />
+                        <div style={{height:9,borderRadius:4,background:'var(--wt-card2)',width:'50%',animation:'skeleton-shimmer 1.4s ease infinite',animationDelay:'0.45s'}} />
                       </div>
                     )}
                     {/* Error state */}

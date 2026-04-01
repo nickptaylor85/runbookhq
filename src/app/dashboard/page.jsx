@@ -299,7 +299,9 @@ function StatCard({val,label,sub,color,onClick}) {
 function GateWall({ feature, requiredTier, children, userTier, isAdmin, demoPreview }) {
   const levels = {community:0,team:1,business:2,mssp:3};
   if (isAdmin || (levels[userTier]||0) >= levels[requiredTier]) return (<>{children}</>);
-  const blurContent = demoPreview || children;
+  // Show partial preview: render children but clip + blur from 180px
+  // This lets users see what they're missing before the upgrade CTA
+  // Preview is now rendered directly from children with gradient mask
   const tierColors = {team:'#4f8fff',business:'#22d49a',mssp:'#8b6fff'};
   const tierNames = {team:'Essentials',business:'Professional',mssp:'Enterprise'};
   const tierPrices = {team:'£149/seat/mo',business:'£1,199/mo',mssp:'£3,499/mo'};
@@ -312,8 +314,9 @@ function GateWall({ feature, requiredTier, children, userTier, isAdmin, demoPrev
   const bullets = featureDetails[feature] || [`Unlock ${feature}`,'Available on paid plans'];
   return (
     <div style={{position:'relative',overflow:'hidden',borderRadius:12}}>
-      <div style={{filter:'blur(4px)',opacity:0.25,pointerEvents:'none',userSelect:'none'}}>{blurContent}</div>
-      <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',background:'rgba(5,5,8,0.88)',backdropFilter:'blur(4px)',borderRadius:12,border:`1px solid ${tierColors[requiredTier]}25`,padding:'24px 20px'}}>
+      {/* Preview: show first 200px of real content fading out so users see what they're missing */}
+      <div style={{maxHeight:200,overflow:'hidden',pointerEvents:'none',userSelect:'none',maskImage:'linear-gradient(to bottom,black 40%,transparent 100%)',WebkitMaskImage:'linear-gradient(to bottom,black 40%,transparent 100%)'}}>{children}</div>
+      <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',background:'linear-gradient(to bottom,transparent 0%,rgba(5,5,8,0.95) 45%)',backdropFilter:'blur(1px)',borderRadius:12,border:`1px solid ${tierColors[requiredTier]}25`,padding:'24px 20px'}}>
         <div style={{width:36,height:36,borderRadius:10,background:`${tierColors[requiredTier]}15`,border:`1px solid ${tierColors[requiredTier]}30`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.1rem',marginBottom:12}}>🔒</div>
         <div style={{fontSize:'0.86rem',fontWeight:800,marginBottom:6,color:'var(--wt-text)'}}>{feature}</div>
         <div style={{display:'flex',flexDirection:'column',gap:4,marginBottom:16,maxWidth:280,width:'100%'}}>
@@ -497,6 +500,8 @@ export default function DashboardPage() {
   const [nlLoading, setNlLoading] = useState(false);
   const [savedHunts, setSavedHunts] = useState([]);
   const [pushEnabled, setPushEnabled] = useState(false);
+  const [showSettingsFlyout, setShowSettingsFlyout] = useState(false);
+  const [showTabMore, setShowTabMore] = useState(false);
   const [shareReportUrl, setShareReportUrl] = useState('');
   const copilotBottomRef = React.useRef(null);
 
@@ -515,6 +520,15 @@ export default function DashboardPage() {
   const [copilotMessages, setCopilotMessages] = useState([]);
   const [copilotInput, setCopilotInput] = useState('');
   const [copilotLoading, setCopilotLoading] = useState(false);
+  const [copilotDailyCount, setCopilotDailyCount] = useState(()=>{
+    if (typeof window === 'undefined') return 0;
+    const stored = localStorage.getItem('wt_copilot_daily');
+    if (!stored) return 0;
+    const {count, date} = JSON.parse(stored);
+    if (date !== new Date().toDateString()) return 0; // reset daily
+    return count || 0;
+  });
+  const COPILOT_COMMUNITY_LIMIT = 5;
   // SLA ticker
   const [slaTick, setSlaTick] = useState(0);
   const [slaStats, setSlaStats] = useState(null);
@@ -771,6 +785,24 @@ export default function DashboardPage() {
   const [userTier, setUserTier] = useState('community');
   const [theme, setTheme] = useState('dark');
   const [digitalFont, setDigitalFont] = useState(()=>typeof window!=='undefined'&&localStorage.getItem('wt_digital_font')==='1');
+  // Prefetch top 3 critical alerts on load so triage feels instant on expansion
+  React.useEffect(()=>{
+    if (automation === 0) return; // only prefetch in auto modes (triage already runs proactively)
+    const top3 = critAlerts.slice(0,3).filter(a=>!aiTriageCache[a.id]?.result && !aiTriageCache[a.id]?.loading);
+    if (top3.length === 0) return;
+    const delay = 3000; // wait 3s after mount to avoid blocking initial render
+    const t = setTimeout(()=>{
+      top3.forEach(al=>{
+        setAiTriageCache(prev=>({...prev,[al.id]:{loading:true,result:null}}));
+        const relatedAlerts = alerts.filter(a=>a.id!==al.id&&(a.device===al.device||a.user===al.user)).slice(0,8);
+        fetch('/api/triage',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({alertId:al.id,title:al.title,severity:al.severity,source:al.source,device:al.device,user:al.user,ip:al.ip,description:al.description,mitre:al.mitre,relatedAlerts})})
+          .then(r=>r.json()).then(d=>{if(d.ok&&d.result)setAiTriageCache(prev=>({...prev,[al.id]:{loading:false,result:d.result}}));else setAiTriageCache(prev=>({...prev,[al.id]:{loading:false,result:null}}));})
+          .catch(()=>setAiTriageCache(prev=>({...prev,[al.id]:{loading:false,result:null}})));
+      });
+    }, delay);
+    return ()=>clearTimeout(t);
+  },[critAlerts.length, automation]); // eslint-disable-line
+
   // hasSynced: becomes true after first successful live sync — prevents demo fallback bleed-through
   const [hasSynced, setHasSynced] = useState(false);
   const [otLicense, setOtLicense] = useState({ enabled: false, deviceLimit: 0, deviceCount: 0 });
@@ -949,6 +981,14 @@ export default function DashboardPage() {
     if (typeof window !== 'undefined') localStorage.setItem('wt_digital_font', next?'1':'0');
   }
 
+  // Close flyouts on outside click
+  React.useEffect(()=>{
+    if (!showSettingsFlyout && !showTabMore) return;
+    const handler = () => { setShowSettingsFlyout(false); setShowTabMore(false); };
+    const t = setTimeout(() => document.addEventListener('click', handler), 0);
+    return () => { clearTimeout(t); document.removeEventListener('click', handler); };
+  }, [showSettingsFlyout, showTabMore]);
+
   // ── Tier ─────────────────────────────────────────────────────────────────────
   // In production this comes from the session/JWT. Change to test paywalls.
   const tierLevel = {community:0,team:1,business:2,mssp:3}[userTier];
@@ -990,7 +1030,7 @@ export default function DashboardPage() {
   }).filter(t => demoMode ? DEMO_TOOLS.find(d=>d.id===t.id) : t.active);
 
   // DEMO: always use demo data. LIVE: live if available, else show demo alerts as baseline
-  const ALERT_LIMIT = !demoMode && userTier === 'community' ? 250 : Infinity;
+  const ALERT_LIMIT = Infinity; // Community limit removed - everyone sees all alerts
   const rawAlerts = demoMode
     ? (TENANT_ALERTS[currentTenant] || DEMO_ALERTS)
     : liveAlerts.length > 0
@@ -1493,16 +1533,40 @@ export default function DashboardPage() {
 
           {/* Primary tabs — always visible */}
           <div className="wt-tabbar" style={{display:'flex',gap:0,height:'100%',alignItems:'stretch',overflowX:'auto'}}>
-            {['overview','alerts','coverage','vulns','intel','incidents','tools','ot'].filter(t=>{
-              if (isViewer && !isAdmin) return ['overview','alerts','coverage','vulns','intel','incidents'].includes(t);
-              return true;
-            }).map(t=>(
+            {/* Primary tabs */}
+            {['overview','alerts','incidents','coverage','intel'].map(t=>(
               <button key={t} onClick={()=>setActiveTab(t)} style={{height:'100%',padding:'0 14px',border:'none',borderBottom:`2px solid ${activeTab===t?'#4f8fff':'transparent'}`,background:'transparent',color:activeTab===t?'#4f8fff':'var(--wt-muted)',fontSize:'0.8rem',fontWeight:activeTab===t?700:500,cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'all .15s',whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:5}}>
-                {t==='incidents'?'Cases':t==='ot'?'OT':t==='mssp'?'MSSP':t.charAt(0).toUpperCase()+t.slice(1)}
+                {t==='incidents'?'Cases':t.charAt(0).toUpperCase()+t.slice(1)}
                 {t==='alerts'&&critAlerts.length>0&&<span style={{fontSize:'0.58rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f0405e',color:'#fff'}}>{critAlerts.length}</span>}
-                {t==='vulns'&&kevVulns.length>0&&<span style={{fontSize:'0.58rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f97316',color:'#fff'}}>{kevVulns.length}</span>}
               </button>
             ))}
+            {/* More overflow — secondary tabs */}
+            {(()=>{
+              const moreTabs = [
+                ...(!isViewer||isAdmin?[{t:'vulns',l:'Vulns',badge:kevVulns.length>0?kevVulns.length:null,badgeColor:'#f97316'}]:[]),
+                ...(!isViewer||isAdmin?[{t:'ot',l:'OT',badge:null}]:[]),
+                ...(!isViewer||isAdmin?[{t:'compliance',l:'Comply',badge:null}]:[]),
+                {t:'tools',l:'Tools',badge:null},
+              ];
+              const activeInMore = moreTabs.some(m=>m.t===activeTab);
+              return (
+                <div style={{position:'relative',height:'100%',display:'flex',alignItems:'center'}}>
+                  <button onClick={()=>setShowTabMore(s=>!s)} style={{height:'100%',padding:'0 12px',border:'none',borderBottom:`2px solid ${activeInMore?'#4f8fff':'transparent'}`,background:'transparent',color:activeInMore?'#4f8fff':'var(--wt-muted)',fontSize:'0.8rem',fontWeight:activeInMore?700:500,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>
+                    {activeInMore ? (moreTabs.find(m=>m.t===activeTab)?.l||'More') : 'More'} ▾
+                  </button>
+                  {showTabMore && (
+                    <div style={{position:'absolute',top:'100%',left:0,background:'var(--wt-sidebar)',border:'1px solid var(--wt-border2)',borderRadius:8,boxShadow:'0 8px 24px rgba(0,0,0,0.4)',zIndex:200,minWidth:130,padding:'4px 0',marginTop:2}} onClick={()=>setShowTabMore(false)}>
+                      {moreTabs.map(({t,l,badge,badgeColor})=>(
+                        <button key={t} onClick={()=>setActiveTab(t)} style={{width:'100%',display:'flex',alignItems:'center',gap:6,padding:'8px 14px',background:activeTab===t?'#4f8fff10':'transparent',border:'none',color:activeTab===t?'#4f8fff':'var(--wt-secondary)',fontSize:'0.82rem',fontWeight:activeTab===t?700:500,cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>
+                          {l}
+                          {badge&&<span style={{fontSize:'0.6rem',fontWeight:800,padding:'1px 4px',borderRadius:3,background:badgeColor,color:'#fff'}}>{badge}</span>}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
 
           {/* Secondary tabs — nested under More */}
@@ -1564,16 +1628,25 @@ export default function DashboardPage() {
             {isAdmin&&<select value={currentTenant} onChange={e=>setCurrentTenant(e.target.value)} style={{padding:'3px 6px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.84rem',fontFamily:'Inter,sans-serif',cursor:'pointer',outline:'none',maxWidth:120}}>
               {DEMO_TENANTS.map(t=>(<option key={t.id} value={t.id}>{t.type==='client'?'◦ ':''}{t.name}</option>))}
             </select>}
-            {/* Utils */}
-            {(canUse('team')||isAdmin)&&<button onClick={()=>setActiveTab('incidents')} style={{padding:'3px 8px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff0a',color:'#8b6fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>⇄ Handover</button>}
-            {(canUse('team')||isAdmin)&&<button onClick={()=>{setShowCopilot(s=>!s);setTimeout(()=>copilotBottomRef.current?.scrollIntoView({behavior:'auto'}),100);}} style={{padding:'3px 8px',borderRadius:6,border:`1px solid ${showCopilot?'#8b6fff':'#8b6fff30'}`,background:showCopilot?'#8b6fff15':'#8b6fff0a',color:'#8b6fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>✦ Co-Pilot</button>}
-            <a href='/guide' target='_blank' rel='noopener noreferrer' title='User Guide' style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.82rem',color:'var(--wt-muted)',textDecoration:'none',flexShrink:0}}>📖</a>
-            {'serviceWorker' in navigator && <button onClick={subscribePush} title={pushEnabled?'Push notifications enabled':'Enable push notifications'} style={{width:30,height:30,borderRadius:7,border:`1px solid ${pushEnabled?'#22d49a40':'var(--wt-border)'}`,background:pushEnabled?'#22d49a10':'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.82rem',flexShrink:0}}>{pushEnabled?'🔔':'🔕'}</button>}
-            <button onClick={toggleDigitalFont} title={digitalFont?'Switch to proportional font':'Switch to digital/mono font'} style={{width:30,height:30,borderRadius:7,border:`1px solid ${digitalFont?'#4f8fff40':'var(--wt-border)'}`,background:digitalFont?'#4f8fff12':'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.72rem',fontWeight:800,color:digitalFont?'#4f8fff':'var(--wt-muted)',fontFamily:'JetBrains Mono,monospace',flexShrink:0}}>01</button>
-            <button onClick={toggleTheme} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem',flexShrink:0}}>{theme==='dark'?'☀️':'🌙'}</button>
-            <a href='/settings' style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.82rem',color:'inherit',textDecoration:'none',flexShrink:0}}>⚙️</a>
-            {(canUse('business')||isAdmin)&&<button onClick={()=>setActiveTab('compliance')} style={{padding:'3px 8px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}} title='CISO Board Report'>📊 CISO</button>}
-            <button onClick={async()=>{await fetch('/api/auth/logout',{method:'POST'});window.location.href='/login';}} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.8rem',color:'var(--wt-dim)',flexShrink:0}} title='Sign out' aria-label='Sign out'>↩</button>
+            {(canUse('team')||isAdmin)&&<button onClick={()=>{setShowCopilot(s=>!s);setTimeout(()=>copilotBottomRef.current?.scrollIntoView({behavior:'auto'}),100);}} style={{padding:'3px 10px',borderRadius:6,border:`1px solid ${showCopilot?'#8b6fff':'#8b6fff30'}`,background:showCopilot?'#8b6fff15':'#8b6fff0a',color:'#8b6fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>✦ Co-Pilot</button>}
+            {/* Settings flyout — collapses theme, font, guide, push, CISO, handover, settings, logout */}
+            <div style={{position:'relative',flexShrink:0}}>
+              <button onClick={()=>setShowSettingsFlyout(s=>!s)} style={{width:30,height:30,borderRadius:7,border:`1px solid ${showSettingsFlyout?'#4f8fff40':'var(--wt-border)'}`,background:showSettingsFlyout?'#4f8fff12':'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.82rem',color:showSettingsFlyout?'#4f8fff':'var(--wt-muted)'}} title='Settings & utilities'>⚙️</button>
+              {showSettingsFlyout && (
+                <div style={{position:'absolute',top:'calc(100% + 6px)',right:0,width:200,background:'var(--wt-sidebar)',border:'1px solid var(--wt-border2)',borderRadius:10,boxShadow:'0 8px 32px rgba(0,0,0,0.4)',zIndex:300,overflow:'hidden',padding:'4px 0'}} onClick={()=>setShowSettingsFlyout(false)}>
+                  {(canUse('team')||isAdmin)&&<button onClick={()=>setActiveTab('incidents')} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>⇄ Shift Handover</button>}
+                  {(canUse('business')||isAdmin)&&<button onClick={()=>setActiveTab('compliance')} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>📊 Board Report</button>}
+                  <a href='/guide' target='_blank' rel='noopener noreferrer' style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textDecoration:'none'}}>📖 User Guide</a>
+                  <a href='/settings' style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textDecoration:'none'}}>⚙ Account Settings</a>
+                  <div style={{height:1,background:'var(--wt-border)',margin:'4px 0'}} />
+                  <button onClick={toggleTheme} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>{theme==='dark'?'☀️ Light mode':'🌙 Dark mode'}</button>
+                  <button onClick={toggleDigitalFont} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:digitalFont?'#4f8fff':'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>01 {digitalFont?'Proportional font':'Digital font'}</button>
+                  {'serviceWorker' in navigator && <button onClick={subscribePush} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:pushEnabled?'#22d49a':'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>{pushEnabled?'🔔 Push on':'🔕 Push off'}</button>}
+                  <div style={{height:1,background:'var(--wt-border)',margin:'4px 0'}} />
+                  <button onClick={async()=>{await fetch('/api/auth/logout',{method:'POST'});window.location.href='/login';}} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'#f0405e',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>↩ Sign out</button>
+                </div>
+              )}
+            </div>
           </div>
           {/* Mobile: logo + demo toggle only */}
           <div className="wt-topbar-controls-mobile" style={{marginLeft:'auto',alignItems:'center',gap:6}}>
@@ -1888,62 +1961,7 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              <div>
-                {/* 7-day Alert Volume */}
-                <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
-                    <span style={{fontSize:'0.86rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>7-Day Alert Volume</span>
-                    <span style={{marginLeft:'auto',fontSize:'0.86rem',fontWeight:700,color:'var(--wt-secondary)'}}>{totalAlerts} total</span>
-                  </div>
-                  {(()=>{
-                    const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-                    const today=new Date().getDay();
-                    const labels=Array.from({length:7},(_,i)=>days[(today-6+i+7)%7]);
-                    const buckets=Array(7).fill(0);
-                    const now=Date.now();
-                    alerts.forEach(a=>{
-                      if(a.rawTime){const daysAgo=Math.floor((now-new Date(a.rawTime).getTime())/86400000);if(daysAgo>=0&&daysAgo<7)buckets[6-daysAgo]++;}
-                      else{buckets[Math.floor(Math.random()*7)]++;}
-                    });
-                    const maxB=Math.max(...buckets,1);
-                    return(
-                      <div style={{display:'flex',alignItems:'flex-end',gap:4,height:48}}>
-                        {buckets.map((n,i)=>{
-                          const h=Math.max(4,Math.round((n/maxB)*44));
-                          const isToday=i===6;
-                          return(
-                            <div key={i} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:2}}>
-                              {n>0&&<span style={{fontSize:'0.46rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{n}</span>}
-                              <div style={{width:'100%',height:h,borderRadius:'3px 3px 0 0',background:isToday?'#4f8fff':n>maxB*0.7?'#f0405e':n>maxB*0.4?'#f97316':'#4f8fff60',transition:'height .4s'}} />
-                              <span style={{fontSize:'0.46rem',color:isToday?'#4f8fff':'var(--wt-dim)',fontWeight:isToday?700:400}}>{labels[i]}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()}
-                  <div style={{marginTop:8,display:'flex',gap:12,fontSize:'0.82rem',color:'var(--wt-muted)'}}>
-                    <span><span style={{color:'#22d49a',fontWeight:700}}>{fpAlerts.length}</span> FP auto-closed</span>
-                    <span><span style={{color:'#f0405e',fontWeight:700}}>{tpAlerts.length}</span> TP confirmed</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* ── SHIFT SUMMARY — compact strip replacing 4-tile grid ──────── */}
-              <div style={{display:'flex',alignItems:'center',gap:12,padding:'10px 16px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:10,flexWrap:'wrap'}}>
-                <span style={{fontSize:'0.7rem',fontWeight:800,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'1px',flexShrink:0}}>Shift</span>
-                <div style={{display:'flex',alignItems:'center',gap:5}}><span style={{fontSize:'0.86rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:unackedCritCount>0?'#f0405e':'#22d49a'}}>{unackedCritCount}</span><span style={{fontSize:'0.76rem',color:'var(--wt-muted)'}}>unacked crits</span></div>
-                <span style={{color:'var(--wt-border)',fontSize:'0.8rem'}}>·</span>
-                <div style={{display:'flex',alignItems:'center',gap:5}}><span style={{fontSize:'0.86rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:slaBreaches>0?'#f0405e':'#22d49a'}}>{slaBreaches}</span><span style={{fontSize:'0.76rem',color:'var(--wt-muted)'}}>SLA {slaBreaches===1?'breach':'breaches'}</span></div>
-                <span style={{color:'var(--wt-border)',fontSize:'0.8rem'}}>·</span>
-                <div style={{display:'flex',alignItems:'center',gap:5}}><span style={{fontSize:'0.86rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:'#22d49a'}}>{fpAlerts.length}</span><span style={{fontSize:'0.76rem',color:'var(--wt-muted)'}}>FPs auto-closed</span></div>
-                <span style={{color:'var(--wt-border)',fontSize:'0.8rem'}}>·</span>
-                <div style={{display:'flex',alignItems:'center',gap:5}}><span style={{fontSize:'0.86rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:'#4f8fff'}}>{!demoMode?Object.keys(connectedTools).length:10}</span><span style={{fontSize:'0.76rem',color:'var(--wt-muted)'}}>tools live</span></div>
-                {!demoMode&&slaStats?.mttaMinutes?.Critical!=null&&(<><span style={{color:'var(--wt-border)',fontSize:'0.8rem'}}>·</span><div style={{display:'flex',alignItems:'center',gap:5}}><span style={{fontSize:'0.86rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:'#f0a030'}}>{slaStats.mttaMinutes.Critical}m</span><span style={{fontSize:'0.76rem',color:'var(--wt-muted)'}}>MTTA crit</span></div></>)}
-              </div>
-
-            </div>
-          )}
+)}
 
 
 
@@ -2993,46 +3011,7 @@ export default function DashboardPage() {
                 <span style={{fontSize:'0.86rem',color:'#4f8fff',background:'#4f8fff12',padding:'2px 8px',borderRadius:4}}>MITRE ATT&amp;CK → ISO 27001 · Cyber Essentials · NIST CSF</span>
                 <span style={{fontSize:'0.86rem',color:'#8b6fff',background:'#8b6fff12',padding:'2px 8px',borderRadius:4,border:'1px solid #8b6fff20'}}>NIS2 · DORA</span>
                 <div style={{marginLeft:'auto',display:'flex',gap:6}}>
-                  <button onClick={()=>{
-                    const mitreTechs=[...new Set(alerts.filter(a=>a.mitre).map(a=>a.mitre))];
-                    const lines=[
-                      'WATCHTOWER REGULATORY COMPLIANCE REPORT',
-                      `Generated: ${new Date().toISOString()}`,
-                      `Period: Last 30 days`,
-                      '',
-                      '=== NIS2 DIRECTIVE (EU) 2022/2555 ===',
-                      'Art. 21 — Cybersecurity risk management:',
-                      `  MITRE techniques detected: ${mitreTechs.join(', ')||'None'}`,
-                      `  Incidents logged: ${incidents.length}`,
-                      `  Detection tools active: ${activeTools.length}`,
-                      `  Alert coverage: ${alerts.length} alerts processed`,
-                      '',
-                      '=== DORA — Digital Operational Resilience Act ===',
-                      'Art. 10 — ICT-related incident classification:',
-                      `  Critical alerts: ${critAlerts.length}`,
-                      `  Mean time to triage: <3.2 seconds (AI-assisted)`,
-                      `  Incidents with full audit trail: ${incidents.length}`,
-                      '',
-                      '=== ISO 27001:2022 CONTROL COVERAGE ===',
-                      ...mitreTechs.slice(0,10).map(t=>`  ${t} — documented in incident log`),
-                      '',
-                      '=== CYBER ESSENTIALS ===',
-                      `  Estate coverage: ${coveredPct}%`,
-                      `  Tools active: ${activeTools.map(t=>t.name).join(', ')||'None'}`,
-                      '',
-                      '=== NIST CSF v2.0 ===',
-                      `  Identify: ${alerts.length} assets monitored`,
-                      `  Detect: ${activeTools.length} detection tools`,
-                      `  Respond: ${incidents.filter(i=>i.status==='Resolved').length} incidents resolved`,
-                      '',
-                      'Report generated by Watchtower SOC Platform — getwatchtower.io',
-                    ];
-                    const blob=new Blob([lines.join('\n')],{type:'text/plain'});
-                    const url=URL.createObjectURL(blob);
-                    const a=document.createElement('a');a.href=url;a.download=`watchtower-regulatory-report-${new Date().toISOString().split('T')[0]}.txt`;a.click();URL.revokeObjectURL(url);
-                  }} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #8b6fff30',background:'#8b6fff12',color:'#8b6fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
-                    📄 NIS2/DORA Export
-                  </button>
+                  
                   <button onClick={async()=>{
                     const w=window.open('','_blank');if(!w)return;
                     w.document.write('<html><body style="background:#050508;color:#e8ecf4;font-family:Inter;display:flex;align-items:center;justify-content:center;height:100vh">Generating compliance report…</body></html>');
@@ -3451,22 +3430,22 @@ export default function DashboardPage() {
             <span style={{fontSize:'0.84rem',color:'#22d49a',background:'#22d49a10',padding:'1px 6px',borderRadius:3,border:'1px solid #22d49a20',fontWeight:700}}>
               {demoMode?'DEMO':'LIVE'} · {alerts.length} alerts
             </span>
-            <span style={{fontSize:'0.8rem',fontWeight:800,padding:'2px 7px',borderRadius:4,background:'#4f8fff18',color:'#4f8fff',border:'1px solid #4f8fff30'}}>TEAM+</span>
+{userTier==='community'&&!isAdmin&&<span style={{fontSize:'0.72rem',fontWeight:700,padding:'2px 7px',borderRadius:4,background:copilotDailyCount>=COPILOT_COMMUNITY_LIMIT?'#f0405e15':'#f0a03015',color:copilotDailyCount>=COPILOT_COMMUNITY_LIMIT?'#f0405e':'#f0a030',border:`1px solid ${copilotDailyCount>=COPILOT_COMMUNITY_LIMIT?'#f0405e30':'#f0a03030'}`}}>{copilotDailyCount}/{COPILOT_COMMUNITY_LIMIT} today</span>}
             {copilotMessages.length>0&&<button onClick={()=>setCopilotMessages([])} title='Clear conversation' style={{background:'none',border:'1px solid var(--wt-border)',borderRadius:5,color:'var(--wt-dim)',fontSize:'0.86rem',cursor:'pointer',padding:'2px 7px',fontFamily:'Inter,sans-serif'}}>Clear</button>}
             <button onClick={()=>setShowCopilot(false)} aria-label='Close Co-Pilot' style={{background:'none',border:'none',color:'var(--wt-muted)',fontSize:'1.3rem',cursor:'pointer',lineHeight:1,padding:'0 4px'}}>×</button>
           </div>
           {/* Mode tabs */}
           {(canUse('team')||isAdmin) && (
             <div style={{display:'flex',borderBottom:'1px solid var(--wt-border)',flexShrink:0}}>
-              {[['chat','💬 Chat'],['ioc','🔍 IOC'],['nl','🔎 Query'],['hunt','🎯 Hunts']].map(([mode,label])=>(
-                <button key={mode} onClick={()=>setCopilotMode(mode)} style={{flex:1,padding:'6px 4px',border:'none',borderBottom:`2px solid ${copilotMode===mode?'#8b6fff':'transparent'}`,background:'transparent',color:copilotMode===mode?'#8b6fff':'var(--wt-dim)',fontSize:'0.72rem',fontWeight:copilotMode===mode?700:500,cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'all .12s'}}>{label}</button>
+              {[['chat','💬','Chat'],['ioc','🔍','IOC'],['nl','🔎','Query'],['hunt','🎯','Hunts']].map(([mode,icon,label])=>(
+                <button key={mode} onClick={()=>setCopilotMode(mode)} style={{flex:1,padding:'8px 4px',border:'none',borderBottom:`2px solid ${copilotMode===mode?'#8b6fff':'transparent'}`,background:copilotMode===mode?'#8b6fff08':'transparent',color:copilotMode===mode?'#8b6fff':'var(--wt-dim)',cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'all .12s',display:'flex',flexDirection:'column',alignItems:'center',gap:2}}><span style={{fontSize:'1rem',lineHeight:1}}>{icon}</span><span style={{fontSize:'0.65rem',fontWeight:copilotMode===mode?700:500}}>{label}</span></button>
               ))}
             </div>
           )}
-          {(!canUse('team')&&!isAdmin) ? (
+          {false ? (
             <div style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:32,textAlign:'center',gap:12}}>
               <div style={{fontSize:'2rem'}}>🔒</div>
-              <div style={{fontWeight:700,fontSize:'0.9rem'}}>Essentials plan required</div>
+              <div style={{fontWeight:700,fontSize:'0.9rem'}}>Upgrade required</div>
               <div style={{fontSize:'0.86rem',color:'var(--wt-muted)',lineHeight:1.6}}>AI Co-Pilot is available on Essentials plan and above. Ask security questions, generate detection queries, and get instant threat analysis.</div>
               <a href='/pricing' style={{padding:'8px 20px',background:'#4f8fff',color:'#fff',borderRadius:8,fontSize:'0.86rem',fontWeight:700,textDecoration:'none',marginTop:8}}>Upgrade to Essentials</a>
             </div>

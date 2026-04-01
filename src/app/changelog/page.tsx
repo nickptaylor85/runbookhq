@@ -4,6 +4,24 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.13.0',
+    date: '2026-03-31',
+    tag: 'Major Release',
+    tagColor: '#22d49a',
+    summary: 'UI overhaul + tier restructure: topbar collapsed, tabs reorganised, overview trimmed, GateWall preview, skeleton loaders, Community gets full AI',
+    changes: [
+      { type: 'feat', text: 'Topbar collapsed from 13 controls to 4. Co-Pilot button, Auto slider, DEMO/LIVE, and admin dropdowns stay prominent. Theme, font, guide, push, handover, CISO report, settings, and logout move into a single gear flyout menu.' },
+      { type: 'feat', text: 'Tab bar restructured: Primary 5 tabs (Overview, Alerts, Cases, Coverage, Intel) always visible. Vulns, OT, Comply, Tools in a More overflow dropdown. Closes on outside click.' },
+      { type: 'feat', text: 'Overview tab trimmed: 7-day charts and shift metrics removed. Focus is now posture + critical alerts + quad grid + APEX action feed.' },
+      { type: 'feat', text: 'GateWall upgraded: locked features now show a preview of real content (first 200px with gradient fade) rather than a blurred grey box. Users see exactly what they are missing.' },
+      { type: 'feat', text: 'Alert triage skeleton: expanding an alert now shows animated skeleton rows while APEX analyses. Top 3 critical alerts are prefetched 3s after page load so they feel instant on expand.' },
+      { type: 'feat', text: 'Co-Pilot mode tabs enlarged with icon + label layout (was tiny text-only). Chat, IOC Search, NL Query, Hunts — all clearly labelled.' },
+      { type: 'feat', text: 'Community tier upgraded: full APEX triage verdicts (was read-only), unlimited alerts (was 250/day), AI Co-Pilot with 5 queries/day, up to 3 integrations.' },
+      { type: 'fix',  text: 'NIS2/DORA .txt export removed from compliance tab — text file output is not an acceptable compliance artefact. Board Report PDF + Share Link remain.' },
+      { type: 'feat', text: 'Pricing restructured across all 4 tiers. RBAC moved into Essentials. Multi-tenant (up to 3 clients) added to Professional at +£199/client. OT add-on shown on pricing page.' },
+    ],
+  },
+  {
     version: 'v74.12.0',
     date: '2026-03-31',
     tag: 'Major Release',
