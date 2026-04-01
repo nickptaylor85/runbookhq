@@ -1499,7 +1499,7 @@ export default function DashboardPage() {
   // ── End alerts derived vars ────────────────────────────────────────────────
 
   return (
-    <div className={`wt-root${theme === 'light' ? ' light' : ''}`} style={{display:'flex',flexDirection:'column',minHeight:'100vh',maxWidth:'100vw',overflowX:'hidden',background:'var(--wt-bg)',color:'var(--wt-text)',fontFamily:'Inter,sans-serif'}}>
+    <div className={`wt-root${theme === 'light' ? ' light' : ''}${digitalFont ? ' wt-digital' : ''}`} style={{display:'flex',flexDirection:'column',minHeight:'100vh',maxWidth:'100vw',overflowX:'hidden',background:'var(--wt-bg)',color:'var(--wt-text)',fontFamily:'Inter,sans-serif'}}>
       <style dangerouslySetInnerHTML={{__html:DASHBOARD_CSS}} />
       {/* MAIN — full width, no sidebar */}
       <div style={{display:'flex',flexDirection:'column',overflow:'hidden',flex:1,maxWidth:'100vw'}}>
@@ -1541,6 +1541,9 @@ export default function DashboardPage() {
                 ...(!isViewer||isAdmin?[{t:'ot',l:'OT',badge:null}]:[]),
                 ...(!isViewer||isAdmin?[{t:'compliance',l:'Comply',badge:null}]:[]),
                 {t:'tools',l:'Tools',badge:null},
+                ...(isAdmin||userTier==='mssp'?[{t:'mssp',l:'Portfolio',badge:null}]:[]),
+                ...(isSales?[{t:'sales',l:'Sales',badge:null}]:[]),
+                ...(isAdmin?[{t:'admin',l:'Admin',badge:null}]:[]),
               ];
               const activeInMore = moreTabs.some(m=>m.t===activeTab);
               return (
@@ -1563,32 +1566,7 @@ export default function DashboardPage() {
             })()}
           </div>
 
-          {/* Secondary tabs — nested under More */}
-          {(()=>{
-            const secTabs = [
-              ...(isAdmin||userTier==='mssp'?[{t:'mssp',label:'Portfolio',icon:'🏢',color:'#8b6fff'}]:[]),
-              ...(isAdmin||canUse('business')?[{t:'compliance',label:'Compliance',icon:'🛡',color:'#8b6fff'}]:[]),
-              ...(isSales?[{t:'sales',label:'Sales',icon:'📈',color:'#22d49a'}]:[]),
-              ...(isAdmin?[{t:'admin',label:'Admin',icon:'🔧',color:'#f0a030'}]:[]),
-            ];
-            if (!secTabs.length) return null;
-            const activeSecTab = secTabs.find(s=>s.t===activeTab);
-            return (
-              <div style={{position:'relative',height:'100%',display:'flex',alignItems:'stretch',marginLeft:2}}>
-                <button onClick={()=>{const el=document.getElementById('wt-more-menu');if(el)el.style.display=el.style.display==='none'?'flex':'none';}} style={{height:'100%',padding:'0 12px',border:'none',borderBottom:`2px solid ${activeSecTab?'#4f8fff':'transparent'}`,background:'transparent',color:activeSecTab?'#4f8fff':'var(--wt-muted)',fontSize:'0.8rem',fontWeight:activeSecTab?700:500,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4,whiteSpace:'nowrap'}}>
-                  {activeSecTab?<><span>{activeSecTab.icon}</span>{activeSecTab.label}</>:<>More <span style={{fontSize:'0.84rem'}}>▾</span></>}
-                </button>
-                <div id='wt-more-menu' style={{display:'none',position:'absolute',top:'100%',left:0,background:'var(--wt-sidebar)',border:'1px solid #1d2535',borderRadius:10,boxShadow:'0 8px 32px rgba(0,0,0,0.5)',zIndex:100,flexDirection:'column',minWidth:160,padding:4,marginTop:2}} onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget))e.currentTarget.style.display='none';}}>
-                  {secTabs.map(({t,label,icon,color})=>(
-                    <button key={t} onClick={()=>{setActiveTab(t);const el=document.getElementById('wt-more-menu');if(el)el.style.display='none';}} style={{padding:'8px 14px',border:'none',borderRadius:7,background:activeTab===t?`${color}18`:'transparent',color:activeTab===t?color:'var(--wt-secondary)',fontSize:'0.82rem',fontWeight:activeTab===t?700:500,cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left',display:'flex',alignItems:'center',gap:8,transition:'background .12s'}} onMouseEnter={e=>e.currentTarget.style.background=`${color}10`} onMouseLeave={e=>e.currentTarget.style.background=activeTab===t?`${color}18`:'transparent'}>
-                      <span>{icon}</span>{label}
-                      {t==='admin'&&<span style={{marginLeft:'auto',width:5,height:5,borderRadius:'50%',background:'#f0a030',boxShadow:'0 0 4px #f0a030',display:'block'}} />}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
+          
 
           {/* Right controls */}
           <div className="wt-topbar-controls-full" style={{marginLeft:'auto',alignItems:'center',gap:8,height:'100%'}}>
@@ -1623,7 +1601,8 @@ export default function DashboardPage() {
               {DEMO_TENANTS.map(t=>(<option key={t.id} value={t.id}>{t.type==='client'?'◦ ':''}{t.name}</option>))}
             </select>}
             {(canUse('team')||isAdmin)&&<button onClick={()=>{setShowCopilot(s=>!s);setTimeout(()=>copilotBottomRef.current?.scrollIntoView({behavior:'auto'}),100);}} style={{padding:'3px 10px',borderRadius:6,border:`1px solid ${showCopilot?'#8b6fff':'#8b6fff30'}`,background:showCopilot?'#8b6fff15':'#8b6fff0a',color:'#8b6fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>✦ Co-Pilot</button>}
-            {/* Settings flyout — collapses theme, font, guide, push, CISO, handover, settings, logout */}
+            <button onClick={toggleTheme} title={theme==='dark'?'Switch to light mode':'Switch to dark mode'} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem',flexShrink:0}}>{theme==='dark'?'☀️':'🌙'}</button>
+            {/* Settings flyout — collapses font, guide, push, CISO, handover, settings, logout */}
             <div style={{position:'relative',flexShrink:0}}>
               <button onClick={()=>setShowSettingsFlyout(s=>!s)} style={{width:30,height:30,borderRadius:7,border:`1px solid ${showSettingsFlyout?'#4f8fff40':'var(--wt-border)'}`,background:showSettingsFlyout?'#4f8fff12':'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.82rem',color:showSettingsFlyout?'#4f8fff':'var(--wt-muted)'}} title='Settings & utilities'>⚙️</button>
               {showSettingsFlyout && (
@@ -1633,7 +1612,7 @@ export default function DashboardPage() {
                   <a href='/guide' target='_blank' rel='noopener noreferrer' style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textDecoration:'none'}}>📖 User Guide</a>
                   <a href='/settings' style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textDecoration:'none'}}>⚙ Account Settings</a>
                   <div style={{height:1,background:'var(--wt-border)',margin:'4px 0'}} />
-                  <button onClick={toggleTheme} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>{theme==='dark'?'☀️ Light mode':'🌙 Dark mode'}</button>
+
                   <button onClick={toggleDigitalFont} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:digitalFont?'#4f8fff':'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>01 {digitalFont?'Proportional font':'Digital font'}</button>
                   {hasSW && <button onClick={subscribePush} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:pushEnabled?'#22d49a':'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>{pushEnabled?'🔔 Push on':'🔕 Push off'}</button>}
                   <div style={{height:1,background:'var(--wt-border)',margin:'4px 0'}} />
@@ -1772,11 +1751,6 @@ export default function DashboardPage() {
                       <div style={{display:'flex',alignItems:'center',gap:6,flex:1,minWidth:0}}>
                         <div style={{width:8,height:8,borderRadius:'50%',background:tlColor,boxShadow:`0 0 8px ${tlColor}`,flexShrink:0,animation:tlevel==='CRITICAL'?'pulse 1s ease infinite':tlevel==='HIGH'?'pulse 2s ease infinite':'none'}} />
                         <span style={{fontSize:'0.82rem',fontWeight:900,color:tlColor,letterSpacing:'1px',whiteSpace:'nowrap'}}>THREAT LEVEL — {tlevel}</span>
-                      </div>
-                      <div style={{display:'flex',gap:6,alignItems:'center',flexShrink:0}}>
-                        <span style={{fontSize:'0.8rem',color:'var(--wt-dim)'}}>{demoMode?'Demo':'Live'}</span>
-                        {(canUse('team')||isAdmin) ? <button onClick={()=>{setShowCopilot(s=>!s);setTimeout(()=>copilotBottomRef.current?.scrollIntoView({behavior:'auto'}),100);}} style={{fontSize:'0.82rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:`1px solid ${tlColor}30`,background:`${tlColor}0a`,color:tlColor,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✦ Co-Pilot</button> : <a href='/pricing' style={{fontSize:'0.82rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff30',background:'#4f8fff0a',color:'#4f8fff',textDecoration:'none'}}>🔒 Co-Pilot</a>}
-                        <button onClick={async()=>{setHandoverLoading(true);setShiftHandover(null);try{const activeIncs=incidents.filter(i=>!deletedIncidents.has(i.id)&&(incidentStatuses[i.id]||i.status)==='Active');const r=await fetch('/api/shift-handover',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({openAlerts:totalAlerts,critAlerts:critAlerts.length,openCases,slaBreaches,tools:Object.keys(connectedTools).length,posture,topAlert:critAlerts[0]?.title||alerts[0]?.title||'',openIncidents:activeIncs.map(i=>i.title).slice(0,5),analyst:currentUserName||'Analyst'})});const d=await r.json();if(d.ok&&d.handover)setShiftHandover(d.handover);else setShiftHandover({summary:d.error||'Generation failed — check your Anthropic API key in Tools.',keyActions:[],generatedAt:new Date().toISOString()});}catch(e){setShiftHandover({summary:'Connection error: '+e.message,keyActions:[],generatedAt:new Date().toISOString()});}setHandoverLoading(false);}} disabled={handoverLoading} style={{fontSize:'0.82rem',fontWeight:700,padding:'2px 8px',borderRadius:4,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',cursor:handoverLoading?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:3}}>{handoverLoading&&<span style={{display:'inline-block',width:7,height:7,borderRadius:'50%',border:'1.5px solid #22d49a',borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />}⇄ Handover</button>
                       </div>
                     </div>
                     <div style={{padding:'10px 16px',display:'flex',flexDirection:'column',gap:5}}>
@@ -1955,6 +1929,9 @@ export default function DashboardPage() {
                 </div>
               )}
 
+            </div>
+            </div>
+            </div>
             </div>
           )}
 
@@ -3646,6 +3623,7 @@ export default function DashboardPage() {
                   {t:'coverage',i:'🛡',l:'Coverage'},
                   {t:'vulns',i:'🔍',l:'Vulns'},
                   {t:'intel',i:'🌐',l:'Intel'},
+                  {t:'ot',i:'🏭',l:'OT'},
                   ...((isAdmin||canUse('business'))?[{t:'compliance',i:'🗂',l:'Comply'}]:[]),
                   ...((isAdmin||userTier==='mssp')?[{t:'mssp',i:'🏢',l:'MSSP'}]:[]),
                   ...(isAdmin?[{t:'admin',i:'🔧',l:'Admin'}]:[]),
