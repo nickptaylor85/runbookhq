@@ -500,6 +500,7 @@ export default function DashboardPage() {
   const [nlLoading, setNlLoading] = useState(false);
   const [savedHunts, setSavedHunts] = useState([]);
   const [pushEnabled, setPushEnabled] = useState(false);
+  const [hasSW, setHasSW] = useState(false); // serviceWorker availability — set client-side only to avoid hydration mismatch
   const [showSettingsFlyout, setShowSettingsFlyout] = useState(false);
   const [showTabMore, setShowTabMore] = useState(false);
   const [shareReportUrl, setShareReportUrl] = useState('');
@@ -516,18 +517,11 @@ export default function DashboardPage() {
     } catch {}
   }
   // Restore push state
-  React.useEffect(()=>{ if (typeof window !== 'undefined' && localStorage.getItem('wt_push_enabled') === '1') setPushEnabled(true); }, []);
+  React.useEffect(()=>{ if (typeof window !== 'undefined') { setHasSW('serviceWorker' in navigator); if (localStorage.getItem('wt_push_enabled') === '1') setPushEnabled(true); const stored=localStorage.getItem('wt_copilot_daily'); if(stored){try{const {count,date}=JSON.parse(stored);if(date===new Date().toDateString())setCopilotDailyCount(count||0);}catch{}} } }, []);
   const [copilotMessages, setCopilotMessages] = useState([]);
   const [copilotInput, setCopilotInput] = useState('');
   const [copilotLoading, setCopilotLoading] = useState(false);
-  const [copilotDailyCount, setCopilotDailyCount] = useState(()=>{
-    if (typeof window === 'undefined') return 0;
-    const stored = localStorage.getItem('wt_copilot_daily');
-    if (!stored) return 0;
-    const {count, date} = JSON.parse(stored);
-    if (date !== new Date().toDateString()) return 0; // reset daily
-    return count || 0;
-  });
+  const [copilotDailyCount, setCopilotDailyCount] = useState(0); // always 0 on SSR, loaded in effect
   const COPILOT_COMMUNITY_LIMIT = 5;
   // SLA ticker
   const [slaTick, setSlaTick] = useState(0);
@@ -1641,7 +1635,7 @@ export default function DashboardPage() {
                   <div style={{height:1,background:'var(--wt-border)',margin:'4px 0'}} />
                   <button onClick={toggleTheme} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>{theme==='dark'?'☀️ Light mode':'🌙 Dark mode'}</button>
                   <button onClick={toggleDigitalFont} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:digitalFont?'#4f8fff':'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>01 {digitalFont?'Proportional font':'Digital font'}</button>
-                  {'serviceWorker' in navigator && <button onClick={subscribePush} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:pushEnabled?'#22d49a':'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>{pushEnabled?'🔔 Push on':'🔕 Push off'}</button>}
+                  {hasSW && <button onClick={subscribePush} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:pushEnabled?'#22d49a':'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>{pushEnabled?'🔔 Push on':'🔕 Push off'}</button>}
                   <div style={{height:1,background:'var(--wt-border)',margin:'4px 0'}} />
                   <button onClick={async()=>{await fetch('/api/auth/logout',{method:'POST'});window.location.href='/login';}} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'#f0405e',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>↩ Sign out</button>
                 </div>
