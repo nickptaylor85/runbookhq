@@ -3606,6 +3606,8 @@ export default function DashboardPage() {
             </>
           )}
         </div>
+      )}
+
       {/* KEYBOARD SHORTCUT HELP */}
       {showShortcuts && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={()=>setShowShortcuts(false)}>
