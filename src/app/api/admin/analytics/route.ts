@@ -2,6 +2,7 @@ import { verifySession } from '@/lib/encrypt';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { getUsers as getUsersList } from '@/lib/users';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 async function requireAdmin(req: NextRequest): Promise<boolean> {
   if (req.headers.get('x-is-admin') === 'true') return true;
@@ -17,6 +18,9 @@ async function requireAdmin(req: NextRequest): Promise<boolean> {
 }
 
 export async function GET(req: NextRequest) {
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:\${_rlId}:\${req.nextUrl?.pathname || ''}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   if (!(await requireAdmin(req))) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
   try {
     // Platform-wide user metrics
@@ -84,6 +88,6 @@ export async function GET(req: NextRequest) {
     });
   } catch (e: any) {
     console.error('Analytics error:', e.message);
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

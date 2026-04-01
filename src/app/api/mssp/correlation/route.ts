@@ -6,8 +6,8 @@ function getTenantId(req: NextRequest): string {
   return sanitiseTenantId(req.headers.get('x-tenant-id'));
 }
 // Store IOC events per tenant, correlate across MSSP clients
-const iocKey = (msspId: string, clientId: string) => `wt:mssp:${msspId}:client:${clientId}:iocs`;
-const correlationKey = (msspId: string) => `wt:mssp:${msspId}:correlation`;
+const iocKey = (msspId: string, clientId: string) => `wt:mssp:${msspId.replace(/[^a-zA-Z0-9_-]/g,'').slice(0,64)}:client:${clientId.replace(/[^a-zA-Z0-9_-]/g,'').slice(0,64)}:iocs`;
+const correlationKey = (msspId: string) => `wt:mssp:${msspId.replace(/[^a-zA-Z0-9_-]/g,'').slice(0,64)}:correlation`;
 
 export async function POST(req: NextRequest) {
   // Rate limiting — 60 req/min per user
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     await redisSet(correlationKey(msspTenantId), JSON.stringify({ correlations, updatedAt: Date.now() }));
     return NextResponse.json({ ok: true, correlations });
   } catch(e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }
 

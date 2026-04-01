@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 export async function POST(req: NextRequest) {
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:\${_rlId}:\${req.nextUrl?.pathname || ''}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   try {
     const body = await req.json() as { webhook?: string; alert?: Record<string, unknown> };
     if (!body?.webhook || !body.webhook.startsWith('https://hooks.slack.com/')) {

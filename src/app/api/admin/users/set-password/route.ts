@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUsers, saveUsers, hashPassword } from '@/lib/users';
 import { verifySession } from '@/lib/encrypt';
 import { cookies } from 'next/headers';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 async function requireAdmin(req: NextRequest): Promise<boolean> {
   if (req.headers.get('x-is-admin') === 'true') return true;
@@ -15,6 +16,9 @@ async function requireAdmin(req: NextRequest): Promise<boolean> {
 }
 
 export async function POST(req: NextRequest) {
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:\${_rlId}:\${req.nextUrl?.pathname || ''}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   if (!(await requireAdmin(req))) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
@@ -37,6 +41,6 @@ export async function POST(req: NextRequest) {
     await saveUsers(tenantId, users);
     return NextResponse.json({ ok: true, userId: users[idx].id, email: users[idx].email });
   } catch(e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json({ error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

@@ -5,6 +5,9 @@ function getTenantId(req: NextRequest): string {
 }
 
 export async function POST(req: NextRequest) {
+  if (!req.headers.get('x-user-id')) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   const _tenantId = getTenantId(req);
   return NextResponse.json({"ok": true, "actions": []});
 }

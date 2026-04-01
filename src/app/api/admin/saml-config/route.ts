@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSamlConfig, saveSamlConfig, SamlConfig } from '@/lib/saml';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 function requireAdmin(req: NextRequest) {
   if ((req.headers.get('x-is-admin') !== 'true' && req.headers.get('x-user-tier') !== 'mssp')) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
@@ -7,6 +8,9 @@ function requireAdmin(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:\${_rlId}:\${req.nextUrl?.pathname || ''}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   const err = requireAdmin(req); if (err) return err;
   const tenantId = req.headers.get('x-tenant-id') || 'global';
   const config = await getSamlConfig(tenantId);
@@ -33,5 +37,5 @@ export async function POST(req: NextRequest) {
     };
     await saveSamlConfig(tenantId, updated);
     return NextResponse.json({ ok: true });
-  } catch (e: any) { return NextResponse.json({ error: e.message }, { status: 500 }); }
+  } catch (e: any) { return NextResponse.json({ error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 }); }
 }

@@ -2,6 +2,7 @@ import { verifySession } from '@/lib/encrypt';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import { redisSet } from '@/lib/redis';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 async function requireAdmin(req: NextRequest): Promise<boolean> {
   if (req.headers.get('x-is-admin') === 'true') return true;
@@ -24,6 +25,9 @@ const DEMO_POSTURE = { score: 74, breakdown: [
 ], input: {}, cachedAt: Date.now() };
 
 export async function POST(req: NextRequest) {
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:\${_rlId}:\${req.nextUrl?.pathname || ''}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   if (!(await requireAdmin(req))) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
   try {
     const body = await req.json() as { tenantId: string };
@@ -35,6 +39,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, tenantId: tid, seeded: ['posture', 'settings'] });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

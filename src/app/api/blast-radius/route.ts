@@ -3,7 +3,7 @@ import { getAnthropicKey, redisGet, redisSet } from '@/lib/redis';
 import { cookies } from 'next/headers';
 import { checkRateLimit } from '@/lib/ratelimit';
 
-const cacheKey = (tenantId: string, alertId: string) => `wt:${tenantId}:blast:${alertId}`;
+const cacheKey = (tenantId: string, alertId: string) => `wt:${tenantId}:blast:${alertId.replace(/[^a-zA-Z0-9_\-]/g,'').slice(0,64)}`;
 
 export interface BlastRadiusResult {
   alertId: string;
@@ -121,6 +121,6 @@ Respond with exactly this JSON (realistic for a corporate environment):
     try { await redisSet(ck, JSON.stringify(result)); } catch {}
     return NextResponse.json({ ok: true, result, cached: false });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

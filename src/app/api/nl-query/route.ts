@@ -80,6 +80,6 @@ Respond with exactly this JSON:
 
     return NextResponse.json({ ok: true, query: body.query, ...parsed });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

@@ -44,6 +44,7 @@ export async function middleware(req: NextRequest) {
   cleanHeaders.delete('x-is-admin');
   cleanHeaders.delete('x-user-id');
   cleanHeaders.delete('x-user-tier');
+  cleanHeaders.delete('x-user-role');
   // Note: x-tenant-id from client is overridden by session in authenticated routes
 
   // Allow public paths

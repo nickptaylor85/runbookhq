@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redisGet, redisSet } from '@/lib/redis';
 import { randomBytes, createHmac } from 'crypto';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 function getTenantId(req: NextRequest): string {
   return req.headers.get('x-tenant-id') || 'global';
@@ -17,6 +18,9 @@ function hashKey(key: string): string {
 }
 
 export async function GET(req: NextRequest) {
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:\${_rlId}:\${req.nextUrl?.pathname || ''}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   try {
     const tenantId = getTenantId(req);
     const raw = await redisGet(apiKeysKey(tenantId));
@@ -48,7 +52,7 @@ export async function POST(req: NextRequest) {
     // Return the full key only once — never again
     return NextResponse.json({ ok: true, key: secret, id: newKey.id, prefix, scopes });
   } catch(e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }
 
@@ -62,6 +66,6 @@ export async function DELETE(req: NextRequest) {
     await redisSet(apiKeysKey(tenantId), JSON.stringify(filtered));
     return NextResponse.json({ ok: true });
   } catch(e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

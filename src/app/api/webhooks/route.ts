@@ -2,6 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { redisHSet, redisHGetAll, redisHDel, KEYS , sanitiseTenantId } from '@/lib/redis';
 import { checkRateLimit } from '@/lib/ratelimit';
 
+
+// SSRF protection: only allow HTTPS URLs to public internet hosts
+function validateWebhookUrl(url: string): { ok: boolean; error?: string } {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:') return { ok: false, error: 'Only HTTPS webhooks allowed' };
+    const host = parsed.hostname.toLowerCase();
+    // Block private/loopback ranges
+    if (/^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|0\.0\.0\.0|::1|\[::1\])/.test(host)) {
+      return { ok: false, error: 'Private/loopback addresses not allowed' };
+    }
+    // Block metadata endpoints
+    if (host.includes('169.254') || host.includes('metadata')) {
+      return { ok: false, error: 'Metadata endpoints not allowed' };
+    }
+    return { ok: true };
+  } catch { return { ok: false, error: 'Invalid URL' }; }
+}
+
 function getTenantId(req: NextRequest): string {
   return sanitiseTenantId(req.headers.get('x-tenant-id'));
 }
@@ -73,7 +92,10 @@ export async function POST(req: NextRequest) {
 
     // Send a test ping
     try {
-      await fetch(body.url, {
+      await
+    const _ssrfCheck = validateWebhookUrl(body.url);
+    if (!_ssrfCheck.ok) return NextResponse.json({ error: `Blocked: ${_ssrfCheck.error}` }, { status: 400 });
+    fetch(body.url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Watchtower-Event': 'webhook.test' },
         body: JSON.stringify({ event: 'webhook.test', source: 'Watchtower', timestamp: new Date().toISOString(), message: 'Webhook registered successfully' }),

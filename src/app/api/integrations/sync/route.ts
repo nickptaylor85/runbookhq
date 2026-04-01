@@ -82,6 +82,6 @@ export async function POST(req: NextRequest) {
       syncedAt: new Date().toISOString(),
     });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json({ error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

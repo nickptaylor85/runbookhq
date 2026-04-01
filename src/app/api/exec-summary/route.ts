@@ -77,7 +77,7 @@ Return ONLY valid JSON (no markdown):
     const html = buildHtmlReport({ period, totalAlerts, critAlerts, openCases, closedCases, slaBreaches, fpsClosed, tpConfirmed, posture, coverage, topVulns: topVulns as string[], topAlerts: topAlerts as string[], tools, org, ...aiContent });
     return NextResponse.json({ ok: true, html });
   } catch(e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }
 

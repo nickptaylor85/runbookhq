@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { redisGet, redisSet } from '@/lib/redis';
 import { verifySession } from '@/lib/encrypt';
 import { cookies } from 'next/headers';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 // Store generated report HTML under a time-limited token
 const shareKey = (token: string) => `wt:report_share:${token}`;
 
 export async function POST(req: NextRequest) {
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:\${_rlId}:\${req.nextUrl?.pathname || ''}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   // Auth check
   let isAuthed = req.headers.get('x-is-admin') === 'true';
   try {
@@ -27,7 +31,7 @@ export async function POST(req: NextRequest) {
     await redisSet(shareKey(shareToken), entry);
     const base = process.env.NEXT_PUBLIC_BASE_URL || 'https://getwatchtower.io';
     return NextResponse.json({ ok: true, shareUrl: `${base}/report/${shareToken}`, token: shareToken, expiresIn: '48 hours' });
-  } catch(e: any) { return NextResponse.json({ ok: false, error: e.message }, { status: 500 }); }
+  } catch(e: any) { return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 }); }
 }
 
 export async function GET(req: NextRequest) {
@@ -40,5 +44,5 @@ export async function GET(req: NextRequest) {
     // Check 48h expiry
     if (Date.now() - data.createdAt > 48 * 3600000) return NextResponse.json({ ok: false, error: 'Report link expired' }, { status: 410 });
     return NextResponse.json({ ok: true, html: data.html, title: data.title });
-  } catch(e: any) { return NextResponse.json({ ok: false, error: e.message }, { status: 500 }); }
+  } catch(e: any) { return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 }); }
 }

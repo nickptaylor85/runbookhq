@@ -89,6 +89,6 @@ export async function GET(req: NextRequest) {
       cachedAt: Date.now(),
     });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message, alerts: [] }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message, alerts: [] }, { status: 500 });
   }
 }

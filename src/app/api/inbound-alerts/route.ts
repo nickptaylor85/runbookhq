@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     console.log(`[inbound-alerts] tenant=${tenantId} source=${source} title=${String(alert.title || '').slice(0, 60)}`);
     return NextResponse.json({ ok: true, alertId: alert.id, source, tenantId });
   } catch(e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }
 

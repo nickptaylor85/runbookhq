@@ -327,6 +327,9 @@ async function disableUser(creds: Record<string, Record<string, string>>, identi
     try {
       const userId = await findOktaUser(creds.okta, identifier);
       if (userId) {
+        if (!validateOktaDomain(creds.okta.domain)) {
+          return { ok: false, tool: 'Okta', action: 'suspend', error: 'Invalid Okta domain' };
+        }
         const r = await fetch(`https://${creds.okta.domain}/api/v1/users/${userId}/lifecycle/suspend`, {
           method: 'POST',
           headers: { Authorization: `SSWS ${creds.okta.api_token}`, Accept: 'application/json' },
@@ -429,7 +432,13 @@ async function notifyTeams(creds: Record<string, Record<string, string>>, messag
         facts: [{ name: 'Source', value: 'Watchtower APEX' }, { name: 'Time', value: new Date().toLocaleString('en-GB') }],
       }],
     };
-    const r = await fetch(creds.teams.webhook_url, {
+    // SSRF guard: only allow known Teams webhook domains
+    const teamsUrl = String(creds.teams.webhook_url || '');
+    if (!teamsUrl.startsWith('https://') || 
+        !/(outlook\.office\.com|webhook\.office\.com|teams\.microsoft\.com)/.test(teamsUrl)) {
+      return { ok: false, tool: 'Microsoft Teams', action: 'notify', error: 'Invalid Teams webhook URL' };
+    }
+    const r = await fetch(teamsUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(card),
@@ -469,7 +478,10 @@ async function createTicket(creds: Record<string, Record<string, string>>, alert
   if (creds.servicenow) {
     try {
       const auth = Buffer.from(`${creds.servicenow.username}:${creds.servicenow.password}`).toString('base64');
-      const r = await fetch(`${creds.servicenow.instance}/api/now/table/incident`, {
+      if (!validateServiceNowInstance(creds.servicenow.instance)) {
+      return { ok: false, tool: 'ServiceNow', action: 'create_ticket', error: 'Invalid ServiceNow instance URL' };
+    }
+    const r = await fetch(`${creds.servicenow.instance}/api/now/table/incident`, {
         method: 'POST',
         headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -514,7 +526,10 @@ async function createTicket(creds: Record<string, Record<string, string>>, alert
   if (creds.jira) {
     try {
       const auth = Buffer.from(`${creds.jira.email}:${creds.jira.api_token}`).toString('base64');
-      const r = await fetch(`https://${creds.jira.domain}/rest/api/3/issue`, {
+      if (!validateJiraDomain(creds.jira.domain)) {
+      return { ok: false, tool: 'Jira', action: 'create_ticket', error: 'Invalid Jira domain' };
+    }
+    const r = await fetch(`https://${creds.jira.domain}/rest/api/3/issue`, {
         method: 'POST',
         headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -561,6 +576,41 @@ async function zscalerObfuscate(apiKey: string): Promise<string> {
 }
 
 // ── Main handler ─────────────────────────────────────────────────────────────
+
+
+// Validate SaaS credential domains against expected patterns
+// Prevents SSRF via attacker-controlled credential values
+function validateOktaDomain(domain: string | undefined): boolean {
+  if (!domain) return false;
+  const d = domain.toLowerCase().trim();
+  return /^[a-zA-Z0-9-]+\.okta\.com$/.test(d) || /^[a-zA-Z0-9-]+\.oktapreview\.com$/.test(d);
+}
+
+function validateServiceNowInstance(url: string | undefined): boolean {
+  if (!url) return false;
+  try {
+    const u = new URL(url.startsWith('http') ? url : `https://${url}`);
+    if (u.protocol !== 'https:') return false;
+    const h = u.hostname.toLowerCase();
+    // Block private ranges
+    if (/^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.)/.test(h)) return false;
+    return true;
+  } catch { return false; }
+}
+
+function validateJiraDomain(domain: string | undefined): boolean {
+  if (!domain) return false;
+  const d = domain.toLowerCase().trim();
+  // Allow *.atlassian.net and custom domains (HTTPS enforced at fetch level)
+  if (/^[a-zA-Z0-9-]+\.atlassian\.net$/.test(d)) return true;
+  // Custom Jira: must not be private IP range
+  try {
+    const u = new URL(`https://${d}`);
+    const h = u.hostname;
+    if (/^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.)/.test(h)) return false;
+    return true;
+  } catch { return false; }
+}
 
 // Validate a stored credential URL/host to prevent SSRF via compromised creds
 function safeCredHost(host: string | undefined): string {
@@ -690,7 +740,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, action, executedActions, results: allResults });
   } catch(e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }
 

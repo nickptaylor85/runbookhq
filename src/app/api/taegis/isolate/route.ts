@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redisGet, redisLPush, redisLTrim, KEYS } from '@/lib/redis';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 // Taegis XDR device isolation via GraphQL
 export async function POST(req: NextRequest) {
+  // Rate limiting — 60 req/min per user
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:${_rlId}:${req.nextUrl.pathname}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+
   try {
     const tenantId = req.headers.get('x-tenant-id') || 'global';
     const body = await req.json() as { device: string; reason?: string; alertId?: string };
@@ -21,6 +27,9 @@ export async function POST(req: NextRequest) {
 
     const { clientId, clientSecret, region = 'us1' } = taegis;
     const host = region === 'us1' ? 'api.ctpx.secureworks.com' : `api.${region}.taegis.secureworks.com`;
+    if (!host || /^(localhost|127\.|\.local$)/.test(host) || host.includes('/')) {
+      return NextResponse.json({ error: 'Invalid Taegis host' }, { status: 400 });
+    }
 
     // Auth
     const tokenRes = await fetch(`https://${host}/auth/api/v2/auth/token`, {
@@ -87,6 +96,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, device: body.device, assetId, isolated: true, message: result.message });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

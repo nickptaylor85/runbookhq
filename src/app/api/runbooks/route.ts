@@ -53,6 +53,12 @@ const DEFAULT_RUNBOOKS: Runbook[] = [
   },
 ];
 
+// Sanitise user-supplied text to prevent stored XSS
+function stripHtml(str: unknown): string {
+  if (typeof str !== 'string') return '';
+  return str.replace(/<[^>]*>/g, '').replace(/[\x00-\x1f\x7f]/g, '').slice(0, 5000);
+}
+
 const runbookKey = (t: string) => `wt:${t}:runbooks`;
 
 function getTenantId(req: NextRequest): string {
@@ -91,7 +97,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ ok: true, runbooks });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }
 
@@ -121,6 +127,6 @@ export async function POST(req: NextRequest) {
     await redisSet(runbookKey(tenantId), JSON.stringify(runbooks.slice(0, 100)));
     return NextResponse.json({ ok: true, runbook: newRunbook });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

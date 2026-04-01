@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
       const { getUsers, updateUser, hashPassword, verifyPassword } = await import('@/lib/users');
       const users = await getUsers('global');
       const user = users.find(u => u.email.toLowerCase() === fcemail.toLowerCase());
-      if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      if (!user) return NextResponse.json({ ok: true, message: 'If that email is registered, a reset link has been sent.' });
       const passwordOk = verifyPassword(currentPassword, user.passwordHash || '');
       if (!passwordOk) return NextResponse.json({ error: 'Current password incorrect' }, { status: 401 });
       await updateUser('global', user.id, { passwordHash: hashPassword(fcnew), mustChangePassword: false, status: 'active' });
@@ -68,6 +68,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json({ error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

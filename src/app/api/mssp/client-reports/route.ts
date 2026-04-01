@@ -68,6 +68,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, sent: emailResult.ok, recipient: body.recipientEmail });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

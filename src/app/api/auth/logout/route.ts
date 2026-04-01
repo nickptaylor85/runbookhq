@@ -1,8 +1,12 @@
+import { checkRateLimit } from '@/lib/ratelimit';
 import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
 import { blacklistJti } from '@/lib/redis';
 
 export async function POST(req: NextRequest) {
+  const _rlIp = req.headers.get('x-forwarded-for')?.split(',')[0] || 'anon';
+  const _rl = await checkRateLimit('logout:' + _rlIp, 20, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   const res = NextResponse.json({ ok: true });
   const cookieOpts = { maxAge: 0, path: '/' };
 

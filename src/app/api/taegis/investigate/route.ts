@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redisGet, KEYS } from '@/lib/redis';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 // Taegis XDR investigation — enriches an alert with related events, threat context, and IOC lookups
 export async function POST(req: NextRequest) {
+  // Rate limiting — 60 req/min per user
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:${_rlId}:${req.nextUrl.pathname}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+
   try {
     const tenantId = req.headers.get('x-tenant-id') || 'global';
     const body = await req.json() as {
@@ -47,6 +53,11 @@ export async function POST(req: NextRequest) {
     const { access_token: token } = await tokenRes.json() as { access_token: string };
 
     // Query Taegis GraphQL for related alerts and endpoint context
+    // Validate host before building Taegis endpoint (SSRF guard)
+    if (!host || /^(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.)/.test(host) ||
+        host.includes('..') || host.includes('/')) {
+      return NextResponse.json({ error: 'Invalid Taegis host' }, { status: 400 });
+    }
     const gqlUrl = `https://${host}/graphql`;
     const headers = {
       'Content-Type': 'application/json',
@@ -150,6 +161,6 @@ export async function POST(req: NextRequest) {
       queriedAt: new Date().toISOString(),
     });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

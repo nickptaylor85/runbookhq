@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY || '';
 
 export async function POST(req: NextRequest) {
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:\${_rlId}:\${req.nextUrl?.pathname || ''}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   try {
     const body = await req.json() as { customerId?: string; returnUrl?: string };
     const { customerId, returnUrl = 'https://getwatchtower.io/dashboard' } = body;
@@ -21,6 +25,6 @@ export async function POST(req: NextRequest) {
     const session = await res.json() as { url: string };
     return NextResponse.json({ ok: true, url: session.url });
   } catch(e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

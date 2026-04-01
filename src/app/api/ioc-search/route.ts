@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
           results.tenable = { found: (data.assets?.length || 0) > 0, count: data.assets?.length || 0 };
         }
       } catch (e: any) {
-        results.tenable = { error: e.message };
+        results.tenable = { error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message };
       }
     }
 

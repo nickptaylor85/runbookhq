@@ -51,6 +51,6 @@ Return JSON only with markdown formatting in string values: { "summary": "**2-3 
     const handover = JSON.parse(cleaned);
     return NextResponse.json({ ok: true, handover: { ...handover, generatedAt: new Date().toISOString() } });
   } catch(e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

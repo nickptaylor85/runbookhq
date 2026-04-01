@@ -86,6 +86,6 @@ export async function POST(req: NextRequest) {
     const result = await sendEmail({ to, subject, html });
     return NextResponse.json(result);
   } catch(e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

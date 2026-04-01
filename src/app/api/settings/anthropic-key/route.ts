@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redisGet, redisDel, setTenantAnthropicKey, KEYS , sanitiseTenantId } from '@/lib/redis';
 import { encrypt } from '@/lib/encrypt';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 function getTenantId(req: NextRequest): string {
   return sanitiseTenantId(req.headers.get('x-tenant-id'));
 }
 
 export async function GET(req: NextRequest) {
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:\${_rlId}:\${req.nextUrl?.pathname || ''}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   try {
     const tenantId = getTenantId(req);
     const stored = await redisGet(KEYS.TENANT_ANTHROPIC_KEY(tenantId));

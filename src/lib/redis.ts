@@ -147,6 +147,13 @@ export async function isJtiBlacklisted(jti: string): Promise<boolean> {
 
 // Sanitise tenant ID — must be alphanumeric + hyphens only, max 64 chars
 // Prevents Redis key injection via crafted tenant headers
+// Sanitise a single Redis key segment (ID, alertId, etc.)
+// Allows only alphanumeric, hyphens, underscores — max 128 chars
+export function sanitiseKeySegment(raw: string | null | undefined): string {
+  if (!raw) return 'unknown';
+  return String(raw).replace(/[^a-zA-Z0-9_\-]/g, '').slice(0, 128) || 'unknown';
+}
+
 export function sanitiseTenantId(raw: string | null): string {
   if (!raw) return 'global';
   const clean = raw.replace(/[^a-zA-Z0-9-_]/g, '').slice(0, 64);

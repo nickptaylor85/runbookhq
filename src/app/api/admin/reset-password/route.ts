@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { redisGet, redisSet } from '@/lib/redis';
 import { sendEmail } from '@/lib/email';
 import { randomBytes } from 'crypto';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 async function requireAdmin(req: NextRequest): Promise<boolean> {
   if (req.headers.get('x-is-admin') === 'true') return true;
@@ -19,6 +20,9 @@ async function requireAdmin(req: NextRequest): Promise<boolean> {
 }
 
 export async function POST(req: NextRequest) {
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:\${_rlId}:\${req.nextUrl?.pathname || ''}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   if (!(await requireAdmin(req))) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
   try {
     const body = await req.json() as { email: string };
@@ -37,6 +41,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, email: body.email });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

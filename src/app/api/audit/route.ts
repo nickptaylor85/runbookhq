@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redisLPush, redisLRange, redisLTrim } from '@/lib/redis';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 function getTenantId(req: NextRequest): string {
   return req.headers.get('x-tenant-id') || 'global';
@@ -28,6 +29,9 @@ async function requireAdmin(req: NextRequest): Promise<boolean> {
 }
 
 export async function GET(req: NextRequest) {
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:\${_rlId}:\${req.nextUrl?.pathname || ''}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   if (!(await requireAdmin(req))) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
   try {
     const tenantId = getTenantId(req);
@@ -44,11 +48,17 @@ export async function POST(req: NextRequest) {
   try {
     const tenantId = getTenantId(req);
     const body = await req.json() as Record<string, unknown>;
-    const entry = { ...body, tenantId, ts: Date.now() };
+    // Whitelist audit entry fields — prevent mass assignment into audit log
+    const ALLOWED_AUDIT_FIELDS = ['action', 'resourceType', 'resourceId', 'details', 'userId', 'severity'];
+    const safeBody: Record<string, unknown> = {};
+    for (const k of ALLOWED_AUDIT_FIELDS) {
+      if (k in body) safeBody[k] = typeof body[k] === 'string' ? String(body[k]).slice(0, 500) : body[k];
+    }
+    const entry = { ...safeBody, tenantId, ts: Date.now() };
     await redisLPush(auditKey(tenantId), JSON.stringify(entry));
     await redisLTrim(auditKey(tenantId), 0, 999);
     return NextResponse.json({ ok: true });
   } catch(e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

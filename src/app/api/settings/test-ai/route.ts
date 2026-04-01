@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAnthropicKey } from '@/lib/redis';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 export async function GET(req: NextRequest) {
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:\${_rlId}:\${req.nextUrl?.pathname || ''}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   try {
     const tenantId = req.headers.get('x-tenant-id') || 'global';
     const apiKey = await getAnthropicKey(tenantId);

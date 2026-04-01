@@ -5,7 +5,7 @@ import { checkRateLimit } from '@/lib/ratelimit';
 export const maxDuration = 60;
 
 const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
-const cacheKey = (t: string, id: string) => `wt:${t}:ot_triage:${id}`;
+const cacheKey = (t: string, id: string) => `wt:${t}:ot_triage:${String(id).replace(/[^a-zA-Z0-9_\-]/g,'').slice(0,64)}`;
 
 // OT-specific APEX system prompt — hard safety constraints, never auto-act
 const OT_SYSTEM_PROMPT = `You are APEX OT — an elite OT/ICS security analyst with 15 years specialising in industrial control systems, SCADA, and critical infrastructure protection across energy, utilities, and manufacturing.
@@ -114,6 +114,6 @@ Respond in JSON only starting with {`;
     await redisSet(key, JSON.stringify(result)).catch(() => {});
     return NextResponse.json({ ok: true, result, cached: false });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redisGet, redisSet } from '@/lib/redis';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 // Full MITRE ATT&CK → compliance framework mapping
 // Maps technique IDs to control references across ISO 27001, Cyber Essentials, and NIST CSF
@@ -71,6 +72,9 @@ function scoreFramework(failingTechniques: string[]): {
 const CACHE_KEY = (t: string) => `wt:${t}:compliance_map`;
 
 export async function GET(req: NextRequest) {
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:\${_rlId}:\${req.nextUrl?.pathname || ''}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   try {
     const tenantId = req.headers.get('x-tenant-id') || 'global';
     const url = new URL(req.url);
@@ -116,6 +120,6 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(result);
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

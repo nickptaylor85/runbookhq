@@ -1,9 +1,13 @@
+import { checkRateLimit } from '@/lib/ratelimit';
 import { NextRequest, NextResponse } from 'next/server';
 import { getSamlConfig, parseSamlResponse } from '@/lib/saml';
 import { signSession } from '@/lib/encrypt';
 import { getUserByEmail, createUser } from '@/lib/users';
 
 export async function POST(req: NextRequest) {
+  const _rlIp = req.headers.get('x-forwarded-for')?.split(',')[0] || 'anon';
+  const _rl = await checkRateLimit('saml:' + _rlIp, 30, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   const base = process.env.NEXT_PUBLIC_BASE_URL || 'https://getwatchtower.io';
   try {
     const form = await req.formData();

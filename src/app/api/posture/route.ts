@@ -73,7 +73,7 @@ export async function GET(req: NextRequest) {
     // No input = return last cached or default
     return NextResponse.json({ ok: true, score: 0, breakdown: [], cached: false });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }
 
@@ -86,6 +86,6 @@ export async function POST(req: NextRequest) {
     await redisSet(`wt:${tenantId}:posture`, JSON.stringify(payload));
     return NextResponse.json({ ok: true, ...result });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

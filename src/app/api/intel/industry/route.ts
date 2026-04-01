@@ -106,6 +106,6 @@ Make the intel feel genuinely current and specific — named threat groups (APT4
       return NextResponse.json({ ok: false, items: null, error: 'Parse failed' });
     }
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json({ error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

@@ -11,6 +11,13 @@ function getTenantId(req: NextRequest): string {
 }
 const incKey = (t: string) => `wt:${t}:incidents`;
 
+// Strip HTML tags and control characters from user-supplied text fields
+// Prevents stored XSS via incident titles/descriptions
+function stripHtml(str: unknown): string {
+  if (typeof str !== 'string') return '';
+  return str.replace(/<[^>]*>/g, '').replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]/g, '').slice(0, 2000);
+}
+
 interface Incident {
   id: string;
   title: string;
@@ -51,8 +58,13 @@ export async function POST(req: NextRequest) {
     const current: Incident[] = raw ? JSON.parse(raw) : [];
 
     if (body.incidents) {
-      // Full replace (dashboard sync)
-      const sanitised = body.incidents.slice(0, 500);
+      // Full replace (dashboard sync) — sanitise text fields to prevent stored XSS
+      const sanitised = body.incidents.slice(0, 500).map((inc: Incident) => ({
+        ...inc,
+        title: stripHtml(inc.title),
+        aiSummary: stripHtml(inc.aiSummary),
+        notes: (inc.notes || []).map((n: any) => ({ ...n, text: stripHtml(n.text) })),
+      }));
       await redisSet(incKey(tenantId), JSON.stringify(sanitised));
       return NextResponse.json({ ok: true, count: sanitised.length });
     }
@@ -72,7 +84,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: false, error: 'incident or incidents required' }, { status: 400 });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }
 
@@ -89,6 +101,6 @@ export async function DELETE(req: NextRequest) {
     await redisSet(incKey(tenantId), JSON.stringify(updated));
     return NextResponse.json({ ok: true });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }

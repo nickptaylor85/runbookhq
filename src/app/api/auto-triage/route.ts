@@ -180,7 +180,7 @@ confidence guide: 90+=textbook IOC, 75-89=strong indicator one gap, 60-74=modera
 
     return NextResponse.json({ ok: true, results, triaged: toTriage.length, fromCache: Object.keys(cached).length });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }
 

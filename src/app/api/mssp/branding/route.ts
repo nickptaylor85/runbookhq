@@ -30,5 +30,5 @@ export async function POST(req: NextRequest) {
     if (typeof body.accentColor === 'string' && /^#[0-9a-f]{3,6}$/i.test(body.accentColor)) branding.accentColor = body.accentColor;
     await redisSet(brandingKey(tenantId), JSON.stringify(branding));
     return NextResponse.json({ ok: true, branding });
-  } catch(e: any) { return NextResponse.json({ error: e.message }, { status: 500 }); }
+  } catch(e: any) { return NextResponse.json({ error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 }); }
 }
