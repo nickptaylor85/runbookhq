@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redisHSet, redisHGetAll, redisHDel, KEYS } from '@/lib/redis';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 function getTenantId(req: NextRequest): string {
   return req.headers.get('x-tenant-id') || 'global';
@@ -10,6 +11,11 @@ function notesKey(tenantId: string) {
 }
 
 export async function GET(req: NextRequest) {
+  // Rate limiting — 60 req/min per user
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:${_rlId}:${req.nextUrl.pathname}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+
   try {
     const tenantId = getTenantId(req);
     const notes = await redisHGetAll(notesKey(tenantId));

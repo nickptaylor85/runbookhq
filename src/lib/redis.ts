@@ -138,3 +138,12 @@ export async function isJtiBlacklisted(jti: string): Promise<boolean> {
   const val = await redisGet(JTI_BLACKLIST_KEY(jti)).catch(() => null);
   return val === '1';
 }
+
+
+// Sanitise tenant ID — must be alphanumeric + hyphens only, max 64 chars
+// Prevents Redis key injection via crafted tenant headers
+export function sanitiseTenantId(raw: string | null): string {
+  if (!raw) return 'global';
+  const clean = raw.replace(/[^a-zA-Z0-9-_]/g, '').slice(0, 64);
+  return clean || 'global';
+}

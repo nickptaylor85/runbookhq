@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redisGet, redisSet, KEYS } from '@/lib/redis';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 // Unified alerts: merges live alerts from all connected tools stored in Redis after sync
 // Returns a unified feed with source attribution and deduplication
@@ -25,6 +26,11 @@ interface UnifiedAlert {
 }
 
 export async function GET(req: NextRequest) {
+  // Rate limiting — 60 req/min per user
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:${_rlId}:${req.nextUrl.pathname}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+
   try {
     const tenantId = getTenantId(req);
     const url = new URL(req.url);

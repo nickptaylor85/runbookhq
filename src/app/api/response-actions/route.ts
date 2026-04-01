@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redisGet, redisSet, redisLPush, redisLRange, redisLTrim, KEYS } from '@/lib/redis';
 import { decrypt } from '@/lib/encrypt';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 const auditKey = (t: string) => `wt:${t}:audit_log`;
 const actionLogKey = (t: string) => `wt:${t}:action_log`;
@@ -576,6 +577,11 @@ function safeCredHost(host: string | undefined): string {
 }
 
 export async function POST(req: NextRequest) {
+  // Rate limiting — 60 req/min per user
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:${_rlId}:${req.nextUrl.pathname}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+
   try {
     const tenantId = req.headers.get('x-tenant-id') || 'global';
     // Auth: cookie fallback for cases where middleware headers are absent

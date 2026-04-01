@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       const { redisSet: rSet } = await import('@/lib/redis');
       await rSet(`wt:user:${user.id}:mfa_setup_required`, '1').catch(() => {});
       const res = NextResponse.json({ ok: true, role: user.role, redirect: '/setup-2fa' });
-      res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 604800, path: '/' });
+      res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 604800, path: '/' });
       res.cookies.set('wt_mfa_pending', '1', { httpOnly: false, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 3600, path: '/' });
       return res;
     }
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
       }
       const token = signSession({ userId: email, tenantId: 'global', isAdmin: true, email, role: 'owner', tier: 'mssp' });
       const res = NextResponse.json({ ok: true, role: 'owner', mfaSetupRequired: !mfaEnabled });
-      res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 86400, path: '/' });
+      res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 86400, path: '/' });
       if (!mfaEnabled) {
         // Admin has no MFA — issue pending cookie and force them to /setup-2fa
         res.cookies.set('wt_mfa_pending', '1', { httpOnly: false, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 3600, path: '/' });
@@ -101,12 +101,12 @@ export async function POST(req: NextRequest) {
       // V2.3.1: Force password change if admin set a temporary password
       if ((user as any).mustChangePassword) {
         const res = NextResponse.json({ ok: true, mustChangePassword: true });
-        res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 1800, path: '/' });
+        res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 1800, path: '/' });
         return res;
       }
       await updateUser('global', user.id, { lastSeen: new Date().toISOString() });
       const res = NextResponse.json({ ok: true, role: user.role });
-      res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 86400, path: '/' });
+      res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 86400, path: '/' });
       res.cookies.set('wt_tier', userTier, { httpOnly: false, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 86400, path: '/' });
       // Clear any stale MFA-pending cookie
       res.cookies.set('wt_mfa_pending', '', { httpOnly: false, maxAge: 0, path: '/' });

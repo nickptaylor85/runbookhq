@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redisGet, KEYS } from '@/lib/redis';
 import { sendEmail } from '@/lib/email';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 function requireAdmin(req: NextRequest) {
   return req.headers.get('x-is-admin') === 'true';
@@ -8,6 +9,11 @@ function requireAdmin(req: NextRequest) {
 
 // On-demand client report: generates exec summary and emails it to the client
 export async function POST(req: NextRequest) {
+  // Rate limiting — 60 req/min per user
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:${_rlId}:${req.nextUrl.pathname}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+
   if (!requireAdmin(req)) {
     return NextResponse.json({ error: 'Admin only' }, { status: 403 });
   }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redisGet, redisSet, redisLPush, redisLRange, redisLTrim } from '@/lib/redis';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 function getTenantId(req: NextRequest): string {
   return req.headers.get('x-tenant-id') || 'global';
@@ -9,6 +10,11 @@ const iocKey = (msspId: string, clientId: string) => `wt:mssp:${msspId}:client:$
 const correlationKey = (msspId: string) => `wt:mssp:${msspId}:correlation`;
 
 export async function POST(req: NextRequest) {
+  // Rate limiting — 60 req/min per user
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:${_rlId}:${req.nextUrl.pathname}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+
   try {
     const msspTenantId = getTenantId(req);
     const body = await req.json() as { clientId: string; iocs: string[]; cves: string[]; alertTitles?: string[] };

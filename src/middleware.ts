@@ -75,6 +75,41 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next({ request: { headers: cleanHeaders } });
   }
 
+  // Global rate limit: 300 req/min per IP (blocks scanners before auth overhead)
+  if (pathname.startsWith('/api/')) {
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || 'unknown';
+    // Lightweight fixed-window check in memory — Vercel edge functions are stateless so
+    // we use a simple Redis check only for POST/DELETE to avoid adding latency to GETs
+    if (req.method === 'POST' || req.method === 'DELETE' || req.method === 'PATCH') {
+      try {
+        const rlKey = `wt:middleware:rl:${clientIp}`;
+        const redisUrl = process.env.UPSTASH_REDIS_REST_URL || '';
+        const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || '';
+        if (redisUrl && redisToken) {
+          const incrRes = await fetch(redisUrl, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${redisToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(['INCR', rlKey]),
+          });
+          if (incrRes.ok) {
+            const data = await incrRes.json() as { result: number };
+            if (data.result === 1) {
+              // Set 60s window on first request
+              fetch(redisUrl, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${redisToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(['EXPIRE', rlKey, 60]),
+              }).catch(() => {});
+            }
+            if (data.result > 200) {
+              return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+            }
+          }
+        }
+      } catch { /* fail open */ }
+    }
+  }
+
   // All /api/* routes require authentication
   if (pathname.startsWith('/api/')) {
     const sessionToken = req.cookies.get('wt_session')?.value;

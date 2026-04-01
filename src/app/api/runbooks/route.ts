@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redisGet, redisSet } from '@/lib/redis';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 // Runbook templates: store/retrieve per-tenant runbooks
 // Pre-populated with common SOC response runbooks on first access
@@ -58,6 +59,11 @@ function getTenantId(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  // Rate limiting — 60 req/min per user
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:${_rlId}:${req.nextUrl.pathname}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+
   try {
   // Tier enforcement: requires Essentials (team) or above
   const userTier = req.headers.get('x-user-tier') || 'community';

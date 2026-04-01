@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redisGet, redisSet, KEYS } from '@/lib/redis';
 import { decrypt } from '@/lib/encrypt';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 export const maxDuration = 60; // dedicated route — full timeout budget
 
@@ -8,6 +9,11 @@ const CACHE_KEY = (t: string) => `wt:${t}:coverage_assets`;
 const CACHE_TTL = 600; // 10 minutes
 
 export async function GET(req: NextRequest) {
+  // Rate limiting — 60 req/min per user
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:${_rlId}:${req.nextUrl.pathname}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+
   const tenantId = req.headers.get('x-tenant-id') || 'global';
 
   // Serve from cache if fresh

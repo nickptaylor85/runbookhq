@@ -1884,6 +1884,9 @@ export default function DashboardPage() {
               </div>
 
               {/* ── POSTURE TREND + NOISE REDUCTION ─────────────────────────────── */}
+              </div>
+              </div>
+              </div>
               {/* ── Demo AI Action Feed — visible when demo + auto mode ──────────────────── */}
               {demoMode && automation >= 1 && (demoAutoFeed.length > 0 || demoTriagingId) && (
                 <div style={{background:'var(--wt-card)',border:'1px solid #22d49a25',borderRadius:12,overflow:'hidden'}}>
@@ -1929,9 +1932,6 @@ export default function DashboardPage() {
                 </div>
               )}
 
-            </div>
-            </div>
-            </div>
             </div>
           )}
 

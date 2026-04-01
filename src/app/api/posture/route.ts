@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redisGet, redisSet, KEYS } from '@/lib/redis';
+import { checkRateLimit } from '@/lib/ratelimit';
 
 // Posture score: 0-100 calculated from 4 weighted factors
 // Coverage 30% | Critical alerts 30% | KEV vulns 20% | FP rate 20%
@@ -54,6 +55,11 @@ function calcPosture(input: PostureInput): {
 }
 
 export async function GET(req: NextRequest) {
+  // Rate limiting — 60 req/min per user
+  const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const _rl = await checkRateLimit(`api:${_rlId}:${req.nextUrl.pathname}`, 60, 60);
+  if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+
   try {
     const tenantId = getTenantId(req);
     const cached = await redisGet(`wt:${tenantId}:posture`);

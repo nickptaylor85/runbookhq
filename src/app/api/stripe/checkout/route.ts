@@ -20,8 +20,19 @@ async function getStripeConfig() {
 }
 
 export async function POST(req: NextRequest) {
+  // Rate limit: 5 checkout sessions per user per hour
+  const _userId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
+  const { checkRateLimit } = await import('@/lib/ratelimit');
+  const _rl = await checkRateLimit(`checkout:${_userId}`, 5, 3600);
+  if (!_rl.ok) return NextResponse.json({ error: 'Too many checkout attempts. Please wait.' }, { status: 429 });
+
   try {
-    const { plan, email } = await req.json();
+    const body = await req.json() as { plan?: unknown; email?: unknown };
+    if (!body || typeof body.plan !== 'string') return NextResponse.json({ error: 'plan required' }, { status: 400 });
+    const { plan } = body;
+    // Validate and sanitise email
+    const rawEmail = typeof body.email === 'string' ? body.email : '';
+    const email = rawEmail.match(/^[^@\s]{1,64}@[^@\s]{1,255}$/) ? rawEmail.slice(0, 320) : '';
     const config = await getStripeConfig();
 
     if (!config.secretKey)
