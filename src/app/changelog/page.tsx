@@ -4,6 +4,44 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.16.8',
+    date: '2026-04-01',
+    tag: 'Security',
+    tagColor: '#ff2244',
+    summary: 'Full penetration test hardening: 76 issues found and fixed across 87 files. SSRF guards, tenant isolation, XSS sanitisation, rate limiting, security headers, mass assignment whitelists, error sanitisation.',
+    changes: [
+      { type: 'security', text: 'CRITICAL: wt_tenant cookie IDOR closed on 8 AI routes (triage, copilot, noise-reduction, investigate, ai-insights, blast-radius, nl-query, auto-triage). Any authenticated user could set this cookie to "global" and read the admin live integration data. All routes now exclusively trust the JWT-backed x-tenant-id middleware header.' },
+      { type: 'security', text: 'CRITICAL: Subscription self-promotion closed. userTier was in ALLOWED_SETTINGS, letting any user POST {"userTier":"mssp"} to promote themselves to enterprise for free. Moved to ADMIN_ONLY_SETTINGS with 403 guard.' },
+      { type: 'security', text: 'HIGH: Anthropic platform key isolated. getAnthropicKey() fell back to the platform-wide key for any tenant without BYOK, giving self-signup community users free AI on the admin Anthropic budget. Non-global tenants now stop at their own key.' },
+      { type: 'security', text: 'HIGH: Credential write privilege escalation closed. /api/integrations/credentials POST had no role check — admin-created team members with global tenantId could delete or overwrite the live integration credentials. Now requires owner or tech_admin role.' },
+      { type: 'security', text: 'HIGH: SSRF guards added to 8 vectors: webhook fire-time URL validation, Taegis GraphQL host on 3 routes, Teams webhook domain allowlist (outlook.office.com / teams.microsoft.com), Okta domain (*.okta.com), ServiceNow instance (HTTPS + private IP block), Jira domain (*.atlassian.net).' },
+      { type: 'security', text: 'HIGH: Email enumeration in /auth/reset-password fixed. Route returned "User not found" 404 for non-existent accounts, revealing which emails are registered. Now returns the same 200 response regardless.' },
+      { type: 'security', text: 'HIGH: Rate limiting added to 31 additional routes including all admin endpoints, Taegis, Tenable, settings, exec-summary, report-share (brute-force guard), SAML callback, and logout.' },
+      { type: 'security', text: 'MEDIUM: Stored XSS fixed in incidents and runbooks. Title, aiSummary, and notes fields were stored raw and returned to all dashboard clients. stripHtml() applied at write path on all user-supplied text fields.' },
+      { type: 'security', text: 'MEDIUM: Mass assignment whitelists added to admin/platform, audit log, and ot/license routes. Arbitrary keys were accepted via ...body spread into Redis storage.' },
+      { type: 'security', text: 'MEDIUM: Production error sanitisation applied to 53 routes. Raw e.message was returned in 500 responses, exposing stack traces and internal paths. All 500s now return "Internal server error" in production.' },
+      { type: 'security', text: 'MEDIUM: Redis key injection hardened. alertId, msspId, clientId, and OT triage IDs are now regex-sanitised to [a-zA-Z0-9_-] max 64 chars before key construction. sanitiseKeySegment() helper added to redis.ts.' },
+      { type: 'security', text: 'MEDIUM: x-user-role injected by middleware from signed JWT alongside x-user-tier. Strips any client-supplied x-user-role header before injecting the verified value, preventing role header spoofing.' },
+      { type: 'security', text: 'LOW: 5 missing HTTP security headers added globally via next.config.js: X-Content-Type-Options: nosniff, X-Frame-Options: DENY, Strict-Transport-Security (2yr + preload), Referrer-Policy: strict-origin-when-cross-origin, Permissions-Policy disabling camera, mic, geolocation, USB.' },
+      { type: 'security', text: '/setup endpoint gated to admin-only. /auth/sessions DELETE and /ai-copilot, /ai-actions, /tools/test stub routes now require a valid session. sanitiseTenantId() applied to 16 additional write routes.' },
+    ],
+  },
+  {
+    version: 'v74.16.0',
+    date: '2026-04-01',
+    tag: 'Design',
+    tagColor: '#bd00ff',
+    summary: 'Cyberpunk UI overhaul: void black palette, electric cyan primary, neon accent system, scanline texture, glowing cards, Rajdhani + JetBrains Mono font stack.',
+    changes: [
+      { type: 'feat', text: 'New cyberpunk dark theme. Void black #020409 background, electric cyan #00e5ff primary, magenta #ff0066 critical accents, acid green #00ff88 success, amber #ffb300 warnings, AI purple #bd00ff for APEX elements.' },
+      { type: 'feat', text: 'CSS glow variable system: --glow-cyan, --glow-red, --glow-green, --glow-amber, --glow-purple — each a box-shadow preset used across buttons, borders, and metric numbers. Light theme maps these to flat equivalents.' },
+      { type: 'feat', text: 'Scanline overlay: fixed ::before pseudo-element on .wt-root applies a repeating 4px horizontal gradient at 1.2% cyan opacity in dark mode. Adds visible scanline texture without impacting readability.' },
+      { type: 'feat', text: 'Font stack updated: Rajdhani (display/UI, all-caps tabs at 0.8px letter-spacing) + JetBrains Mono (data numbers, terminal elements, metric values). Replaces Inter throughout.' },
+      { type: 'feat', text: 'WATCHTOWER wordmark: all-caps, 2px letter-spacing, glowing cyan text-shadow. Threat level bar text: 2.5px letter-spacing with glow matching the current threat colour.' },
+      { type: 'feat', text: 'Card borders in dark mode use rgba(0,229,255,0.12) with hover glow 0 0 12px rgba(0,229,255,0.08). Tab buttons: Rajdhani uppercase, active state has inset cyan border + glow.' },
+    ],
+  },
+  {
     version: 'v74.13.0',
     date: '2026-03-31',
     tag: 'Major Release',
@@ -1325,10 +1363,10 @@ const VERSIONS = [
 ];
 
 const TAG_TYPES: Record<string, { color: string; label: string }> = {
-  feat: { color: '#4f8fff', label: 'Feature' },
-  fix: { color: '#22d49a', label: 'Fix' },
-  security: { color: '#f0405e', label: 'Security' },
-  perf: { color: '#f0a030', label: 'Performance' },
+  feat:     { color: '#00e5ff', label: 'Feature' },
+  fix:      { color: '#00ff88', label: 'Fix' },
+  security: { color: '#ff2244', label: 'Security' },
+  perf:     { color: '#ffb300', label: 'Performance' },
 };
 
 export default function ChangelogPage() {
