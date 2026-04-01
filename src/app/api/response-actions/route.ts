@@ -436,7 +436,7 @@ async function notifyTeams(creds: Record<string, Record<string, string>>, messag
     const teamsUrl = String(creds.teams.webhook_url || '');
     if (!teamsUrl.startsWith('https://') || 
         !/(outlook\.office\.com|webhook\.office\.com|teams\.microsoft\.com)/.test(teamsUrl)) {
-      return [{ ok: false, tool: 'Microsoft Teams', action: 'notify', error: 'Invalid Teams webhook URL' }];
+      return { ok: false, tool: 'Microsoft Teams', action: 'notify', error: 'Invalid Teams webhook URL' };
     }
     const r = await fetch(teamsUrl, {
       method: 'POST',
@@ -444,7 +444,7 @@ async function notifyTeams(creds: Record<string, Record<string, string>>, messag
       body: JSON.stringify(card),
     });
     return { ok: r.ok, tool: 'Microsoft Teams', action: 'notified', detail: r.ok ? 'Teams channel notified' : undefined, error: r.ok ? undefined : `Teams HTTP ${r.status}` };
-  } catch(e: any) { return [{ ok: false, tool: 'Microsoft Teams', action: 'notified', error: e.message }]; }
+  } catch(e: any) { return { ok: false, tool: 'Microsoft Teams', action: 'notified', error: e.message }; }
 }
 
 async function notifySlack(creds: Record<string, Record<string, string>>, message: string, alertTitle: string, severity: string): Promise<ActionResult | null> {
@@ -467,7 +467,7 @@ async function notifySlack(creds: Record<string, Record<string, string>>, messag
     });
     return { ok: r.ok, tool: 'Slack', action: 'notified', detail: 'Team notification sent' };
   } catch(e: any) {
-    return [{ ok: false, tool: 'Slack', action: 'notified', error: (e as any).message }];
+    return { ok: false, tool: 'Slack', action: 'notified', error: (e as any).message };
   }
 }
 
