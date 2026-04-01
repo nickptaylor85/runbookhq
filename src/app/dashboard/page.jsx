@@ -779,23 +779,7 @@ export default function DashboardPage() {
   const [userTier, setUserTier] = useState('community');
   const [theme, setTheme] = useState('dark');
   const [digitalFont, setDigitalFont] = useState(false); // always false on SSR, loaded in effect
-  // Prefetch top 3 critical alerts on load so triage feels instant on expansion
-  React.useEffect(()=>{
-    if (automation === 0) return; // only prefetch in auto modes (triage already runs proactively)
-    const top3 = critAlerts.slice(0,3).filter(a=>!aiTriageCache[a.id]?.result && !aiTriageCache[a.id]?.loading);
-    if (top3.length === 0) return;
-    const delay = 3000; // wait 3s after mount to avoid blocking initial render
-    const t = setTimeout(()=>{
-      top3.forEach(al=>{
-        setAiTriageCache(prev=>({...prev,[al.id]:{loading:true,result:null}}));
-        const relatedAlerts = alerts.filter(a=>a.id!==al.id&&(a.device===al.device||a.user===al.user)).slice(0,8);
-        fetch('/api/triage',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({alertId:al.id,title:al.title,severity:al.severity,source:al.source,device:al.device,user:al.user,ip:al.ip,description:al.description,mitre:al.mitre,relatedAlerts})})
-          .then(r=>r.json()).then(d=>{if(d.ok&&d.result)setAiTriageCache(prev=>({...prev,[al.id]:{loading:false,result:d.result}}));else setAiTriageCache(prev=>({...prev,[al.id]:{loading:false,result:null}}));})
-          .catch(()=>setAiTriageCache(prev=>({...prev,[al.id]:{loading:false,result:null}})));
-      });
-    }, delay);
-    return ()=>clearTimeout(t);
-  },[critAlerts.length, automation]); // eslint-disable-line
+  // (alert prefetch moved to after critAlerts is defined below)
 
   // hasSynced: becomes true after first successful live sync — prevents demo fallback bleed-through
   const [hasSynced, setHasSynced] = useState(false);
@@ -1143,6 +1127,22 @@ export default function DashboardPage() {
   const estateTotal = demoMode ? totalDevices : hasSynced ? liveKnownDevices.length : 0;
   const coveredPct = (!demoMode && !hasSynced) ? 0 : estateTotal > 0 ? Math.round(((estateTotal - gapDevices.length) / estateTotal) * 100) : 0;
   const critAlerts = alerts.filter(a=>a.severity==='Critical');
+  // Prefetch top-3 critical alerts 3s after mount — must be declared AFTER critAlerts
+  React.useEffect(()=>{
+    if (automation === 0) return;
+    const top3 = critAlerts.slice(0,3).filter(a=>!aiTriageCache[a.id]?.result && !aiTriageCache[a.id]?.loading);
+    if (top3.length === 0) return;
+    const t = setTimeout(()=>{
+      top3.forEach(al=>{
+        setAiTriageCache(prev=>({...prev,[al.id]:{loading:true,result:null}}));
+        const related = alerts.filter(a=>a.id!==al.id&&(a.device===al.device||a.user===al.user)).slice(0,8);
+        fetch('/api/triage',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({alertId:al.id,title:al.title,severity:al.severity,source:al.source,device:al.device,user:al.user,ip:al.ip,description:al.description,mitre:al.mitre,relatedAlerts:related})})
+          .then(r=>r.json()).then(d=>{setAiTriageCache(prev=>({...prev,[al.id]:{loading:false,result:d.ok&&d.result?d.result:null}}));})
+          .catch(()=>setAiTriageCache(prev=>({...prev,[al.id]:{loading:false,result:null}})));
+      });
+    }, 3000);
+    return ()=>clearTimeout(t);
+  },[critAlerts.length, automation]); // eslint-disable-line
   const tpAlerts = alerts.filter(a=>a.verdict==='TP');
   const fpAlerts = alerts.filter(a=>a.verdict==='FP');
 
