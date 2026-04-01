@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { sanitiseTenantId } from '@/lib/redis';
 import { redisGet, redisSet, KEYS } from '@/lib/redis';
 import { checkRateLimit } from '@/lib/ratelimit';
 
 // Posture score: 0-100 calculated from 4 weighted factors
 // Coverage 30% | Critical alerts 30% | KEV vulns 20% | FP rate 20%
 
-function getTenantId(req: NextRequest) {
-  return req.headers.get('x-tenant-id') || 'global';
+function getTenantId(req: NextRequest): string {
+  return sanitiseTenantId(req.headers.get('x-tenant-id'));
 }
 
 interface PostureInput {

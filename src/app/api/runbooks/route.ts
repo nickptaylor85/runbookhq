@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { sanitiseTenantId } from '@/lib/redis';
 import { redisGet, redisSet } from '@/lib/redis';
 import { checkRateLimit } from '@/lib/ratelimit';
 
@@ -54,8 +55,8 @@ const DEFAULT_RUNBOOKS: Runbook[] = [
 
 const runbookKey = (t: string) => `wt:${t}:runbooks`;
 
-function getTenantId(req: NextRequest) {
-  return req.headers.get('x-tenant-id') || 'global';
+function getTenantId(req: NextRequest): string {
+  return sanitiseTenantId(req.headers.get('x-tenant-id'));
 }
 
 export async function GET(req: NextRequest) {

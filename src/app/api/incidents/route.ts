@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { sanitiseTenantId } from '@/lib/redis';
 import { redisGet, redisSet } from '@/lib/redis';
 import { checkRateLimit } from '@/lib/ratelimit';
 
 // Incident CRUD — persists incidents per tenant in Redis
 // Incidents created from the dashboard are stored here for cross-session persistence
 
-function getTenantId(req: NextRequest) {
-  return req.headers.get('x-tenant-id') || 'global';
+function getTenantId(req: NextRequest): string {
+  return sanitiseTenantId(req.headers.get('x-tenant-id'));
 }
 const incKey = (t: string) => `wt:${t}:incidents`;
 

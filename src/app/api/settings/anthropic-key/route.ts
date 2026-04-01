@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { redisGet, redisDel, setTenantAnthropicKey, KEYS } from '@/lib/redis';
+import { redisGet, redisDel, setTenantAnthropicKey, KEYS , sanitiseTenantId } from '@/lib/redis';
 import { encrypt } from '@/lib/encrypt';
 
 function getTenantId(req: NextRequest): string {
-  return req.headers.get('x-tenant-id') || 'global';
+  return sanitiseTenantId(req.headers.get('x-tenant-id'));
 }
 
 export async function GET(req: NextRequest) {

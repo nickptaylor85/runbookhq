@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { redisGet, redisSet, redisLPush, redisLRange, redisLTrim } from '@/lib/redis';
+import { redisGet, redisSet, redisLPush, redisLRange, redisLTrim , sanitiseTenantId } from '@/lib/redis';
 import { checkRateLimit } from '@/lib/ratelimit';
 
 function getTenantId(req: NextRequest): string {
-  return req.headers.get('x-tenant-id') || 'global';
+  return sanitiseTenantId(req.headers.get('x-tenant-id'));
 }
 // Store IOC events per tenant, correlate across MSSP clients
 const iocKey = (msspId: string, clientId: string) => `wt:mssp:${msspId}:client:${clientId}:iocs`;

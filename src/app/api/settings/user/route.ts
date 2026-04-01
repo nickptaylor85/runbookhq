@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { redisGet, redisSet } from '@/lib/redis';
+import { redisGet, redisSet , sanitiseTenantId } from '@/lib/redis';
 
 const SETTINGS_KEY = (tenantId: string) => `wt:${tenantId}:settings:v2`;
 
+// Settings a non-admin user may update for their own tenant
 const ALLOWED_SETTINGS = new Set([
-  'industry', 'demoMode', 'automation', 'userTier', 'clientBanner',
+  'industry', 'demoMode', 'automation',
   'theme', 'slack_webhook', 'notif_critical', 'notif_incidents',
   'notif_digest', 'notif_sync', 'anthropic_api_key',
 ]);
+// Settings only a platform admin may change (subscription tier, banners)
+const ADMIN_ONLY_SETTINGS = new Set(['userTier', 'clientBanner', 'plan']);
 
 function getTenantId(req: NextRequest): string {
-  return req.headers.get('x-tenant-id') || 'global';
+  return sanitiseTenantId(req.headers.get('x-tenant-id'));
 }
 
 async function getSettings(tenantId: string): Promise<Record<string, string>> {
@@ -25,7 +28,10 @@ export async function GET(req: NextRequest) {
   try {
     const tenantId = getTenantId(req);
     const settings = await getSettings(tenantId);
-    return NextResponse.json({ ok: true, settings });
+    // Strip server-only fields before sending to client
+    const safeSettings = { ...settings };
+    delete (safeSettings as any).anthropic_api_key; // never send API keys to client
+    return NextResponse.json({ ok: true, settings: safeSettings });
   } catch (e: any) {
     console.error('[settings/user GET]', e.message);
     return NextResponse.json({ ok: false, settings: {} });
@@ -58,6 +64,13 @@ export async function POST(req: NextRequest) {
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: 'No valid settings provided' }, { status: 400 });
+    }
+
+    // Reject any attempt to sneak in admin-only keys via the allowed-key check
+    for (const key of Object.keys(updates)) {
+      if (ADMIN_ONLY_SETTINGS.has(key)) {
+        return NextResponse.json({ error: `Setting '${key}' requires admin privileges` }, { status: 403 });
+      }
     }
 
     // Read-merge-write as single JSON blob
@@ -98,7 +111,7 @@ export async function PATCH(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const userId = req.headers.get('x-user-id');
-    const tenantId = req.headers.get('x-tenant-id') || 'global';
+    const tenantId = sanitiseTenantId(req.headers.get('x-tenant-id'));
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { deleteUser } = await import('@/lib/users');

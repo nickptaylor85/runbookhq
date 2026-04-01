@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { sanitiseTenantId } from '@/lib/redis';
 import { redisGet, redisSet } from '@/lib/redis';
 import { checkRateLimit } from '@/lib/ratelimit';
 

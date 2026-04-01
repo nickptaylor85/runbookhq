@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { redisGet, redisSet } from '@/lib/redis';
+import { redisGet, redisSet , sanitiseTenantId } from '@/lib/redis';
 import { checkRateLimit } from '@/lib/ratelimit';
 
 function getTenantId(req: NextRequest): string {
-  return req.headers.get('x-tenant-id') || 'global';
+  return sanitiseTenantId(req.headers.get('x-tenant-id'));
 }
 function brandingKey(t: string) { return `wt:${t}:mssp_branding`; }
 

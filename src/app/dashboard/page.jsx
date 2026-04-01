@@ -33,8 +33,8 @@ const ALL_TOOLS = [
 ];
 
 
-const DASHBOARD_CSS = '*{margin:0;padding:0;box-sizing:border-box}\n        html,body{max-width:100vw;overflow-x:hidden}\n        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}\n        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}\n\n        /* ── Dark theme (default) ── */\n        .wt-root {\n          --wt-bg: #090d18;\n          --wt-sidebar: #0c1122;\n          --wt-card: #0f1526;\n          --wt-card2: #131929;\n          --wt-border: #1d2535;\n          --wt-border2: #263044;\n          --wt-text: #e8ecf4;\n          --wt-muted: #7a8aa4;\n          --wt-secondary: #96a6bc;\n          --wt-dim: #4a5568;\n        }\n        /* ── Light theme ── */\n        .wt-root.light {\n          --wt-bg: #f5f6fa;\n          --wt-sidebar: #ffffff;\n          --wt-card: #ffffff;\n          --wt-card2: #f0f2f8;\n          --wt-border: #e2e5ef;\n          --wt-border2: #c8cedd;\n          --wt-text: #0f1117;\n          --wt-muted: #5a6580;\n          --wt-secondary: #4a5568;\n          --wt-dim: #8090a8;\n        }\n\n        .tab-btn{padding:7px 16px;border:none;background:transparent;cursor:pointer;font-size:0.76rem;font-weight:600;font-family:Inter,sans-serif;border-radius:8px;transition:all .15s;white-space:nowrap;color:var(--wt-muted)}\n        .tab-btn.active{background:#4f8fff18;color:#4f8fff}\n        .tab-btn:not(.active) {color:var(--wt-secondary);background:var(--wt-card2)}\n        .row-hover{transition:background .12s}\n        .row-hover:hover{background:var(--wt-card2)!important}\n        .vuln-row:hover{background:var(--wt-card2)!important;cursor:pointer}\n        .alert-card{border-radius:10px;border:1px solid var(--wt-border);background:var(--wt-card);transition:border-color .15s}\n        .alert-card:hover{border-color:#4f8fff28}\n        .skeleton{background:linear-gradient(90deg,var(--wt-card) 25%,var(--wt-card2) 50%,var(--wt-card) 75%);background-size:200% 100%;animation:skeleton-shimmer 1.4s ease infinite}\n        @keyframes skeleton-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}\n        .wt-tab-content{animation:tab-fade 0.15s ease}\n        @keyframes tab-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}\n        /* Focus-visible for keyboard accessibility */\n        :focus-visible{outline:2px solid #4f8fff !important;outline-offset:2px !important;border-radius:3px}\n        button:focus:not(:focus-visible),a:focus:not(:focus-visible){outline:none}\n        @media(max-width:500px){.wt-hide-xs{display:none!important}}\n        /* ── Digital font mode ── */\n        .wt-root.wt-digital{font-family:JetBrains Mono,Consolas,monospace!important}\n        .wt-root.wt-digital button,.wt-root.wt-digital input,.wt-root.wt-digital select,.wt-root.wt-digital a{font-family:JetBrains Mono,Consolas,monospace!important}\n        .wt-root.wt-digital .tab-btn{font-family:JetBrains Mono,Consolas,monospace!important;font-size:0.72rem!important;letter-spacing:-0.3px}\n\n        /* ── Mobile layout ── */\n        .wt-sidebar-desktop{display:none}\n        .wt-bottom-nav{display:none}\n        .wt-topbar-controls-full{display:flex}\n        .wt-topbar-controls-mobile{display:none}\n\n'
-  + '@media(max-width:640px){\n          /* ── Bottom navigation ── */\n          .wt-bottom-nav{\n            display:flex!important;position:fixed;bottom:0;left:0;right:0;z-index:200;\n            background:var(--wt-sidebar);border-top:1px solid var(--wt-border2);\n            padding:4px 0 env(safe-area-inset-bottom,4px);\n            justify-content:space-around;align-items:stretch;\n          }\n          .wt-bottom-nav button,.wt-bottom-nav a{\n            display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;\n            background:none;border:none;cursor:pointer;color:var(--wt-muted);\n            font-size:0.62rem;font-weight:600;font-family:Inter,sans-serif;\n            padding:5px 4px 3px;border-radius:0;text-decoration:none;flex:1;min-width:0;\n            border-top:2px solid transparent;transition:color .12s,border-color .12s;\n          }\n          .wt-bottom-nav button.active{color:#4f8fff;border-top-color:#4f8fff;background:#4f8fff06}\n          .wt-bottom-nav a.active{color:#4f8fff;border-top-color:#4f8fff;background:#4f8fff06}\n          .wt-bottom-nav .bnav-icon{font-size:1.25rem;line-height:1;display:block}\n          /* ── Top bar ── */\n          .wt-tabbar{display:none!important}\n          .wt-topbar{padding:0 12px!important;height:44px!important}\n          .wt-topbar-controls-full{display:none!important}\n          .wt-topbar-controls-mobile{display:flex!important;gap:6px;align-items:center;margin-left:auto}\n          /* ── Content area ── */\n          .wt-content{padding:10px!important;padding-bottom:76px!important}\n          .wt-main{padding-bottom:0!important}\n          /* ── Grid breakdowns ── */\n          .wt-five-col{grid-template-columns:1fr 1fr!important}\n          .wt-four-col{grid-template-columns:1fr 1fr!important}\n          .wt-three-col{grid-template-columns:1fr!important}\n          .wt-two-col{grid-template-columns:1fr!important}\n          .wt-stat-grid{grid-template-columns:1fr 1fr!important}\n          /* ── Filters ── */\n          .wt-filter-row{flex-direction:column!important;gap:6px!important}\n          .wt-filter-row select,.wt-filter-row input,.wt-filter-row button{width:100%!important;box-sizing:border-box!important}\n          /* ── Bulk bar ── */\n          .wt-bulk-bar{flex-wrap:wrap!important;gap:6px!important}\n          /* ── Alert cards ── */\n          .alert-card{border-radius:8px}\n          /* ── Co-Pilot panel ── */\n          .wt-copilot{max-width:100%!important;width:100%!important;left:0!important;right:0!important;bottom:64px!important;border-radius:16px 16px 0 0!important}\n        }\n        @media(min-width:641px) and (max-width:900px){\n          .wt-content{padding:12px 14px!important}\n          .wt-five-col{grid-template-columns:repeat(3,1fr)!important}\n          .wt-four-col{grid-template-columns:1fr 1fr!important}\n          .wt-three-col{grid-template-columns:1fr 1fr!important}\n        }';
+const DASHBOARD_CSS = '*{margin:0;padding:0;box-sizing:border-box}\n        html,body{max-width:100vw;overflow-x:hidden}\n        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}\n        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}\n\n        /* ── CYBERPUNK DARK (default) ── */\n        .wt-root {\n          --wt-bg:       #020409;\n          --wt-sidebar:  #03060f;\n          --wt-card:     #060b18;\n          --wt-card2:    #0a1020;\n          --wt-border:   #0f2040;\n          --wt-border2:  #1a3060;\n          --wt-text:     #c8d8f0;\n          --wt-muted:    #4a6080;\n          --wt-secondary:#7090b0;\n          --wt-dim:      #2a4060;\n          --cp-cyan:     #00e5ff;\n          --cp-magenta:  #ff0066;\n          --cp-green:    #00ff88;\n          --cp-amber:    #ffb300;\n          --cp-purple:   #bd00ff;\n          --cp-blue:     #0088ff;\n          --cp-red:      #ff2244;\n          --glow-cyan:   0 0 12px #00e5ff50,0 0 2px #00e5ff;\n          --glow-red:    0 0 12px #ff224450,0 0 2px #ff2244;\n          --glow-green:  0 0 12px #00ff8850,0 0 2px #00ff88;\n          --glow-amber:  0 0 12px #ffb30050,0 0 2px #ffb300;\n          --glow-purple: 0 0 12px #bd00ff50,0 0 2px #bd00ff;\n        }\n        /* ── CYBERPUNK LIGHT ── */\n        .wt-root.light {\n          --wt-bg:       #f0f4ff;\n          --wt-sidebar:  #ffffff;\n          --wt-card:     #ffffff;\n          --wt-card2:    #e8eeff;\n          --wt-border:   #c0d0f0;\n          --wt-border2:  #90aae0;\n          --wt-text:     #050e28;\n          --wt-muted:    #4060a0;\n          --wt-secondary:#3050a0;\n          --wt-dim:      #8090c0;\n          --cp-cyan:     #0070cc;\n          --cp-magenta:  #cc0055;\n          --cp-green:    #007744;\n          --cp-amber:    #aa7700;\n          --cp-purple:   #7700cc;\n          --cp-blue:     #0055cc;\n          --cp-red:      #cc1133;\n          --glow-cyan:   none;\n          --glow-red:    none;\n          --glow-green:  none;\n          --glow-amber:  none;\n          --glow-purple: none;\n        }\n\n        .tab-btn{padding:6px 14px;border:none;background:transparent;cursor:pointer;font-size:0.7rem;font-weight:700;fontFamily:"'Rajdhani','JetBrains Mono',monospace";letter-spacing:0.8px;border-radius:3px;transition:all .15s;white-space:nowrap;color:var(--wt-muted);text-transform:uppercase}\n        .tab-btn.active{background:rgba(0,229,255,0.07);color:var(--cp-cyan);box-shadow:inset 0 0 0 1px rgba(0,229,255,0.25),var(--glow-cyan)}\n        .tab-btn:not(.active) {color:var(--wt-secondary);background:var(--wt-card2)}\n        .row-hover{transition:background .12s}\n        .row-hover:hover{background:var(--wt-card2)!important}\n        .vuln-row:hover{background:var(--wt-card2)!important;cursor:pointer}\n        .alert-card{border-radius:10px;border:1px solid var(--wt-border);background:var(--wt-card);transition:border-color .15s}\n        .alert-card:hover{border-color:#00e5ff28}\n        .skeleton{background:linear-gradient(90deg,var(--wt-card) 25%,var(--wt-card2) 50%,var(--wt-card) 75%);background-size:200% 100%;animation:skeleton-shimmer 1.4s ease infinite}\n        /* Cyberpunk scanlines */\n        .wt-root:not(.light)::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,rgba(0,229,255,0.012) 0px,rgba(0,229,255,0.012) 1px,transparent 1px,transparent 4px);pointer-events:none;z-index:9999;mix-blend-mode:screen}\n        /* Glowing card borders on dark */\n        .wt-root:not(.light) .alert-card{border-color:rgba(0,229,255,0.12)}\n        .wt-root:not(.light) .alert-card:hover{border-color:rgba(0,229,255,0.35);box-shadow:0 0 12px rgba(0,229,255,0.08)}\n        @keyframes skeleton-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}\n        .wt-tab-content{animation:tab-fade 0.15s ease}\n        @keyframes tab-fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}\n        /* Focus-visible for keyboard accessibility */\n        :focus-visible{outline:2px solid #00e5ff !important;outline-offset:2px !important;border-radius:3px}\n        button:focus:not(:focus-visible),a:focus:not(:focus-visible){outline:none}\n        @media(max-width:500px){.wt-hide-xs{display:none!important}}\n        /* ── Digital font mode ── */\n        .wt-root.wt-digital{font-family:'JetBrains Mono',Consolas,monospace!important}\n        .wt-root.wt-digital button,.wt-root.wt-digital input,.wt-root.wt-digital select,.wt-root.wt-digital a{font-family:'JetBrains Mono',Consolas,monospace!important}\n        .wt-root.wt-digital .tab-btn{font-family:'JetBrains Mono',Consolas,monospace!important;font-size:0.68rem!important;letter-spacing:0.5px}\n\n        /* ── Mobile layout ── */\n        .wt-sidebar-desktop{display:none}\n        .wt-bottom-nav{display:none}\n        .wt-topbar-controls-full{display:flex}\n        .wt-topbar-controls-mobile{display:none}\n\n'
+  + '@media(max-width:640px){\n          /* ── Bottom navigation ── */\n          .wt-bottom-nav{\n            display:flex!important;position:fixed;bottom:0;left:0;right:0;z-index:200;\n            background:var(--wt-sidebar);border-top:1px solid var(--wt-border2);\n            padding:4px 0 env(safe-area-inset-bottom,4px);\n            justify-content:space-around;align-items:stretch;\n          }\n          .wt-bottom-nav button,.wt-bottom-nav a{\n            display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;\n            background:none;border:none;cursor:pointer;color:var(--wt-muted);\n            font-size:0.62rem;font-weight:600;fontFamily:"'Rajdhani','JetBrains Mono',monospace";\n            padding:5px 4px 3px;border-radius:0;text-decoration:none;flex:1;min-width:0;\n            border-top:2px solid transparent;transition:color .12s,border-color .12s;\n          }\n          .wt-bottom-nav button.active{color:#00e5ff;border-top-color:#00e5ff;background:#00e5ff06}\n          .wt-bottom-nav a.active{color:#00e5ff;border-top-color:#00e5ff;background:#00e5ff06}\n          .wt-bottom-nav .bnav-icon{font-size:1.25rem;line-height:1;display:block}\n          /* ── Top bar ── */\n          .wt-tabbar{display:none!important}\n          .wt-topbar{padding:0 12px!important;height:44px!important}\n          .wt-topbar-controls-full{display:none!important}\n          .wt-topbar-controls-mobile{display:flex!important;gap:6px;align-items:center;margin-left:auto}\n          /* ── Content area ── */\n          .wt-content{padding:10px!important;padding-bottom:76px!important}\n          .wt-main{padding-bottom:0!important}\n          /* ── Grid breakdowns ── */\n          .wt-five-col{grid-template-columns:1fr 1fr!important}\n          .wt-four-col{grid-template-columns:1fr 1fr!important}\n          .wt-three-col{grid-template-columns:1fr!important}\n          .wt-two-col{grid-template-columns:1fr!important}\n          .wt-stat-grid{grid-template-columns:1fr 1fr!important}\n          /* ── Filters ── */\n          .wt-filter-row{flex-direction:column!important;gap:6px!important}\n          .wt-filter-row select,.wt-filter-row input,.wt-filter-row button{width:100%!important;box-sizing:border-box!important}\n          /* ── Bulk bar ── */\n          .wt-bulk-bar{flex-wrap:wrap!important;gap:6px!important}\n          /* ── Alert cards ── */\n          .alert-card{border-radius:8px}\n          /* ── Co-Pilot panel ── */\n          .wt-copilot{max-width:100%!important;width:100%!important;left:0!important;right:0!important;bottom:64px!important;border-radius:16px 16px 0 0!important}\n        }\n        @media(min-width:641px) and (max-width:900px){\n          .wt-content{padding:12px 14px!important}\n          .wt-five-col{grid-template-columns:repeat(3,1fr)!important}\n          .wt-four-col{grid-template-columns:1fr 1fr!important}\n          .wt-three-col{grid-template-columns:1fr 1fr!important}\n        }';
 
 const CRED_FIELDS = {
   crowdstrike:[{key:'client_id',label:'Client ID'},{key:'client_secret',label:'Client Secret',secret:true},{key:'base_url',label:'Base URL (optional)',placeholder:'https://api.crowdstrike.com'}],
@@ -59,14 +59,14 @@ const CRED_FIELDS = {
 
 const CATEGORIES = ['All','EDR','SIEM','NDR','XDR','Vuln','CSPM','Email','Network','Identity'];
 
-const SEV_COLOR = { Critical:'#f0405e', High:'#f97316', Medium:'#f0a030', Low:'#4f8fff' };
+const SEV_COLOR = { Critical:'#ff2244', High:'#ffb300', Medium:'#ffb300', Low:'#00e5ff' };
 const POSTURE_TREND = [61,65,68,71,70,73,74]; // 7-day history
 
 
 const VERDICT_STYLE = {
-  TP:{c:'#f0405e',bg:'#f0405e12',label:'True Positive'},
-  FP:{c:'#22d49a',bg:'#22d49a12',label:'False Positive'},
-  SUS:{c:'#f0a030',bg:'#f0a03012',label:'Suspicious'},
+  TP:{c:'#ff2244',bg:'#ff224412',label:'True Positive'},
+  FP:{c:'#00ff88',bg:'#00ff8812',label:'False Positive'},
+  SUS:{c:'#ffb300',bg:'#ffb30012',label:'Suspicious'},
   Pending:{c:'#6b7a94',bg:'#6b7a9412',label:'Pending'},
 };
 
@@ -181,19 +181,19 @@ const DEMO_APEX_RESULTS = {
 const DEMO_AUTO_TIMELINE = [
   { delayMs:1800,  alertId:'a7', phase:'triaging',  msg:'Analyzing SRV-BACKUP01 — ransomware IOC pattern...' },
   { delayMs:5200,  alertId:'a7', phase:'verdict',   msg:'Ransomware confirmed — LockBit 3.0 TTP match' },
-  { delayMs:5800,  alertId:'a7', phase:'action',    msg:'Taegis XDR: SRV-BACKUP01 isolated ✓', tool:'Taegis XDR', toolColor:'#4f8fff' },
-  { delayMs:6400,  alertId:'a7', phase:'action',    msg:'Slack: #incidents notified — P1 ✓', tool:'Slack', toolColor:'#4f8fff' },
+  { delayMs:5800,  alertId:'a7', phase:'action',    msg:'Taegis XDR: SRV-BACKUP01 isolated ✓', tool:'Taegis XDR', toolColor:'#00e5ff' },
+  { delayMs:6400,  alertId:'a7', phase:'action',    msg:'Slack: #incidents notified — P1 ✓', tool:'Slack', toolColor:'#00e5ff' },
   { delayMs:8500,  alertId:'a1', phase:'triaging',  msg:'Analyzing DC01 — LSASS credential dump...' },
   { delayMs:12100, alertId:'a1', phase:'verdict',   msg:'TP confirmed — Mimikatz pattern on domain controller' },
-  { delayMs:12700, alertId:'a1', phase:'action',    msg:'CrowdStrike Falcon: DC01 contained ✓', tool:'CrowdStrike', toolColor:'#f0405e' },
+  { delayMs:12700, alertId:'a1', phase:'action',    msg:'CrowdStrike Falcon: DC01 contained ✓', tool:'CrowdStrike', toolColor:'#ff2244' },
   { delayMs:13200, alertId:'a1', phase:'action',    msg:'Entra ID: admin_svc account disabled ✓', tool:'Entra ID', toolColor:'#0078d4' },
   { delayMs:15000, alertId:'a4', phase:'triaging',  msg:'Analyzing WS-SALES12 — PowerShell execution...' },
   { delayMs:18200, alertId:'a4', phase:'verdict',   msg:'False positive — Windows Update (KB5034441)' },
-  { delayMs:18800, alertId:'a4', phase:'action',    msg:'APEX: auto-closed FP (99% confidence) ✓', tool:'APEX', toolColor:'#22d49a' },
+  { delayMs:18800, alertId:'a4', phase:'action',    msg:'APEX: auto-closed FP (99% confidence) ✓', tool:'APEX', toolColor:'#00ff88' },
   { delayMs:20500, alertId:'a2', phase:'triaging',  msg:'Analyzing SRV-FINANCE01 — C2 beacon pattern...' },
   { delayMs:24000, alertId:'a2', phase:'verdict',   msg:'C2 confirmed — LockBit infrastructure match' },
-  { delayMs:24600, alertId:'a2', phase:'action',    msg:'Zscaler: IP 185.220.101.42 blocked ✓', tool:'Zscaler', toolColor:'#f97316' },
-  { delayMs:25100, alertId:'a2', phase:'action',    msg:'Darktrace: packet capture initiated ✓', tool:'Darktrace', toolColor:'#8b6fff' },
+  { delayMs:24600, alertId:'a2', phase:'action',    msg:'Zscaler: IP 185.220.101.42 blocked ✓', tool:'Zscaler', toolColor:'#ffb300' },
+  { delayMs:25100, alertId:'a2', phase:'action',    msg:'Darktrace: packet capture initiated ✓', tool:'Darktrace', toolColor:'#bd00ff' },
 ];
 
 
@@ -269,7 +269,7 @@ function Modal({title,onClose,children}) {
   return (
     <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={onClose}>
       <div style={{background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:16,maxWidth:700,width:'100%',maxHeight:'85vh',overflow:'auto',position:'relative'}} onClick={e=>e.stopPropagation()}>
-        <div style={{display:'flex',alignItems:'center',padding:'16px 20px',borderBottom:'1px solid #1d2535',position:'sticky',top:0,background:'var(--wt-card2)',zIndex:10}}>
+        <div style={{display:'flex',alignItems:'center',padding:'16px 20px',borderBottom:'1px solid rgba(0,229,255,0.15)',position:'sticky',top:0,background:'var(--wt-card2)',zIndex:10}}>
           <span style={{fontWeight:700,fontSize:'0.92rem'}}>{title}</span>
           <button onClick={onClose} style={{marginLeft:'auto',background:'none',border:'none',color:'var(--wt-muted)',cursor:'pointer',fontSize:'1.2rem',lineHeight:1}}>×</button>
         </div>
@@ -283,13 +283,13 @@ function Modal({title,onClose,children}) {
 
 function StatCard({val,label,sub,color,onClick}) {
   return (
-    <div onClick={onClick} style={{padding:'14px 12px',background:'var(--wt-card)',border:'1px solid #1d2535',borderRadius:10,textAlign:'center',cursor:onClick?'pointer':'default',transition:'border-color .15s'}}
-      onMouseEnter={e=>{ if(onClick)(e.currentTarget).style.borderColor='#4f8fff40'; }}
+    <div onClick={onClick} style={{padding:'14px 12px',background:'var(--wt-card)',border:'1px solid #0f2040',borderRadius:10,textAlign:'center',cursor:onClick?'pointer':'default',transition:'border-color .15s'}}
+      onMouseEnter={e=>{ if(onClick)(e.currentTarget).style.borderColor='#00e5ff40'; }}
       onMouseLeave={e=>{ (e.currentTarget).style.borderColor='var(--wt-border)'; }}>
-      <div style={{fontSize:'1.5rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color,letterSpacing:-1}}>{val}</div>
+      <div style={{fontSize:'1.5rem',fontWeight:900,fontFamily:"'JetBrains Mono',monospace",color,letterSpacing:-1}}>{val}</div>
       <div style={{fontSize:'0.86rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.4px',marginTop:2}}>{label}</div>
       {sub && <div style={{fontSize:'0.8rem',color:'var(--wt-dim)',marginTop:2}}>{sub}</div>}
-      {onClick && <div style={{fontSize:'0.58rem',color:'#4f8fff',marginTop:4}}>click to view →</div>}
+      {onClick && <div style={{fontSize:'0.58rem',color:'#00e5ff',marginTop:4}}>click to view →</div>}
     </div>
   );
 }
@@ -302,7 +302,7 @@ function GateWall({ feature, requiredTier, children, userTier, isAdmin, demoPrev
   // Show partial preview: render children but clip + blur from 180px
   // This lets users see what they're missing before the upgrade CTA
   // Preview is now rendered directly from children with gradient mask
-  const tierColors = {team:'#4f8fff',business:'#22d49a',mssp:'#8b6fff'};
+  const tierColors = {team:'#00e5ff',business:'#00ff88',mssp:'#bd00ff'};
   const tierNames = {team:'Essentials',business:'Professional',mssp:'Enterprise'};
   const tierPrices = {team:'£149/seat/mo',business:'£1,199/mo',mssp:'£3,499/mo'};
   const featureDetails = {
@@ -384,7 +384,7 @@ function RemediationOutput({ text }) {
     <div style={{display:'flex',flexDirection:'column',gap:10}}>
       {blocks.map((block, i) => {
         if (block.type === 'heading') return (
-          <div key={i} style={{fontSize:'0.82rem',fontWeight:800,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1.5px',paddingTop: i>0?8:0,borderTop: i>0?'1px solid var(--wt-border)':'none',marginTop: i>0?2:0}}>{block.content}</div>
+          <div key={i} style={{fontSize:'0.82rem',fontWeight:800,color:'#00e5ff',textTransform:'uppercase',letterSpacing:'1.5px',paddingTop: i>0?8:0,borderTop: i>0?'1px solid var(--wt-border)':'none',marginTop: i>0?2:0}}>{block.content}</div>
         );
         if (block.type === 'subheading') return (
           <div key={i} style={{fontSize:'0.84rem',fontWeight:700,color:'var(--wt-text)',marginTop:4,marginBottom:-4}}>{block.content}</div>
@@ -392,12 +392,12 @@ function RemediationOutput({ text }) {
         if (block.type === 'code') return (
           <div key={i} style={{position:'relative',background:'#020306',border:'1px solid #1a2235',borderRadius:8,overflow:'hidden'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'5px 10px',borderBottom:'1px solid #1a2235',background:'#060912'}}>
-              <span style={{fontSize:'0.86rem',fontWeight:700,color:'#4f8fff',letterSpacing:'0.5px',textTransform:'uppercase'}}>Query</span>
-              <button onClick={()=>copyCode(block.content, block.id||'')} style={{fontSize:'0.8rem',fontWeight:600,padding:'2px 8px',borderRadius:4,border:'1px solid #1e2536',background:'transparent',color:copied===block.id?'#22d49a':'var(--wt-muted)',cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'color .15s'}}>
+              <span style={{fontSize:'0.86rem',fontWeight:700,color:'#00e5ff',letterSpacing:'0.5px',textTransform:'uppercase'}}>Query</span>
+              <button onClick={()=>copyCode(block.content, block.id||'')} style={{fontSize:'0.8rem',fontWeight:600,padding:'2px 8px',borderRadius:4,border:'1px solid #1e2536',background:'transparent',color:copied===block.id?'#00ff88':'var(--wt-muted)',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",transition:'color .15s'}}>
                 {copied===block.id?'✓ Copied':'Copy'}
               </button>
             </div>
-            <pre style={{margin:0,padding:'10px 12px',fontSize:'0.63rem',fontFamily:'JetBrains Mono,monospace',color:'#a8c0e8',lineHeight:1.7,overflowX:'auto',whiteSpace:'pre-wrap',wordBreak:'break-all'}}>{block.content.trim()}</pre>
+            <pre style={{margin:0,padding:'10px 12px',fontSize:'0.63rem',fontFamily:"'JetBrains Mono',monospace",color:'#a8c0e8',lineHeight:1.7,overflowX:'auto',whiteSpace:'pre-wrap',wordBreak:'break-all'}}>{block.content.trim()}</pre>
           </div>
         );
         return (
@@ -1192,10 +1192,10 @@ export default function DashboardPage() {
     - gapDevices.length * 2
     + (fpAlerts.length > 0 && fpAlerts.length / Math.max(1,alerts.length) < 0.15 ? 4 : 0)
   ));
-  const postureColor = posture >= 85 ? '#22d49a' : posture >= 65 ? '#f0a030' : '#f0405e';
+  const postureColor = posture >= 85 ? '#00ff88' : posture >= 65 ? '#ffb300' : '#ff2244';
 
   const autLabel = ['Recommend Only','Auto + Notify','Full Auto'][automation];
-  const autColor = ['#6b7a94','#f0a030','#22d49a'][automation];
+  const autColor = ['#6b7a94','#ffb300','#00ff88'][automation];
   // Automation effects: filter what's "acted on" based on level
   // actedAlerts: uses APEX triage result if available, else raw alert verdict
   // This ensures automation acts on AI-verified verdicts, not raw source data
@@ -1499,45 +1499,45 @@ export default function DashboardPage() {
   // ── End alerts derived vars ────────────────────────────────────────────────
 
   return (
-    <div className={`wt-root${theme === 'light' ? ' light' : ''}${digitalFont ? ' wt-digital' : ''}`} style={{display:'flex',flexDirection:'column',minHeight:'100vh',maxWidth:'100vw',overflowX:'hidden',background:'var(--wt-bg)',color:'var(--wt-text)',fontFamily:'Inter,sans-serif'}}>
+    <div className={`wt-root${theme === 'light' ? ' light' : ''}${digitalFont ? ' wt-digital' : ''}`} style={{display:'flex',flexDirection:'column',minHeight:'100vh',maxWidth:'100vw',overflowX:'hidden',background:'var(--wt-bg)',color:'var(--wt-text)',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>
       <style dangerouslySetInnerHTML={{__html:DASHBOARD_CSS}} />
       {/* MAIN — full width, no sidebar */}
       <div style={{display:'flex',flexDirection:'column',overflow:'hidden',flex:1,maxWidth:'100vw'}}>
         {/* Client message banner */}
         {clientBanner && (
-          <div style={{display:'flex',alignItems:'center',gap:10,padding:'8px 18px',background:'#f0a03015',borderBottom:'1px solid #f0a03030',flexShrink:0}}>
+          <div style={{display:'flex',alignItems:'center',gap:10,padding:'8px 18px',background:'#ffb30015',borderBottom:'1px solid #ffb30030',flexShrink:0}}>
             <span style={{fontSize:'0.86rem'}}>📢</span>
             <span style={{fontSize:'0.82rem',color:'#f0c070',flex:1,fontWeight:500}}>{clientBanner}</span>
-            {!isAdmin && <button onClick={()=>setClientBanner(null)} style={{padding:'2px 8px',borderRadius:5,border:'1px solid #f0a03030',background:'transparent',color:'#f0a030',fontSize:'0.86rem',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Dismiss ×</button>}
+            {!isAdmin && <button onClick={()=>setClientBanner(null)} style={{padding:'2px 8px',borderRadius:5,border:'1px solid #ffb30030',background:'transparent',color:'#ffb300',fontSize:'0.86rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>Dismiss ×</button>}
           </div>
         )}
 
         {/* TOP BAR — full-width horizontal nav */}
-        <div className="wt-topbar" style={{display:'flex',alignItems:'center',padding:'0 16px',borderBottom:'1px solid #1d2535',background:'var(--wt-sidebar)',flexShrink:0,gap:0,height:48}}>
+        <div className="wt-topbar" style={{display:'flex',alignItems:'center',padding:'0 16px',borderBottom:'1px solid rgba(0,229,255,0.15)',background:'var(--wt-sidebar)',flexShrink:0,gap:0,height:48}}>
           {/* Logo + wordmark */}
-          <div style={{display:'flex',alignItems:'center',gap:8,paddingRight:16,borderRight:'1px solid #1d2535',marginRight:8,flexShrink:0,height:'100%'}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,paddingRight:16,borderRight:'1px solid #0f2040',marginRight:8,flexShrink:0,height:'100%'}}>
             <svg width="26" height="26" viewBox="0 0 34 34" fill="none">
               <rect width="34" height="34" rx="9" fill="url(#wg2)"/>
               <path d="M17 7L26 11V18C26 22.5 22 26.5 17 28C12 26.5 8 22.5 8 18V11L17 7Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" strokeWidth="0.8"/>
               <path d="M14.5 18L16.5 20L20.5 15.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
               <defs><linearGradient id="wg2" x1="0" y1="0" x2="34" y2="34" gradientUnits="userSpaceOnUse"><stop stopColor="#3b7fff"/><stop offset="1" stopColor="#7c3aff"/></linearGradient></defs>
             </svg>
-            <span style={{fontSize:'0.82rem',fontWeight:800,letterSpacing:'-0.3px',color:'var(--wt-text)'}}>Watchtower</span>
+            <span style={{fontSize:'0.9rem',fontWeight:700,letterSpacing:'2px',color:'var(--cp-cyan)',textTransform:'uppercase',textShadow:'0 0 10px rgba(0,229,255,0.6)',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>WATCHTOWER</span>
           </div>
 
           {/* Primary tabs — always visible */}
           <div className="wt-tabbar" style={{display:'flex',gap:0,height:'100%',alignItems:'stretch',overflowX:'auto'}}>
             {/* Primary tabs */}
             {['overview','alerts','incidents','coverage','intel'].map(t=>(
-              <button key={t} onClick={()=>setActiveTab(t)} style={{height:'100%',padding:'0 14px',border:'none',borderBottom:`2px solid ${activeTab===t?'#4f8fff':'transparent'}`,background:'transparent',color:activeTab===t?'#4f8fff':'var(--wt-muted)',fontSize:'0.8rem',fontWeight:activeTab===t?700:500,cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'all .15s',whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:5}}>
+              <button key={t} onClick={()=>setActiveTab(t)} style={{height:'100%',padding:'0 14px',border:'none',borderBottom:`2px solid ${activeTab===t?'#00e5ff':'transparent'}`,background:'transparent',color:activeTab===t?'#00e5ff':'var(--wt-muted)',fontSize:'0.8rem',fontWeight:activeTab===t?700:500,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",transition:'all .15s',whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:5}}>
                 {t==='incidents'?'Cases':t.charAt(0).toUpperCase()+t.slice(1)}
-                {t==='alerts'&&critAlerts.length>0&&<span style={{fontSize:'0.58rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f0405e',color:'#fff'}}>{critAlerts.length}</span>}
+                {t==='alerts'&&critAlerts.length>0&&<span style={{fontSize:'0.58rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#ff2244',color:'#fff'}}>{critAlerts.length}</span>}
               </button>
             ))}
             {/* More overflow — secondary tabs */}
             {(()=>{
               const moreTabs = [
-                ...(!isViewer||isAdmin?[{t:'vulns',l:'Vulns',badge:kevVulns.length>0?kevVulns.length:null,badgeColor:'#f97316'}]:[]),
+                ...(!isViewer||isAdmin?[{t:'vulns',l:'Vulns',badge:kevVulns.length>0?kevVulns.length:null,badgeColor:'#ffb300'}]:[]),
                 ...(!isViewer||isAdmin?[{t:'ot',l:'OT',badge:null}]:[]),
                 ...(!isViewer||isAdmin?[{t:'compliance',l:'Comply',badge:null}]:[]),
                 {t:'tools',l:'Tools',badge:null},
@@ -1548,13 +1548,13 @@ export default function DashboardPage() {
               const activeInMore = moreTabs.some(m=>m.t===activeTab);
               return (
                 <div style={{position:'relative',height:'100%',display:'flex',alignItems:'center'}}>
-                  <button onClick={()=>setShowTabMore(s=>!s)} style={{height:'100%',padding:'0 12px',border:'none',borderBottom:`2px solid ${activeInMore?'#4f8fff':'transparent'}`,background:'transparent',color:activeInMore?'#4f8fff':'var(--wt-muted)',fontSize:'0.8rem',fontWeight:activeInMore?700:500,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>
+                  <button onClick={()=>setShowTabMore(s=>!s)} style={{height:'100%',padding:'0 12px',border:'none',borderBottom:`2px solid ${activeInMore?'#00e5ff':'transparent'}`,background:'transparent',color:activeInMore?'#00e5ff':'var(--wt-muted)',fontSize:'0.8rem',fontWeight:activeInMore?700:500,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",display:'flex',alignItems:'center',gap:4}}>
                     {activeInMore ? (moreTabs.find(m=>m.t===activeTab)?.l||'More') : 'More'} ▾
                   </button>
                   {showTabMore && (
                     <div style={{position:'absolute',top:'100%',left:0,background:'var(--wt-sidebar)',border:'1px solid var(--wt-border2)',borderRadius:8,boxShadow:'0 8px 24px rgba(0,0,0,0.4)',zIndex:200,minWidth:130,padding:'4px 0',marginTop:2}} onClick={()=>setShowTabMore(false)}>
                       {moreTabs.map(({t,l,badge,badgeColor})=>(
-                        <button key={t} onClick={()=>setActiveTab(t)} style={{width:'100%',display:'flex',alignItems:'center',gap:6,padding:'8px 14px',background:activeTab===t?'#4f8fff10':'transparent',border:'none',color:activeTab===t?'#4f8fff':'var(--wt-secondary)',fontSize:'0.82rem',fontWeight:activeTab===t?700:500,cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>
+                        <button key={t} onClick={()=>setActiveTab(t)} style={{width:'100%',display:'flex',alignItems:'center',gap:6,padding:'8px 14px',background:activeTab===t?'#00e5ff10':'transparent',border:'none',color:activeTab===t?'#00e5ff':'var(--wt-secondary)',fontSize:'0.82rem',fontWeight:activeTab===t?700:500,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",textAlign:'left'}}>
                           {l}
                           {badge&&<span style={{fontSize:'0.6rem',fontWeight:800,padding:'1px 4px',borderRadius:3,background:badgeColor,color:'#fff'}}>{badge}</span>}
                         </button>
@@ -1571,52 +1571,52 @@ export default function DashboardPage() {
           {/* Right controls */}
           <div className="wt-topbar-controls-full" style={{marginLeft:'auto',alignItems:'center',gap:8,height:'100%'}}>
             {/* Sync status */}
-            <div style={{display:'flex',alignItems:'center',gap:5,fontSize:'0.84rem',color:'var(--wt-muted)',borderRight:'1px solid #1d2535',paddingRight:10,height:'100%'}}>
-              {demoMode && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#f0a030',display:'block'}} />{tools.filter(t=>t.active).length} tools</span>}
-              {!demoMode && syncStatus==='syncing' && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:8,height:8,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}} /><span style={{color:'#4f8fff'}}>Syncing</span></span>}
-              {!demoMode && syncStatus==='error' && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#f0405e',display:'block'}} /><span style={{color:'#f0405e'}}>Error</span></span>}
-              {!demoMode && syncStatus==='ok' && hasSynced && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',display:'block'}} />{tools.filter(t=>t.active).length} live</span>}
-            {!demoMode && (syncStatus==='syncing'||!hasSynced) && Object.keys(connectedTools).length>0 && <span style={{display:'inline-flex',alignItems:'center',gap:4,animation:'pulse 1s ease infinite'}}><span style={{width:6,height:6,borderRadius:'50%',background:'#f0a030',display:'block'}} />syncing</span>}
+            <div style={{display:'flex',alignItems:'center',gap:5,fontSize:'0.84rem',color:'var(--wt-muted)',borderRight:'1px solid #0f2040',paddingRight:10,height:'100%'}}>
+              {demoMode && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#ffb300',display:'block'}} />{tools.filter(t=>t.active).length} tools</span>}
+              {!demoMode && syncStatus==='syncing' && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:8,height:8,borderRadius:'50%',border:'2px solid #00e5ff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}} /><span style={{color:'#00e5ff'}}>Syncing</span></span>}
+              {!demoMode && syncStatus==='error' && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#ff2244',display:'block'}} /><span style={{color:'#ff2244'}}>Error</span></span>}
+              {!demoMode && syncStatus==='ok' && hasSynced && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#00ff88',boxShadow:'0 0 6px #00ff88',display:'block'}} />{tools.filter(t=>t.active).length} live</span>}
+            {!demoMode && (syncStatus==='syncing'||!hasSynced) && Object.keys(connectedTools).length>0 && <span style={{display:'inline-flex',alignItems:'center',gap:4,animation:'pulse 1s ease infinite'}}><span style={{width:6,height:6,borderRadius:'50%',background:'#ffb300',display:'block'}} />syncing</span>}
               {!demoMode && syncStatus==='idle' && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#6b7a94',display:'block'}} />{Object.keys(connectedTools).length}</span>}
-              {!demoMode && Object.keys(connectedTools).length>0 && <button onClick={()=>doSync()} disabled={syncStatus==='syncing'} style={{padding:'2px 8px',borderRadius:5,border:'1px solid #4f8fff30',background:'#4f8fff0f',color:'#4f8fff',fontSize:'0.84rem',fontWeight:700,cursor:syncStatus==='syncing'?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',opacity:syncStatus==='syncing'?0.6:1}}>⟳</button>}
+              {!demoMode && Object.keys(connectedTools).length>0 && <button onClick={()=>doSync()} disabled={syncStatus==='syncing'} style={{padding:'2px 8px',borderRadius:5,border:'1px solid #00e5ff30',background:'#00e5ff0f',color:'#00e5ff',fontSize:'0.84rem',fontWeight:700,cursor:syncStatus==='syncing'?'not-allowed':'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",opacity:syncStatus==='syncing'?0.6:1}}>⟳</button>}
             </div>
             {/* Automation */}
             {(canUse('team')||isAdmin) ? (
-              <div style={{display:'flex',alignItems:'center',gap:3,padding:'3px 8px',borderRadius:7,background:'var(--wt-card2)',border:'1px solid #1d2535'}}>
+              <div style={{display:'flex',alignItems:'center',gap:3,padding:'3px 8px',borderRadius:7,background:'var(--wt-card2)',border:'1px solid #0f2040'}}>
                 <span style={{fontSize:'0.82rem',color:'var(--wt-muted)'}}>Auto:</span>
                 {(['Rec','Notify','Full']).map((l,i)=>(
-                  <button key={l} onClick={()=>{setAutomation(i);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({automation:String(i)})}).catch(()=>{});}} style={{padding:'2px 6px',borderRadius:4,fontSize:'0.8rem',fontWeight:700,border:'none',cursor:'pointer',background:automation===i?autColor:'transparent',color:automation===i?'#fff':'#6b7a94',fontFamily:'Inter,sans-serif'}}>{l}</button>
+                  <button key={l} onClick={()=>{setAutomation(i);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({automation:String(i)})}).catch(()=>{});}} style={{padding:'2px 6px',borderRadius:4,fontSize:'0.8rem',fontWeight:700,border:'none',cursor:'pointer',background:automation===i?autColor:'transparent',color:automation===i?'#fff':'#6b7a94',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>{l}</button>
                 ))}
               </div>
             ) : (
-              <a href='/pricing' style={{fontSize:'0.84rem',color:'#4f8fff',fontWeight:700,textDecoration:'none',padding:'3px 8px',borderRadius:6,border:'1px solid #4f8fff20',background:'#4f8fff08'}}>🔒 Upgrade</a>
+              <a href='/pricing' style={{fontSize:'0.84rem',color:'#00e5ff',fontWeight:700,textDecoration:'none',padding:'3px 8px',borderRadius:6,border:'1px solid #00e5ff20',background:'#00e5ff08'}}>🔒 Upgrade</a>
             )}
             {/* Demo/Live toggle */}
-            <button onClick={()=>setDemoMode(d=>{const next=!d;if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode',String(next));fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});return next;})} style={{padding:'3px 10px',borderRadius:6,border:`1px solid ${demoMode?'#f0a03030':'#22d49a30'}`,background:demoMode?'#f0a03010':'#22d49a10',color:demoMode?'#f0a030':'#22d49a',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>{demoMode?'DEMO':'LIVE'}</button>
+            <button onClick={()=>setDemoMode(d=>{const next=!d;if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode',String(next));fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});return next;})} style={{padding:'3px 10px',borderRadius:6,border:`1px solid ${demoMode?'#ffb30030':'#00ff8830'}`,background:demoMode?'#ffb30010':'#00ff8810',color:demoMode?'#ffb300':'#00ff88',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>{demoMode?'DEMO':'LIVE'}</button>
             {/* Admin: tier sim + tenant */}
-            {isAdmin&&<select value={userTier} onChange={e=>{setUserTier(e.target.value);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({userTier:e.target.value})}).catch(()=>{});}} style={{padding:'3px 6px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.82rem',fontWeight:700,fontFamily:'Inter,sans-serif',cursor:'pointer',outline:'none'}}>
+            {isAdmin&&<select value={userTier} onChange={e=>{setUserTier(e.target.value);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({userTier:e.target.value})}).catch(()=>{});}} style={{padding:'3px 6px',borderRadius:6,border:'1px solid #bd00ff30',background:'#bd00ff10',color:'#bd00ff',fontSize:'0.82rem',fontWeight:700,fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",cursor:'pointer',outline:'none'}}>
               {([['community','Free'],['team','Essentials'],['business','Pro'],['mssp','Enterprise']]).map(([v,l])=><option key={v} value={v}>{l}</option>)}
             </select>}
-            {isAdmin&&<select value={currentTenant} onChange={e=>setCurrentTenant(e.target.value)} style={{padding:'3px 6px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.84rem',fontFamily:'Inter,sans-serif',cursor:'pointer',outline:'none',maxWidth:120}}>
+            {isAdmin&&<select value={currentTenant} onChange={e=>setCurrentTenant(e.target.value)} style={{padding:'3px 6px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.84rem',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",cursor:'pointer',outline:'none',maxWidth:120}}>
               {DEMO_TENANTS.map(t=>(<option key={t.id} value={t.id}>{t.type==='client'?'◦ ':''}{t.name}</option>))}
             </select>}
-            {(canUse('team')||isAdmin)&&<button onClick={()=>{setShowCopilot(s=>!s);setTimeout(()=>copilotBottomRef.current?.scrollIntoView({behavior:'auto'}),100);}} style={{padding:'3px 10px',borderRadius:6,border:`1px solid ${showCopilot?'#8b6fff':'#8b6fff30'}`,background:showCopilot?'#8b6fff15':'#8b6fff0a',color:'#8b6fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>✦ Co-Pilot</button>}
+            {(canUse('team')||isAdmin)&&<button onClick={()=>{setShowCopilot(s=>!s);setTimeout(()=>copilotBottomRef.current?.scrollIntoView({behavior:'auto'}),100);}} style={{padding:'3px 10px',borderRadius:6,border:`1px solid ${showCopilot?'#bd00ff':'#bd00ff30'}`,background:showCopilot?'#bd00ff15':'#bd00ff0a',color:'#bd00ff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>✦ Co-Pilot</button>}
             <button onClick={toggleTheme} title={theme==='dark'?'Switch to light mode':'Switch to dark mode'} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem',flexShrink:0}}>{theme==='dark'?'☀️':'🌙'}</button>
             {/* Settings flyout — collapses font, guide, push, CISO, handover, settings, logout */}
             <div style={{position:'relative',flexShrink:0}}>
-              <button onClick={()=>setShowSettingsFlyout(s=>!s)} style={{width:30,height:30,borderRadius:7,border:`1px solid ${showSettingsFlyout?'#4f8fff40':'var(--wt-border)'}`,background:showSettingsFlyout?'#4f8fff12':'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.82rem',color:showSettingsFlyout?'#4f8fff':'var(--wt-muted)'}} title='Settings & utilities'>⚙️</button>
+              <button onClick={()=>setShowSettingsFlyout(s=>!s)} style={{width:30,height:30,borderRadius:7,border:`1px solid ${showSettingsFlyout?'#00e5ff40':'var(--wt-border)'}`,background:showSettingsFlyout?'#00e5ff12':'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.82rem',color:showSettingsFlyout?'#00e5ff':'var(--wt-muted)'}} title='Settings & utilities'>⚙️</button>
               {showSettingsFlyout && (
                 <div style={{position:'absolute',top:'calc(100% + 6px)',right:0,width:200,background:'var(--wt-sidebar)',border:'1px solid var(--wt-border2)',borderRadius:10,boxShadow:'0 8px 32px rgba(0,0,0,0.4)',zIndex:300,overflow:'hidden',padding:'4px 0'}} onClick={()=>setShowSettingsFlyout(false)}>
-                  {(canUse('team')||isAdmin)&&<button onClick={()=>setActiveTab('incidents')} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>⇄ Shift Handover</button>}
-                  {(canUse('business')||isAdmin)&&<button onClick={()=>setActiveTab('compliance')} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>📊 Board Report</button>}
-                  <a href='/guide' target='_blank' rel='noopener noreferrer' style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textDecoration:'none'}}>📖 User Guide</a>
-                  <a href='/settings' style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textDecoration:'none'}}>⚙ Account Settings</a>
+                  {(canUse('team')||isAdmin)&&<button onClick={()=>setActiveTab('incidents')} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",textAlign:'left'}}>⇄ Shift Handover</button>}
+                  {(canUse('business')||isAdmin)&&<button onClick={()=>setActiveTab('compliance')} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",textAlign:'left'}}>📊 Board Report</button>}
+                  <a href='/guide' target='_blank' rel='noopener noreferrer' style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",textDecoration:'none'}}>📖 User Guide</a>
+                  <a href='/settings' style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",textDecoration:'none'}}>⚙ Account Settings</a>
                   <div style={{height:1,background:'var(--wt-border)',margin:'4px 0'}} />
 
-                  <button onClick={toggleDigitalFont} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:digitalFont?'#4f8fff':'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>01 {digitalFont?'Proportional font':'Digital font'}</button>
-                  {hasSW && <button onClick={subscribePush} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:pushEnabled?'#22d49a':'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>{pushEnabled?'🔔 Push on':'🔕 Push off'}</button>}
+                  <button onClick={toggleDigitalFont} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:digitalFont?'#00e5ff':'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",textAlign:'left'}}>01 {digitalFont?'Proportional font':'Digital font'}</button>
+                  {hasSW && <button onClick={subscribePush} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:pushEnabled?'#00ff88':'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",textAlign:'left'}}>{pushEnabled?'🔔 Push on':'🔕 Push off'}</button>}
                   <div style={{height:1,background:'var(--wt-border)',margin:'4px 0'}} />
-                  <button onClick={async()=>{await fetch('/api/auth/logout',{method:'POST'});window.location.href='/login';}} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'#f0405e',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>↩ Sign out</button>
+                  <button onClick={async()=>{await fetch('/api/auth/logout',{method:'POST'});window.location.href='/login';}} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'#ff2244',fontSize:'0.82rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",textAlign:'left'}}>↩ Sign out</button>
                 </div>
               )}
             </div>
@@ -1624,7 +1624,7 @@ export default function DashboardPage() {
           {/* Mobile: logo + demo toggle only */}
           <div className="wt-topbar-controls-mobile" style={{marginLeft:'auto',alignItems:'center',gap:6}}>
             <button onClick={toggleTheme} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem'}}>{theme==='dark'?'☀️':'🌙'}</button>
-            <button onClick={()=>setDemoMode(d=>{const next=!d;if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode',String(next));fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});return next;})} style={{padding:'3px 8px',borderRadius:6,border:`1px solid ${demoMode?'#f0a03030':'#22d49a30'}`,background:demoMode?'#f0a03010':'#22d49a10',color:demoMode?'#f0a030':'#22d49a',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{demoMode?'DEMO':'LIVE'}</button>
+            <button onClick={()=>setDemoMode(d=>{const next=!d;if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode',String(next));fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});return next;})} style={{padding:'3px 8px',borderRadius:6,border:`1px solid ${demoMode?'#ffb30030':'#00ff8830'}`,background:demoMode?'#ffb30010':'#00ff8810',color:demoMode?'#ffb300':'#00ff88',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>{demoMode?'DEMO':'LIVE'}</button>
           </div>
         </div>
 
@@ -1633,14 +1633,14 @@ export default function DashboardPage() {
 
           {/* LIVE MODE — no data yet banner */}
           {!demoMode && liveAlerts.length === 0 && Object.keys(connectedTools).length > 0 && (
-            <div style={{padding:'12px 16px',background:'#4f8fff08',border:'1px solid #4f8fff20',borderRadius:10,marginBottom:14,display:'flex',alignItems:'center',gap:10}}>
-              {syncStatus==='syncing' ? <span style={{width:12,height:12,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite',flexShrink:0}} /> : <span style={{fontSize:'0.9rem'}}>📡</span>}
+            <div style={{padding:'12px 16px',background:'#00e5ff08',border:'1px solid #00e5ff20',borderRadius:10,marginBottom:14,display:'flex',alignItems:'center',gap:10}}>
+              {syncStatus==='syncing' ? <span style={{width:12,height:12,borderRadius:'50%',border:'2px solid #00e5ff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite',flexShrink:0}} /> : <span style={{fontSize:'0.9rem'}}>📡</span>}
               <div style={{flex:1}}>
-                <div style={{fontSize:'0.82rem',fontWeight:700,color:'#4f8fff'}}>{syncStatus==='syncing'?'Syncing — demo data hidden until your first sync completes':'Live mode — awaiting first sync'}</div>
-                {syncError && <div style={{fontSize:'0.8rem',color:'#f0405e',marginTop:2}}>{syncError}</div>}
+                <div style={{fontSize:'0.82rem',fontWeight:700,color:'#00e5ff'}}>{syncStatus==='syncing'?'Syncing — demo data hidden until your first sync completes':'Live mode — awaiting first sync'}</div>
+                {syncError && <div style={{fontSize:'0.8rem',color:'#ff2244',marginTop:2}}>{syncError}</div>}
                 {!syncError && syncStatus!=='syncing' && <div style={{fontSize:'0.8rem',color:'var(--wt-muted)',marginTop:1}}>Connected: {Object.keys(connectedTools).slice(0,5).join(', ')}{Object.keys(connectedTools).length>5?` +${Object.keys(connectedTools).length-5} more`:''} · Syncs every 60s</div>}
               </div>
-              {!syncError && syncStatus!=='syncing' && <button onClick={()=>fetch('/api/integrations/sync',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({integrations:Object.keys(connectedTools).map(id=>({id}))})}).then(r=>r.json()).then(d=>setSyncStatus('ok'))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.8rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>⟳ Sync now</button>}
+              {!syncError && syncStatus!=='syncing' && <button onClick={()=>fetch('/api/integrations/sync',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({integrations:Object.keys(connectedTools).map(id=>({id}))})}).then(r=>r.json()).then(d=>setSyncStatus('ok'))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #00e5ff30',background:'#00e5ff10',color:'#00e5ff',fontSize:'0.8rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>⟳ Sync now</button>}
             </div>
           )}
           {/* AI key prompt: shown in live mode with tools connected but before AI features used */}
@@ -1652,20 +1652,20 @@ export default function DashboardPage() {
                 }).catch(()=>{});
               }
             }}>
-              <div style={{padding:'12px 16px',background:'linear-gradient(135deg,rgba(139,111,255,0.06),rgba(79,143,255,0.04))',border:'1px solid #8b6fff25',borderRadius:10,marginBottom:14,display:'flex',alignItems:'center',gap:10}}>
+              <div style={{padding:'12px 16px',background:'linear-gradient(135deg,rgba(139,111,255,0.06),rgba(79,143,255,0.04))',border:'1px solid #bd00ff25',borderRadius:10,marginBottom:14,display:'flex',alignItems:'center',gap:10}}>
                 <span style={{fontSize:'0.9rem'}}>🧠</span>
                 <div style={{flex:1}}>
-                  <div style={{fontSize:'0.82rem',fontWeight:700,color:'#8b6fff'}}>Add your Anthropic API key to unlock APEX AI triage</div>
+                  <div style={{fontSize:'0.82rem',fontWeight:700,color:'#bd00ff'}}>Add your Anthropic API key to unlock APEX AI triage</div>
                   <div style={{fontSize:'0.8rem',color:'var(--wt-muted)',marginTop:1}}>BYOK — your key, your data. AI costs go direct to your Anthropic account.</div>
                 </div>
-                <button onClick={()=>setActiveTab('tools')} style={{padding:'5px 12px',borderRadius:6,background:'#8b6fff',color:'#fff',border:'none',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Add key →</button>
+                <button onClick={()=>setActiveTab('tools')} style={{padding:'5px 12px',borderRadius:6,background:'#bd00ff',color:'#fff',border:'none',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>Add key →</button>
               </div>
             </div>
           )}
           {!demoMode && automation >= 1 && (
-            <div role='status' aria-live='polite' style={{display:'flex',alignItems:'center',gap:10,padding:'7px 18px',background:automation===2?'#22d49a0c':'#f0a0300c',borderBottom:`1px solid ${automation===2?'#22d49a20':'#f0a03020'}`,flexShrink:0}}>
+            <div role='status' aria-live='polite' style={{display:'flex',alignItems:'center',gap:10,padding:'7px 18px',background:automation===2?'#00ff880c':'#ffb3000c',borderBottom:`1px solid ${automation===2?'#00ff8820':'#ffb30020'}`,flexShrink:0}}>
               <span style={{fontSize:'0.8rem'}}>{automation===2?'🤖':'✦'}</span>
-              <span style={{fontSize:'0.8rem',fontWeight:700,color:automation===2?'#22d49a':'#f0a030'}}>{autLabel} active</span>
+              <span style={{fontSize:'0.8rem',fontWeight:700,color:automation===2?'#00ff88':'#ffb300'}}>{autLabel} active</span>
               <span style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>—</span>
               <span style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>
                 {automation===1
@@ -1678,9 +1678,9 @@ export default function DashboardPage() {
           )}
 
           {!demoMode && Object.keys(connectedTools).length === 0 && (
-            <div style={{background:'linear-gradient(145deg,#0d111e,#0a0d18)',border:'1px solid #4f8fff25',borderRadius:14,marginBottom:14,overflow:'hidden'}}>
+            <div style={{background:'linear-gradient(145deg,#0d111e,#0a0d18)',border:'1px solid #00e5ff25',borderRadius:14,marginBottom:14,overflow:'hidden'}}>
               <div style={{padding:'16px 20px',borderBottom:'1px solid #1a2535'}}>
-                <div style={{fontSize:'0.86rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1px',marginBottom:4}}>Getting Started</div>
+                <div style={{fontSize:'0.86rem',fontWeight:700,color:'#00e5ff',textTransform:'uppercase',letterSpacing:'1px',marginBottom:4}}>Getting Started</div>
                 <div style={{fontSize:'0.9rem',fontWeight:700,marginBottom:2}}>Connect your first tool to see live data</div>
                 <div style={{fontSize:'0.8rem',color:'var(--wt-muted)'}}>Your SOC data from CrowdStrike, Splunk, Tenable, Okta and 76 more will appear here automatically.</div>
               </div>
@@ -1691,17 +1691,17 @@ export default function DashboardPage() {
                   {step:'03',icon:'⚡',title:'See live alerts',desc:'Once connected, Watchtower syncs every 60s. Click Deep Analyse on any alert for APEX investigation.',action:null,cta:null},
                 ].map((s,i)=>(
                   <div key={s.step} style={{padding:'16px 18px',borderRight:i<2?'1px solid #1a2535':'none'}}>
-                    <div style={{fontSize:'0.84rem',fontWeight:800,color:'#4f8fff30',fontFamily:'JetBrains Mono,monospace',letterSpacing:'2px',marginBottom:4}}>{s.step}</div>
+                    <div style={{fontSize:'0.84rem',fontWeight:800,color:'#00e5ff30',fontFamily:"'JetBrains Mono',monospace",letterSpacing:'2px',marginBottom:4}}>{s.step}</div>
                     <div style={{fontSize:'1rem',marginBottom:6}}>{s.icon}</div>
                     <div style={{fontSize:'0.84rem',fontWeight:700,marginBottom:4}}>{s.title}</div>
                     <div style={{fontSize:'0.82rem',color:'var(--wt-muted)',lineHeight:1.5,marginBottom:10}}>{s.desc}</div>
-                    {s.action && <button onClick={s.action} style={{padding:'5px 12px',borderRadius:6,background:'#4f8fff',color:'#fff',border:'none',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{s.cta} →</button>}
+                    {s.action && <button onClick={s.action} style={{padding:'5px 12px',borderRadius:6,background:'#00e5ff',color:'#fff',border:'none',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>{s.cta} →</button>}
                   </div>
                 ))}
               </div>
               <div style={{padding:'10px 20px',borderTop:'1px solid #1a2535',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
                 <span style={{fontSize:'0.8rem',color:'var(--wt-dim)'}}>Not ready to connect? Explore with demo data first.</span>
-                <button onClick={()=>setDemoMode(true)} style={{padding:'5px 14px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Switch to Demo mode</button>
+                <button onClick={()=>setDemoMode(true)} style={{padding:'5px 14px',borderRadius:6,border:'1px solid #00e5ff30',background:'#00e5ff10',color:'#00e5ff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Switch to Demo mode</button>
               </div>
             </div>
           )}
@@ -1713,10 +1713,10 @@ export default function DashboardPage() {
               {/* ── COMMAND STRIP: 5 hero numbers ────────────────────────────────── */}
               <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:8}} className='wt-five-col' role='list' aria-label='Security metrics'>
                 {[
-                  {val:critAlerts.length, label:'Critical Alerts', color:'#f0405e', sub:critAlerts.length>0?'Immediate action':demoMode?'Demo data':'Live', tab:'alerts', icon:'🔴', onClickExtra:()=>setAlertSevFilter('Critical')},
-                  {val:totalAlerts, label:'Total Alerts', color:'#f97316', sub:(!demoMode&&liveAlerts.length>0?'Live from tools':'Today'), tab:'alerts', icon:'🔔'},
-                  {val:openCases, label:'Active Cases', color:'#f0a030', sub:slaBreaches>0?`${slaBreaches} SLA breach`:'All on track', tab:'incidents', icon:'📋'},
-                  {val:critVulns.length, label:'Critical Vulns', color:'#8b6fff', sub:kevVulns.length>0?`${kevVulns.length} CISA KEV`:'High/Crit only', tab:'vulns', icon:'🔍'},
+                  {val:critAlerts.length, label:'Critical Alerts', color:'#ff2244', sub:critAlerts.length>0?'Immediate action':demoMode?'Demo data':'Live', tab:'alerts', icon:'🔴', onClickExtra:()=>setAlertSevFilter('Critical')},
+                  {val:totalAlerts, label:'Total Alerts', color:'#ffb300', sub:(!demoMode&&liveAlerts.length>0?'Live from tools':'Today'), tab:'alerts', icon:'🔔'},
+                  {val:openCases, label:'Active Cases', color:'#ffb300', sub:slaBreaches>0?`${slaBreaches} SLA breach`:'All on track', tab:'incidents', icon:'📋'},
+                  {val:critVulns.length, label:'Critical Vulns', color:'#bd00ff', sub:kevVulns.length>0?`${kevVulns.length} CISA KEV`:'High/Crit only', tab:'vulns', icon:'🔍'},
                   {val:posture, label:'Posture Score', color:postureColor, sub:posture>=80?'Good standing':posture>=60?'Needs attention':'At risk', tab:'overview', icon:'🛡'},
                 ].map(s=>(
                   <div key={s.label} onClick={()=>{if(s.tab!=='overview'){setActiveTab(s.tab);if(s.onClickExtra)s.onClickExtra();}}} style={{padding:'14px 12px',background:'var(--wt-card)',border:`1px solid ${s.color}25`,borderRadius:10,cursor:s.tab!=='overview'?'pointer':'default',transition:'border-color .15s,transform .1s'}}
@@ -1726,7 +1726,7 @@ export default function DashboardPage() {
                       <span style={{fontSize:'0.75rem'}}>{s.icon}</span>
                       {s.tab!=='overview'&&<span style={{fontSize:'0.84rem',color:s.color,fontWeight:700,opacity:0.7}}>↗</span>}
                     </div>
-                    <div style={{fontSize:'1.8rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,lineHeight:1}}>{s.val}</div>
+                    <div style={{fontSize:'1.8rem',fontWeight:900,fontFamily:"'JetBrains Mono',monospace",color:s.color,lineHeight:1}}>{s.val}</div>
                     <div style={{fontSize:'0.86rem',fontWeight:700,color:'var(--wt-text)',marginTop:4,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{s.label}</div>
                     <div style={{fontSize:'0.8rem',color:s.color,marginTop:2,opacity:0.8}}>{s.sub}</div>
                   </div>
@@ -1736,21 +1736,21 @@ export default function DashboardPage() {
               {/* ── THREAT LEVEL BAR ─────────────────────────────────────────────── */}
               {(()=>{
                 const tlevel = critAlerts.length>=3||slaBreaches>0?'CRITICAL':critAlerts.length>0?'HIGH':alerts.filter(a=>a.severity==='High').length>0?'ELEVATED':'GUARDED';
-                const tlColor = {CRITICAL:'#f0405e',HIGH:'#f97316',ELEVATED:'#f0a030',GUARDED:'#22d49a'}[tlevel];
+                const tlColor = {CRITICAL:'#ff2244',HIGH:'#ffb300',ELEVATED:'#ffb300',GUARDED:'#00ff88'}[tlevel];
                 const tlBg = {CRITICAL:'rgba(240,64,94,0.06)',HIGH:'rgba(249,115,22,0.05)',ELEVATED:'rgba(240,160,48,0.05)',GUARDED:'rgba(34,201,146,0.05)'}[tlevel];
                 const actions = [];
-                if (critAlerts.length>0) actions.push({icon:'🔴',text:`Triage ${critAlerts.length} critical alert${critAlerts.length!==1?'s':''}`,tab:'alerts',color:'#f0405e'});
-                if (slaBreaches>0) actions.push({icon:'⏱',text:`${slaBreaches} SLA breach${slaBreaches!==1?'es':''} — cases overdue`,tab:'incidents',color:'#f0405e'});
-                if (kevVulns.length>0) actions.push({icon:'🛑',text:`Patch ${kevVulns.length} CISA KEV vuln${kevVulns.length!==1?'s':''}`,tab:'vulns',color:'#f97316'});
-                if (gapDevices.length>0) actions.push({icon:'📡',text:`${gapDevices.length} device${gapDevices.length!==1?'s':''} missing agent coverage`,tab:'coverage',color:'#f0a030'});
-                if (alerts.filter(a=>a.severity==='High'&&a.verdict==='Pending').length>0) actions.push({icon:'🟠',text:`${alerts.filter(a=>a.severity==='High'&&a.verdict==='Pending').length} high-severity alerts need triage`,tab:'alerts',color:'#f97316'});
-                if (actions.length===0) actions.push({icon:'✓',text:'No immediate action required — monitor queue',tab:'alerts',color:'#22d49a'});
+                if (critAlerts.length>0) actions.push({icon:'🔴',text:`Triage ${critAlerts.length} critical alert${critAlerts.length!==1?'s':''}`,tab:'alerts',color:'#ff2244'});
+                if (slaBreaches>0) actions.push({icon:'⏱',text:`${slaBreaches} SLA breach${slaBreaches!==1?'es':''} — cases overdue`,tab:'incidents',color:'#ff2244'});
+                if (kevVulns.length>0) actions.push({icon:'🛑',text:`Patch ${kevVulns.length} CISA KEV vuln${kevVulns.length!==1?'s':''}`,tab:'vulns',color:'#ffb300'});
+                if (gapDevices.length>0) actions.push({icon:'📡',text:`${gapDevices.length} device${gapDevices.length!==1?'s':''} missing agent coverage`,tab:'coverage',color:'#ffb300'});
+                if (alerts.filter(a=>a.severity==='High'&&a.verdict==='Pending').length>0) actions.push({icon:'🟠',text:`${alerts.filter(a=>a.severity==='High'&&a.verdict==='Pending').length} high-severity alerts need triage`,tab:'alerts',color:'#ffb300'});
+                if (actions.length===0) actions.push({icon:'✓',text:'No immediate action required — monitor queue',tab:'alerts',color:'#00ff88'});
                 return (
                   <div style={{background:tlBg,border:`1px solid ${tlColor}25`,borderRadius:12,overflow:'hidden'}}>
                     <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 16px',borderBottom:`1px solid ${tlColor}15`,flexWrap:'wrap'}}>
                       <div style={{display:'flex',alignItems:'center',gap:6,flex:1,minWidth:0}}>
                         <div style={{width:8,height:8,borderRadius:'50%',background:tlColor,boxShadow:`0 0 8px ${tlColor}`,flexShrink:0,animation:tlevel==='CRITICAL'?'pulse 1s ease infinite':tlevel==='HIGH'?'pulse 2s ease infinite':'none'}} />
-                        <span style={{fontSize:'0.82rem',fontWeight:900,color:tlColor,letterSpacing:'1px',whiteSpace:'nowrap'}}>THREAT LEVEL — {tlevel}</span>
+                        <span style={{fontSize:'0.8rem',fontWeight:700,color:tlColor,letterSpacing:'2.5px',fontFamily:"'Rajdhani','JetBrains Mono',monospace",textShadow:'0 0 8px currentColor',whiteSpace:'nowrap'}}>THREAT LEVEL — {tlevel}</span>
                       </div>
                     </div>
                     <div style={{padding:'10px 16px',display:'flex',flexDirection:'column',gap:5}}>
@@ -1768,12 +1768,12 @@ export default function DashboardPage() {
               })()}
               {/* Shift handover panel */}
               {shiftHandover&&(
-                <div style={{background:'#06100e',border:'1px solid #22d49a25',borderRadius:10,padding:'12px 16px',position:'relative'}}>
+                <div style={{background:'#06100e',border:'1px solid #00ff8825',borderRadius:10,padding:'12px 16px',position:'relative'}}>
                   <button onClick={()=>setShiftHandover(null)} aria-label='Close handover' style={{position:'absolute',top:8,right:10,background:'none',border:'none',color:'var(--wt-dim)',cursor:'pointer',fontSize:'0.8rem'}}>×</button>
-                  <div style={{fontSize:'0.84rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>⇄ Shift Handover Brief</div>
-                  <WtMarkdown text={shiftHandover.summary} accent='#22d49a' />
-                  {shiftHandover.recommendation&&<div style={{marginTop:8,padding:'8px 12px',background:'#22d49a08',border:'1px solid #22d49a20',borderRadius:7,fontSize:'0.84rem',color:'#22d49a',fontWeight:600}}>🎯 Priority: {shiftHandover.recommendation}</div>}
-                  {(shiftHandover.keyActions||[]).length>0&&(<div style={{marginTop:10}}><div style={{fontSize:'0.72rem',fontWeight:800,color:'#22d49a',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Actions for incoming analyst</div>{(shiftHandover.keyActions||[]).map((a,i)=><div key={i} style={{display:'flex',gap:8,padding:'6px 8px',marginBottom:4,background:'rgba(34,212,154,0.04)',border:'1px solid rgba(34,212,154,0.12)',borderRadius:6,alignItems:'flex-start'}}><span style={{width:20,height:20,borderRadius:5,background:'#22d49a',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:'0.7rem',fontWeight:900,color:'#050810'}}>{i+1}</span><span style={{fontSize:'0.84rem',color:'var(--wt-secondary)',lineHeight:1.55}}>{a}</span></div>)}</div>)}
+                  <div style={{fontSize:'0.84rem',fontWeight:700,color:'#00ff88',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>⇄ Shift Handover Brief</div>
+                  <WtMarkdown text={shiftHandover.summary} accent='#00ff88' />
+                  {shiftHandover.recommendation&&<div style={{marginTop:8,padding:'8px 12px',background:'#00ff8808',border:'1px solid #00ff8820',borderRadius:7,fontSize:'0.84rem',color:'#00ff88',fontWeight:600}}>🎯 Priority: {shiftHandover.recommendation}</div>}
+                  {(shiftHandover.keyActions||[]).length>0&&(<div style={{marginTop:10}}><div style={{fontSize:'0.72rem',fontWeight:800,color:'#00ff88',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Actions for incoming analyst</div>{(shiftHandover.keyActions||[]).map((a,i)=><div key={i} style={{display:'flex',gap:8,padding:'6px 8px',marginBottom:4,background:'rgba(34,212,154,0.04)',border:'1px solid rgba(34,212,154,0.12)',borderRadius:6,alignItems:'flex-start'}}><span style={{width:20,height:20,borderRadius:5,background:'#00ff88',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:'0.7rem',fontWeight:900,color:'#050810'}}>{i+1}</span><span style={{fontSize:'0.84rem',color:'var(--wt-secondary)',lineHeight:1.55}}>{a}</span></div>)}</div>)}
                   <div style={{marginTop:6,fontSize:'0.86rem',color:'var(--wt-dim)'}}>Generated {new Date(shiftHandover.generatedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
                 </div>
               )}
@@ -1783,10 +1783,10 @@ export default function DashboardPage() {
 
                 {/* Quadrant 1: Active Alerts breakdown */}
                 <div onClick={()=>setActiveTab('alerts')} style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px',overflow:'hidden',cursor:'pointer',transition:'border-color .15s'}}
-                  onMouseEnter={e=>e.currentTarget.style.borderColor='#f0405e40'} onMouseLeave={e=>e.currentTarget.style.borderColor='var(--wt-border)'}>
+                  onMouseEnter={e=>e.currentTarget.style.borderColor='#ff224440'} onMouseLeave={e=>e.currentTarget.style.borderColor='var(--wt-border)'}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
                     <span style={{fontSize:'0.86rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Alerts by Severity</span>
-                    <span style={{marginLeft:'auto',fontSize:'0.8rem',color:'#f0405e'}}>View all ↗</span>
+                    <span style={{marginLeft:'auto',fontSize:'0.8rem',color:'#ff2244'}}>View all ↗</span>
                   </div>
                   {(['Critical','High','Medium','Low']).map(sev=>{
                     const count = alerts.filter(a=>a.severity===sev).length;
@@ -1794,12 +1794,12 @@ export default function DashboardPage() {
                     const shown = demoMode ? count : (liveAlerts.length>0 ? live : count);
                     const total = demoMode ? alerts.length : (liveAlerts.length || alerts.length);
                     const pct = total>0?Math.round((shown/total)*100):0;
-                    const c = {Critical:'#f0405e',High:'#f97316',Medium:'#f0a030',Low:'#4f8fff'}[sev];
+                    const c = {Critical:'#ff2244',High:'#ffb300',Medium:'#ffb300',Low:'#00e5ff'}[sev];
                     return (
                       <div key={sev} style={{marginBottom:6}}>
                         <div style={{display:'flex',justifyContent:'space-between',marginBottom:2}}>
                           <span style={{fontSize:'0.86rem',color:'var(--wt-secondary)',fontWeight:600}}>{sev}</span>
-                          <span style={{fontSize:'0.86rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:c}}>{shown}</span>
+                          <span style={{fontSize:'0.86rem',fontWeight:800,fontFamily:"'JetBrains Mono',monospace",color:c}}>{shown}</span>
                         </div>
                         <div style={{height:4,background:'var(--wt-border)',borderRadius:2,overflow:'hidden'}}>
                           <div style={{height:'100%',width:`${pct}%`,background:c,borderRadius:2,transition:'width .6s ease'}} />
@@ -1813,45 +1813,45 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Quadrant 2: Coverage status */}
-                <div onClick={()=>setModal({type:'gaps'})} style={{background:'var(--wt-card)',border:`1px solid ${coveredPct<80?'#f0405e':'var(--wt-border)'}20`,borderRadius:12,padding:'14px',overflow:'hidden',cursor:'pointer',transition:'border-color .15s'}}
-                  onMouseEnter={e=>e.currentTarget.style.borderColor=(coveredPct<80?'#f0405e':'#22d49a')+'60'} onMouseLeave={e=>e.currentTarget.style.borderColor=(coveredPct<80?'#f0405e':'var(--wt-border)')+'20'}>
+                <div onClick={()=>setModal({type:'gaps'})} style={{background:'var(--wt-card)',border:`1px solid ${coveredPct<80?'#ff2244':'var(--wt-border)'}20`,borderRadius:12,padding:'14px',overflow:'hidden',cursor:'pointer',transition:'border-color .15s'}}
+                  onMouseEnter={e=>e.currentTarget.style.borderColor=(coveredPct<80?'#ff2244':'#00ff88')+'60'} onMouseLeave={e=>e.currentTarget.style.borderColor=(coveredPct<80?'#ff2244':'var(--wt-border)')+'20'}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
                     <span style={{fontSize:'0.86rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Estate Coverage</span>
-                    <span style={{marginLeft:'auto',fontSize:'0.8rem',color:'#22d49a'}}>Details ↗</span>
+                    <span style={{marginLeft:'auto',fontSize:'0.8rem',color:'#00ff88'}}>Details ↗</span>
                   </div>
                   <div style={{display:'flex',alignItems:'flex-end',gap:10,marginBottom:10,flexWrap:'wrap'}}>
-                    <div style={{fontSize:'2.6rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:coveredPct>=90?'#22d49a':coveredPct>=70?'#f0a030':'#f0405e',lineHeight:1}}>{coveredPct}%</div>
+                    <div style={{fontSize:'2.6rem',fontWeight:900,fontFamily:"'JetBrains Mono',monospace",color:coveredPct>=90?'#00ff88':coveredPct>=70?'#ffb300':'#ff2244',lineHeight:1}}>{coveredPct}%</div>
                     <div style={{paddingBottom:4}}>
                       <div style={{fontSize:'0.84rem',fontWeight:700,color:'var(--wt-text)'}}>deployed</div>
                       <div style={{fontSize:'0.82rem',color:'var(--wt-muted)'}}>{gapDevices.length} unprotected</div>
                     </div>
                   </div>
                   <div style={{height:6,background:'var(--wt-border)',borderRadius:3,overflow:'hidden',marginBottom:8}}>
-                    <div style={{height:'100%',width:`${coveredPct}%`,background:coveredPct>=90?'#22d49a':coveredPct>=70?'#f0a030':'#f0405e',borderRadius:3,transition:'width .8s ease'}} />
+                    <div style={{height:'100%',width:`${coveredPct}%`,background:coveredPct>=90?'#00ff88':coveredPct>=70?'#ffb300':'#ff2244',borderRadius:3,transition:'width .8s ease'}} />
                   </div>
                   {gapDevices.slice(0,3).map(d=>(
-                    <div key={d.hostname} style={{fontSize:'0.82rem',color:'#f0405e',padding:'2px 0',borderBottom:'1px solid #f0405e10',fontFamily:'JetBrains Mono,monospace',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{d.hostname.length>18?d.hostname.slice(0,16)+'…':d.hostname}</div>
+                    <div key={d.hostname} style={{fontSize:'0.82rem',color:'#ff2244',padding:'2px 0',borderBottom:'1px solid #ff224410',fontFamily:"'JetBrains Mono',monospace",overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{d.hostname.length>18?d.hostname.slice(0,16)+'…':d.hostname}</div>
                   ))}
                   {gapDevices.length>3&&<div style={{fontSize:'0.82rem',color:'var(--wt-muted)',marginTop:4}}>+{gapDevices.length-3} more — click to view all</div>}
                 </div>
 
                 {/* Quadrant 3: Top vulns */}
                 <div onClick={()=>setActiveTab('vulns')} style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px',overflow:'hidden',cursor:'pointer',transition:'border-color .15s'}}
-                  onMouseEnter={e=>e.currentTarget.style.borderColor='#8b6fff40'} onMouseLeave={e=>e.currentTarget.style.borderColor='var(--wt-border)'}>
+                  onMouseEnter={e=>e.currentTarget.style.borderColor='#bd00ff40'} onMouseLeave={e=>e.currentTarget.style.borderColor='var(--wt-border)'}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
                     <span style={{fontSize:'0.86rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Top Vulnerabilities</span>
-                    {kevVulns.length>0&&<span style={{fontSize:'0.84rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f97316',color:'#fff'}}>{kevVulns.length} KEV</span>}
-                    <span style={{marginLeft:'auto',fontSize:'0.8rem',color:'#8b6fff'}}>View all ↗</span>
+                    {kevVulns.length>0&&<span style={{fontSize:'0.84rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#ffb300',color:'#fff'}}>{kevVulns.length} KEV</span>}
+                    <span style={{marginLeft:'auto',fontSize:'0.8rem',color:'#bd00ff'}}>View all ↗</span>
                   </div>
                   {vulns.slice(0,5).map((v,i)=>(
                     <div key={v.id} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 0',borderBottom:'1px solid var(--wt-border)'}}>
-                      <span style={{fontSize:'0.8rem',fontWeight:900,color:'var(--wt-dim)',minWidth:14,fontFamily:'JetBrains Mono,monospace'}}>{i+1}</span>
+                      <span style={{fontSize:'0.8rem',fontWeight:900,color:'var(--wt-dim)',minWidth:14,fontFamily:"'JetBrains Mono',monospace"}}>{i+1}</span>
                       <div style={{flex:1,minWidth:0}}>
                         <div style={{fontSize:'0.82rem',fontWeight:600,color:'var(--wt-text)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{v.title}</div>
                         <div style={{display:'flex',gap:4,marginTop:1,flexWrap:'wrap',alignItems:'center'}}>
-                          <span style={{fontSize:'0.78rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:v.severity==='Critical'?'#f0405e':v.severity==='High'?'#f9731620':'#f0a03020',color:v.severity==='Critical'?'#fff':v.severity==='High'?'#f97316':'#f0a030',flexShrink:0}}>{v.severity}</span>
-                          {v.cve&&<span style={{fontSize:'0.76rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',overflow:'hidden',textOverflow:'ellipsis',maxWidth:100}}>{v.cve}</span>}
-                          {v.kev&&<span style={{fontSize:'0.6rem',fontWeight:800,padding:'0 3px',borderRadius:2,background:'#f97316',color:'#fff',flexShrink:0}}>KEV</span>}
+                          <span style={{fontSize:'0.78rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:v.severity==='Critical'?'#ff2244':v.severity==='High'?'#ffb30020':'#ffb30020',color:v.severity==='Critical'?'#fff':v.severity==='High'?'#ffb300':'#ffb300',flexShrink:0}}>{v.severity}</span>
+                          {v.cve&&<span style={{fontSize:'0.76rem',color:'var(--wt-dim)',fontFamily:"'JetBrains Mono',monospace",overflow:'hidden',textOverflow:'ellipsis',maxWidth:100}}>{v.cve}</span>}
+                          {v.kev&&<span style={{fontSize:'0.6rem',fontWeight:800,padding:'0 3px',borderRadius:2,background:'#ffb300',color:'#fff',flexShrink:0}}>KEV</span>}
                         </div>
                       </div>
                     </div>
@@ -1863,20 +1863,20 @@ export default function DashboardPage() {
                 <div style={{display:'flex',flexDirection:'column',gap:8}}>
                   {/* Cases */}
                   <div onClick={()=>setActiveTab('incidents')} style={{flex:1,background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px',overflow:'hidden',cursor:'pointer',transition:'border-color .15s'}}
-                    onMouseEnter={e=>e.currentTarget.style.borderColor='#f0a03040'} onMouseLeave={e=>e.currentTarget.style.borderColor='var(--wt-border)'}>
+                    onMouseEnter={e=>e.currentTarget.style.borderColor='#ffb30040'} onMouseLeave={e=>e.currentTarget.style.borderColor='var(--wt-border)'}>
                     <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:8}}>
                       <span style={{fontSize:'0.86rem',fontWeight:800,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Active Cases</span>
-                      {slaBreaches>0&&<span style={{fontSize:'0.84rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f0405e',color:'#fff'}}>{slaBreaches} SLA</span>}
-                      <span style={{marginLeft:'auto',fontSize:'0.8rem',color:'#f0a030'}}>View all ↗</span>
+                      {slaBreaches>0&&<span style={{fontSize:'0.84rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#ff2244',color:'#fff'}}>{slaBreaches} SLA</span>}
+                      <span style={{marginLeft:'auto',fontSize:'0.8rem',color:'#ffb300'}}>View all ↗</span>
                     </div>
                     {incidents.filter(i=>!deletedIncidents.has(i.id)&&(incidentStatuses[i.id]||i.status)==='Active').slice(0,3).map(inc=>(
                       <div key={inc.id} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 0',borderBottom:'1px solid var(--wt-border)',minWidth:0}}>
-                        <span style={{width:6,height:6,borderRadius:'50%',background:inc.severity==='Critical'?'#f0405e':'#f97316',flexShrink:0}} />
+                        <span style={{width:6,height:6,borderRadius:'50%',background:inc.severity==='Critical'?'#ff2244':'#ffb300',flexShrink:0}} />
                         <span style={{fontSize:'0.8rem',fontWeight:600,flex:1,minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{inc.title}</span>
-                        <span className='wt-hide-xs' style={{fontSize:'0.8rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',flexShrink:0}}>{inc.id}</span>
+                        <span className='wt-hide-xs' style={{fontSize:'0.8rem',color:'var(--wt-dim)',fontFamily:"'JetBrains Mono',monospace",flexShrink:0}}>{inc.id}</span>
                       </div>
                     ))}
-                    {openCases===0&&<div style={{fontSize:'0.82rem',color:'#22d49a',textAlign:'center',padding:'8px 0'}}>✓ No active cases</div>}
+                    {openCases===0&&<div style={{fontSize:'0.82rem',color:'#00ff88',textAlign:'center',padding:'8px 0'}}>✓ No active cases</div>}
                   </div>
 
                 </div>
@@ -1886,38 +1886,38 @@ export default function DashboardPage() {
               {/* ── POSTURE TREND + NOISE REDUCTION ─────────────────────────────── */}
               {/* ── Demo AI Action Feed — visible when demo + auto mode ──────────────────── */}
               {demoMode && automation >= 1 && (demoAutoFeed.length > 0 || demoTriagingId) && (
-                <div style={{background:'var(--wt-card)',border:'1px solid #22d49a25',borderRadius:12,overflow:'hidden'}}>
-                  <div style={{padding:'10px 14px',borderBottom:'1px solid #22d49a15',display:'flex',alignItems:'center',gap:8}}>
-                    <span style={{width:7,height:7,borderRadius:'50%',background:'#22d49a',boxShadow:'0 0 8px #22d49a',display:'block',animation:'pulse 1s ease infinite',flexShrink:0}} />
-                    <span style={{fontSize:'0.78rem',fontWeight:800,color:'#22d49a',letterSpacing:'0.5px'}}>APEX LIVE ACTION FEED</span>
+                <div style={{background:'var(--wt-card)',border:'1px solid #00ff8825',borderRadius:12,overflow:'hidden'}}>
+                  <div style={{padding:'10px 14px',borderBottom:'1px solid #00ff8815',display:'flex',alignItems:'center',gap:8}}>
+                    <span style={{width:7,height:7,borderRadius:'50%',background:'#00ff88',boxShadow:'0 0 8px #00ff88',display:'block',animation:'pulse 1s ease infinite',flexShrink:0}} />
+                    <span style={{fontSize:'0.78rem',fontWeight:800,color:'#00ff88',letterSpacing:'0.5px'}}>APEX LIVE ACTION FEED</span>
                     <span style={{fontSize:'0.72rem',color:'var(--wt-muted)',marginLeft:'auto'}}>{['Recommend Only','Auto + Notify','Full Auto'][automation]} · demo</span>
                   </div>
                   <div style={{maxHeight:240,overflowY:'auto'}}>
                     {demoTriagingId && (
-                      <div style={{display:'flex',alignItems:'center',gap:10,padding:'8px 14px',borderBottom:'1px solid var(--wt-border)',background:'#4f8fff06'}}>
-                        <span style={{fontSize:'0.72rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',flexShrink:0}}>now</span>
+                      <div style={{display:'flex',alignItems:'center',gap:10,padding:'8px 14px',borderBottom:'1px solid var(--wt-border)',background:'#00e5ff06'}}>
+                        <span style={{fontSize:'0.72rem',color:'var(--wt-dim)',fontFamily:"'JetBrains Mono',monospace",flexShrink:0}}>now</span>
                         <span style={{fontSize:'0.84rem'}}>🔍</span>
-                        <span style={{fontSize:'0.78rem',color:'#4f8fff',fontWeight:600,animation:'pulse 1s ease infinite'}}>APEX analyzing: {alerts.find(a=>a.id===demoTriagingId)?.title||'alert'}…</span>
-                        <span style={{marginLeft:'auto',fontSize:'0.7rem',color:'#4f8fff',fontFamily:'JetBrains Mono,monospace'}}>claude-haiku</span>
+                        <span style={{fontSize:'0.78rem',color:'#00e5ff',fontWeight:600,animation:'pulse 1s ease infinite'}}>APEX analyzing: {alerts.find(a=>a.id===demoTriagingId)?.title||'alert'}…</span>
+                        <span style={{marginLeft:'auto',fontSize:'0.7rem',color:'#00e5ff',fontFamily:"'JetBrains Mono',monospace"}}>claude-haiku</span>
                       </div>
                     )}
                     {demoAutoFeed.map(entry=>(
                       <div key={entry.id} style={{display:'flex',alignItems:'flex-start',gap:10,padding:'7px 14px',borderBottom:'1px solid var(--wt-border)',animation:'tab-fade 0.2s ease'}}>
-                        <span style={{fontSize:'0.7rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',flexShrink:0,marginTop:2}}>{entry.ts}</span>
+                        <span style={{fontSize:'0.7rem',color:'var(--wt-dim)',fontFamily:"'JetBrains Mono',monospace",flexShrink:0,marginTop:2}}>{entry.ts}</span>
                         <span style={{fontSize:'0.82rem',flexShrink:0}}>
                           {entry.phase==='triaging'?'🔍':entry.verdict==='FP'?'✅':entry.phase==='verdict'?'🚨':'⚡'}
                         </span>
                         <div style={{flex:1,minWidth:0,display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
-                          <span style={{fontSize:'0.78rem',color:entry.phase==='action'?(entry.toolColor||'#4f8fff'):entry.verdict==='FP'?'#22d49a':entry.verdict==='TP'?'#f0405e':'var(--wt-secondary)',fontWeight:entry.phase==='action'?600:400,lineHeight:1.4}}>
+                          <span style={{fontSize:'0.78rem',color:entry.phase==='action'?(entry.toolColor||'#00e5ff'):entry.verdict==='FP'?'#00ff88':entry.verdict==='TP'?'#ff2244':'var(--wt-secondary)',fontWeight:entry.phase==='action'?600:400,lineHeight:1.4}}>
                             {entry.msg}
                           </span>
                           {entry.verdict && (
-                            <span style={{fontSize:'0.7rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:entry.verdict==='TP'?'#f0405e':entry.verdict==='FP'?'#22d49a':'#f0a030',color:'#fff',flexShrink:0}}>
+                            <span style={{fontSize:'0.7rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:entry.verdict==='TP'?'#ff2244':entry.verdict==='FP'?'#00ff88':'#ffb300',color:'#fff',flexShrink:0}}>
                               {entry.verdict} {entry.confidence}%
                             </span>
                           )}
                           {entry.tool && (
-                            <span style={{fontSize:'0.68rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',flexShrink:0}}>[{entry.tool}]</span>
+                            <span style={{fontSize:'0.68rem',color:'var(--wt-dim)',fontFamily:"'JetBrains Mono',monospace",flexShrink:0}}>[{entry.tool}]</span>
                           )}
                         </div>
                       </div>
@@ -1995,22 +1995,22 @@ export default function DashboardPage() {
             <div style={{display:'flex',flexDirection:'column',gap:14}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4,flexWrap:'wrap'}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Coverage</h2>
-                <span style={{fontSize:'0.86rem',color:coveredPct>=90?'#22d49a':'#f0a030',background:coveredPct>=90?'#22d49a12':'#f0a03012',padding:'2px 8px',borderRadius:4,fontWeight:600,border:`1px solid ${coveredPct>=90?'#22d49a25':'#f0a03025'}`}}>{coveredPct}% covered</span>
+                <span style={{fontSize:'0.86rem',color:coveredPct>=90?'#00ff88':'#ffb300',background:coveredPct>=90?'#00ff8812':'#ffb30012',padding:'2px 8px',borderRadius:4,fontWeight:600,border:`1px solid ${coveredPct>=90?'#00ff8825':'#ffb30025'}`}}>{coveredPct}% covered</span>
                 {!demoMode&&liveKnownDevices.length>0&&<span style={{fontSize:'0.84rem',color:'#00b3e3',background:'#00b3e310',padding:'2px 8px',borderRadius:4,border:'1px solid #00b3e325',fontWeight:600}}>✦ {liveKnownDevices.length} devices{liveCoverageDevices.length>0?` (${liveCoverageDevices.length} from MDM)`:' from Tenable'}</span>}
                 <div style={{display:'flex',gap:5,flexWrap:'wrap',marginLeft:'auto',alignItems:'center'}}>
                   <span style={{fontSize:'0.82rem',color:'var(--wt-dim)',marginRight:2}}>OS:</span>
                   {Object.entries(osBreakdown).sort((a,b)=>b[1]-a[1]).slice(0,10).map(([os,n])=>(
                     <span key={os} style={{fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,background:'var(--wt-border)',color:'var(--wt-muted)',fontWeight:600}}>{os} <strong style={{color:'var(--wt-text)'}}>{n}</strong></span>
                   ))}
-                  <span style={{fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,background:'#4f8fff12',color:'#4f8fff',fontWeight:700,border:'1px solid #4f8fff20',marginLeft:4}}>Total: {demoMode?totalDevices:liveKnownDevices.length||totalDevices}</span>
+                  <span style={{fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,background:'#00e5ff12',color:'#00e5ff',fontWeight:700,border:'1px solid #00e5ff20',marginLeft:4}}>Total: {demoMode?totalDevices:liveKnownDevices.length||totalDevices}</span>
                 </div>
               </div>
 
               {/* Per-tool coverage — only connected tools */}
               <div>
-                <div style={{fontSize:'0.86rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>
+                <div style={{fontSize:'0.86rem',fontWeight:700,color:'#00e5ff',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>
                   Tool Coverage Across Estate
-                  {!demoMode&&activeTools.length===0&&<span style={{marginLeft:8,fontSize:'0.82rem',color:'#f0a030',fontWeight:600,textTransform:'none'}}>— no tools connected</span>}
+                  {!demoMode&&activeTools.length===0&&<span style={{marginLeft:8,fontSize:'0.82rem',color:'#ffb300',fontWeight:600,textTransform:'none'}}>— no tools connected</span>}
                 </div>
                 {activeTools.length===0&&!demoMode ? (
                   <div style={{padding:'14px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:10,fontSize:'0.86rem',color:'var(--wt-dim)',textAlign:'center'}}>
@@ -2036,17 +2036,17 @@ export default function DashboardPage() {
                     const coveredCount = estateSize - gapCount;
                     // Show actual device count from sourceDeviceCounts if available
                     const rawCount = !demoMode && sourceDeviceCounts[tool.id] ? sourceDeviceCounts[tool.id] : (demoMode ? (DEMO_COUNTS[tool.id]||Math.round(estateSize*pct/100)) : coveredCount);
-                    const pctColor = pct>=95?'#22d49a':pct>=75?'#f0a030':'#f0405e';
+                    const pctColor = pct>=95?'#00ff88':pct>=75?'#ffb300':'#ff2244';
                     return (
-                      <div key={tool.id} onClick={()=>setGapToolFilter(gapToolFilter===tool.id?null:tool.id)} style={{padding:'10px 14px',background:gapToolFilter===tool.id?'var(--wt-card2)':'var(--wt-card)',border:`1px solid ${gapToolFilter===tool.id?'#4f8fff40':'#141820'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12,cursor:'pointer'}}>
+                      <div key={tool.id} onClick={()=>setGapToolFilter(gapToolFilter===tool.id?null:tool.id)} style={{padding:'10px 14px',background:gapToolFilter===tool.id?'var(--wt-card2)':'var(--wt-card)',border:`1px solid ${gapToolFilter===tool.id?'#00e5ff40':'#141820'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12,cursor:'pointer'}}>
                         <div style={{width:120,fontSize:'0.84rem',fontWeight:600,flexShrink:0}}>{tool.name}</div>
                         <div style={{flex:1,height:8,background:'var(--wt-border)',borderRadius:4,overflow:'hidden'}}>
                           <div style={{height:'100%',background:`linear-gradient(90deg,${pctColor},${pctColor}aa)`,borderRadius:4,width:`${pct}%`,transition:'width 1s'}} />
                         </div>
-                        <span style={{fontSize:'0.8rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:pctColor,minWidth:28,textAlign:'right'}}>{pct}%</span>
-                        <span style={{fontSize:'0.84rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:'var(--wt-text)',minWidth:36,textAlign:'right'}}>{rawCount.toLocaleString()}</span>
+                        <span style={{fontSize:'0.8rem',fontWeight:800,fontFamily:"'JetBrains Mono',monospace",color:pctColor,minWidth:28,textAlign:'right'}}>{pct}%</span>
+                        <span style={{fontSize:'0.84rem',fontWeight:700,fontFamily:"'JetBrains Mono',monospace",color:'var(--wt-text)',minWidth:36,textAlign:'right'}}>{rawCount.toLocaleString()}</span>
                         <span style={{fontSize:'0.8rem',color:'var(--wt-dim)',minWidth:14}}>dev</span>
-                        <span style={{fontSize:'0.84rem',minWidth:70,textAlign:'right'}}>{gapCount>0?<span style={{color:'#f0a030'}}>{gapCount} miss</span>:<span style={{color:'#22d49a'}}>✓ Full</span>}</span>
+                        <span style={{fontSize:'0.84rem',minWidth:70,textAlign:'right'}}>{gapCount>0?<span style={{color:'#ffb300'}}>{gapCount} miss</span>:<span style={{color:'#00ff88'}}>✓ Full</span>}</span>
                       </div>
                     );
                   })}
@@ -2057,7 +2057,7 @@ export default function DashboardPage() {
               {/* OS Breakdown — from connected tools */}
               {(()=>{
                 const devices = demoMode ? DEMO_GAP_DEVICES : liveKnownDevices;
-                const osVersionColor = (os) => { const s = (os||'').toLowerCase(); return s.includes('windows 11')?'#00a4ef':s.includes('windows 10')?'#0078d4':s.includes('server')?'#005a9e':s.includes('ubuntu')?'#e95420':s.includes('rhel')||s.includes('centos')||s.includes('amazon')?'#cc0000':s.includes('debian')||s.includes('suse')?'#a80030':s.includes('linux')?'#f97316':s.includes('macos')?'#a8b2c1':'#6b7a94'; };
+                const osVersionColor = (os) => { const s = (os||'').toLowerCase(); return s.includes('windows 11')?'#00a4ef':s.includes('windows 10')?'#0078d4':s.includes('server')?'#005a9e':s.includes('ubuntu')?'#e95420':s.includes('rhel')||s.includes('centos')||s.includes('amazon')?'#cc0000':s.includes('debian')||s.includes('suse')?'#a80030':s.includes('linux')?'#ffb300':s.includes('macos')?'#a8b2c1':'#6b7a94'; };
                 const OS_COLORS = {}; const OS_ICONS = {};
                 const versionNormalise = (raw) => {
                   if (!raw || raw === 'Unknown') return null;
@@ -2092,9 +2092,9 @@ export default function DashboardPage() {
                   <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px 16px'}}>
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
                       <span style={{fontSize:'0.86rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'1px'}}>OS Breakdown</span>
-                      {!demoMode&&liveKnownDevices.length>0&&<span style={{fontSize:'0.86rem',color:'#22d49a',background:'#22d49a0a',padding:'1px 6px',borderRadius:3,border:'1px solid #22d49a20',fontWeight:600}}>✦ live</span>}
-                      {demoMode&&<span style={{fontSize:'0.86rem',color:'#f0a030',padding:'1px 6px',borderRadius:3,fontWeight:600}}>demo</span>}
-                      <span style={{marginLeft:'auto',fontSize:'0.84rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{total.toLocaleString()} devices</span>
+                      {!demoMode&&liveKnownDevices.length>0&&<span style={{fontSize:'0.86rem',color:'#00ff88',background:'#00ff880a',padding:'1px 6px',borderRadius:3,border:'1px solid #00ff8820',fontWeight:600}}>✦ live</span>}
+                      {demoMode&&<span style={{fontSize:'0.86rem',color:'#ffb300',padding:'1px 6px',borderRadius:3,fontWeight:600}}>demo</span>}
+                      <span style={{marginLeft:'auto',fontSize:'0.84rem',color:'var(--wt-dim)',fontFamily:"'JetBrains Mono',monospace"}}>{total.toLocaleString()} devices</span>
                     </div>
                     {/* Stacked bar */}
                     <div style={{height:10,borderRadius:5,overflow:'hidden',display:'flex',marginBottom:10,gap:1}}>
@@ -2107,7 +2107,7 @@ export default function DashboardPage() {
                       {entries.slice(0,10).map(([os,n])=>{
                         const pct = Math.round(n/total*100);
                         const s = os.toLowerCase();
-                        const col = s.includes('windows 11')?'#00a4ef':s.includes('windows 10')?'#0078d4':s.includes('server')?'#005a9e':s.includes('ubuntu')?'#e95420':s.includes('rhel')||s.includes('centos')||s.includes('amazon')?'#cc0000':s.includes('debian')||s.includes('suse')?'#a80030':s.includes('linux')?'#f97316':s.includes('macos')?'#a8b2c1':'#6b7a94';
+                        const col = s.includes('windows 11')?'#00a4ef':s.includes('windows 10')?'#0078d4':s.includes('server')?'#005a9e':s.includes('ubuntu')?'#e95420':s.includes('rhel')||s.includes('centos')||s.includes('amazon')?'#cc0000':s.includes('debian')||s.includes('suse')?'#a80030':s.includes('linux')?'#ffb300':s.includes('macos')?'#a8b2c1':'#6b7a94';
                         const icon = s.includes('windows')||s.includes('server')?'🪟':s.includes('ubuntu')||s.includes('linux')||s.includes('rhel')||s.includes('centos')||s.includes('debian')||s.includes('amazon')||s.includes('suse')?'🐧':s.includes('macos')?'🍎':'💻';
                         return (
                           <div key={os} style={{display:'flex',alignItems:'center',gap:8}}>
@@ -2116,8 +2116,8 @@ export default function DashboardPage() {
                             <div style={{flex:1,height:6,background:'var(--wt-border)',borderRadius:3,overflow:'hidden'}}>
                               <div style={{height:'100%',width:`${pct}%`,background:col,borderRadius:3,transition:'width 0.8s ease'}} />
                             </div>
-                            <span style={{fontSize:'0.78rem',fontWeight:800,color:col,fontFamily:'JetBrains Mono,monospace',minWidth:26,textAlign:'right'}}>{pct}%</span>
-                            <span style={{fontSize:'0.78rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',minWidth:28,textAlign:'right'}}>{n}</span>
+                            <span style={{fontSize:'0.78rem',fontWeight:800,color:col,fontFamily:"'JetBrains Mono',monospace",minWidth:26,textAlign:'right'}}>{pct}%</span>
+                            <span style={{fontSize:'0.78rem',color:'var(--wt-dim)',fontFamily:"'JetBrains Mono',monospace",minWidth:28,textAlign:'right'}}>{n}</span>
                           </div>
                         );
                       })}
@@ -2178,17 +2178,17 @@ export default function DashboardPage() {
                   <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px 16px'}}>
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10,flexWrap:'wrap'}}>
                       <span style={{fontSize:'0.86rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'1px'}}>Tenable vs Taegis — Device Coverage</span>
-                      <span style={{fontSize:'0.84rem',color:'#22d49a',background:'#22d49a0a',padding:'1px 6px',borderRadius:3,border:'1px solid #22d49a20',fontWeight:600}}>✦ live</span>
+                      <span style={{fontSize:'0.84rem',color:'#00ff88',background:'#00ff880a',padding:'1px 6px',borderRadius:3,border:'1px solid #00ff8820',fontWeight:600}}>✦ live</span>
                     </div>
                     {/* Summary strip */}
                     <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6,marginBottom:12}} className='wt-three-col'>
                       {[
-                        {label:'Both tools',val:bothCount,color:'#22d49a',icon:'✓',filter:'all'},
-                        {label:'Tenable only — no XDR',val:tenableOnly.length,color:'#f0405e',icon:'⚠',filter:'missing'},
-                        {label:'Taegis only — not scanned',val:taegisOnly.length,color:'#f0a030',icon:'?',filter:'taegis-only'},
+                        {label:'Both tools',val:bothCount,color:'#00ff88',icon:'✓',filter:'all'},
+                        {label:'Tenable only — no XDR',val:tenableOnly.length,color:'#ff2244',icon:'⚠',filter:'missing'},
+                        {label:'Taegis only — not scanned',val:taegisOnly.length,color:'#ffb300',icon:'?',filter:'taegis-only'},
                       ].map(s=>(
                         <div key={s.label} onClick={()=>setCmpFilter(s.filter)} style={{padding:'10px',background:cmpFilter===s.filter?`${s.color}10`:'var(--wt-card2)',border:`1px solid ${cmpFilter===s.filter?s.color+'40':'var(--wt-border)'}`,borderRadius:8,cursor:'pointer',textAlign:'center'}}>
-                          <div style={{fontSize:'1.5rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color}}>{s.val}</div>
+                          <div style={{fontSize:'1.5rem',fontWeight:900,fontFamily:"'JetBrains Mono',monospace",color:s.color}}>{s.val}</div>
                           <div style={{fontSize:'0.72rem',color:'var(--wt-muted)',marginTop:2}}>{s.label}</div>
                         </div>
                       ))}
@@ -2196,7 +2196,7 @@ export default function DashboardPage() {
                     {/* Filter tabs */}
                     <div style={{display:'flex',gap:6,marginBottom:10}}>
                       {[['all','All devices'],['missing','Missing Taegis'],['taegis-only','Taegis only']].map(([f,l])=>(
-                        <button key={f} onClick={()=>setCmpFilter(f)} style={{padding:'3px 10px',borderRadius:6,border:`1px solid ${cmpFilter===f?'#4f8fff40':'var(--wt-border)'}`,background:cmpFilter===f?'#4f8fff12':'transparent',color:cmpFilter===f?'#4f8fff':'var(--wt-muted)',fontSize:'0.78rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{l}</button>
+                        <button key={f} onClick={()=>setCmpFilter(f)} style={{padding:'3px 10px',borderRadius:6,border:`1px solid ${cmpFilter===f?'#00e5ff40':'var(--wt-border)'}`,background:cmpFilter===f?'#00e5ff12':'transparent',color:cmpFilter===f?'#00e5ff':'var(--wt-muted)',fontSize:'0.78rem',fontWeight:600,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>{l}</button>
                       ))}
                       <span style={{marginLeft:'auto',fontSize:'0.78rem',color:'var(--wt-dim)'}}>{displayRows.length} devices</span>
                     </div>
@@ -2211,10 +2211,10 @@ export default function DashboardPage() {
                         const hasTae = cmpFilter==='taegis-only'||d.taegisPresent;
                         return (
                           <div key={hostname+i} style={{display:'grid',gridTemplateColumns:'1fr 90px 70px 70px',gap:0,padding:'5px 8px',borderBottom:'1px solid var(--wt-border)',background:i%2===0?'transparent':'var(--wt-card2)',alignItems:'center'}}>
-                            <span style={{fontSize:'0.78rem',fontWeight:600,fontFamily:'JetBrains Mono,monospace',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{hostname.split('.')[0]}</span>
+                            <span style={{fontSize:'0.78rem',fontWeight:600,fontFamily:"'JetBrains Mono',monospace",overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{hostname.split('.')[0]}</span>
                             <span style={{fontSize:'0.72rem',color:'var(--wt-dim)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{(d.os||'').split(' ').slice(0,2).join(' ')}</span>
-                            <span style={{textAlign:'center',fontSize:'0.9rem'}}>{hasTen?<span style={{color:'#22d49a'}}>✓</span>:<span style={{color:'var(--wt-border)'}}>—</span>}</span>
-                            <span style={{textAlign:'center',fontSize:'0.9rem'}}>{hasTae?<span style={{color:'#22d49a'}}>✓</span>:<span style={{color:'#f0405e'}}>✗</span>}</span>
+                            <span style={{textAlign:'center',fontSize:'0.9rem'}}>{hasTen?<span style={{color:'#00ff88'}}>✓</span>:<span style={{color:'var(--wt-border)'}}>—</span>}</span>
+                            <span style={{textAlign:'center',fontSize:'0.9rem'}}>{hasTae?<span style={{color:'#00ff88'}}>✓</span>:<span style={{color:'#ff2244'}}>✗</span>}</span>
                           </div>
                         );
                       })}
@@ -2226,12 +2226,12 @@ export default function DashboardPage() {
 
               {/* Devices with gaps */}
               <div>
-                <div style={{fontSize:'0.86rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Devices with Gaps ({gapDevices.length})</div>
+                <div style={{fontSize:'0.86rem',fontWeight:700,color:'#ff2244',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Devices with Gaps ({gapDevices.length})</div>
                 <div style={{display:'flex',flexDirection:'column',gap:6}}>
                   {/* CSV export button */}
                   {gapToolFilter && (
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
-                      <span style={{fontSize:'0.84rem',color:'#4f8fff',fontWeight:600}}>Showing devices missing {ALL_TOOLS.find(t=>t.id===gapToolFilter)?.name||gapToolFilter}</span>
+                      <span style={{fontSize:'0.84rem',color:'#00e5ff',fontWeight:600}}>Showing devices missing {ALL_TOOLS.find(t=>t.id===gapToolFilter)?.name||gapToolFilter}</span>
                       <button onClick={()=>{
                         const filtered = gapDevices.filter(d=>d.missing.some(m=>ALL_TOOLS.find(t=>t.id===gapToolFilter)?.name && m.includes(ALL_TOOLS.find(t=>t.id===gapToolFilter).name.split(' ')[0])));
                         const csv = ['Hostname,IP,OS,Missing Tools,Reason,Last Seen', ...filtered.map(d=>`${d.hostname},${d.ip},${d.os},"${d.missing.join('; ')}","${d.reason}",${d.lastSeen}`)].join('\n');
@@ -2239,31 +2239,31 @@ export default function DashboardPage() {
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a'); a.href=url; a.download=`coverage-gaps-${gapToolFilter}.csv`; a.click();
                         URL.revokeObjectURL(url);
-                      }} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.86rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Export CSV ↓</button>
-                      <button onClick={()=>setGapToolFilter(null)} style={{padding:'3px 8px',borderRadius:5,border:'1px solid var(--wt-border)',background:'none',color:'var(--wt-muted)',fontSize:'0.84rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear ×</button>
+                      }} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #00ff8830',background:'#00ff8810',color:'#00ff88',fontSize:'0.86rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Export CSV ↓</button>
+                      <button onClick={()=>setGapToolFilter(null)} style={{padding:'3px 8px',borderRadius:5,border:'1px solid var(--wt-border)',background:'none',color:'var(--wt-muted)',fontSize:'0.84rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Clear ×</button>
                     </div>
                   )}
                   {(gapToolFilter ? gapDevices.filter(d=>d.missing.some(m=>ALL_TOOLS.find(t=>t.id===gapToolFilter)?.name && m.includes(ALL_TOOLS.find(t=>t.id===gapToolFilter).name.split(' ')[0]))) : gapDevices).map(dev=>{
-                    const heatColor = dev.lastSeenDays>7?'#f0405e':dev.lastSeenDays>3?'#f0a030':dev.lastSeenDays>1?'#f0c030':'#22d49a';
+                    const heatColor = dev.lastSeenDays>7?'#ff2244':dev.lastSeenDays>3?'#ffb300':dev.lastSeenDays>1?'#f0c030':'#00ff88';
                     const heatLabel = dev.lastSeenDays>7?'Stale >7d':dev.lastSeenDays>3?`${dev.lastSeenDays}d ago`:dev.lastSeenDays>1?`${dev.lastSeenDays}d ago`:'Recent'; return (
                     <div key={dev.hostname} style={{padding:'12px 14px',background:'var(--wt-card)',border:`1px solid ${heatColor}28`,borderLeft:`3px solid ${heatColor}`,borderRadius:10}}>
                       <div style={{display:'flex',alignItems:'flex-start',gap:10}}>
                         <div style={{flex:1}}>
                           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
-                            <span style={{fontSize:'0.8rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace'}}>{dev.hostname}</span>
-                            <span style={{fontSize:'0.84rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{dev.ip}</span>
+                            <span style={{fontSize:'0.8rem',fontWeight:700,fontFamily:"'JetBrains Mono',monospace"}}>{dev.hostname}</span>
+                            <span style={{fontSize:'0.84rem',color:'var(--wt-dim)',fontFamily:"'JetBrains Mono',monospace"}}>{dev.ip}</span>
                             <span style={{fontSize:'0.82rem',color:'var(--wt-muted)'}}>{dev.os}</span>
                             <span style={{fontSize:'0.46rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:`${heatColor}18`,color:heatColor,border:`1px solid ${heatColor}30`,marginLeft:'auto'}}>{heatLabel}</span>
                           </div>
                           <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:4}}>
                             {dev.missing.map(m=>{
-                              const catColor = m.includes('Falcon')||m.includes('Defender')||m.includes('SentinelOne')||m.includes('Carbon Black')?'#f0405e':m.includes('Splunk')||m.includes('Sentinel')||m.includes('QRadar')||m.includes('Elastic')?'#f0a030':m.includes('Tenable')||m.includes('Nessus')||m.includes('Qualys')?'#8b6fff':'#4f8fff';
+                              const catColor = m.includes('Falcon')||m.includes('Defender')||m.includes('SentinelOne')||m.includes('Carbon Black')?'#ff2244':m.includes('Splunk')||m.includes('Sentinel')||m.includes('QRadar')||m.includes('Elastic')?'#ffb300':m.includes('Tenable')||m.includes('Nessus')||m.includes('Qualys')?'#bd00ff':'#00e5ff';
                               return <span key={m} style={{fontSize:'0.86rem',fontWeight:700,padding:'3px 8px',borderRadius:4,background:`${catColor}14`,color:catColor,border:`1px solid ${catColor}28`,display:'flex',alignItems:'center',gap:4}}><span style={{fontSize:'0.84rem'}}>✗</span>{m}</span>;
                             })}
                           </div>
                           <div style={{fontSize:'0.82rem',color:'var(--wt-muted)'}}>{dev.reason} · Last seen {dev.lastSeen}</div>
                         </div>
-                        <button onClick={()=>setDeployAgentDevice(dev)} style={{padding:'5px 12px',borderRadius:7,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Deploy Agent →</button>
+                        <button onClick={()=>setDeployAgentDevice(dev)} style={{padding:'5px 12px',borderRadius:7,border:'1px solid #00e5ff30',background:'#00e5ff10',color:'#00e5ff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>Deploy Agent →</button>
                       </div>
                     </div>
                   );})}
@@ -2277,10 +2277,10 @@ export default function DashboardPage() {
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4,flexWrap:'wrap'}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Vulnerabilities</h2>
-                {!demoMode && liveVulns.length>0 && <span style={{fontSize:'0.84rem',color:'#22d49a',background:'#22d49a0a',padding:'2px 8px',borderRadius:4,border:'1px solid #22d49a25',fontWeight:600}}>✦ Live · {liveVulns.length} from Tenable</span>}
-                {demoMode && <span style={{fontSize:'0.84rem',color:'#f0a030',background:'#f0a03010',padding:'2px 8px',borderRadius:4,fontWeight:600}}>Demo data</span>}
-                <span style={{fontSize:'0.86rem',color:'#f0405e',background:'#f0405e12',padding:'2px 8px',borderRadius:4}}>Ranked by severity × prevalence</span>
-                {kevVulns.length>0 && <span style={{fontSize:'0.86rem',color:'#f97316',background:'#f9731612',padding:'2px 8px',borderRadius:4,border:'1px solid #f9731625',fontWeight:700}}>{kevVulns.length} CISA KEV — 72h</span>}
+                {!demoMode && liveVulns.length>0 && <span style={{fontSize:'0.84rem',color:'#00ff88',background:'#00ff880a',padding:'2px 8px',borderRadius:4,border:'1px solid #00ff8825',fontWeight:600}}>✦ Live · {liveVulns.length} from Tenable</span>}
+                {demoMode && <span style={{fontSize:'0.84rem',color:'#ffb300',background:'#ffb30010',padding:'2px 8px',borderRadius:4,fontWeight:600}}>Demo data</span>}
+                <span style={{fontSize:'0.86rem',color:'#ff2244',background:'#ff224412',padding:'2px 8px',borderRadius:4}}>Ranked by severity × prevalence</span>
+                {kevVulns.length>0 && <span style={{fontSize:'0.86rem',color:'#ffb300',background:'#ffb30012',padding:'2px 8px',borderRadius:4,border:'1px solid #ffb30025',fontWeight:700}}>{kevVulns.length} CISA KEV — 72h</span>}
               </div>
               <div style={{display:'grid',gridTemplateColumns:'1fr 290px',gap:14,alignItems:'start'}} className='wt-two-col'>
               {/* LEFT — vuln list */}
@@ -2302,41 +2302,41 @@ export default function DashboardPage() {
                   });
                   return sorted.map((vuln,rank)=>(
                   <div key={vuln.id}>
-                    <div className='vuln-row' onClick={()=>setSelectedVuln(selectedVuln?.id===vuln.id?null:vuln)} style={{padding:'10px 14px',background:selectedVuln?.id===vuln.id?'#0c1428':'var(--wt-card)',border:`1px solid ${selectedVuln?.id===vuln.id?'#4f8fff':'var(--wt-border)'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12}}>
+                    <div className='vuln-row' onClick={()=>setSelectedVuln(selectedVuln?.id===vuln.id?null:vuln)} style={{padding:'10px 14px',background:selectedVuln?.id===vuln.id?'#0c1428':'var(--wt-card)',border:`1px solid ${selectedVuln?.id===vuln.id?'#00e5ff':'var(--wt-border)'}`,borderRadius:10,display:'flex',alignItems:'center',gap:12}}>
                       <div style={{flex:1,minWidth:0}}>
                         <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:2}}>
                           <span style={{fontSize:'0.86rem',fontWeight:700}}>{vuln.title}</span>
-                          {vuln.kev && <span style={{fontSize:'0.58rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#f97316',color:'#fff',flexShrink:0}}>CISA KEV</span>}
+                          {vuln.kev && <span style={{fontSize:'0.58rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#ffb300',color:'#fff',flexShrink:0}}>CISA KEV</span>}
                         </div>
                         <div style={{display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}>
                           <SevBadge sev={vuln.severity} />
-                          {vuln.cvss&&vuln.cvss!=='N/A'&&<span style={{fontSize:'0.84rem',color:'#4f8fff',fontFamily:'JetBrains Mono,monospace',fontWeight:700}}>CVSS {vuln.cvss}</span>}
-                          <span style={{fontSize:'0.84rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{vuln.cve && vuln.cve !== 'null' ? vuln.cve : ''}</span>
+                          {vuln.cvss&&vuln.cvss!=='N/A'&&<span style={{fontSize:'0.84rem',color:'#00e5ff',fontFamily:"'JetBrains Mono',monospace",fontWeight:700}}>CVSS {vuln.cvss}</span>}
+                          <span style={{fontSize:'0.84rem',color:'var(--wt-dim)',fontFamily:"'JetBrains Mono',monospace"}}>{vuln.cve && vuln.cve !== 'null' ? vuln.cve : ''}</span>
                           <span style={{fontSize:'0.82rem',color:'var(--wt-muted)'}}>{(vuln.affectedAssets?.length || vuln.affected || 1)} device{(vuln.affectedAssets?.length || vuln.affected || 1)!==1?'s':''} affected</span>
-                          <span style={{fontSize:'0.82rem',color:'#f0a030'}}>{vuln.prevalence!=null?`${vuln.prevalence}% prevalence`:`${vuln.source||'Tenable'}`}</span>
+                          <span style={{fontSize:'0.82rem',color:'#ffb300'}}>{vuln.prevalence!=null?`${vuln.prevalence}% prevalence`:`${vuln.source||'Tenable'}`}</span>
                         </div>
                       </div>
-                      <span style={{fontSize:'0.86rem',color:'#4f8fff',flexShrink:0}}>{selectedVuln?.id===vuln.id?'▲':'▼'}</span>
+                      <span style={{fontSize:'0.86rem',color:'#00e5ff',flexShrink:0}}>{selectedVuln?.id===vuln.id?'▲':'▼'}</span>
                     </div>
                     {selectedVuln?.id===vuln.id && (
-                      <div style={{padding:'14px 16px',background:'var(--wt-card2)',border:'1px solid #4f8fff40',borderTop:'2px solid #4f8fff',borderRadius:'0 0 10px 10px',marginBottom:0,boxShadow:'0 4px 20px rgba(0,0,0,0.3)'}}>
+                      <div style={{padding:'14px 16px',background:'var(--wt-card2)',border:'1px solid #00e5ff40',borderTop:'2px solid #00e5ff',borderRadius:'0 0 10px 10px',marginBottom:0,boxShadow:'0 4px 20px rgba(0,0,0,0.3)'}}>
                         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}} className='wt-two-col'>
                           <div>
                             <div style={{fontSize:'0.86rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:10}}>{vuln.description}</div>
                             <div style={{fontSize:'0.84rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Affected Devices</div>
                             <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',marginBottom:6}}>
-                              <span style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:'#f0a030'}}>{(vuln.affectedAssets||vuln.affectedDevices||[vuln.device].filter(Boolean)).length}</span>
+                              <span style={{fontSize:'1rem',fontWeight:900,fontFamily:"'JetBrains Mono',monospace",color:'#ffb300'}}>{(vuln.affectedAssets||vuln.affectedDevices||[vuln.device].filter(Boolean)).length}</span>
                               <span style={{fontSize:'0.8rem',color:'var(--wt-secondary)'}}>device{(vuln.affectedAssets||vuln.affectedDevices||[]).length!==1?'s':''} affected</span>
                               {(vuln.affectedAssets||vuln.affectedDevices||[]).length > 0 && (
-                                <button onClick={e=>{e.stopPropagation();const assets=vuln.affectedAssets||vuln.affectedDevices||[vuln.device].filter(Boolean);const csv=['Hostname,CVE,Severity,Plugin'].concat(assets.map(h=>`${h},${vuln.cve||'N/A'},${vuln.severity},${vuln.sourceId||''}`)).join('\n');const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`${(vuln.cve||vuln.id).replace(/[^a-z0-9]/gi,'_')}_assets.csv`;a.click();URL.revokeObjectURL(url);}} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.86rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>⬇ Export CSV</button>
+                                <button onClick={e=>{e.stopPropagation();const assets=vuln.affectedAssets||vuln.affectedDevices||[vuln.device].filter(Boolean);const csv=['Hostname,CVE,Severity,Plugin'].concat(assets.map(h=>`${h},${vuln.cve||'N/A'},${vuln.severity},${vuln.sourceId||''}`)).join('\n');const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`${(vuln.cve||vuln.id).replace(/[^a-z0-9]/gi,'_')}_assets.csv`;a.click();URL.revokeObjectURL(url);}} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #00ff8830',background:'#00ff880a',color:'#00ff88',fontSize:'0.86rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",display:'flex',alignItems:'center',gap:4}}>⬇ Export CSV</button>
                               )}
                             </div>
-                            {(()=>{const assets=(vuln.affectedAssets||vuln.affectedDevices||[vuln.device].filter(Boolean));if(!assets.length) return null;const show=assets.slice(0,8);const rest=assets.length-8;return(<div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:4}}>{show.map(d=>(<span key={d} style={{fontSize:'0.84rem',fontFamily:'JetBrains Mono,monospace',padding:'2px 7px',borderRadius:4,background:'#f0a03010',border:'1px solid #f0a03025',color:'#f0c070'}}>{d}</span>))}{rest>0&&<span style={{fontSize:'0.84rem',color:'var(--wt-dim)',padding:'2px 7px'}}>+{rest} more</span>}</div>);})()}
+                            {(()=>{const assets=(vuln.affectedAssets||vuln.affectedDevices||[vuln.device].filter(Boolean));if(!assets.length) return null;const show=assets.slice(0,8);const rest=assets.length-8;return(<div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:4}}>{show.map(d=>(<span key={d} style={{fontSize:'0.84rem',fontFamily:"'JetBrains Mono',monospace",padding:'2px 7px',borderRadius:4,background:'#ffb30010',border:'1px solid #ffb30025',color:'#f0c070'}}>{d}</span>))}{rest>0&&<span style={{fontSize:'0.84rem',color:'var(--wt-dim)',padding:'2px 7px'}}>+{rest} more</span>}</div>);})()}
                             <div style={{marginTop:10,display:'flex',gap:6,flexWrap:'wrap'}}>
-                              {vuln.patch && <div style={{fontSize:'0.8rem',color:'#22d49a',width:'100%'}}>📦 Patch: <strong>{vuln.patch}</strong></div>}
-                              {vuln.cve && vuln.cve!=='null' && <a href={`https://nvd.nist.gov/vuln/detail/${vuln.cve}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'5px 10px',borderRadius:6,background:'#4f8fff15',border:'1px solid #4f8fff30',color:'#4f8fff',textDecoration:'none',fontSize:'0.82rem',fontWeight:700}}>🔗 NVD</a>}
-                              {vuln.kev && <a href='https://www.cisa.gov/known-exploited-vulnerabilities-catalog' target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'5px 10px',borderRadius:6,background:'#f9731615',border:'1px solid #f9731630',color:'#f97316',textDecoration:'none',fontSize:'0.82rem',fontWeight:700}}>⚠ CISA KEV</a>}
-                              <a href={`https://www.google.com/search?q=${encodeURIComponent((vuln.cve||vuln.title)+' patch download fix')}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'5px 10px',borderRadius:6,background:'#22d49a15',border:'1px solid #22d49a30',color:'#22d49a',textDecoration:'none',fontSize:'0.82rem',fontWeight:700}}>📦 Find Patch</a>
+                              {vuln.patch && <div style={{fontSize:'0.8rem',color:'#00ff88',width:'100%'}}>📦 Patch: <strong>{vuln.patch}</strong></div>}
+                              {vuln.cve && vuln.cve!=='null' && <a href={`https://nvd.nist.gov/vuln/detail/${vuln.cve}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'5px 10px',borderRadius:6,background:'#00e5ff15',border:'1px solid #00e5ff30',color:'#00e5ff',textDecoration:'none',fontSize:'0.82rem',fontWeight:700}}>🔗 NVD</a>}
+                              {vuln.kev && <a href='https://www.cisa.gov/known-exploited-vulnerabilities-catalog' target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'5px 10px',borderRadius:6,background:'#ffb30015',border:'1px solid #ffb30030',color:'#ffb300',textDecoration:'none',fontSize:'0.82rem',fontWeight:700}}>⚠ CISA KEV</a>}
+                              <a href={`https://www.google.com/search?q=${encodeURIComponent((vuln.cve||vuln.title)+' patch download fix')}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'5px 10px',borderRadius:6,background:'#00ff8815',border:'1px solid #00ff8830',color:'#00ff88',textDecoration:'none',fontSize:'0.82rem',fontWeight:700}}>📦 Find Patch</a>
                               {vuln.source==='Tenable'&&vuln.cve&&vuln.cve!=='null'&&<a href={`https://www.tenable.com/plugins/search?q=${encodeURIComponent(vuln.cve)}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'5px 10px',borderRadius:6,background:'#00b3e315',border:'1px solid #00b3e330',color:'#00b3e3',textDecoration:'none',fontSize:'0.82rem',fontWeight:700}}>🔍 Tenable Plugin</a>}
                             </div>
                           </div>
@@ -2344,26 +2344,26 @@ export default function DashboardPage() {
                             <div style={{fontSize:'0.84rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Remediation Steps</div>
                             {(vuln.remediation||[vuln.description||'See NVD for remediation guidance.']).map((r,i)=>(
                               <div key={r} style={{fontSize:'0.86rem',color:'var(--wt-secondary)',padding:'3px 0 3px 14px',position:'relative',lineHeight:1.5}}>
-                                <span style={{position:'absolute',left:0,top:9,width:5,height:5,borderRadius:'50%',background:'#22d49a',display:'block'}} />
+                                <span style={{position:'absolute',left:0,top:9,width:5,height:5,borderRadius:'50%',background:'#00ff88',display:'block'}} />
                                 {r}
                               </div>
                             ))}
-                            <div style={{marginTop:12,padding:'10px',background:'var(--wt-card2)',border:'1px solid #4f8fff18',borderRadius:8}}>
-                              <div style={{fontSize:'0.84rem',fontWeight:700,color:'#4f8fff',marginBottom:8,display:'flex',alignItems:'center',gap:6}}>
-                                <span style={{width:6,height:6,borderRadius:'50%',background:'#4f8fff',display:'block'}} />AI Remediation Assistant
+                            <div style={{marginTop:12,padding:'10px',background:'var(--wt-card2)',border:'1px solid #00e5ff18',borderRadius:8}}>
+                              <div style={{fontSize:'0.84rem',fontWeight:700,color:'#00e5ff',marginBottom:8,display:'flex',alignItems:'center',gap:6}}>
+                                <span style={{width:6,height:6,borderRadius:'50%',background:'#00e5ff',display:'block'}} />AI Remediation Assistant
                               </div>
                               <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:8}}>
                                 {[
-                                  {type:'splunk',label:'Splunk',color:'#f97316'},
-                                  {type:'sentinel',label:'Sentinel',color:'#4f8fff'},
-                                  {type:'defender',label:'Defender',color:'#22d49a'},
-                                  {type:'iocs',label:'IOCs',color:'#f0405e'},
+                                  {type:'splunk',label:'Splunk',color:'#ffb300'},
+                                  {type:'sentinel',label:'Sentinel',color:'#00e5ff'},
+                                  {type:'defender',label:'Defender',color:'#00ff88'},
+                                  {type:'iocs',label:'IOCs',color:'#ff2244'},
                                 ].map(q=>{
                                   const key = vuln.id + ':' + q.type;
                                   const isLoading = vulnAiLoading === key;
                                   const hasResult = !!vulnAiTexts[key];
                                   return (
-                                    <button key={q.type} onClick={()=>getVulnAiHelp(vuln,q.type)} disabled={isLoading} style={{padding:'4px 11px',borderRadius:5,border:'1px solid ' + q.color + '40',background:hasResult ? q.color + '20' : 'transparent',color:q.color,fontSize:'0.82rem',fontWeight:700,cursor:isLoading?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4,opacity:isLoading?0.7:1}}>
+                                    <button key={q.type} onClick={()=>getVulnAiHelp(vuln,q.type)} disabled={isLoading} style={{padding:'4px 11px',borderRadius:5,border:'1px solid ' + q.color + '40',background:hasResult ? q.color + '20' : 'transparent',color:q.color,fontSize:'0.82rem',fontWeight:700,cursor:isLoading?'not-allowed':'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",display:'flex',alignItems:'center',gap:4,opacity:isLoading?0.7:1}}>
                                       {isLoading && <span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid ' + q.color,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />}
                                       {!isLoading && hasResult && <span>✓</span>}
                                       {!isLoading && !hasResult && <span>✦</span>}
@@ -2372,15 +2372,15 @@ export default function DashboardPage() {
                                   );
                                 })}
                                 {['splunk','sentinel','defender','iocs'].some(t=>vulnAiTexts[vuln.id+':'+t]) && (
-                                  <button onClick={()=>setVulnAiTexts(prev=>{const n={...prev};['splunk','sentinel','defender','iocs'].forEach(t=>{delete n[vuln.id+':'+t];}); return n;})} style={{marginLeft:'auto',fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-dim)',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Clear all</button>
+                                  <button onClick={()=>setVulnAiTexts(prev=>{const n={...prev};['splunk','sentinel','defender','iocs'].forEach(t=>{delete n[vuln.id+':'+t];}); return n;})} style={{marginLeft:'auto',fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-dim)',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Clear all</button>
                                 )}
                               </div>
                               {['splunk','sentinel','defender','iocs'].map(t=>{
                                 const key = vuln.id + ':' + t;
                                 if (!vulnAiTexts[key]) return null;
-                                const colors = {splunk:'#f97316',sentinel:'#4f8fff',defender:'#22d49a',iocs:'#f0405e'};
+                                const colors = {splunk:'#ffb300',sentinel:'#00e5ff',defender:'#00ff88',iocs:'#ff2244'};
                                 // Save Hunt button on triage results
-                            const huntBtnStyle = {padding:'3px 8px',borderRadius:4,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0};
+                            const huntBtnStyle = {padding:'3px 8px',borderRadius:4,border:'1px solid #00ff8830',background:'#00ff880a',color:'#00ff88',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0};
                             const labels = {splunk:'Splunk SPL',sentinel:'Sentinel KQL',defender:'Defender KQL',iocs:'IOCs'};
                                 return (
                                   <div key={t} style={{marginBottom:8}}>
@@ -2403,7 +2403,7 @@ export default function DashboardPage() {
               {/* RIGHT — donut + metrics */}
               <div style={{display:'flex',flexDirection:'column',gap:10}}>
                 {(()=>{
-                  const sevColors={Critical:'#f0405e',High:'#f97316',Medium:'#f0a030',Low:'#4f8fff'};
+                  const sevColors={Critical:'#ff2244',High:'#ffb300',Medium:'#ffb300',Low:'#00e5ff'};
                   const counts=['Critical','High','Medium','Low'].map(s=>({sev:s,n:vulns.filter(v=>v.severity===s).length,color:sevColors[s]})).filter(x=>x.n>0);
                   const total=counts.reduce((a,b)=>a+b.n,0);
                   if(!total) return null;
@@ -2428,7 +2428,7 @@ export default function DashboardPage() {
                             <div key={seg.sev} style={{display:'flex',alignItems:'center',gap:6}}>
                               <span style={{width:7,height:7,borderRadius:'50%',background:seg.color,flexShrink:0}} />
                               <span style={{fontSize:'0.84rem',fontWeight:600,flex:1}}>{seg.sev}</span>
-                              <span style={{fontSize:'0.8rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:seg.color}}>{seg.n}</span>
+                              <span style={{fontSize:'0.8rem',fontWeight:900,fontFamily:"'JetBrains Mono',monospace",color:seg.color}}>{seg.n}</span>
                               <span style={{fontSize:'0.8rem',color:'var(--wt-dim)',minWidth:28,textAlign:'right'}}>{Math.round(seg.n/total*100)}%</span>
                             </div>
                           ))}
@@ -2441,14 +2441,14 @@ export default function DashboardPage() {
                 {/* Key metrics */}
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}} className='wt-two-col'>
                   {[
-                    {label:'KEV Active',val:kevVulns.length,color:'#f97316',icon:'⚠'},
-                    {label:'Avg CVSS',val:(()=>{const withCvss=vulns.filter(v=>v.cvss&&v.cvss!=='N/A'&&Number(v.cvss)>0);return withCvss.length?(withCvss.reduce((a,v)=>a+Number(v.cvss),0)/withCvss.length).toFixed(1):'—';})(),color:'#8b6fff',icon:'📊'},
-                    {label:'Devices Exposed',val:[...new Set(vulns.flatMap(v=>v.affectedAssets||v.affectedDevices||[]))].length,color:'#f0405e',icon:'💻'},
-                    {label:'Total Vulns',val:vulns.length,color:'#4f8fff',icon:'🔍'},
+                    {label:'KEV Active',val:kevVulns.length,color:'#ffb300',icon:'⚠'},
+                    {label:'Avg CVSS',val:(()=>{const withCvss=vulns.filter(v=>v.cvss&&v.cvss!=='N/A'&&Number(v.cvss)>0);return withCvss.length?(withCvss.reduce((a,v)=>a+Number(v.cvss),0)/withCvss.length).toFixed(1):'—';})(),color:'#bd00ff',icon:'📊'},
+                    {label:'Devices Exposed',val:[...new Set(vulns.flatMap(v=>v.affectedAssets||v.affectedDevices||[]))].length,color:'#ff2244',icon:'💻'},
+                    {label:'Total Vulns',val:vulns.length,color:'#00e5ff',icon:'🔍'},
                   ].map(m=>(
                     <div key={m.label} style={{padding:'10px 12px',background:'var(--wt-card)',border:`1px solid ${m.color}18`,borderRadius:9,textAlign:'center'}}>
                       <div style={{fontSize:'0.75rem',marginBottom:2}}>{m.icon}</div>
-                      <div style={{fontSize:'1.3rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:m.color,lineHeight:1}}>{m.val}</div>
+                      <div style={{fontSize:'1.3rem',fontWeight:900,fontFamily:"'JetBrains Mono',monospace",color:m.color,lineHeight:1}}>{m.val}</div>
                       <div style={{fontSize:'0.86rem',color:'var(--wt-dim)',marginTop:2}}>{m.label}</div>
                     </div>
                   ))}
@@ -2457,7 +2457,7 @@ export default function DashboardPage() {
                 {/* CVSS distribution */}
                 <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px 16px'}}>
                   <div style={{fontSize:'0.86rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:10}}>CVSS Distribution</div>
-                  {[{label:'Critical 9+',min:9,max:11,color:'#f0405e'},{label:'High 7–9',min:7,max:9,color:'#f97316'},{label:'Medium 4–7',min:4,max:7,color:'#f0a030'},{label:'Low 0–4',min:0,max:4,color:'#4f8fff'}].map(b=>{
+                  {[{label:'Critical 9+',min:9,max:11,color:'#ff2244'},{label:'High 7–9',min:7,max:9,color:'#ffb300'},{label:'Medium 4–7',min:4,max:7,color:'#ffb300'},{label:'Low 0–4',min:0,max:4,color:'#00e5ff'}].map(b=>{
                     const n=vulns.filter(v=>(v.cvss||0)>=b.min&&(v.cvss||0)<b.max).length;
                     if(!n) return null;
                     return (
@@ -2485,8 +2485,8 @@ export default function DashboardPage() {
                       <div style={{fontSize:'0.86rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Most Exposed Devices</div>
                       {top.map(([device,count])=>(
                         <div key={device} style={{display:'flex',alignItems:'center',gap:8,padding:'4px 0',borderBottom:'1px solid var(--wt-border)'}}>
-                          <span style={{fontSize:'0.8rem',fontFamily:'JetBrains Mono,monospace',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{device}</span>
-                          <span style={{fontSize:'0.82rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#f0405e18',color:'#f0405e'}}>{count}</span>
+                          <span style={{fontSize:'0.8rem',fontFamily:"'JetBrains Mono',monospace",flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{device}</span>
+                          <span style={{fontSize:'0.82rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#ff224418',color:'#ff2244'}}>{count}</span>
                         </div>
                       ))}
                     </div>
@@ -2505,35 +2505,35 @@ export default function DashboardPage() {
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Threat Intelligence</h2>
                 <div style={{display:'flex',alignItems:'center',gap:6,marginLeft:'auto'}}>
                   <span style={{fontSize:'0.86rem',color:'var(--wt-muted)'}}>Industry:</span>
-                  <select value={industry} onChange={e=>{setIndustryPersisted(e.target.value);fetchIntelForIndustry(e.target.value);}} style={{padding:'4px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.84rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                  <select value={industry} onChange={e=>{setIndustryPersisted(e.target.value);fetchIntelForIndustry(e.target.value);}} style={{padding:'4px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.84rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>
                     {INDUSTRIES.map(i=><option key={i} value={i}>{i}</option>)}
                   </select>
                   {intelLoading
-                    ? <span style={{width:14,height:14,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}} />
-                    : <button onClick={()=>fetchIntelForIndustry(industry)} title='Refresh threat intel' style={{padding:'3px 10px',borderRadius:5,border:'1px solid #4f8fff28',background:'#4f8fff0a',color:'#4f8fff',fontSize:'0.8rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>⟳ Refresh</button>
+                    ? <span style={{width:14,height:14,borderRadius:'50%',border:'2px solid #00e5ff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}} />
+                    : <button onClick={()=>fetchIntelForIndustry(industry)} title='Refresh threat intel' style={{padding:'3px 10px',borderRadius:5,border:'1px solid #00e5ff28',background:'#00e5ff0a',color:'#00e5ff',fontSize:'0.8rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>⟳ Refresh</button>
                   }
                   {customIntel && !demoMode && (
-                    <span style={{fontSize:'0.84rem',color:'#22d49a',background:'#22d49a0a',padding:'2px 8px',borderRadius:4,border:'1px solid #22d49a25',fontWeight:600}}>
+                    <span style={{fontSize:'0.84rem',color:'#00ff88',background:'#00ff880a',padding:'2px 8px',borderRadius:4,border:'1px solid #00ff8825',fontWeight:600}}>
                       ✦ LIVE · {customIntel.length} items{intelFetchedAt ? ` · ${Math.floor((Date.now()-new Date(intelFetchedAt).getTime())/60000)}m ago` : ''}{customIntel.some(i=>i.fromConnectedTool)?' · from connected tools':''}
                     </span>
                   )}
                   {!customIntel && !demoMode && !intelLoading && (
-                    <span style={{fontSize:'0.84rem',color:'#f0a030',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025',fontWeight:600}}>Demo data · no API key</span>
+                    <span style={{fontSize:'0.84rem',color:'#ffb300',padding:'2px 8px',borderRadius:4,border:'1px solid #ffb30025',fontWeight:600}}>Demo data · no API key</span>
                   )}
                 </div>
               </div>
 
               {/* Industry-specific intel first — 3 column grid */}
               <div>
-                <div style={{fontSize:'0.86rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
+                <div style={{fontSize:'0.86rem',fontWeight:700,color:'#ff2244',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
                   {industry} — Active Threats
-                  <span style={{fontSize:'0.86rem',fontWeight:600,color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{industryIntel.filter(i=>i.industrySpecific).length} items</span>
+                  <span style={{fontSize:'0.86rem',fontWeight:600,color:'var(--wt-dim)',fontFamily:"'JetBrains Mono',monospace"}}>{industryIntel.filter(i=>i.industrySpecific).length} items</span>
                 </div>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}} className='wt-three-col'>
                 {industryIntel.filter(i=>i.industrySpecific).slice(0,6).map(item=>{
                   const isExpanded = expandedIntel.has(item.id);
                   return (
-                  <div key={item.id} style={{background:'#0a0206',border:`1px solid ${isExpanded?'#f0405e30':'#f0405e18'}`,borderRadius:10,overflow:'hidden',gridColumn:isExpanded?'1 / -1':'auto'}}>
+                  <div key={item.id} style={{background:'#0a0206',border:`1px solid ${isExpanded?'#ff224430':'#ff224418'}`,borderRadius:10,overflow:'hidden',gridColumn:isExpanded?'1 / -1':'auto'}}>
                     <div style={{padding:'12px 14px',cursor:'pointer'}} onClick={()=>toggleIntel(item.id)}>
                       <div style={{display:'flex',alignItems:'flex-start',gap:10}}>
                         <div style={{flex:1}}>
@@ -2543,24 +2543,24 @@ export default function DashboardPage() {
                           </div>
                           <div style={{fontSize:'0.86rem',color:'var(--wt-secondary)',lineHeight:1.6,marginBottom:6,display:'-webkit-box',WebkitLineClamp:isExpanded?999:2,WebkitBoxOrient:'vertical',overflow:'hidden'}}>{item.summary}</div>
                           <div style={{display:'flex',gap:6,alignItems:'center',flexWrap:'wrap'}}>
-                            <span style={{fontSize:'0.8rem',color:'#4f8fff'}}>{item.source}</span>
+                            <span style={{fontSize:'0.8rem',color:'#00e5ff'}}>{item.source}</span>
                             <span style={{fontSize:'0.8rem',color:'var(--wt-dim)'}}>{item.time}</span>
-                            {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.86rem',fontWeight:700,color:'#f0a030',background:'#f0a03012',padding:'1px 5px',borderRadius:3}}>{item.iocs.length} IOCs</span>}
-                            <a href={(item.url||'').startsWith('http')?item.url:`https://www.ncsc.gov.uk/search?q=${encodeURIComponent(item.title)}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.84rem',color:'#4f8fff',textDecoration:'none',padding:'1px 5px',border:'1px solid #4f8fff20',borderRadius:3}}>↗</a>
+                            {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.86rem',fontWeight:700,color:'#ffb300',background:'#ffb30012',padding:'1px 5px',borderRadius:3}}>{item.iocs.length} IOCs</span>}
+                            <a href={(item.url||'').startsWith('http')?item.url:`https://www.ncsc.gov.uk/search?q=${encodeURIComponent(item.title)}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.84rem',color:'#00e5ff',textDecoration:'none',padding:'1px 5px',border:'1px solid #00e5ff20',borderRadius:3}}>↗</a>
                           </div>
                         </div>
                         <span style={{fontSize:'0.86rem',color:'var(--wt-dim)',flexShrink:0}}>{isExpanded?'▲':'▼'}</span>
                       </div>
                     </div>
                     {isExpanded && item.iocs && item.iocs.length>0 && (
-                      <div style={{padding:'10px 14px 14px',borderTop:'1px solid #f0405e15',background:'#07010a'}}>
-                        <div style={{fontSize:'0.84rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Indicators of Compromise</div>
+                      <div style={{padding:'10px 14px 14px',borderTop:'1px solid #ff224415',background:'#07010a'}}>
+                        <div style={{fontSize:'0.84rem',fontWeight:700,color:'#ffb300',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Indicators of Compromise</div>
                         <div style={{display:'flex',flexDirection:'column',gap:4}}>
                           {item.iocs.map(ioc=>(
                             <div key={ioc} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 8px',background:'#0d0208',border:'1px solid #1e1010',borderRadius:6}}>
-                              <span style={{width:6,height:6,borderRadius:'50%',background:'#f0a030',flexShrink:0}} />
-                              <code style={{fontSize:'0.84rem',fontFamily:'JetBrains Mono,monospace',color:'#f0c070',flex:1,wordBreak:'break-all'}}>{ioc}</code>
-                              <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(ioc);}} style={{fontSize:'0.86rem',padding:'2px 7px',borderRadius:3,border:'1px solid #f0a03025',background:'transparent',color:'#f0a030',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Copy</button>
+                              <span style={{width:6,height:6,borderRadius:'50%',background:'#ffb300',flexShrink:0}} />
+                              <code style={{fontSize:'0.84rem',fontFamily:"'JetBrains Mono',monospace",color:'#f0c070',flex:1,wordBreak:'break-all'}}>{ioc}</code>
+                              <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(ioc);}} style={{fontSize:'0.86rem',padding:'2px 7px',borderRadius:3,border:'1px solid #ffb30025',background:'transparent',color:'#ffb300',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>Copy</button>
                             </div>
                           ))}
                         </div>
@@ -2585,23 +2585,23 @@ export default function DashboardPage() {
                 }, {});
                 return (
                   <div>
-                    <div style={{fontSize:'0.86rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
-                      <span style={{width:6,height:6,borderRadius:'50%',background:'#22d49a',boxShadow:'0 0 5px #22d49a',display:'block'}} />
+                    <div style={{fontSize:'0.86rem',fontWeight:700,color:'#00ff88',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
+                      <span style={{width:6,height:6,borderRadius:'50%',background:'#00ff88',boxShadow:'0 0 5px #00ff88',display:'block'}} />
                       Live — Connected Threat Intel Tools
-                      <span style={{fontSize:'0.86rem',fontWeight:600,color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{connectedIntelItems.length} items</span>
+                      <span style={{fontSize:'0.86rem',fontWeight:600,color:'var(--wt-dim)',fontFamily:"'JetBrains Mono',monospace"}}>{connectedIntelItems.length} items</span>
                     </div>
                     {Object.entries(bySource).map(([source, items])=>(
                       <div key={source} style={{marginBottom:12}}>
-                        <div style={{fontSize:'0.84rem',fontWeight:700,color:'#22d49a',marginBottom:6,display:'flex',alignItems:'center',gap:6}}>
+                        <div style={{fontSize:'0.84rem',fontWeight:700,color:'#00ff88',marginBottom:6,display:'flex',alignItems:'center',gap:6}}>
                           <span>{source}</span>
                           <span style={{fontSize:'0.84rem',color:'var(--wt-dim)',fontWeight:400}}>{items.length} indicator{items.length!==1?'s':''}</span>
                         </div>
                         <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}} className='wt-three-col'>
                         {items.slice(0,6).map((item,i)=>{
                           const isExpanded = expandedIntel.has(item.id);
-                          const c = {Critical:'#f0405e',High:'#f97316',Medium:'#f0a030',Low:'#4f8fff'}[item.severity]||'#6b7a94';
+                          const c = {Critical:'#ff2244',High:'#ffb300',Medium:'#ffb300',Low:'#00e5ff'}[item.severity]||'#6b7a94';
                           return (
-                            <div key={item.id||i} style={{background:'var(--wt-card)',border:`1px solid ${isExpanded?'#22d49a30':'#22d49a12'}`,borderRadius:10,overflow:'hidden',gridColumn:isExpanded?'1 / -1':'auto'}}>
+                            <div key={item.id||i} style={{background:'var(--wt-card)',border:`1px solid ${isExpanded?'#00ff8830':'#00ff8812'}`,borderRadius:10,overflow:'hidden',gridColumn:isExpanded?'1 / -1':'auto'}}>
                               <div style={{padding:'10px 14px',cursor:'pointer'}} onClick={()=>toggleIntel(item.id)}>
                                 <div style={{display:'flex',alignItems:'flex-start',gap:7,marginBottom:4}}>
                                   <SevBadge sev={item.severity} />
@@ -2610,35 +2610,35 @@ export default function DashboardPage() {
                                 </div>
                                 <div style={{fontSize:'0.84rem',color:'var(--wt-secondary)',lineHeight:1.55,marginBottom:5,display:'-webkit-box',WebkitLineClamp:isExpanded?999:2,WebkitBoxOrient:'vertical',overflow:'hidden'}}>{item.summary}</div>
                                 <div style={{display:'flex',gap:5,alignItems:'center',flexWrap:'wrap'}}>
-                                  <span style={{fontSize:'0.86rem',color:'#22d49a'}}>{item.time}</span>
-                                  {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.84rem',fontWeight:700,color:'#f0a030',background:'#f0a03012',padding:'1px 5px',borderRadius:3}}>{item.iocs.length} IOCs</span>}
-                                  {item.mitre && <span style={{fontSize:'0.84rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{item.mitre}</span>}
-                                  <a href={(item.url&&(item.url||'').startsWith('http'))?item.url:`https://www.google.com/search?q=${encodeURIComponent(item.title+' threat intelligence')}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.84rem',color:'#4f8fff',textDecoration:'none',padding:'1px 5px',border:'1px solid #4f8fff20',borderRadius:3}}>↗</a>
+                                  <span style={{fontSize:'0.86rem',color:'#00ff88'}}>{item.time}</span>
+                                  {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.84rem',fontWeight:700,color:'#ffb300',background:'#ffb30012',padding:'1px 5px',borderRadius:3}}>{item.iocs.length} IOCs</span>}
+                                  {item.mitre && <span style={{fontSize:'0.84rem',color:'#7c6aff',fontFamily:"'JetBrains Mono',monospace"}}>{item.mitre}</span>}
+                                  <a href={(item.url&&(item.url||'').startsWith('http'))?item.url:`https://www.google.com/search?q=${encodeURIComponent(item.title+' threat intelligence')}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.84rem',color:'#00e5ff',textDecoration:'none',padding:'1px 5px',border:'1px solid #00e5ff20',borderRadius:3}}>↗</a>
                                 </div>
                               </div>
                               {isExpanded && item.iocs && item.iocs.length>0 && (
-                                <div style={{padding:'8px 14px 12px',borderTop:'1px solid #22d49a15',background:'var(--wt-card2)'}}>
-                                  <div style={{fontSize:'0.82rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>Indicators</div>
+                                <div style={{padding:'8px 14px 12px',borderTop:'1px solid #00ff8815',background:'var(--wt-card2)'}}>
+                                  <div style={{fontSize:'0.82rem',fontWeight:700,color:'#ffb300',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>Indicators</div>
                                   <div style={{display:'flex',flexDirection:'column',gap:3}}>
                                     {item.iocs.map(ioc=>(
                                       <div key={ioc} style={{display:'flex',alignItems:'center',gap:6,padding:'3px 6px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:5}}>
-                                        <span style={{width:5,height:5,borderRadius:'50%',background:'#f0a030',flexShrink:0}} />
-                                        <code style={{fontSize:'0.82rem',fontFamily:'JetBrains Mono,monospace',color:'#f0c070',flex:1,wordBreak:'break-all'}}>{ioc}</code>
-                                        <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(ioc);}} style={{fontSize:'0.84rem',padding:'1px 6px',borderRadius:3,border:'1px solid #f0a03025',background:'transparent',color:'#f0a030',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Copy</button>
+                                        <span style={{width:5,height:5,borderRadius:'50%',background:'#ffb300',flexShrink:0}} />
+                                        <code style={{fontSize:'0.82rem',fontFamily:"'JetBrains Mono',monospace",color:'#f0c070',flex:1,wordBreak:'break-all'}}>{ioc}</code>
+                                        <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(ioc);}} style={{fontSize:'0.84rem',padding:'1px 6px',borderRadius:3,border:'1px solid #ffb30025',background:'transparent',color:'#ffb300',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>Copy</button>
                                       </div>
                                     ))}
                                   </div>
                                   {/* Per-tool hunt queries */}
                                   <div style={{marginTop:8,paddingTop:8,borderTop:'1px solid var(--wt-border)'}}>
                                     <div style={{display:'flex',gap:4,flexWrap:'wrap'}}>
-                                      {[{tool:'splunk',label:'Splunk',color:'#f97316'},{tool:'sentinel',label:'Sentinel',color:'#4f8fff'},{tool:'defender',label:'Defender',color:'#22d49a'},{tool:'elastic',label:'Elastic',color:'#00bfb3'}].map(({tool,label,color})=>{
+                                      {[{tool:'splunk',label:'Splunk',color:'#ffb300'},{tool:'sentinel',label:'Sentinel',color:'#00e5ff'},{tool:'defender',label:'Defender',color:'#00ff88'},{tool:'elastic',label:'Elastic',color:'#00bfb3'}].map(({tool,label,color})=>{
                                         const key=item.id+':'+tool;
                                         const isLoading=iocQueryLoading===key;
                                         const hasResult=!!iocQueries[key];
-                                        return (<button key={tool} onClick={e=>{e.stopPropagation();if(isLoading)return;setIocQueryLoading(key);const toolLabel={'splunk':'Splunk SPL','sentinel':'Microsoft Sentinel KQL','defender':'Microsoft Defender Advanced Hunting','elastic':'Elastic EQL'}[tool];fetch('/api/copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:'ioc_hunt',prompt:'Generate a '+toolLabel+' query to hunt for these IOCs: '+item.iocs.join(', ')+'. Provide ONLY the raw query, no preamble.'})}).then(r=>r.json()).then(d=>{setIocQueries(prev=>({...prev,[key]:d.response||''}));setIocQueryLoading(null);}).catch(()=>setIocQueryLoading(null));}} disabled={isLoading} style={{padding:'3px 8px',borderRadius:4,border:`1px solid ${color}40`,background:hasResult?`${color}20`:'transparent',color,fontSize:'0.82rem',fontWeight:700,cursor:isLoading?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:3,opacity:isLoading?0.7:1}}>{isLoading&&<span style={{display:'inline-block',width:6,height:6,borderRadius:'50%',border:`2px solid ${color}`,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />}{!isLoading&&hasResult&&'✓'}{label}</button>);
+                                        return (<button key={tool} onClick={e=>{e.stopPropagation();if(isLoading)return;setIocQueryLoading(key);const toolLabel={'splunk':'Splunk SPL','sentinel':'Microsoft Sentinel KQL','defender':'Microsoft Defender Advanced Hunting','elastic':'Elastic EQL'}[tool];fetch('/api/copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:'ioc_hunt',prompt:'Generate a '+toolLabel+' query to hunt for these IOCs: '+item.iocs.join(', ')+'. Provide ONLY the raw query, no preamble.'})}).then(r=>r.json()).then(d=>{setIocQueries(prev=>({...prev,[key]:d.response||''}));setIocQueryLoading(null);}).catch(()=>setIocQueryLoading(null));}} disabled={isLoading} style={{padding:'3px 8px',borderRadius:4,border:`1px solid ${color}40`,background:hasResult?`${color}20`:'transparent',color,fontSize:'0.82rem',fontWeight:700,cursor:isLoading?'not-allowed':'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",display:'flex',alignItems:'center',gap:3,opacity:isLoading?0.7:1}}>{isLoading&&<span style={{display:'inline-block',width:6,height:6,borderRadius:'50%',border:`2px solid ${color}`,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />}{!isLoading&&hasResult&&'✓'}{label}</button>);
                                       })}
                                     </div>
-                                    {[{tool:'splunk',label:'Splunk SPL',color:'#f97316'},{tool:'sentinel',label:'Sentinel KQL',color:'#4f8fff'},{tool:'defender',label:'Defender AH',color:'#22d49a'},{tool:'elastic',label:'Elastic EQL',color:'#00bfb3'}].map(({tool,label,color})=>{const key=item.id+':'+tool;if(!iocQueries[key])return null;return(<div key={tool} style={{marginTop:6}}><div style={{fontSize:'0.84rem',fontWeight:700,color,textTransform:'uppercase',marginBottom:3}}>{label}</div><RemediationOutput text={iocQueries[key]} /></div>);})}
+                                    {[{tool:'splunk',label:'Splunk SPL',color:'#ffb300'},{tool:'sentinel',label:'Sentinel KQL',color:'#00e5ff'},{tool:'defender',label:'Defender AH',color:'#00ff88'},{tool:'elastic',label:'Elastic EQL',color:'#00bfb3'}].map(({tool,label,color})=>{const key=item.id+':'+tool;if(!iocQueries[key])return null;return(<div key={tool} style={{marginTop:6}}><div style={{fontSize:'0.84rem',fontWeight:700,color,textTransform:'uppercase',marginBottom:3}}>{label}</div><RemediationOutput text={iocQueries[key]} /></div>);})}
                                   </div>
                                 </div>
                               )}
@@ -2656,7 +2656,7 @@ export default function DashboardPage() {
               <div>
                 <div style={{fontSize:'0.86rem',fontWeight:700,color:'#00b3e3',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8,display:'flex',alignItems:'center',gap:8}}>
                   Tenable Research
-                  <span style={{fontSize:'0.86rem',fontWeight:600,color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>in the news</span>
+                  <span style={{fontSize:'0.86rem',fontWeight:600,color:'var(--wt-dim)',fontFamily:"'JetBrains Mono',monospace"}}>in the news</span>
                 </div>
                 <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,minWidth:0}} className='wt-three-col'>
                 {tenableNewsItems.slice(0,3).map(item=>(
@@ -2669,8 +2669,8 @@ export default function DashboardPage() {
                     <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
                       <span style={{fontSize:'0.82rem',color:'#00b3e3',fontWeight:600}}>{item.source}</span>
                       <span style={{fontSize:'0.82rem',color:'var(--wt-dim)'}}>{item.time}</span>
-                      {item.iocs&&item.iocs.map(cve=><span key={cve} style={{fontSize:'0.84rem',color:'#f97316',fontFamily:'JetBrains Mono,monospace',padding:'1px 5px',border:'1px solid #f9731625',borderRadius:3,background:'#f9731610'}}>{cve}</span>)}
-                      {item.mitre&&<span style={{fontSize:'0.84rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{item.mitre}</span>}
+                      {item.iocs&&item.iocs.map(cve=><span key={cve} style={{fontSize:'0.84rem',color:'#ffb300',fontFamily:"'JetBrains Mono',monospace",padding:'1px 5px',border:'1px solid #ffb30025',borderRadius:3,background:'#ffb30010'}}>{cve}</span>)}
+                      {item.mitre&&<span style={{fontSize:'0.84rem',color:'#7c6aff',fontFamily:"'JetBrains Mono',monospace"}}>{item.mitre}</span>}
                       <a href={(item.url&&(item.url||'').startsWith('http'))?item.url:`https://www.google.com/search?q=${encodeURIComponent(item.title)}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.84rem',color:'#00b3e3',textDecoration:'none',padding:'1px 5px',border:'1px solid #00b3e320',borderRadius:3}}>↗ Read</a>
                     </div>
                   </div>
@@ -2681,15 +2681,15 @@ export default function DashboardPage() {
               {/* Darktrace anomalies if active */}
               {darktrace?.active && (
                 <div>
-                  <div style={{fontSize:'0.86rem',fontWeight:700,color:'#8b6fff',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Darktrace — Network Anomalies</div>
+                  <div style={{fontSize:'0.86rem',fontWeight:700,color:'#bd00ff',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Darktrace — Network Anomalies</div>
                   {[
                     {device:'SRV-FINANCE01',score:96,desc:'Anomalous outbound HTTPS beaconing — 300s interval, unusual destination',time:'1h ago'},
                     {device:'laptop-CFO01',score:88,desc:'Unusual internal reconnaissance — scanning 10.0.0.0/24 subnet',time:'2h ago'},
                     {device:'SRV-APP02',score:72,desc:'Elevated data transfer to external storage provider — 3x baseline',time:'3h ago'},
                   ].map(a=>(
-                    <div key={a.device} style={{padding:'10px 14px',background:'var(--wt-card)',border:'1px solid #8b6fff18',borderRadius:10,marginBottom:5,display:'flex',alignItems:'center',gap:10}}>
-                      <div style={{width:38,height:38,borderRadius:8,background:'#8b6fff15',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                        <span style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:'#8b6fff'}}>{a.score}</span>
+                    <div key={a.device} style={{padding:'10px 14px',background:'var(--wt-card)',border:'1px solid #bd00ff18',borderRadius:10,marginBottom:5,display:'flex',alignItems:'center',gap:10}}>
+                      <div style={{width:38,height:38,borderRadius:8,background:'#bd00ff15',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                        <span style={{fontSize:'1rem',fontWeight:900,fontFamily:"'JetBrains Mono',monospace",color:'#bd00ff'}}>{a.score}</span>
                       </div>
                       <div style={{flex:1}}>
                         <div style={{fontSize:'0.84rem',fontWeight:700,marginBottom:2}}>{a.device}</div>
@@ -2710,9 +2710,9 @@ export default function DashboardPage() {
             <div style={{display:'flex',flexDirection:'column',gap:12}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4,flexWrap:'wrap'}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Incidents</h2>
-                <span style={{fontSize:'0.86rem',color:'#f0405e',background:'#f0405e12',padding:'2px 8px',borderRadius:4}}>{incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Active').length} Active</span>
-                <span style={{fontSize:'0.86rem',color:'#8b6fff',background:'#8b6fff12',padding:'2px 8px',borderRadius:4}}>{incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Escalated').length} Escalated</span>
-                {incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Resolved').length>0 && <span style={{fontSize:'0.86rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Resolved').length} Resolved</span>}
+                <span style={{fontSize:'0.86rem',color:'#ff2244',background:'#ff224412',padding:'2px 8px',borderRadius:4}}>{incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Active').length} Active</span>
+                <span style={{fontSize:'0.86rem',color:'#bd00ff',background:'#bd00ff12',padding:'2px 8px',borderRadius:4}}>{incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Escalated').length} Escalated</span>
+                {incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Resolved').length>0 && <span style={{fontSize:'0.86rem',color:'#00ff88',background:'#00ff8812',padding:'2px 8px',borderRadius:4}}>{incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Resolved').length} Resolved</span>}
                 <span style={{marginLeft:'auto',fontSize:'0.82rem',color:'var(--wt-dim)'}}>{incidents.filter(i=>!deletedIncidents.has(i.id)).length} total</span>
               </div>
 
@@ -2735,13 +2735,13 @@ export default function DashboardPage() {
                   <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'12px 16px'}}>
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
                       <span style={{fontSize:'0.84rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Analyst Workload</span>
-                      {analystFilter && <button onClick={()=>setAnalystFilter(null)} style={{fontSize:'0.82rem',padding:'1px 8px',borderRadius:4,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Showing: {analystFilter} ×</button>}
+                      {analystFilter && <button onClick={()=>setAnalystFilter(null)} style={{fontSize:'0.82rem',padding:'1px 8px',borderRadius:4,border:'1px solid #00e5ff30',background:'#00e5ff10',color:'#00e5ff',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Showing: {analystFilter} ×</button>}
                     </div>
                     <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
                       {entries.map(([name,stats])=>{
                         const initials = name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
                         const load = stats.active + stats.escalated;
-                        const loadColor = load>=3?'#f0405e':load>=2?'#f97316':load>=1?'#f0a030':'#22d49a';
+                        const loadColor = load>=3?'#ff2244':load>=2?'#ffb300':load>=1?'#ffb300':'#00ff88';
                         const isFiltered = analystFilter === name;
                         return (
                           <div key={name} onClick={()=>setAnalystFilter(isFiltered?null:name)} style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',background:isFiltered?`${loadColor}15`:'var(--wt-card2)',border:`1px solid ${isFiltered?loadColor:loadColor+'20'}`,borderRadius:8,minWidth:160,cursor:'pointer',transition:'all .15s'}}>
@@ -2749,13 +2749,13 @@ export default function DashboardPage() {
                             <div style={{flex:1,minWidth:0}}>
                               <div style={{fontSize:'0.86rem',fontWeight:700,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{name.split(' ')[0]}</div>
                               <div style={{display:'flex',gap:4,marginTop:2,flexWrap:'wrap'}}>
-                                {stats.active>0&&<span style={{fontSize:'0.84rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:'#f0405e18',color:'#f0405e'}}>{stats.active} active</span>}
-                                {stats.escalated>0&&<span style={{fontSize:'0.84rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:'#8b6fff18',color:'#8b6fff'}}>{stats.escalated} escalated</span>}
-                                {stats.contained>0&&<span style={{fontSize:'0.84rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:'#f0a03018',color:'#f0a030'}}>{stats.contained} contained</span>}
-                                {stats.resolved>0&&<span style={{fontSize:'0.84rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:'#22d49a18',color:'#22d49a'}}>{stats.resolved} resolved</span>}
+                                {stats.active>0&&<span style={{fontSize:'0.84rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:'#ff224418',color:'#ff2244'}}>{stats.active} active</span>}
+                                {stats.escalated>0&&<span style={{fontSize:'0.84rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:'#bd00ff18',color:'#bd00ff'}}>{stats.escalated} escalated</span>}
+                                {stats.contained>0&&<span style={{fontSize:'0.84rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:'#ffb30018',color:'#ffb300'}}>{stats.contained} contained</span>}
+                                {stats.resolved>0&&<span style={{fontSize:'0.84rem',fontWeight:700,padding:'0 4px',borderRadius:2,background:'#00ff8818',color:'#00ff88'}}>{stats.resolved} resolved</span>}
                               </div>
                             </div>
-                            <div style={{fontSize:'1.2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:loadColor,lineHeight:1}}>{stats.total}</div>
+                            <div style={{fontSize:'1.2rem',fontWeight:900,fontFamily:"'JetBrains Mono',monospace",color:loadColor,lineHeight:1}}>{stats.total}</div>
                           </div>
                         );
                       })}
@@ -2765,13 +2765,13 @@ export default function DashboardPage() {
               })()}
               {incidents.filter(inc=>!deletedIncidents.has(inc.id)&&(!analystFilter||(inc.assignedTo||'')===(analystFilter))).map(inc=>{
                 const isSel = selectedIncident?.id===inc.id;
-                const incStatus = incidentStatuses[inc.id] || inc.status; const statusColor = incStatus==='Active'?'#f0405e':incStatus==='Contained'?'#f0a030':'#22d49a';
+                const incStatus = incidentStatuses[inc.id] || inc.status; const statusColor = incStatus==='Active'?'#ff2244':incStatus==='Contained'?'#ffb300':'#00ff88';
                 return (
-                  <div key={inc.id} style={{background:'var(--wt-card)',border:`1px solid ${isSel?'#4f8fff40':'var(--wt-border)'}`,borderRadius:12,overflow:'hidden'}}>
+                  <div key={inc.id} style={{background:'var(--wt-card)',border:`1px solid ${isSel?'#00e5ff40':'var(--wt-border)'}`,borderRadius:12,overflow:'hidden'}}>
                     <div style={{padding:'12px 16px',cursor:'pointer',display:'flex',alignItems:'flex-start',gap:12}} onClick={()=>setSelectedIncident(isSel?null:inc)}>
                       <div style={{flex:1}}>
                         <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
-                          <span style={{fontSize:'0.86rem',fontWeight:800,color:'#4f8fff',fontFamily:'JetBrains Mono,monospace'}}>{inc.id}</span>
+                          <span style={{fontSize:'0.86rem',fontWeight:800,color:'#00e5ff',fontFamily:"'JetBrains Mono',monospace"}}>{inc.id}</span>
                           <span style={{fontSize:'0.84rem',fontWeight:700,padding:'2px 7px',borderRadius:3,background:`${statusColor}15`,color:statusColor,border:`1px solid ${statusColor}25`}}>{incStatus.toUpperCase()}</span>
                           <SevBadge sev={inc.severity} />
                           {(()=>{
@@ -2783,17 +2783,17 @@ export default function DashboardPage() {
                             const elapsed=Math.floor((Date.now()-created.getTime())/60000);
                             const remaining=slaMin-elapsed;
                             const pct=Math.min(100,Math.max(0,(elapsed/slaMin)*100));
-                            const color=remaining<0?'#f0405e':pct>75?'#f97316':pct>50?'#f0a030':'#22d49a';
+                            const color=remaining<0?'#ff2244':pct>75?'#ffb300':pct>50?'#ffb300':'#00ff88';
                             const label=remaining<0?`SLA BREACHED ${Math.abs(Math.floor(remaining/60))}h ago`:remaining<60?`${remaining}m left`:`${Math.floor(remaining/60)}h ${remaining%60}m left`;
                             return <span style={{fontSize:'0.58rem',fontWeight:800,padding:'1px 6px',borderRadius:3,background:`${color}15`,color,border:`1px solid ${color}25`,flexShrink:0}}>{label}</span>;
                           })()}
                         </div>
                         <div style={{fontSize:'0.84rem',fontWeight:700,marginBottom:4}}>{inc.title}</div>
                         <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
-                          {(inc.mitreTactics||[]).map(t=><span key={t} style={{fontSize:'0.84rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{t}</span>)}
+                          {(inc.mitreTactics||[]).map(t=><span key={t} style={{fontSize:'0.84rem',color:'#7c6aff',fontFamily:"'JetBrains Mono',monospace"}}>{t}</span>)}
                           <span style={{fontSize:'0.82rem',color:'var(--wt-dim)'}}>{inc.alertCount} alert{inc.alertCount!==1?'s':''} · {(inc.devices||[]).length} device{(inc.devices||[]).length!==1?'s':''}</span>
                           <span style={{fontSize:'0.82rem',color:'var(--wt-dim)'}}>Updated {inc.updated&&inc.updated.split&&inc.updated.split(' ')[1]||'—'}</span>
-                          {inc.assignedTo && <span style={{fontSize:'0.86rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff25',flexShrink:0}}>{'\u{1f464}'} {inc.assignedTo.split(' ')[0]}</span>}
+                          {inc.assignedTo && <span style={{fontSize:'0.86rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#00e5ff12',color:'#00e5ff',border:'1px solid #00e5ff25',flexShrink:0}}>{'\u{1f464}'} {inc.assignedTo.split(' ')[0]}</span>}
                           {(()=>{
                             if(!inc.created||(incidentStatuses[inc.id]||inc.status)!=='Active') return null;
                             const ageMs=Date.now()-new Date(inc.created).getTime();
@@ -2803,21 +2803,21 @@ export default function DashboardPage() {
                             const h=Math.floor(Math.abs(remainMs)/3600000);
                             const m=Math.floor((Math.abs(remainMs)%3600000)/60000);
                             const label=breached?`SLA breached ${h}h${m}m ago`:`SLA ${h}h${m}m remaining`;
-                            return <span style={{fontSize:'0.8rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:breached?'#f0405e':'#f0a03012',color:breached?'#fff':'#f0a030',border:breached?'none':'1px solid #f0a03030'}}>{label}</span>;
+                            return <span style={{fontSize:'0.8rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:breached?'#ff2244':'#ffb30012',color:breached?'#fff':'#ffb300',border:breached?'none':'1px solid #ffb30030'}}>{label}</span>;
                           })()}
                         </div>
                       </div>
                       <div style={{display:'flex',alignItems:'center',gap:4,flexShrink:0}}>
-                        {incidentAssignees&&incidentAssignees[inc.id]&&<span style={{fontSize:'0.84rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:'#4f8fff18',color:'#4f8fff',border:'1px solid #4f8fff25'}}>→ {incidentAssignees[inc.id]}</span>}
-                        <button onClick={e=>{e.stopPropagation();setIncidentAssignees(prev=>({...prev,[inc.id]:prev[inc.id]?null:'Me'}));}} style={{fontSize:'0.84rem',padding:'2px 7px',borderRadius:4,border:`1px solid ${incidentAssignees&&incidentAssignees[inc.id]?'#4f8fff40':'var(--wt-border2)'}`,background:incidentAssignees&&incidentAssignees[inc.id]?'#4f8fff15':'transparent',color:incidentAssignees&&incidentAssignees[inc.id]?'#4f8fff':'var(--wt-dim)',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:700}}>{incidentAssignees&&incidentAssignees[inc.id]?'✓ Me':'Assign'}</button>
+                        {incidentAssignees&&incidentAssignees[inc.id]&&<span style={{fontSize:'0.84rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:'#00e5ff18',color:'#00e5ff',border:'1px solid #00e5ff25'}}>→ {incidentAssignees[inc.id]}</span>}
+                        <button onClick={e=>{e.stopPropagation();setIncidentAssignees(prev=>({...prev,[inc.id]:prev[inc.id]?null:'Me'}));}} style={{fontSize:'0.84rem',padding:'2px 7px',borderRadius:4,border:`1px solid ${incidentAssignees&&incidentAssignees[inc.id]?'#00e5ff40':'var(--wt-border2)'}`,background:incidentAssignees&&incidentAssignees[inc.id]?'#00e5ff15':'transparent',color:incidentAssignees&&incidentAssignees[inc.id]?'#00e5ff':'var(--wt-dim)',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",fontWeight:700}}>{incidentAssignees&&incidentAssignees[inc.id]?'✓ Me':'Assign'}</button>
                         <span style={{fontSize:'0.86rem',color:'var(--wt-dim)'}}>{isSel?'▲':'▼'}</span>
                       </div>
                     </div>
                     {isSel && (
-                      <div style={{borderTop:'1px solid #1d2535',padding:'14px 16px'}}>
+                      <div style={{borderTop:'1px solid #0f2040',padding:'14px 16px'}}>
                         <GateWall feature='AI Attack Narrative' requiredTier='team' userTier={userTier} isAdmin={isAdmin}>
-              <div style={{fontSize:'0.82rem',color:'var(--wt-secondary)',lineHeight:1.65,padding:'10px',background:'linear-gradient(135deg,rgba(79,143,255,0.04),rgba(34,201,146,0.04))',border:'1px solid #4f8fff15',borderRadius:8,marginBottom:12}}>
-                          <span style={{fontSize:'0.84rem',fontWeight:700,color:'#4f8fff',display:'block',marginBottom:4}}>AI ATTACK NARRATIVE</span>
+              <div style={{fontSize:'0.82rem',color:'var(--wt-secondary)',lineHeight:1.65,padding:'10px',background:'linear-gradient(135deg,rgba(79,143,255,0.04),rgba(34,201,146,0.04))',border:'1px solid #00e5ff15',borderRadius:8,marginBottom:12}}>
+                          <span style={{fontSize:'0.84rem',fontWeight:700,color:'#00e5ff',display:'block',marginBottom:4}}>AI ATTACK NARRATIVE</span>
                           {inc.aiSummary}
                         </div>
                         </GateWall>
@@ -2826,13 +2826,13 @@ export default function DashboardPage() {
                           {(inc.timeline||[]).map((event,i)=>(
                             <div key={i} style={{display:'flex',gap:0,padding:'5px 0'}}>
                               <div style={{display:'flex',flexDirection:'column',alignItems:'center',minWidth:50}}>
-                                <span style={{fontSize:'0.84rem',fontFamily:'JetBrains Mono,monospace',color:'var(--wt-dim)',marginBottom:3}}>{event.t}</span>
-                                <div style={{width:8,height:8,borderRadius:'50%',background:event.actor==='AI'?'#4f8fff':'#22d49a',flexShrink:0}} />
+                                <span style={{fontSize:'0.84rem',fontFamily:"'JetBrains Mono',monospace",color:'var(--wt-dim)',marginBottom:3}}>{event.t}</span>
+                                <div style={{width:8,height:8,borderRadius:'50%',background:event.actor==='AI'?'#00e5ff':'#00ff88',flexShrink:0}} />
                                 {i<(inc.timeline||[]).length-1&&<div style={{width:1,flex:1,background:'var(--wt-border)',minHeight:16,marginTop:2}} />}
                               </div>
                               <div style={{flex:1,paddingLeft:10,paddingBottom:8}}>
                                 <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:1}}>
-                                  <span style={{fontSize:'0.84rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:event.actor==='AI'?'#4f8fff15':'#22d49a15',color:event.actor==='AI'?'#4f8fff':'#22d49a'}}>{event.actor}</span>
+                                  <span style={{fontSize:'0.84rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:event.actor==='AI'?'#00e5ff15':'#00ff8815',color:event.actor==='AI'?'#00e5ff':'#00ff88'}}>{event.actor}</span>
                                   <span style={{fontSize:'0.82rem',fontWeight:600}}>{event.action}</span>
                                 </div>
                                 <div style={{fontSize:'0.84rem',color:'var(--wt-muted)',lineHeight:1.5}}>{event.detail}</div>
@@ -2842,32 +2842,32 @@ export default function DashboardPage() {
                         </div>
                         {/* AI Commands Run — extracted from AI-actor timeline entries */}
                         {(inc.timeline||[]).filter(e=>e.actor==='AI'&&e.cmd).length>0&&(
-                          <div style={{marginTop:12,padding:'10px 12px',background:'#060b10',border:'1px solid #4f8fff20',borderRadius:8}}>
-                            <div style={{fontSize:'0.84rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8,display:'flex',alignItems:'center',gap:6}}>
-                              <span style={{width:6,height:6,borderRadius:'50%',background:'#4f8fff',display:'block'}} />AI Commands Executed
+                          <div style={{marginTop:12,padding:'10px 12px',background:'#060b10',border:'1px solid #00e5ff20',borderRadius:8}}>
+                            <div style={{fontSize:'0.84rem',fontWeight:700,color:'#00e5ff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8,display:'flex',alignItems:'center',gap:6}}>
+                              <span style={{width:6,height:6,borderRadius:'50%',background:'#00e5ff',display:'block'}} />AI Commands Executed
                               <span style={{fontSize:'0.84rem',color:'var(--wt-dim)',fontWeight:400,marginLeft:4}}>automated responses run by Watchtower AI</span>
                             </div>
                             <div style={{display:'flex',flexDirection:'column',gap:4}}>
                               {(inc.timeline||[]).filter(e=>e.actor==='AI'&&e.cmd).map((e,ci)=>(
                                 <div key={ci} style={{display:'flex',gap:8,alignItems:'flex-start'}}>
-                                  <span style={{fontSize:'0.84rem',fontFamily:'JetBrains Mono,monospace',color:'#4f8fff',flexShrink:0,marginTop:3,minWidth:36}}>{e.t}</span>
+                                  <span style={{fontSize:'0.84rem',fontFamily:"'JetBrains Mono',monospace",color:'#00e5ff',flexShrink:0,marginTop:3,minWidth:36}}>{e.t}</span>
                                   <div style={{flex:1}}>
                                     <div style={{fontSize:'0.84rem',color:'var(--wt-secondary)',marginBottom:2}}>{e.action}</div>
-                                    <div style={{padding:'4px 8px',background:'#0d1520',border:'1px solid #1a2535',borderRadius:4,fontSize:'0.84rem',fontFamily:'JetBrains Mono,monospace',color:'#22d49a',wordBreak:'break-all',whiteSpace:'pre-wrap',lineHeight:1.6}}>{e.cmd}</div>
+                                    <div style={{padding:'4px 8px',background:'#0d1520',border:'1px solid #1a2535',borderRadius:4,fontSize:'0.84rem',fontFamily:"'JetBrains Mono',monospace",color:'#00ff88',wordBreak:'break-all',whiteSpace:'pre-wrap',lineHeight:1.6}}>{e.cmd}</div>
                                   </div>
-                                  <button onClick={()=>navigator.clipboard.writeText(e.cmd)} style={{padding:'2px 6px',borderRadius:3,border:'1px solid #1d2535',background:'transparent',color:'var(--wt-dim)',fontSize:'0.84rem',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0,marginTop:3}}>Copy</button>
+                                  <button onClick={()=>navigator.clipboard.writeText(e.cmd)} style={{padding:'2px 6px',borderRadius:3,border:'1px solid #0f2040',background:'transparent',color:'var(--wt-dim)',fontSize:'0.84rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0,marginTop:3}}>Copy</button>
                                 </div>
                               ))}
                             </div>
                           </div>
                         )}
                         <div style={{display:'flex',gap:6,marginTop:10,flexWrap:'wrap',alignItems:'center',position:'relative'}}>
-                          <button onClick={()=>setAddingNoteTo(addingNoteTo===inc.id?null:inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid var(--wt-border2)',background:addingNoteTo===inc.id?'#4f8fff12':'transparent',color:'#8a9ab0',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📝 Note</button>
-                          {(canUse('team')||isAdmin)&&<button onClick={()=>{const si=showInvest;const n=new Set(si);if(!n.has(inc.id)){n.add(inc.id);setShowInvest(n);runInvestigation(inc);}else{n.delete(inc.id);setShowInvest(n);}}} style={{padding:'5px 12px',borderRadius:6,border:`1px solid ${showInvest.has(inc.id)?'#8b6fff':'#8b6fff30'}`,background:showInvest.has(inc.id)?'#8b6fff20':'#8b6fff0a',color:'#8b6fff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✦ {investLoading.has(inc.id)?'Investigating…':investResults[inc.id]&&!investResults[inc.id]._error?'Investigation ▲':'Deep Investigate'}</button>}
-                          <button onClick={()=>setIncidentStatuses(prev=>({...prev,[inc.id]:'Escalated'}))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0a03030',background:'#f0a03008',color:'#f0a030',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>⬆ Escalate</button>
-                          <button onClick={()=>closeIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a0a',color:'#22d49a',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✓ Close</button>
+                          <button onClick={()=>setAddingNoteTo(addingNoteTo===inc.id?null:inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid var(--wt-border2)',background:addingNoteTo===inc.id?'#00e5ff12':'transparent',color:'#8a9ab0',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>📝 Note</button>
+                          {(canUse('team')||isAdmin)&&<button onClick={()=>{const si=showInvest;const n=new Set(si);if(!n.has(inc.id)){n.add(inc.id);setShowInvest(n);runInvestigation(inc);}else{n.delete(inc.id);setShowInvest(n);}}} style={{padding:'5px 12px',borderRadius:6,border:`1px solid ${showInvest.has(inc.id)?'#bd00ff':'#bd00ff30'}`,background:showInvest.has(inc.id)?'#bd00ff20':'#bd00ff0a',color:'#bd00ff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>✦ {investLoading.has(inc.id)?'Investigating…':investResults[inc.id]&&!investResults[inc.id]._error?'Investigation ▲':'Deep Investigate'}</button>}
+                          <button onClick={()=>setIncidentStatuses(prev=>({...prev,[inc.id]:'Escalated'}))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #ffb30030',background:'#ffb30008',color:'#ffb300',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>⬆ Escalate</button>
+                          <button onClick={()=>closeIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #00ff8830',background:'#00ff880a',color:'#00ff88',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>✓ Close</button>
                           {/* Assign to me */}
-                          <button onClick={()=>setCreatedIncidents(prev=>prev.map(i=>i.id===inc.id?{...i,assignedTo:currentUserName||'Me'}:i))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff08',color:'#4f8fff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>👤 Assign to me</button>
+                          <button onClick={()=>setCreatedIncidents(prev=>prev.map(i=>i.id===inc.id?{...i,assignedTo:currentUserName||'Me'}:i))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #00e5ff30',background:'#00e5ff08',color:'#00e5ff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>👤 Assign to me</button>
                           {/* Assign to analyst dropdown */}
                           {(()=>{
                             // Live: pull from staffUsers (Redis); demo: derive from demo incident assignedTo
@@ -2879,11 +2879,11 @@ export default function DashboardPage() {
                             const allAnalysts=[...new Set([...baseAnalysts,...(!demoMode&&staffUsers.length>0?[]:[])])].filter(Boolean);
                             return (
                               <div style={{position:'relative'}}>
-                                <button onClick={e=>{e.stopPropagation();setAssignDropdown(assignDropdown===inc.id?null:inc.id);}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff08',color:'#8b6fff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Assign ▾</button>
+                                <button onClick={e=>{e.stopPropagation();setAssignDropdown(assignDropdown===inc.id?null:inc.id);}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #bd00ff30',background:'#bd00ff08',color:'#bd00ff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Assign ▾</button>
                                 {assignDropdown===inc.id && (
-                                  <div onClick={e=>e.stopPropagation()} style={{position:'absolute',bottom:'100%',left:0,marginBottom:4,background:'var(--wt-sidebar)',border:'1px solid #1d2535',borderRadius:8,boxShadow:'0 4px 20px rgba(0,0,0,0.5)',zIndex:200,minWidth:160,padding:4}}>
+                                  <div onClick={e=>e.stopPropagation()} style={{position:'absolute',bottom:'100%',left:0,marginBottom:4,background:'var(--wt-sidebar)',border:'1px solid #0f2040',borderRadius:8,boxShadow:'0 4px 20px rgba(0,0,0,0.5)',zIndex:200,minWidth:160,padding:4}}>
                                     {allAnalysts.map(name=>(
-                                      <button key={name} onClick={()=>{setCreatedIncidents(prev=>prev.map(i=>i.id===inc.id?{...i,assignedTo:name}:i));setAssignDropdown(null);}} style={{display:'block',width:'100%',padding:'7px 12px',border:'none',borderRadius:5,background:inc.assignedTo===name?'#4f8fff18':'transparent',color:inc.assignedTo===name?'#4f8fff':'var(--wt-secondary)',fontSize:'0.8rem',fontWeight:inc.assignedTo===name?700:400,cursor:'pointer',fontFamily:'Inter,sans-serif',textAlign:'left'}}>
+                                      <button key={name} onClick={()=>{setCreatedIncidents(prev=>prev.map(i=>i.id===inc.id?{...i,assignedTo:name}:i));setAssignDropdown(null);}} style={{display:'block',width:'100%',padding:'7px 12px',border:'none',borderRadius:5,background:inc.assignedTo===name?'#00e5ff18':'transparent',color:inc.assignedTo===name?'#00e5ff':'var(--wt-secondary)',fontSize:'0.8rem',fontWeight:inc.assignedTo===name?700:400,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",textAlign:'left'}}>
                                         {inc.assignedTo===name?'✓ ':''}{name}
                                       </button>
                                     ))}
@@ -2892,13 +2892,13 @@ export default function DashboardPage() {
                               </div>
                             );
                           })()}
-                          <button onClick={()=>deleteIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0405e25',background:'#f0405e0a',color:'#f0405e',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🗑</button>
-                          {inc.alerts&&inc.alerts.length>0&&<button onClick={()=>{setAlertSevFilter('all');setAlertSearch('');inc.alerts.forEach(id=>setExpandedAlerts(prev=>{const n=new Set(prev);n.add(id);return n;}));setActiveTab('alerts');}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #4f8fff30',background:'#4f8fff08',color:'#4f8fff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🔗 Alerts</button>}
+                          <button onClick={()=>deleteIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #ff224425',background:'#ff22440a',color:'#ff2244',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>🗑</button>
+                          {inc.alerts&&inc.alerts.length>0&&<button onClick={()=>{setAlertSevFilter('all');setAlertSearch('');inc.alerts.forEach(id=>setExpandedAlerts(prev=>{const n=new Set(prev);n.add(id);return n;}));setActiveTab('alerts');}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #00e5ff30',background:'#00e5ff08',color:'#00e5ff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>🔗 Alerts</button>}
                         </div>
                         {addingNoteTo===inc.id && (
                           <div style={{marginTop:8,display:'flex',gap:6}}>
-                            <input value={noteInput} onChange={e=>setNoteInput(e.target.value)} placeholder='Type a note...' style={{flex:1,padding:'6px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.82rem',fontFamily:'Inter,sans-serif',outline:'none'}} />
-                            <button onClick={()=>{if(noteInput.trim()){setIncidentNotes(prev=>({...prev,[inc.id]:[...(prev[inc.id]||[]),{text:noteInput.trim(),time:new Date().toLocaleTimeString()}]}));setNoteInput('');setAddingNoteTo(null);}}} style={{padding:'6px 12px',borderRadius:6,border:'none',background:'#4f8fff',color:'#fff',fontSize:'0.86rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Save</button>
+                            <input value={noteInput} onChange={e=>setNoteInput(e.target.value)} placeholder='Type a note...' style={{flex:1,padding:'6px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.82rem',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",outline:'none'}} />
+                            <button onClick={()=>{if(noteInput.trim()){setIncidentNotes(prev=>({...prev,[inc.id]:[...(prev[inc.id]||[]),{text:noteInput.trim(),time:new Date().toLocaleTimeString()}]}));setNoteInput('');setAddingNoteTo(null);}}} style={{padding:'6px 12px',borderRadius:6,border:'none',background:'#00e5ff',color:'#fff',fontSize:'0.86rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Save</button>
                           </div>
                         )}
                         {incidentNotes[inc.id] && incidentNotes[inc.id].length>0 && (
@@ -2913,23 +2913,23 @@ export default function DashboardPage() {
                         )}
                         {/* DEEP INVESTIGATION PANEL */}
                         {showInvest.has(inc.id) && (
-                          <div style={{marginTop:14,background:'linear-gradient(135deg,rgba(139,111,255,0.05),rgba(79,143,255,0.03))',border:'1px solid #8b6fff25',borderRadius:12,overflow:'hidden'}}>
-                            <div style={{padding:'10px 14px',borderBottom:'1px solid #8b6fff15',display:'flex',alignItems:'center',gap:8}}>
-                              <span style={{fontSize:'0.8rem',fontWeight:800,color:'#8b6fff',letterSpacing:'0.5px'}}>✦ TIER 2/3 DEEP INVESTIGATION</span>
+                          <div style={{marginTop:14,background:'linear-gradient(135deg,rgba(139,111,255,0.05),rgba(79,143,255,0.03))',border:'1px solid #bd00ff25',borderRadius:12,overflow:'hidden'}}>
+                            <div style={{padding:'10px 14px',borderBottom:'1px solid #bd00ff15',display:'flex',alignItems:'center',gap:8}}>
+                              <span style={{fontSize:'0.8rem',fontWeight:800,color:'#bd00ff',letterSpacing:'0.5px'}}>✦ TIER 2/3 DEEP INVESTIGATION</span>
                               {investResults[inc.id] && <span style={{fontSize:'0.8rem',color:'var(--wt-muted)',marginLeft:'auto'}}>AI-generated · verify with your tools</span>}
                             </div>
-                            {investLoading.has(inc.id) && <div style={{padding:'14px',fontSize:'0.8rem',color:'var(--wt-muted)',display:'flex',alignItems:'center',gap:8}}><span style={{width:10,height:10,borderRadius:'50%',border:'2px solid #8b6fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>Running deep investigation…</div>}
-                            {investResults[inc.id]?._error && <div style={{padding:'12px 14px',background:'#f0405e08',border:'1px solid #f0405e25',borderRadius:8,display:'flex',alignItems:'center',gap:8}}><span style={{color:'#f0405e',fontSize:'0.8rem'}}>⚠</span><div><div style={{fontSize:'0.8rem',color:'#f0405e',fontWeight:600,marginBottom:2}}>Investigation failed</div><div style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>{investResults[inc.id]._error}</div></div><button onClick={()=>{setInvestResults(prev=>{const n={...prev};delete n[inc.id];return n;});runInvestigation(inc);}} style={{marginLeft:'auto',padding:'4px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>↺ Retry</button></div>}
+                            {investLoading.has(inc.id) && <div style={{padding:'14px',fontSize:'0.8rem',color:'var(--wt-muted)',display:'flex',alignItems:'center',gap:8}}><span style={{width:10,height:10,borderRadius:'50%',border:'2px solid #bd00ff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>Running deep investigation…</div>}
+                            {investResults[inc.id]?._error && <div style={{padding:'12px 14px',background:'#ff224408',border:'1px solid #ff224425',borderRadius:8,display:'flex',alignItems:'center',gap:8}}><span style={{color:'#ff2244',fontSize:'0.8rem'}}>⚠</span><div><div style={{fontSize:'0.8rem',color:'#ff2244',fontWeight:600,marginBottom:2}}>Investigation failed</div><div style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>{investResults[inc.id]._error}</div></div><button onClick={()=>{setInvestResults(prev=>{const n={...prev};delete n[inc.id];return n;});runInvestigation(inc);}} style={{marginLeft:'auto',padding:'4px 12px',borderRadius:6,border:'1px solid #bd00ff30',background:'#bd00ff10',color:'#bd00ff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>↺ Retry</button></div>}
                             {investResults[inc.id] && !investResults[inc.id]._error && (()=>{const inv=investResults[inc.id];return(
                               <div style={{padding:'14px',display:'flex',flexDirection:'column',gap:14}}>
-                                {inv.rootCause&&<div style={{marginBottom:10}}><div style={{fontSize:'0.72rem',fontWeight:800,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',marginBottom:6}}>Root Cause</div><div style={{padding:'10px 12px',background:'rgba(240,64,94,0.04)',border:'1px solid rgba(240,64,94,0.12)',borderRadius:7}}><WtMarkdown text={inv.rootCause} accent='#f0405e' compact={true} /></div></div>}
-                                {inv.attackerObjective&&<div style={{marginBottom:10,padding:'10px 12px',background:'#f9731608',border:'1px solid #f9731620',borderRadius:7,display:'flex',gap:8,alignItems:'flex-start'}}><span style={{fontSize:'1rem',flexShrink:0}}>🎯</span><div><div style={{fontSize:'0.72rem',fontWeight:800,color:'#f97316',textTransform:'uppercase',letterSpacing:'1px',marginBottom:3}}>Attacker Objective</div><div style={{fontSize:'0.84rem',color:'#f97316',lineHeight:1.6}}>{inv.attackerObjective}</div></div></div>}
+                                {inv.rootCause&&<div style={{marginBottom:10}}><div style={{fontSize:'0.72rem',fontWeight:800,color:'#ff2244',textTransform:'uppercase',letterSpacing:'1px',marginBottom:6}}>Root Cause</div><div style={{padding:'10px 12px',background:'rgba(240,64,94,0.04)',border:'1px solid rgba(240,64,94,0.12)',borderRadius:7}}><WtMarkdown text={inv.rootCause} accent='#ff2244' compact={true} /></div></div>}
+                                {inv.attackerObjective&&<div style={{marginBottom:10,padding:'10px 12px',background:'#ffb30008',border:'1px solid #ffb30020',borderRadius:7,display:'flex',gap:8,alignItems:'flex-start'}}><span style={{fontSize:'1rem',flexShrink:0}}>🎯</span><div><div style={{fontSize:'0.72rem',fontWeight:800,color:'#ffb300',textTransform:'uppercase',letterSpacing:'1px',marginBottom:3}}>Attacker Objective</div><div style={{fontSize:'0.84rem',color:'#ffb300',lineHeight:1.6}}>{inv.attackerObjective}</div></div></div>}
                                 {inv.affectedScope&&<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}><div><div style={{fontSize:'0.8rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Users at Risk</div>{(inv.affectedScope.users||[]).map((u,i)=><div key={i} style={{fontSize:'0.8rem',color:'var(--wt-secondary)',marginBottom:1}}>👤 {u}</div>)}</div><div><div style={{fontSize:'0.8rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Devices at Risk</div>{(inv.affectedScope.devices||[]).map((d,i)=><div key={i} style={{fontSize:'0.8rem',color:'var(--wt-secondary)',marginBottom:1}}>💻 {d}</div>)}</div></div>}
-                                {inv.attackTimeline?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',marginBottom:6}}>Reconstructed Timeline</div>{inv.attackTimeline.map((ev,i)=>(<div key={i} style={{display:'flex',gap:8,padding:'5px 0',borderBottom:'1px solid var(--wt-border)',alignItems:'flex-start'}}><span style={{fontSize:'0.84rem',fontFamily:'JetBrains Mono,monospace',color:'#4f8fff',flexShrink:0,minWidth:36}}>{ev.time}</span><div style={{flex:1}}><div style={{fontSize:'0.82rem',fontWeight:600,color:'var(--wt-text)',marginBottom:1}}>{ev.event}</div><div style={{fontSize:'0.84rem',color:'var(--wt-dim)'}}>{ev.significance}</div></div><span style={{fontSize:'0.84rem',color:'#4f8fff',fontWeight:700,flexShrink:0,padding:'1px 5px',background:'#4f8fff12',borderRadius:3}}>{ev.source}</span></div>))}</div>}
-                                {inv.lateralMovementPaths?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#f97316',textTransform:'uppercase',marginBottom:4}}>Lateral Movement Paths</div>{inv.lateralMovementPaths.map((path,i)=><div key={i} style={{fontSize:'0.8rem',color:'#f97316',marginBottom:2}}>→ {path}</div>)}</div>}
-                                {inv.remediationSteps?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',marginBottom:6}}>Remediation Plan</div>{inv.remediationSteps.map((s,i)=>{const pc=s.priority==='Critical'?'#f0405e':s.priority==='High'?'#f97316':'#f0a030';return(<div key={i} style={{display:'flex',gap:8,padding:'5px 8px',background:`${pc}08`,borderRadius:6,border:`1px solid ${pc}20`,marginBottom:4}}><span style={{fontSize:'0.84rem',fontWeight:700,color:pc,padding:'1px 5px',background:`${pc}15`,borderRadius:3,flexShrink:0,marginTop:2}}>{s.priority}</span><div><div style={{fontSize:'0.82rem',color:'var(--wt-text)',fontWeight:600}}>{s.action}</div><div style={{fontSize:'0.82rem',color:'var(--wt-dim)'}}>Owner: {s.owner}</div></div></div>);})}</div>}
-                                {inv.forensicCommands?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',marginBottom:6}}>Forensic Commands</div>{inv.forensicCommands.map((fc,i)=>(<div key={i} style={{marginBottom:8}}><div style={{display:'flex',justifyContent:'space-between',marginBottom:2}}><span style={{fontSize:'0.8rem',color:'var(--wt-dim)',fontWeight:700}}>{fc.tool} — {fc.purpose}</span><button onClick={()=>navigator.clipboard?.writeText(fc.command)} style={{padding:'2px 7px',borderRadius:3,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Copy</button></div><code style={{display:'block',fontSize:'0.84rem',fontFamily:'JetBrains Mono,monospace',color:'#22c992',background:'#050810',padding:'6px 8px',borderRadius:5,wordBreak:'break-all',lineHeight:1.5}}>{fc.command}</code></div>))}</div>}
-                                {inv.iocs?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',marginBottom:4}}>Extracted IOCs</div><div style={{display:'flex',flexWrap:'wrap',gap:4}}>{inv.iocs.map((ioc,i)=>(<span key={i} style={{fontSize:'0.86rem',fontFamily:'JetBrains Mono,monospace',padding:'2px 7px',background:'#f0a03010',border:'1px solid #f0a03025',borderRadius:4,color:'#f0a030'}}>{ioc}</span>))}</div></div>}
+                                {inv.attackTimeline?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#00e5ff',textTransform:'uppercase',marginBottom:6}}>Reconstructed Timeline</div>{inv.attackTimeline.map((ev,i)=>(<div key={i} style={{display:'flex',gap:8,padding:'5px 0',borderBottom:'1px solid var(--wt-border)',alignItems:'flex-start'}}><span style={{fontSize:'0.84rem',fontFamily:"'JetBrains Mono',monospace",color:'#00e5ff',flexShrink:0,minWidth:36}}>{ev.time}</span><div style={{flex:1}}><div style={{fontSize:'0.82rem',fontWeight:600,color:'var(--wt-text)',marginBottom:1}}>{ev.event}</div><div style={{fontSize:'0.84rem',color:'var(--wt-dim)'}}>{ev.significance}</div></div><span style={{fontSize:'0.84rem',color:'#00e5ff',fontWeight:700,flexShrink:0,padding:'1px 5px',background:'#00e5ff12',borderRadius:3}}>{ev.source}</span></div>))}</div>}
+                                {inv.lateralMovementPaths?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#ffb300',textTransform:'uppercase',marginBottom:4}}>Lateral Movement Paths</div>{inv.lateralMovementPaths.map((path,i)=><div key={i} style={{fontSize:'0.8rem',color:'#ffb300',marginBottom:2}}>→ {path}</div>)}</div>}
+                                {inv.remediationSteps?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#00ff88',textTransform:'uppercase',marginBottom:6}}>Remediation Plan</div>{inv.remediationSteps.map((s,i)=>{const pc=s.priority==='Critical'?'#ff2244':s.priority==='High'?'#ffb300':'#ffb300';return(<div key={i} style={{display:'flex',gap:8,padding:'5px 8px',background:`${pc}08`,borderRadius:6,border:`1px solid ${pc}20`,marginBottom:4}}><span style={{fontSize:'0.84rem',fontWeight:700,color:pc,padding:'1px 5px',background:`${pc}15`,borderRadius:3,flexShrink:0,marginTop:2}}>{s.priority}</span><div><div style={{fontSize:'0.82rem',color:'var(--wt-text)',fontWeight:600}}>{s.action}</div><div style={{fontSize:'0.82rem',color:'var(--wt-dim)'}}>Owner: {s.owner}</div></div></div>);})}</div>}
+                                {inv.forensicCommands?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#00e5ff',textTransform:'uppercase',marginBottom:6}}>Forensic Commands</div>{inv.forensicCommands.map((fc,i)=>(<div key={i} style={{marginBottom:8}}><div style={{display:'flex',justifyContent:'space-between',marginBottom:2}}><span style={{fontSize:'0.8rem',color:'var(--wt-dim)',fontWeight:700}}>{fc.tool} — {fc.purpose}</span><button onClick={()=>navigator.clipboard?.writeText(fc.command)} style={{padding:'2px 7px',borderRadius:3,border:'1px solid #00e5ff30',background:'#00e5ff12',color:'#00e5ff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Copy</button></div><code style={{display:'block',fontSize:'0.84rem',fontFamily:"'JetBrains Mono',monospace",color:'#00ff88',background:'#050810',padding:'6px 8px',borderRadius:5,wordBreak:'break-all',lineHeight:1.5}}>{fc.command}</code></div>))}</div>}
+                                {inv.iocs?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#ffb300',textTransform:'uppercase',marginBottom:4}}>Extracted IOCs</div><div style={{display:'flex',flexWrap:'wrap',gap:4}}>{inv.iocs.map((ioc,i)=>(<span key={i} style={{fontSize:'0.86rem',fontFamily:"'JetBrains Mono',monospace",padding:'2px 7px',background:'#ffb30010',border:'1px solid #ffb30025',borderRadius:4,color:'#ffb300'}}>{ioc}</span>))}</div></div>}
                                 {inv.detectionGaps?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Detection Gaps Found</div>{inv.detectionGaps.map((g,i)=><div key={i} style={{fontSize:'0.86rem',color:'var(--wt-muted)',marginBottom:2}}>⚠️ {g}</div>)}</div>}
                               </div>
                             );})()}
@@ -2965,12 +2965,12 @@ export default function DashboardPage() {
                       </div>
                     ))}
                   </div>
-                  <div style={{padding:'14px 16px',background:'#8b6fff08',border:'1px solid #8b6fff25',borderRadius:10,marginBottom:20}}>
-                    <div style={{fontSize:'0.82rem',fontWeight:700,color:'#8b6fff',marginBottom:4}}>Pricing</div>
-                    <div style={{fontSize:'1.1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:'var(--wt-text)'}}>£999<span style={{fontSize:'0.72rem',fontWeight:400,color:'var(--wt-muted)'}}>/mo flat</span> <span style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>+</span> £1<span style={{fontSize:'0.72rem',fontWeight:400,color:'var(--wt-muted)'}}>/device/mo</span></div>
+                  <div style={{padding:'14px 16px',background:'#bd00ff08',border:'1px solid #bd00ff25',borderRadius:10,marginBottom:20}}>
+                    <div style={{fontSize:'0.82rem',fontWeight:700,color:'#bd00ff',marginBottom:4}}>Pricing</div>
+                    <div style={{fontSize:'1.1rem',fontWeight:900,fontFamily:"'JetBrains Mono',monospace",color:'var(--wt-text)'}}>£999<span style={{fontSize:'0.72rem',fontWeight:400,color:'var(--wt-muted)'}}>/mo flat</span> <span style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>+</span> £1<span style={{fontSize:'0.72rem',fontWeight:400,color:'var(--wt-muted)'}}>/device/mo</span></div>
                     <div style={{fontSize:'0.72rem',color:'var(--wt-muted)',marginTop:4}}>Per OT tenant — enable per client in Admin Portal</div>
                   </div>
-                  <a href='mailto:hello@getwatchtower.io?subject=OT Add-on' style={{padding:'10px 24px',borderRadius:9,background:'#8b6fff',color:'#fff',fontWeight:700,fontSize:'0.88rem',textDecoration:'none',display:'inline-block'}}>Contact us to enable →</a>
+                  <a href='mailto:hello@getwatchtower.io?subject=OT Add-on' style={{padding:'10px 24px',borderRadius:9,background:'#bd00ff',color:'#fff',fontWeight:700,fontSize:'0.88rem',textDecoration:'none',display:'inline-block'}}>Contact us to enable →</a>
                 </div>
               )}
             </div>
@@ -2980,8 +2980,8 @@ export default function DashboardPage() {
             <div style={{display:'flex',flexDirection:'column',gap:16,width:'100%'}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:4,flexWrap:'wrap'}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Compliance Mapping</h2>
-                <span style={{fontSize:'0.86rem',color:'#4f8fff',background:'#4f8fff12',padding:'2px 8px',borderRadius:4}}>MITRE ATT&amp;CK → ISO 27001 · Cyber Essentials · NIST CSF</span>
-                <span style={{fontSize:'0.86rem',color:'#8b6fff',background:'#8b6fff12',padding:'2px 8px',borderRadius:4,border:'1px solid #8b6fff20'}}>NIS2 · DORA</span>
+                <span style={{fontSize:'0.86rem',color:'#00e5ff',background:'#00e5ff12',padding:'2px 8px',borderRadius:4}}>MITRE ATT&amp;CK → ISO 27001 · Cyber Essentials · NIST CSF</span>
+                <span style={{fontSize:'0.86rem',color:'#bd00ff',background:'#bd00ff12',padding:'2px 8px',borderRadius:4,border:'1px solid #bd00ff20'}}>NIS2 · DORA</span>
                 <div style={{marginLeft:'auto',display:'flex',gap:6}}>
                   
                   <button onClick={async()=>{
@@ -2991,7 +2991,7 @@ export default function DashboardPage() {
                       const r=await fetch('/api/exec-summary',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current,'x-is-admin':isAdmin?'true':'false','x-user-tier':userTier},body:JSON.stringify({org:'Watchtower SOC',period:'Last 30 days',totalAlerts,critAlerts:critAlerts.length,openCases,closedCases:incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Resolved').length,slaBreaches,fpsClosed:fpAlerts.length,tpConfirmed:tpAlerts.length,posture,coverage:coveredPct,tools:Object.keys(connectedTools).length,topAlerts:critAlerts.slice(0,5).map(a=>a.title),topVulns:vulns.slice(0,3).map(v=>v.title)})});
                       const d=await r.json();if(d.html&&w){w.document.open();w.document.write(d.html);w.document.close();setTimeout(()=>w.print(),500);}else if(!d.ok&&w){w.document.open();w.document.write('<html><body style="font-family:sans-serif;padding:40px;color:#333"><h2>Report generation failed</h2><p>'+((d.error||'Check your Anthropic API key in the Tools tab.').replace(/</g,'&lt;').replace(/>/g,'&gt;'))+'</p></body></html>');w.document.close();}
                     }catch(e){if(w)w.close();}
-                  }} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #22d49a30',background:'#22d49a12',color:'#22d49a',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                  }} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #00ff8830',background:'#00ff8812',color:'#00ff88',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>
                     📊 Board Report PDF
                   </button>
                   <button onClick={async()=>{
@@ -3004,17 +3004,17 @@ export default function DashboardPage() {
                         if(sd.shareUrl){setShareReportUrl(sd.shareUrl);navigator.clipboard.writeText(sd.shareUrl).catch(()=>{});}
                       }
                     }catch{}
-                  }} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #8b6fff30',background:'#8b6fff12',color:'#8b6fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                  }} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #bd00ff30',background:'#bd00ff12',color:'#bd00ff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>
                     🔗 Share Link
                   </button>
-                  {shareReportUrl&&<a href={shareReportUrl} target='_blank' rel='noopener noreferrer' style={{fontSize:'0.72rem',color:'#8b6fff',fontFamily:'JetBrains Mono,monospace',textDecoration:'none',padding:'2px 6px',border:'1px solid #8b6fff20',borderRadius:3,overflow:'hidden',textOverflow:'ellipsis',maxWidth:200,display:'inline-block',whiteSpace:'nowrap'}}>{shareReportUrl.split('/').pop()}</a>}
+                  {shareReportUrl&&<a href={shareReportUrl} target='_blank' rel='noopener noreferrer' style={{fontSize:'0.72rem',color:'#bd00ff',fontFamily:"'JetBrains Mono',monospace",textDecoration:'none',padding:'2px 6px',border:'1px solid #bd00ff20',borderRadius:3,overflow:'hidden',textOverflow:'ellipsis',maxWidth:200,display:'inline-block',whiteSpace:'nowrap'}}>{shareReportUrl.split('/').pop()}</a>}
                 </div>
               </div>
 
               {/* Active technique coverage */}
               <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,overflow:'hidden'}}>
                 <div style={{padding:'12px 16px',borderBottom:'1px solid var(--wt-border)',display:'flex',alignItems:'center',gap:8}}>
-                  <span style={{fontSize:'0.86rem',fontWeight:800,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1px'}}>Active Threats by Framework</span>
+                  <span style={{fontSize:'0.86rem',fontWeight:800,color:'#00e5ff',textTransform:'uppercase',letterSpacing:'1px'}}>Active Threats by Framework</span>
                   <span style={{fontSize:'0.86rem',color:'var(--wt-muted)',marginLeft:'auto'}}>{alerts.filter(a=>a.mitre).length} alerts with MITRE mapping</span>
                 </div>
                 <div style={{overflowX:'auto'}}>
@@ -3049,12 +3049,12 @@ export default function DashboardPage() {
                         const sevColor=SEV_COLOR[a.severity];
                         return (
                           <tr key={a.id} className='row-hover' style={{borderBottom:'1px solid var(--wt-border)'}}>
-                            <td style={{padding:'8px 14px',fontFamily:'JetBrains Mono,monospace',fontSize:'0.84rem',color:'#7c6aff',whiteSpace:'nowrap'}}>{a.mitre}</td>
+                            <td style={{padding:'8px 14px',fontFamily:"'JetBrains Mono',monospace",fontSize:'0.84rem',color:'#7c6aff',whiteSpace:'nowrap'}}>{a.mitre}</td>
                             <td style={{padding:'8px 14px',maxWidth:240,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.title}</td>
                             <td style={{padding:'8px 14px'}}><span style={{fontSize:'0.8rem',fontWeight:800,padding:'1px 6px',borderRadius:3,background:`${sevColor}15`,color:sevColor}}>{a.severity}</span></td>
-                            <td style={{padding:'8px 14px',color:'var(--wt-secondary)',fontFamily:'JetBrains Mono,monospace',fontSize:'0.8rem',whiteSpace:'nowrap'}}>{m.iso}</td>
+                            <td style={{padding:'8px 14px',color:'var(--wt-secondary)',fontFamily:"'JetBrains Mono',monospace",fontSize:'0.8rem',whiteSpace:'nowrap'}}>{m.iso}</td>
                             <td style={{padding:'8px 14px',color:'var(--wt-secondary)',fontSize:'0.84rem',whiteSpace:'nowrap'}}>{m.ce}</td>
-                            <td style={{padding:'8px 14px',color:'var(--wt-secondary)',fontFamily:'JetBrains Mono,monospace',fontSize:'0.8rem',whiteSpace:'nowrap'}}>{m.nist}</td>
+                            <td style={{padding:'8px 14px',color:'var(--wt-secondary)',fontFamily:"'JetBrains Mono',monospace",fontSize:'0.8rem',whiteSpace:'nowrap'}}>{m.nist}</td>
                           </tr>
                         );
                       })}
@@ -3085,9 +3085,9 @@ export default function DashboardPage() {
                 const nistScore= Math.max(0,Math.round(100-(nistFail.size/NIST_FUNCS.length)*100));
                 const hasLiveData = !demoMode && mitreTechs.length > 0;
                 const fws=[
-                  {name:'ISO 27001',  score:hasLiveData?isoScore:74,  gaps:hasLiveData?[...isoFail].map(f=>`${f} control failing`):['A.8.8 Patch management','A.8.3 Config mgmt','A.17.1 Business continuity'],  color:'#4f8fff'},
-                  {name:'Cyber Essentials', score:hasLiveData?ceScore:81,  gaps:hasLiveData?[...ceFail]:['Patch management','Network firewalls — VLAN isolation','MFA on all VPN users'],  color:'#22d49a'},
-                  {name:'NIST CSF',   score:hasLiveData?nistScore:69, gaps:hasLiveData?[...nistFail].map(f=>`${f} function — alerts map here`):['DE.CM-4 Malware detection coverage','PR.IP-12 Vuln management','RS.CO-3 Escalation docs'], color:'#8b6fff'},
+                  {name:'ISO 27001',  score:hasLiveData?isoScore:74,  gaps:hasLiveData?[...isoFail].map(f=>`${f} control failing`):['A.8.8 Patch management','A.8.3 Config mgmt','A.17.1 Business continuity'],  color:'#00e5ff'},
+                  {name:'Cyber Essentials', score:hasLiveData?ceScore:81,  gaps:hasLiveData?[...ceFail]:['Patch management','Network firewalls — VLAN isolation','MFA on all VPN users'],  color:'#00ff88'},
+                  {name:'NIST CSF',   score:hasLiveData?nistScore:69, gaps:hasLiveData?[...nistFail].map(f=>`${f} function — alerts map here`):['DE.CM-4 Malware detection coverage','PR.IP-12 Vuln management','RS.CO-3 Escalation docs'], color:'#bd00ff'},
                 ];
                 return (
                   <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12}}>
@@ -3095,7 +3095,7 @@ export default function DashboardPage() {
                       <div key={fw.name} style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px'}}>
                         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
                           <span style={{fontSize:'0.8rem',fontWeight:800}}>{fw.name}</span>
-                          <span style={{fontSize:'1.2rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:fw.color}}>{fw.score}<span style={{fontSize:'0.84rem',fontWeight:600,color:'var(--wt-muted)'}}>%</span></span>
+                          <span style={{fontSize:'1.2rem',fontWeight:900,fontFamily:"'JetBrains Mono',monospace",color:fw.color}}>{fw.score}<span style={{fontSize:'0.84rem',fontWeight:600,color:'var(--wt-muted)'}}>%</span></span>
                         </div>
                         <div style={{height:4,background:'var(--wt-border)',borderRadius:2,marginBottom:12}}>
                           <div style={{height:'100%',width:`${fw.score}%`,background:fw.color,borderRadius:2,transition:'width 1s'}} />
@@ -3103,11 +3103,11 @@ export default function DashboardPage() {
                         <div style={{fontSize:'0.86rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',marginBottom:6}}>{hasLiveData?`${fw.gaps.length} failing controls`:'Gaps to address (demo)'}</div>
                         {fw.gaps.slice(0,4).map(g=>(
                           <div key={g} style={{display:'flex',gap:6,marginBottom:4,alignItems:'flex-start'}}>
-                            <span style={{color:'#f0405e',fontSize:'0.84rem',flexShrink:0,marginTop:2}}>✗</span>
+                            <span style={{color:'#ff2244',fontSize:'0.84rem',flexShrink:0,marginTop:2}}>✗</span>
                             <span style={{fontSize:'0.8rem',color:'var(--wt-secondary)',lineHeight:1.5}}>{g}</span>
                           </div>
                         ))}
-                        {fw.gaps.length === 0 && <div style={{fontSize:'0.8rem',color:'#22d49a'}}>✓ No failing controls from current alerts</div>}
+                        {fw.gaps.length === 0 && <div style={{fontSize:'0.8rem',color:'#00ff88'}}>✓ No failing controls from current alerts</div>}
                       </div>
                     ))}
                   </div>
@@ -3116,16 +3116,16 @@ export default function DashboardPage() {
 
               {/* Vuln CVE → framework mapping */}
               <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px'}}>
-                <div style={{fontSize:'0.86rem',fontWeight:800,color:'#f0a030',textTransform:'uppercase',letterSpacing:'1px',marginBottom:12}}>KEV Vulnerabilities — Compliance Impact</div>
+                <div style={{fontSize:'0.86rem',fontWeight:800,color:'#ffb300',textTransform:'uppercase',letterSpacing:'1px',marginBottom:12}}>KEV Vulnerabilities — Compliance Impact</div>
                 <div style={{display:'flex',flexDirection:'column',gap:8}}>
                   {vulns.filter(v=>v.kev).slice(0,5).map(v=>(
                     <div key={v.id} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 10px',background:'var(--wt-card2)',borderRadius:8,flexWrap:'wrap'}}>
-                      <span style={{fontSize:'0.84rem',fontWeight:800,fontFamily:'JetBrains Mono,monospace',color:'#f0405e',flexShrink:0}}>{v.cve}</span>
+                      <span style={{fontSize:'0.84rem',fontWeight:800,fontFamily:"'JetBrains Mono',monospace",color:'#ff2244',flexShrink:0}}>{v.cve}</span>
                       <span style={{fontSize:'0.8rem',flex:1,minWidth:160}}>{v.title}</span>
                       <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-                        <span style={{fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,background:'#4f8fff14',color:'#4f8fff',border:'1px solid #4f8fff25'}}>ISO A.8.8</span>
-                        <span style={{fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,background:'#22d49a14',color:'#22d49a',border:'1px solid #22d49a25'}}>CE: Patching</span>
-                        <span style={{fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,background:'#8b6fff14',color:'#8b6fff',border:'1px solid #8b6fff25'}}>NIST PR.IP-12</span>
+                        <span style={{fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,background:'#00e5ff14',color:'#00e5ff',border:'1px solid #00e5ff25'}}>ISO A.8.8</span>
+                        <span style={{fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,background:'#00ff8814',color:'#00ff88',border:'1px solid #00ff8825'}}>CE: Patching</span>
+                        <span style={{fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,background:'#bd00ff14',color:'#bd00ff',border:'1px solid #bd00ff25'}}>NIST PR.IP-12</span>
                       </div>
                     </div>
                   ))}
@@ -3153,9 +3153,9 @@ export default function DashboardPage() {
       {/* Onboarding Wizard */}
       {showOnboarding&&(
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={()=>setShowOnboarding(false)}>
-          <div style={{background:'var(--wt-card2)',border:'1px solid #4f8fff30',borderRadius:16,maxWidth:520,width:'100%',padding:28}} onClick={e=>e.stopPropagation()}>
+          <div style={{background:'var(--wt-card2)',border:'1px solid #00e5ff30',borderRadius:16,maxWidth:520,width:'100%',padding:28}} onClick={e=>e.stopPropagation()}>
             <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:20}}>
-              <div style={{width:36,height:36,background:'linear-gradient(135deg,#4f8fff,#8b6fff)',borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.1rem'}}>🛡</div>
+              <div style={{width:36,height:36,background:'linear-gradient(135deg,#00e5ff,#bd00ff)',borderRadius:9,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.1rem'}}>🛡</div>
               <div>
                 <div style={{fontSize:'0.92rem',fontWeight:800}}>Welcome to Watchtower</div>
                 <div style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>3 steps to your first live alert</div>
@@ -3165,8 +3165,8 @@ export default function DashboardPage() {
             <div style={{display:'flex',gap:4,marginBottom:24}}>
               {['Connect a tool','Configure AI','Go live'].map((s,i)=>(
                 <div key={i} style={{flex:1,textAlign:'center'}}>
-                  <div style={{height:4,borderRadius:2,background:i<=onboardingStep?'#4f8fff':'var(--wt-border)',marginBottom:4,transition:'background .3s'}} />
-                  <div style={{fontSize:'0.84rem',color:i===onboardingStep?'#4f8fff':'var(--wt-dim)',fontWeight:i===onboardingStep?700:400}}>{s}</div>
+                  <div style={{height:4,borderRadius:2,background:i<=onboardingStep?'#00e5ff':'var(--wt-border)',marginBottom:4,transition:'background .3s'}} />
+                  <div style={{fontSize:'0.84rem',color:i===onboardingStep?'#00e5ff':'var(--wt-dim)',fontWeight:i===onboardingStep?700:400}}>{s}</div>
                 </div>
               ))}
             </div>
@@ -3175,9 +3175,9 @@ export default function DashboardPage() {
                 <div style={{fontSize:'0.82rem',fontWeight:700,marginBottom:8}}>Step 1 — Connect your first integration</div>
                 <div style={{fontSize:'0.82rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:16}}>Watchtower connects to your existing tools — CrowdStrike, Tenable, Splunk, Sentinel, and 14 others. Click "+ Connect" on any tool to add your credentials.</div>
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:16}}>
-                  {[{id:'crowdstrike',name:'CrowdStrike Falcon',cat:'EDR',color:'#f0405e'},{id:'tenable',name:'Tenable.io',cat:'Vuln',color:'#00b3e3'},{id:'splunk',name:'Splunk SIEM',cat:'SIEM',color:'#65a637'},{id:'sentinel',name:'Microsoft Sentinel',cat:'SIEM',color:'#4f8fff'}].map(t=>(
+                  {[{id:'crowdstrike',name:'CrowdStrike Falcon',cat:'EDR',color:'#ff2244'},{id:'tenable',name:'Tenable.io',cat:'Vuln',color:'#00b3e3'},{id:'splunk',name:'Splunk SIEM',cat:'SIEM',color:'#65a637'},{id:'sentinel',name:'Microsoft Sentinel',cat:'SIEM',color:'#00e5ff'}].map(t=>(
                     <div key={t.id} style={{padding:'10px 12px',background:'var(--wt-card)',border:`1px solid ${t.color}20`,borderRadius:8,display:'flex',alignItems:'center',gap:8}}>
-                      <div style={{width:8,height:8,borderRadius:'50%',background:connectedTools[t.id]?'#22c992':'#252e42',flexShrink:0}} />
+                      <div style={{width:8,height:8,borderRadius:'50%',background:connectedTools[t.id]?'#00ff88':'#252e42',flexShrink:0}} />
                       <div style={{flex:1}}>
                         <div style={{fontSize:'0.8rem',fontWeight:600}}>{t.name}</div>
                         <div style={{fontSize:'0.8rem',color:'var(--wt-dim)'}}>{t.cat}</div>
@@ -3186,8 +3186,8 @@ export default function DashboardPage() {
                   ))}
                 </div>
                 <div style={{display:'flex',gap:8}}>
-                  <button onClick={()=>{setShowOnboarding(false);setActiveTab('tools');}} style={{flex:1,padding:'10px',borderRadius:8,border:'none',background:'#4f8fff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Go to Tools →</button>
-                  {Object.keys(connectedTools).length>0&&<button onClick={()=>setOnboardingStep(1)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Next ✓</button>}
+                  <button onClick={()=>{setShowOnboarding(false);setActiveTab('tools');}} style={{flex:1,padding:'10px',borderRadius:8,border:'none',background:'#00e5ff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Go to Tools →</button>
+                  {Object.keys(connectedTools).length>0&&<button onClick={()=>setOnboardingStep(1)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid #00ff8830',background:'#00ff8810',color:'#00ff88',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Next ✓</button>}
                 </div>
               </div>
             )}
@@ -3195,11 +3195,11 @@ export default function DashboardPage() {
               <div>
                 <div style={{fontSize:'0.82rem',fontWeight:700,marginBottom:8}}>Step 2 — Add your Anthropic API key</div>
                 <div style={{fontSize:'0.82rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:16}}>Watchtower uses Claude Haiku to triage alerts, generate attack narratives, and power the Co-Pilot. Add your own key to activate AI features.</div>
-                <div style={{padding:'12px',background:'#4f8fff08',border:'1px solid #4f8fff20',borderRadius:8,fontSize:'0.8rem',color:'var(--wt-secondary)',marginBottom:16,lineHeight:1.6}}>Get a free key at <a href='https://console.anthropic.com/account/keys' target='_blank' rel='noopener noreferrer' style={{color:'#4f8fff'}}>console.anthropic.com</a> → API Keys → Create Key. It starts with <code style={{fontFamily:'JetBrains Mono,monospace',background:'var(--wt-border)',padding:'1px 4px',borderRadius:3}}>sk-ant-</code></div>
+                <div style={{padding:'12px',background:'#00e5ff08',border:'1px solid #00e5ff20',borderRadius:8,fontSize:'0.8rem',color:'var(--wt-secondary)',marginBottom:16,lineHeight:1.6}}>Get a free key at <a href='https://console.anthropic.com/account/keys' target='_blank' rel='noopener noreferrer' style={{color:'#00e5ff'}}>console.anthropic.com</a> → API Keys → Create Key. It starts with <code style={{fontFamily:"'JetBrains Mono',monospace",background:'var(--wt-border)',padding:'1px 4px',borderRadius:3}}>sk-ant-</code></div>
                 <div style={{display:'flex',gap:8}}>
-                  <button onClick={()=>setOnboardingStep(0)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid var(--wt-border)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>← Back</button>
-                  <button onClick={()=>{setShowOnboarding(false);setActiveTab('tools');}} style={{flex:1,padding:'10px',borderRadius:8,border:'none',background:'#4f8fff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Add in Tools tab →</button>
-                  <button onClick={()=>setOnboardingStep(2)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Skip</button>
+                  <button onClick={()=>setOnboardingStep(0)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid var(--wt-border)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.82rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>← Back</button>
+                  <button onClick={()=>{setShowOnboarding(false);setActiveTab('tools');}} style={{flex:1,padding:'10px',borderRadius:8,border:'none',background:'#00e5ff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Add in Tools tab →</button>
+                  <button onClick={()=>setOnboardingStep(2)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid #00ff8830',background:'#00ff8810',color:'#00ff88',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Skip</button>
                 </div>
               </div>
             )}
@@ -3207,13 +3207,13 @@ export default function DashboardPage() {
               <div>
                 <div style={{fontSize:'0.82rem',fontWeight:700,marginBottom:8}}>Step 3 — Switch to Live mode</div>
                 <div style={{fontSize:'0.82rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:16}}>You're currently in Demo mode showing sample data. Click the DEMO toggle in the top bar to switch to Live and see your real alerts.</div>
-                <div style={{padding:'12px 14px',background:'#22d49a08',border:'1px solid #22d49a20',borderRadius:8,marginBottom:16,display:'flex',alignItems:'center',gap:10}}>
+                <div style={{padding:'12px 14px',background:'#00ff8808',border:'1px solid #00ff8820',borderRadius:8,marginBottom:16,display:'flex',alignItems:'center',gap:10}}>
                   <span style={{fontSize:'1.2rem'}}>✦</span>
                   <div style={{fontSize:'0.8rem',color:'var(--wt-secondary)',lineHeight:1.6}}>Watchtower will sync your tools every 60 seconds and start triaging alerts automatically.</div>
                 </div>
                 <div style={{display:'flex',gap:8}}>
-                  <button onClick={()=>setOnboardingStep(1)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid var(--wt-border)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.82rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>← Back</button>
-                  <button onClick={()=>{setDemoMode(false);if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode','false');setShowOnboarding(false);}} style={{flex:1,padding:'10px',borderRadius:8,border:'none',background:'#22d49a',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Go Live! →</button>
+                  <button onClick={()=>setOnboardingStep(1)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid var(--wt-border)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.82rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>← Back</button>
+                  <button onClick={()=>{setDemoMode(false);if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode','false');setShowOnboarding(false);}} style={{flex:1,padding:'10px',borderRadius:8,border:'none',background:'#00ff88',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Go Live! →</button>
                 </div>
               </div>
             )}
@@ -3225,7 +3225,7 @@ export default function DashboardPage() {
       {deployAgentDevice && (()=>{
         const TOOL_INSTRUCTIONS = {
           'CrowdStrike Falcon': {
-            color:'#f0405e',
+            color:'#ff2244',
             steps:[
               {label:'1. Download sensor installer',detail:`Log into Falcon console → Host Setup → Sensor Downloads. Select installer for ${deployAgentDevice.os?.includes('mac')?'macOS':deployAgentDevice.os?.includes('Linux')||deployAgentDevice.os?.includes('NAS')?'Linux':'Windows'}.`},
               {label:'2. Run with your CID',detail:'Windows: `CsInstaller.exe /install /quiet CID=<your-CID>` — requires local admin.\nmacOS: `sudo installer -pkg falcon-sensor.pkg -target /`\nLinux: `rpm -ivh falcon-sensor.rpm` then `/opt/CrowdStrike/falconctl -s --cid=<your-CID>`'},
@@ -3265,11 +3265,11 @@ export default function DashboardPage() {
         return (
           <Modal title={`Deploy Agents — ${deployAgentDevice.hostname}`} onClose={()=>setDeployAgentDevice(null)}>
             <div style={{marginBottom:14,padding:'8px 12px',background:'var(--wt-card2)',border:'1px solid var(--wt-border)',borderRadius:8}}>
-              <div style={{fontSize:'0.84rem',color:'var(--wt-muted)',marginBottom:3}}>Device: <strong style={{color:'var(--wt-text)',fontFamily:'JetBrains Mono,monospace'}}>{deployAgentDevice.hostname}</strong> · {deployAgentDevice.os} · {deployAgentDevice.ip}</div>
-              <div style={{fontSize:'0.84rem',color:'#f0405e'}}>⚠ {deployAgentDevice.reason}</div>
+              <div style={{fontSize:'0.84rem',color:'var(--wt-muted)',marginBottom:3}}>Device: <strong style={{color:'var(--wt-text)',fontFamily:"'JetBrains Mono',monospace"}}>{deployAgentDevice.hostname}</strong> · {deployAgentDevice.os} · {deployAgentDevice.ip}</div>
+              <div style={{fontSize:'0.84rem',color:'#ff2244'}}>⚠ {deployAgentDevice.reason}</div>
             </div>
             {missing.map(tool=>{
-              const info = TOOL_INSTRUCTIONS[tool] || {color:'#4f8fff',steps:[{label:'Manual deployment required',detail:`Visit the ${tool} admin console and follow the agent deployment guide for ${deployAgentDevice.os}.`}],note:null};
+              const info = TOOL_INSTRUCTIONS[tool] || {color:'#00e5ff',steps:[{label:'Manual deployment required',detail:`Visit the ${tool} admin console and follow the agent deployment guide for ${deployAgentDevice.os}.`}],note:null};
               return (
                 <div key={tool} style={{marginBottom:12,border:`1px solid ${info.color}25`,borderRadius:10,overflow:'hidden'}}>
                   <div style={{padding:'9px 14px',background:`${info.color}0f`,borderBottom:`1px solid ${info.color}20`,display:'flex',alignItems:'center',gap:8}}>
@@ -3283,12 +3283,12 @@ export default function DashboardPage() {
                         <div style={{width:18,height:18,borderRadius:4,background:`${info.color}18`,border:`1px solid ${info.color}30`,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.84rem',fontWeight:800,color:info.color,flexShrink:0,marginTop:1}}>{info.steps.indexOf(step)+1}</div>
                         <div style={{flex:1}}>
                           <div style={{fontSize:'0.8rem',fontWeight:700,marginBottom:2}}>{step.label}</div>
-                          <div style={{fontSize:'0.82rem',color:'var(--wt-muted)',lineHeight:1.65,fontFamily:'JetBrains Mono,monospace',background:'var(--wt-card2)',padding:'5px 8px',borderRadius:5,whiteSpace:'pre-wrap',wordBreak:'break-all'}}>{step.detail}</div>
+                          <div style={{fontSize:'0.82rem',color:'var(--wt-muted)',lineHeight:1.65,fontFamily:"'JetBrains Mono',monospace",background:'var(--wt-card2)',padding:'5px 8px',borderRadius:5,whiteSpace:'pre-wrap',wordBreak:'break-all'}}>{step.detail}</div>
                         </div>
                       </div>
                     ))}
                     {info.note && (
-                      <div style={{padding:'6px 10px',background:'#f0a03009',border:'1px solid #f0a03022',borderRadius:6,fontSize:'0.63rem',color:'#f0a030',lineHeight:1.55}}>
+                      <div style={{padding:'6px 10px',background:'#ffb30009',border:'1px solid #ffb30022',borderRadius:6,fontSize:'0.63rem',color:'#ffb300',lineHeight:1.55}}>
                         ⚠ {info.note}
                       </div>
                     )}
@@ -3296,7 +3296,7 @@ export default function DashboardPage() {
                 </div>
               );
             })}
-            <div style={{padding:'8px 12px',background:'var(--wt-card2)',border:'1px solid #4f8fff15',borderRadius:7,fontSize:'0.82rem',color:'var(--wt-muted)',lineHeight:1.6}}>
+            <div style={{padding:'8px 12px',background:'var(--wt-card2)',border:'1px solid #00e5ff15',borderRadius:7,fontSize:'0.82rem',color:'var(--wt-muted)',lineHeight:1.6}}>
               💡 After deployment, agents check in within 5 minutes. This device will clear from the gaps list automatically once all agents are reporting.
             </div>
           </Modal>
@@ -3306,29 +3306,29 @@ export default function DashboardPage() {
       {/* Coverage Gap Modal */}
       {modal?.type==='gaps' && (
         <Modal title={`Coverage Gaps — ${gapDevices.length} Devices`} onClose={()=>setModal(null)}>
-          <div style={{marginBottom:10,padding:'8px 12px',background:'#f0405e0a',border:'1px solid #f0405e18',borderRadius:8,fontSize:'0.82rem',color:'#f0405e'}}>
+          <div style={{marginBottom:10,padding:'8px 12px',background:'#ff22440a',border:'1px solid #ff224418',borderRadius:8,fontSize:'0.82rem',color:'#ff2244'}}>
             ⚠ These devices have no agent coverage — they are invisible to your security tools and represent active risk.
           </div>
           {Object.keys(osBreakdown||{}).length > 0 && (
             <div style={{display:'flex',gap:6,flexWrap:'wrap',marginBottom:12}}>
               {Object.entries(osBreakdown||{}).sort((a,b)=>b[1]-a[1]).map(([os,n])=>(
-                <span key={os} style={{fontSize:'0.86rem',padding:'3px 9px',borderRadius:5,background:'var(--wt-card2)',border:'1px solid var(--wt-border)',color:'var(--wt-secondary)',fontFamily:'JetBrains Mono,monospace'}}>{os} <strong style={{color:'var(--wt-text)'}}>{n}</strong></span>
+                <span key={os} style={{fontSize:'0.86rem',padding:'3px 9px',borderRadius:5,background:'var(--wt-card2)',border:'1px solid var(--wt-border)',color:'var(--wt-secondary)',fontFamily:"'JetBrains Mono',monospace"}}>{os} <strong style={{color:'var(--wt-text)'}}>{n}</strong></span>
               ))}
               <span style={{fontSize:'0.86rem',color:'var(--wt-dim)',alignSelf:'center'}}>by OS</span>
             </div>
           )}
           {gapDevices.map(dev=>(
-            <div key={dev.hostname} style={{padding:'12px 0',borderBottom:'1px solid #1d2535',cursor:'pointer'}} onClick={()=>{setModal(null);setDeployAgentDevice(dev);}}>
+            <div key={dev.hostname} style={{padding:'12px 0',borderBottom:'1px solid rgba(0,229,255,0.15)',cursor:'pointer'}} onClick={()=>{setModal(null);setDeployAgentDevice(dev);}}>
 
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
-                <span style={{fontSize:'0.82rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace'}}>{dev.hostname}</span>
-                <span style={{fontSize:'0.84rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{dev.ip}</span>
+                <span style={{fontSize:'0.82rem',fontWeight:700,fontFamily:"'JetBrains Mono',monospace"}}>{dev.hostname}</span>
+                <span style={{fontSize:'0.84rem',color:'var(--wt-dim)',fontFamily:"'JetBrains Mono',monospace"}}>{dev.ip}</span>
                 <span style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>{dev.os}</span>
                 <span style={{fontSize:'0.82rem',color:'var(--wt-dim)',marginLeft:'auto'}}>Last seen {dev.lastSeen}</span>
               </div>
               <div style={{display:'flex',gap:5,flexWrap:'wrap',marginBottom:4}}>
                 {dev.missing.map(m=>{
-                  const catColor = m.includes('Falcon')||m.includes('Defender')||m.includes('SentinelOne')||m.includes('Carbon Black')?'#f0405e':m.includes('Splunk')||m.includes('Sentinel')||m.includes('QRadar')||m.includes('Elastic')?'#f0a030':m.includes('Tenable')||m.includes('Nessus')||m.includes('Qualys')?'#8b6fff':'#4f8fff';
+                  const catColor = m.includes('Falcon')||m.includes('Defender')||m.includes('SentinelOne')||m.includes('Carbon Black')?'#ff2244':m.includes('Splunk')||m.includes('Sentinel')||m.includes('QRadar')||m.includes('Elastic')?'#ffb300':m.includes('Tenable')||m.includes('Nessus')||m.includes('Qualys')?'#bd00ff':'#00e5ff';
                   return <span key={m} style={{fontSize:'0.86rem',fontWeight:700,padding:'3px 8px',borderRadius:4,background:`${catColor}14`,color:catColor,border:`1px solid ${catColor}28`,display:'inline-flex',alignItems:'center',gap:4}}><span style={{fontSize:'0.84rem'}}>✗</span>{m}</span>;
                 })}
               </div>
@@ -3345,16 +3345,16 @@ export default function DashboardPage() {
           {tools.filter(t=>t.active||connectedTools[t.id]).map(tool=>{
             const sr = toolSyncResults[tool.id];
             return (
-              <div key={tool.id} style={{padding:'10px 0',borderBottom:'1px solid #1d2535'}}>
+              <div key={tool.id} style={{padding:'10px 0',borderBottom:'1px solid rgba(0,229,255,0.15)'}}>
                 <div style={{display:'flex',alignItems:'center',gap:10}}>
-                  <div style={{width:8,height:8,borderRadius:'50%',background:sr?.error?'#f0405e':sr?'#22c992':'#f0a030',boxShadow:sr?.error?'0 0 5px #f0405e':sr?'0 0 5px #22c992':'none',flexShrink:0}} />
+                  <div style={{width:8,height:8,borderRadius:'50%',background:sr?.error?'#ff2244':sr?'#00ff88':'#ffb300',boxShadow:sr?.error?'0 0 5px #ff2244':sr?'0 0 5px #00ff88':'none',flexShrink:0}} />
                   <span style={{flex:1,fontSize:'0.82rem',fontWeight:600}}>{tool.name}</span>
-                  <span style={{fontSize:'0.82rem',color:sr?.error?'#f0405e':sr?'#22d49a':'#f0a030',fontWeight:700}}>
+                  <span style={{fontSize:'0.82rem',color:sr?.error?'#ff2244':sr?'#00ff88':'#ffb300',fontWeight:700}}>
                     {sr?.error ? '✗ Error' : sr ? `✓ ${sr.count} records` : 'Pending'}
                   </span>
-                  {!demoMode && doSync && <button onClick={()=>doSync([tool.id])} style={{padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff28',background:'#4f8fff0a',color:'#4f8fff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>⟳</button>}
+                  {!demoMode && doSync && <button onClick={()=>doSync([tool.id])} style={{padding:'2px 8px',borderRadius:4,border:'1px solid #00e5ff28',background:'#00e5ff0a',color:'#00e5ff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>⟳</button>}
                 </div>
-                {sr && <div style={{paddingLeft:18,marginTop:4,fontSize:'0.84rem',color:sr.error?'#f0405e':'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace',lineHeight:1.5}}>
+                {sr && <div style={{paddingLeft:18,marginTop:4,fontSize:'0.84rem',color:sr.error?'#ff2244':'var(--wt-dim)',fontFamily:"'JetBrains Mono',monospace",lineHeight:1.5}}>
                   {sr.error ? sr.error : `Last sync: ${new Date(sr.syncedAt).toLocaleTimeString('en-GB')} · ${sr.count} record${sr.count!==1?'s':''} pulled`}
                 </div>}
               </div>
@@ -3362,7 +3362,7 @@ export default function DashboardPage() {
           })}
           {tools.filter(t=>!t.active&&!connectedTools[t.id]).length > 0 && (
             <div style={{marginTop:10,padding:'8px 10px',background:'var(--wt-card2)',borderRadius:7,fontSize:'0.82rem',color:'var(--wt-dim)'}}>
-              {tools.filter(t=>!t.active&&!connectedTools[t.id]).length} tools not connected — <button onClick={()=>{setModal(null);setActiveTab('tools');}} style={{color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontSize:'0.82rem',padding:0}}>Setup wizard →</button> or <button onClick={e=>{e.stopPropagation();setActiveTab('tools');}} style={{color:'#22d49a',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:'inherit',padding:0}}>Tools tab →</button>
+              {tools.filter(t=>!t.active&&!connectedTools[t.id]).length} tools not connected — <button onClick={()=>{setModal(null);setActiveTab('tools');}} style={{color:'#00e5ff',background:'none',border:'none',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",fontSize:'0.82rem',padding:0}}>Setup wizard →</button> or <button onClick={e=>{e.stopPropagation();setActiveTab('tools');}} style={{color:'#00ff88',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:'inherit',padding:0}}>Tools tab →</button>
             </div>
           )}
         </Modal>
@@ -3372,21 +3372,21 @@ export default function DashboardPage() {
       {modal?.type==='alerts-ingested' && (
         <Modal title={`Alert Ingestion — What AI Did`} onClose={()=>setModal(null)}>
           <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:16}} className='wt-three-col'>
-            {[{val:alerts.length,label:'Ingested',c:'#4f8fff'},{val:fpAlerts.length,label:'Auto-Closed FPs',c:'#22d49a'},{val:tpAlerts.length,label:'Escalated TPs',c:'#f0405e'}].map(s=>(
-              <div key={s.label} style={{textAlign:'center',padding:'10px',background:'var(--wt-bg)',borderRadius:8,border:'1px solid #1d2535'}}>
-                <div style={{fontSize:'1.6rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.c,letterSpacing:-1}}>{s.val}</div>
+            {[{val:alerts.length,label:'Ingested',c:'#00e5ff'},{val:fpAlerts.length,label:'Auto-Closed FPs',c:'#00ff88'},{val:tpAlerts.length,label:'Escalated TPs',c:'#ff2244'}].map(s=>(
+              <div key={s.label} style={{textAlign:'center',padding:'10px',background:'var(--wt-bg)',borderRadius:8,border:'1px solid #0f2040'}}>
+                <div style={{fontSize:'1.6rem',fontWeight:900,fontFamily:"'JetBrains Mono',monospace",color:s.c,letterSpacing:-1}}>{s.val}</div>
                 <div style={{fontSize:'0.84rem',color:'var(--wt-dim)'}}>{s.label}</div>
               </div>
             ))}
           </div>
           {alerts.map(a=>(
-            <div key={a.id} style={{padding:'10px 0',borderBottom:'1px solid #1d2535'}}>
+            <div key={a.id} style={{padding:'10px 0',borderBottom:'1px solid rgba(0,229,255,0.15)'}}>
               <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:2}}>
                 <span style={{width:4,height:16,borderRadius:2,background:SEV_COLOR[a.severity],flexShrink:0}} />
                 <span style={{fontSize:'0.86rem',fontWeight:600,flex:1}}>{a.title}</span>
                 <span style={{fontSize:'0.8rem',fontWeight:800,padding:'2px 7px',borderRadius:3,color:(VERDICT_STYLE[a.verdict]||VERDICT_STYLE.Pending).c,background:(VERDICT_STYLE[a.verdict]||VERDICT_STYLE.Pending).bg}}>{a.verdict||'—'}</span>
               </div>
-              {a.aiActions?.[0]&&<div style={{fontSize:'0.86rem',color:'#22d49a',paddingLeft:12}}>⚡ {a.aiActions?.[0]}</div>}
+              {a.aiActions?.[0]&&<div style={{fontSize:'0.86rem',color:'#00ff88',paddingLeft:12}}>⚡ {a.aiActions?.[0]}</div>}
             </div>
           ))}
         </Modal>
@@ -3399,18 +3399,18 @@ export default function DashboardPage() {
           <div style={{display:'flex',alignItems:'center',gap:10,padding:'14px 16px',borderBottom:'1px solid var(--wt-border)',flexShrink:0}}>
             <span style={{fontSize:'1rem',lineHeight:1}}>✦</span>
             <span style={{fontWeight:800,fontSize:'0.9rem',flex:1}}>AI Co-Pilot</span>
-            <span style={{fontSize:'0.84rem',color:'#22d49a',background:'#22d49a10',padding:'1px 6px',borderRadius:3,border:'1px solid #22d49a20',fontWeight:700}}>
+            <span style={{fontSize:'0.84rem',color:'#00ff88',background:'#00ff8810',padding:'1px 6px',borderRadius:3,border:'1px solid #00ff8820',fontWeight:700}}>
               {demoMode?'DEMO':'LIVE'} · {alerts.length} alerts
             </span>
-{userTier==='community'&&!isAdmin&&<span style={{fontSize:'0.72rem',fontWeight:700,padding:'2px 7px',borderRadius:4,background:copilotDailyCount>=COPILOT_COMMUNITY_LIMIT?'#f0405e15':'#f0a03015',color:copilotDailyCount>=COPILOT_COMMUNITY_LIMIT?'#f0405e':'#f0a030',border:`1px solid ${copilotDailyCount>=COPILOT_COMMUNITY_LIMIT?'#f0405e30':'#f0a03030'}`}}>{copilotDailyCount}/{COPILOT_COMMUNITY_LIMIT} today</span>}
-            {copilotMessages.length>0&&<button onClick={()=>setCopilotMessages([])} title='Clear conversation' style={{background:'none',border:'1px solid var(--wt-border)',borderRadius:5,color:'var(--wt-dim)',fontSize:'0.86rem',cursor:'pointer',padding:'2px 7px',fontFamily:'Inter,sans-serif'}}>Clear</button>}
+{userTier==='community'&&!isAdmin&&<span style={{fontSize:'0.72rem',fontWeight:700,padding:'2px 7px',borderRadius:4,background:copilotDailyCount>=COPILOT_COMMUNITY_LIMIT?'#ff224415':'#ffb30015',color:copilotDailyCount>=COPILOT_COMMUNITY_LIMIT?'#ff2244':'#ffb300',border:`1px solid ${copilotDailyCount>=COPILOT_COMMUNITY_LIMIT?'#ff224430':'#ffb30030'}`}}>{copilotDailyCount}/{COPILOT_COMMUNITY_LIMIT} today</span>}
+            {copilotMessages.length>0&&<button onClick={()=>setCopilotMessages([])} title='Clear conversation' style={{background:'none',border:'1px solid var(--wt-border)',borderRadius:5,color:'var(--wt-dim)',fontSize:'0.86rem',cursor:'pointer',padding:'2px 7px',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Clear</button>}
             <button onClick={()=>setShowCopilot(false)} aria-label='Close Co-Pilot' style={{background:'none',border:'none',color:'var(--wt-muted)',fontSize:'1.3rem',cursor:'pointer',lineHeight:1,padding:'0 4px'}}>×</button>
           </div>
           {/* Mode tabs */}
           {(canUse('team')||isAdmin) && (
             <div style={{display:'flex',borderBottom:'1px solid var(--wt-border)',flexShrink:0}}>
               {[['chat','💬','Chat'],['ioc','🔍','IOC'],['nl','🔎','Query'],['hunt','🎯','Hunts']].map(([mode,icon,label])=>(
-                <button key={mode} onClick={()=>setCopilotMode(mode)} style={{flex:1,padding:'8px 4px',border:'none',borderBottom:`2px solid ${copilotMode===mode?'#8b6fff':'transparent'}`,background:copilotMode===mode?'#8b6fff08':'transparent',color:copilotMode===mode?'#8b6fff':'var(--wt-dim)',cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'all .12s',display:'flex',flexDirection:'column',alignItems:'center',gap:2}}><span style={{fontSize:'1rem',lineHeight:1}}>{icon}</span><span style={{fontSize:'0.65rem',fontWeight:copilotMode===mode?700:500}}>{label}</span></button>
+                <button key={mode} onClick={()=>setCopilotMode(mode)} style={{flex:1,padding:'8px 4px',border:'none',borderBottom:`2px solid ${copilotMode===mode?'#bd00ff':'transparent'}`,background:copilotMode===mode?'#bd00ff08':'transparent',color:copilotMode===mode?'#bd00ff':'var(--wt-dim)',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",transition:'all .12s',display:'flex',flexDirection:'column',alignItems:'center',gap:2}}><span style={{fontSize:'1rem',lineHeight:1}}>{icon}</span><span style={{fontSize:'0.65rem',fontWeight:copilotMode===mode?700:500}}>{label}</span></button>
               ))}
             </div>
           )}
@@ -3419,7 +3419,7 @@ export default function DashboardPage() {
               <div style={{fontSize:'2rem'}}>🔒</div>
               <div style={{fontWeight:700,fontSize:'0.9rem'}}>Upgrade required</div>
               <div style={{fontSize:'0.86rem',color:'var(--wt-muted)',lineHeight:1.6}}>AI Co-Pilot is available on Essentials plan and above. Ask security questions, generate detection queries, and get instant threat analysis.</div>
-              <a href='/pricing' style={{padding:'8px 20px',background:'#4f8fff',color:'#fff',borderRadius:8,fontSize:'0.86rem',fontWeight:700,textDecoration:'none',marginTop:8}}>Upgrade to Essentials</a>
+              <a href='/pricing' style={{padding:'8px 20px',background:'#00e5ff',color:'#fff',borderRadius:8,fontSize:'0.86rem',fontWeight:700,textDecoration:'none',marginTop:8}}>Upgrade to Essentials</a>
             </div>
           ) : (
             <>
@@ -3429,8 +3429,8 @@ export default function DashboardPage() {
                   <div style={{padding:'12px 16px',borderBottom:'1px solid var(--wt-border)',flexShrink:0}}>
                     <div style={{fontSize:'0.72rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>IOC / Indicator Search</div>
                     <div style={{display:'flex',gap:6}}>
-                      <input value={iocInput} onChange={e=>setIocInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&searchIoc(iocInput)} placeholder='IP, domain, hash, CVE, hostname…' style={{flex:1,padding:'7px 10px',borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.82rem',fontFamily:'JetBrains Mono,monospace',outline:'none'}} />
-                      <button onClick={()=>searchIoc(iocInput)} disabled={iocSearching} style={{padding:'7px 14px',borderRadius:7,border:'none',background:'#4f8fff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>{iocSearching?'…':'Search'}</button>
+                      <input value={iocInput} onChange={e=>setIocInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&searchIoc(iocInput)} placeholder='IP, domain, hash, CVE, hostname…' style={{flex:1,padding:'7px 10px',borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.82rem',fontFamily:"'JetBrains Mono',monospace",outline:'none'}} />
+                      <button onClick={()=>searchIoc(iocInput)} disabled={iocSearching} style={{padding:'7px 14px',borderRadius:7,border:'none',background:'#00e5ff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>{iocSearching?'…':'Search'}</button>
                     </div>
                   </div>
                   <div style={{flex:1,overflowY:'auto',padding:'12px 16px'}}>
@@ -3440,20 +3440,20 @@ export default function DashboardPage() {
                         <div style={{fontSize:'0.72rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Results across connected tools</div>
                         {Object.entries(iocResults).filter(([k])=>k!=='error'&&k!=='ok').map(([tool, result])=>{
                           return (
-                            <div key={tool} style={{padding:'8px 10px',background:'var(--wt-card)',border:`1px solid ${result&&result.found?'#f0405e25':'var(--wt-border)'}`,borderRadius:8}}>
+                            <div key={tool} style={{padding:'8px 10px',background:'var(--wt-card)',border:`1px solid ${result&&result.found?'#ff224425':'var(--wt-border)'}`,borderRadius:8}}>
                               <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:result&&result.found?4:0}}>
-                                <span style={{width:6,height:6,borderRadius:'50%',background:result&&result.found?'#f0405e':'#22d49a',flexShrink:0}} />
+                                <span style={{width:6,height:6,borderRadius:'50%',background:result&&result.found?'#ff2244':'#00ff88',flexShrink:0}} />
                                 <span style={{fontSize:'0.74rem',fontWeight:700,color:'var(--wt-text)',textTransform:'capitalize'}}>{tool}</span>
-                                <span style={{fontSize:'0.7rem',color:result&&result.found?'#f0405e':'#22d49a',marginLeft:'auto',fontWeight:700}}>{result&&result.found?`${result.count||1} match${result.count!==1?'es':''}`:result&&result.error?'error':'not found'}</span>
+                                <span style={{fontSize:'0.7rem',color:result&&result.found?'#ff2244':'#00ff88',marginLeft:'auto',fontWeight:700}}>{result&&result.found?`${result.count||1} match${result.count!==1?'es':''}`:result&&result.error?'error':'not found'}</span>
                               </div>
-                              {result&&result.found&&result.details&&<div style={{fontSize:'0.72rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{JSON.stringify(result.details).slice(0,120)}</div>}
+                              {result&&result.found&&result.details&&<div style={{fontSize:'0.72rem',color:'var(--wt-dim)',fontFamily:"'JetBrains Mono',monospace"}}>{JSON.stringify(result.details).slice(0,120)}</div>}
                             </div>
                           );
                         })}
                         {Object.keys(iocResults).filter(k=>k!=='error'&&k!=='ok').length===0&&<div style={{fontSize:'0.82rem',color:'var(--wt-muted)'}}>No connected tools support IOC search yet. Connect Tenable, CrowdStrike, or Microsoft Defender.</div>}
                       </div>
                     )}
-                    {iocResults?.error&&<div style={{fontSize:'0.82rem',color:'#f0405e'}}>{iocResults.error}</div>}
+                    {iocResults?.error&&<div style={{fontSize:'0.82rem',color:'#ff2244'}}>{iocResults.error}</div>}
                     {!iocResults&&!iocSearching&&<div style={{fontSize:'0.82rem',color:'var(--wt-dim)',lineHeight:1.7}}>Search for an IP, domain, file hash, CVE, or hostname across all connected security tools simultaneously.</div>}
                   </div>
                 </div>
@@ -3464,12 +3464,12 @@ export default function DashboardPage() {
                   <div style={{padding:'12px 16px',borderBottom:'1px solid var(--wt-border)',flexShrink:0}}>
                     <div style={{fontSize:'0.72rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Natural Language Query</div>
                     <div style={{display:'flex',gap:6}}>
-                      <input value={nlInput} onChange={e=>setNlInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&sendNlQuery(nlInput)} placeholder='Show me all critical alerts from CrowdStrike…' style={{flex:1,padding:'7px 10px',borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.82rem',fontFamily:'Inter,sans-serif',outline:'none'}} />
-                      <button onClick={()=>sendNlQuery(nlInput)} disabled={nlLoading} style={{padding:'7px 14px',borderRadius:7,border:'none',background:'#8b6fff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>{nlLoading?'…':'Ask'}</button>
+                      <input value={nlInput} onChange={e=>setNlInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&sendNlQuery(nlInput)} placeholder='Show me all critical alerts from CrowdStrike…' style={{flex:1,padding:'7px 10px',borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.82rem',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",outline:'none'}} />
+                      <button onClick={()=>sendNlQuery(nlInput)} disabled={nlLoading} style={{padding:'7px 14px',borderRadius:7,border:'none',background:'#bd00ff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>{nlLoading?'…':'Ask'}</button>
                     </div>
                     <div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:6}}>
                       {['Top 5 critical alerts this week','Which devices have unresolved high severity alerts?','Summarise open incidents by analyst','What are my highest CVSS vulnerabilities?'].map(q=>(
-                        <button key={q} onClick={()=>{setNlInput(q);sendNlQuery(q);}} style={{fontSize:'0.68rem',padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border)',background:'var(--wt-card)',color:'var(--wt-dim)',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{q}</button>
+                        <button key={q} onClick={()=>{setNlInput(q);sendNlQuery(q);}} style={{fontSize:'0.68rem',padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border)',background:'var(--wt-card)',color:'var(--wt-dim)',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>{q}</button>
                       ))}
                     </div>
                   </div>
@@ -3496,14 +3496,14 @@ export default function DashboardPage() {
                         <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
                           <span style={{fontSize:'0.78rem',fontWeight:700,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{hunt.title}</span>
                           <span style={{fontSize:'0.68rem',color:'var(--wt-dim)',flexShrink:0}}>{hunt.savedAt}</span>
-                          <button onClick={()=>setSavedHunts(prev=>prev.filter(h=>h.id!==hunt.id))} style={{fontSize:'0.72rem',color:'var(--wt-dim)',background:'none',border:'none',cursor:'pointer',flexShrink:0,fontFamily:'Inter,sans-serif'}}>✕</button>
+                          <button onClick={()=>setSavedHunts(prev=>prev.filter(h=>h.id!==hunt.id))} style={{fontSize:'0.72rem',color:'var(--wt-dim)',background:'none',border:'none',cursor:'pointer',flexShrink:0,fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>✕</button>
                         </div>
                         {Object.entries(hunt.queries||{}).filter(([,v])=>v).map(([tool,query])=>(
                           <div key={tool} style={{marginBottom:4}}>
-                            <div style={{fontSize:'0.64rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:2}}>{tool}</div>
+                            <div style={{fontSize:'0.64rem',fontWeight:700,color:'#00e5ff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:2}}>{tool}</div>
                             <div style={{position:'relative'}}>
-                              <code style={{display:'block',fontSize:'0.66rem',fontFamily:'JetBrains Mono,monospace',color:'#22d49a',background:'#030510',padding:'4px 28px 4px 6px',borderRadius:4,whiteSpace:'pre-wrap',wordBreak:'break-all',lineHeight:1.5}}>{String(query).slice(0,200)}</code>
-                              <button onClick={()=>navigator.clipboard.writeText(String(query))} style={{position:'absolute',top:3,right:3,fontSize:'0.62rem',padding:'1px 4px',borderRadius:3,border:'1px solid #4f8fff20',background:'transparent',color:'#4f8fff',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Copy</button>
+                              <code style={{display:'block',fontSize:'0.66rem',fontFamily:"'JetBrains Mono',monospace",color:'#00ff88',background:'#030510',padding:'4px 28px 4px 6px',borderRadius:4,whiteSpace:'pre-wrap',wordBreak:'break-all',lineHeight:1.5}}>{String(query).slice(0,200)}</code>
+                              <button onClick={()=>navigator.clipboard.writeText(String(query))} style={{position:'absolute',top:3,right:3,fontSize:'0.62rem',padding:'1px 4px',borderRadius:3,border:'1px solid #00e5ff20',background:'transparent',color:'#00e5ff',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Copy</button>
                             </div>
                           </div>
                         ))}
@@ -3529,8 +3529,8 @@ export default function DashboardPage() {
                       `What should I prioritise right now?`,
                     ].filter(Boolean).slice(0,4).map(p=>(
                       <button key={p} onClick={()=>sendCopilotMessage(p)}
-                        style={{padding:'8px 12px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:8,color:'var(--wt-secondary)',fontSize:'0.82rem',textAlign:'left',cursor:'pointer',fontFamily:'Inter,sans-serif',transition:'border-color .15s',lineHeight:1.4}}
-                        onMouseEnter={e=>e.currentTarget.style.borderColor='#4f8fff40'}
+                        style={{padding:'8px 12px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:8,color:'var(--wt-secondary)',fontSize:'0.82rem',textAlign:'left',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",transition:'border-color .15s',lineHeight:1.4}}
+                        onMouseEnter={e=>e.currentTarget.style.borderColor='#00e5ff40'}
                         onMouseLeave={e=>e.currentTarget.style.borderColor='var(--wt-border)'}
                       >{p}</button>
                     ))}
@@ -3538,8 +3538,8 @@ export default function DashboardPage() {
                 )}
                 {copilotMessages.map((msg,i)=>(
                   <div key={i} style={{display:'flex',flexDirection:'column',alignItems:msg.role==='user'?'flex-end':'flex-start',gap:3}}>
-                    <div style={{maxWidth:'92%',padding:msg.role==='user'?'9px 13px':'12px 16px',borderRadius:msg.role==='user'?'12px 12px 4px 12px':'12px 12px 12px 4px',background:msg.role==='user'?'#4f8fff':'var(--wt-card)',border:msg.role==='user'?'none':'1px solid var(--wt-border)',fontSize:'0.86rem',color:msg.role==='user'?'#fff':'var(--wt-text)',lineHeight:1.65,wordBreak:'break-word'}}>
-                      {msg.role==='assistant' && <div style={{fontSize:'0.66rem',fontWeight:800,color:'#4f8fff',letterSpacing:'1px',marginBottom:8,display:'flex',alignItems:'center',gap:5}}><span>✦</span><span>WATCHTOWER AI</span></div>}
+                    <div style={{maxWidth:'92%',padding:msg.role==='user'?'9px 13px':'12px 16px',borderRadius:msg.role==='user'?'12px 12px 4px 12px':'12px 12px 12px 4px',background:msg.role==='user'?'#00e5ff':'var(--wt-card)',border:msg.role==='user'?'none':'1px solid var(--wt-border)',fontSize:'0.86rem',color:msg.role==='user'?'#fff':'var(--wt-text)',lineHeight:1.65,wordBreak:'break-word'}}>
+                      {msg.role==='assistant' && <div style={{fontSize:'0.66rem',fontWeight:800,color:'#00e5ff',letterSpacing:'1px',marginBottom:8,display:'flex',alignItems:'center',gap:5}}><span>✦</span><span>WATCHTOWER AI</span></div>}
                       {msg.role==='assistant' ? <WtMarkdown text={msg.text} compact={true} /> : msg.text}
                     </div>
                     {msg.ts && <span style={{fontSize:'0.55rem',color:'var(--wt-dim)',padding:'0 4px'}}>{msg.ts}</span>}
@@ -3548,7 +3548,7 @@ export default function DashboardPage() {
                 {copilotLoading && (
                   <div style={{display:'flex',alignItems:'flex-start',gap:8}}>
                     <div style={{padding:'9px 13px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:'12px 12px 12px 4px',display:'flex',gap:5,alignItems:'center'}}>
-                      {[0,1,2].map(i=><span key={i} style={{width:6,height:6,borderRadius:'50%',background:'#4f8fff',display:'inline-block',animation:'pulse 1.2s ease infinite',animationDelay:`${i*0.2}s`}} />)}
+                      {[0,1,2].map(i=><span key={i} style={{width:6,height:6,borderRadius:'50%',background:'#00e5ff',display:'inline-block',animation:'pulse 1.2s ease infinite',animationDelay:`${i*0.2}s`}} />)}
                     </div>
                   </div>
                 )}
@@ -3563,12 +3563,12 @@ export default function DashboardPage() {
                   onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendCopilotMessage(copilotInput);}}}
                   placeholder='Ask a security question… (Enter to send)'
                   rows={2}
-                  style={{flex:1,resize:'none',padding:'8px 12px',borderRadius:8,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.86rem',fontFamily:'Inter,sans-serif',outline:'none',lineHeight:1.5}}
+                  style={{flex:1,resize:'none',padding:'8px 12px',borderRadius:8,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.86rem',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",outline:'none',lineHeight:1.5}}
                 />
                 <button
                   onClick={()=>sendCopilotMessage(copilotInput)}
                   disabled={!copilotInput.trim()||copilotLoading}
-                  style={{padding:'8px 14px',borderRadius:8,background:copilotInput.trim()&&!copilotLoading?'#4f8fff':'var(--wt-card)',border:'1px solid var(--wt-border2)',color:copilotInput.trim()&&!copilotLoading?'#fff':'var(--wt-dim)',fontSize:'0.86rem',fontWeight:700,cursor:copilotInput.trim()&&!copilotLoading?'pointer':'default',fontFamily:'Inter,sans-serif',flexShrink:0,transition:'all .15s',alignSelf:'flex-end'}}
+                  style={{padding:'8px 14px',borderRadius:8,background:copilotInput.trim()&&!copilotLoading?'#00e5ff':'var(--wt-card)',border:'1px solid var(--wt-border2)',color:copilotInput.trim()&&!copilotLoading?'#fff':'var(--wt-dim)',fontSize:'0.86rem',fontWeight:700,cursor:copilotInput.trim()&&!copilotLoading?'pointer':'default',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0,transition:'all .15s',alignSelf:'flex-end'}}
                 >↑</button>
               </div>}
             </>
@@ -3587,7 +3587,7 @@ export default function DashboardPage() {
             <div style={{display:'grid',gridTemplateColumns:'auto 1fr',gap:'8px 16px',fontSize:'0.86rem'}}>
               {[['G then O','Overview'],['G then A','Alerts'],['G then C','Coverage'],['G then V','Vulnerabilities'],['G then I','Intel'],['G then N','Incidents'],['G then T','Tools'],['G then S','Sales'],['?','Toggle this help'],['Esc','Close overlay']].map(([k,v])=>(
                 <React.Fragment key={k}>
-                  <kbd style={{background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:5,padding:'2px 8px',fontFamily:'JetBrains Mono,monospace',fontSize:'0.86rem',color:'var(--wt-secondary)',whiteSpace:'nowrap'}}>{k}</kbd>
+                  <kbd style={{background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:5,padding:'2px 8px',fontFamily:"'JetBrains Mono',monospace",fontSize:'0.86rem',color:'var(--wt-secondary)',whiteSpace:'nowrap'}}>{k}</kbd>
                   <span style={{color:'var(--wt-muted)',alignSelf:'center'}}>{v}</span>
                 </React.Fragment>
               ))}
@@ -3601,7 +3601,7 @@ export default function DashboardPage() {
         {[{t:'overview',i:'📊',l:'Overview'},{t:'alerts',i:'🔔',l:'Alerts'},{t:'incidents',i:'📋',l:'Cases'},{t:'tools',i:'🔌',l:'Tools'}].map(({t,i,l})=>(
           <button key={t} className={activeTab===t?'active':''} onClick={()=>setActiveTab(t)} style={{position:'relative'}}>
             <span className="bnav-icon">{i}</span>{l}
-            {t==='alerts'&&critAlerts.length>0&&<span style={{position:'absolute',top:4,right:'calc(50% - 12px)',width:7,height:7,borderRadius:'50%',background:'#f0405e',display:'block'}} />}
+            {t==='alerts'&&critAlerts.length>0&&<span style={{position:'absolute',top:4,right:'calc(50% - 12px)',width:7,height:7,borderRadius:'50%',background:'#ff2244',display:'block'}} />}
           </button>
         ))}
         <a href='/settings' className={''}>
@@ -3626,12 +3626,12 @@ export default function DashboardPage() {
                   ...(isAdmin?[{t:'admin',i:'🔧',l:'Admin'}]:[]),
                 ].map(({t,i,l})=>(
                   <button key={t} onClick={()=>{setActiveTab(t);setShowMobileMore(false);}}
-                    style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'10px 4px',background:'none',border:'none',cursor:'pointer',color:activeTab===t?'#4f8fff':'var(--wt-muted)',fontFamily:'Inter,sans-serif',fontSize:'0.62rem',fontWeight:600}}>
+                    style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'10px 4px',background:'none',border:'none',cursor:'pointer',color:activeTab===t?'#00e5ff':'var(--wt-muted)',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",fontSize:'0.62rem',fontWeight:600}}>
                     <span style={{fontSize:'1.3rem'}}>{i}</span>{l}
                   </button>
                 ))}
                 <a href='/changelog' onClick={()=>setShowMobileMore(false)}
-                  style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'10px 4px',color:'var(--wt-muted)',textDecoration:'none',fontFamily:'Inter,sans-serif',fontSize:'0.62rem',fontWeight:600}}>
+                  style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'10px 4px',color:'var(--wt-muted)',textDecoration:'none',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",fontSize:'0.62rem',fontWeight:600}}>
                   <span style={{fontSize:'1.3rem'}}>📝</span>Log
                 </a>
               </div>
