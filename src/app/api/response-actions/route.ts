@@ -328,7 +328,7 @@ async function disableUser(creds: Record<string, Record<string, string>>, identi
       const userId = await findOktaUser(creds.okta, identifier);
       if (userId) {
         if (!validateOktaDomain(creds.okta.domain)) {
-          return { ok: false, tool: 'Okta', action: 'suspend', error: 'Invalid Okta domain' };
+          return [{ ok: false, tool: 'Okta', action: 'suspend', error: 'Invalid Okta domain' }];
         }
         const r = await fetch(`https://${creds.okta.domain}/api/v1/users/${userId}/lifecycle/suspend`, {
           method: 'POST',
@@ -436,7 +436,7 @@ async function notifyTeams(creds: Record<string, Record<string, string>>, messag
     const teamsUrl = String(creds.teams.webhook_url || '');
     if (!teamsUrl.startsWith('https://') || 
         !/(outlook\.office\.com|webhook\.office\.com|teams\.microsoft\.com)/.test(teamsUrl)) {
-      return { ok: false, tool: 'Microsoft Teams', action: 'notify', error: 'Invalid Teams webhook URL' };
+      return [{ ok: false, tool: 'Microsoft Teams', action: 'notify', error: 'Invalid Teams webhook URL' }];
     }
     const r = await fetch(teamsUrl, {
       method: 'POST',
@@ -444,7 +444,7 @@ async function notifyTeams(creds: Record<string, Record<string, string>>, messag
       body: JSON.stringify(card),
     });
     return { ok: r.ok, tool: 'Microsoft Teams', action: 'notified', detail: r.ok ? 'Teams channel notified' : undefined, error: r.ok ? undefined : `Teams HTTP ${r.status}` };
-  } catch(e: any) { return { ok: false, tool: 'Microsoft Teams', action: 'notified', error: e.message }; }
+  } catch(e: any) { return [{ ok: false, tool: 'Microsoft Teams', action: 'notified', error: e.message }]; }
 }
 
 async function notifySlack(creds: Record<string, Record<string, string>>, message: string, alertTitle: string, severity: string): Promise<ActionResult | null> {
@@ -467,7 +467,7 @@ async function notifySlack(creds: Record<string, Record<string, string>>, messag
     });
     return { ok: r.ok, tool: 'Slack', action: 'notified', detail: 'Team notification sent' };
   } catch(e: any) {
-    return { ok: false, tool: 'Slack', action: 'notified', error: (e as any).message };
+    return [{ ok: false, tool: 'Slack', action: 'notified', error: (e as any).message }];
   }
 }
 
@@ -479,7 +479,7 @@ async function createTicket(creds: Record<string, Record<string, string>>, alert
     try {
       const auth = Buffer.from(`${creds.servicenow.username}:${creds.servicenow.password}`).toString('base64');
       if (!validateServiceNowInstance(creds.servicenow.instance)) {
-      return { ok: false, tool: 'ServiceNow', action: 'create_ticket', error: 'Invalid ServiceNow instance URL' };
+      return [{ ok: false, tool: 'ServiceNow', action: 'create_ticket', error: 'Invalid ServiceNow instance URL' }];
     }
     const r = await fetch(`${creds.servicenow.instance}/api/now/table/incident`, {
         method: 'POST',
@@ -527,7 +527,7 @@ async function createTicket(creds: Record<string, Record<string, string>>, alert
     try {
       const auth = Buffer.from(`${creds.jira.email}:${creds.jira.api_token}`).toString('base64');
       if (!validateJiraDomain(creds.jira.domain)) {
-      return { ok: false, tool: 'Jira', action: 'create_ticket', error: 'Invalid Jira domain' };
+      return [{ ok: false, tool: 'Jira', action: 'create_ticket', error: 'Invalid Jira domain' }];
     }
     const r = await fetch(`https://${creds.jira.domain}/rest/api/3/issue`, {
         method: 'POST',
