@@ -22,7 +22,8 @@ export async function POST(req: NextRequest) {
 
     // Load credentials directly from Redis — never trust client-supplied creds
     // This prevents masked values (••••••••) from being used in sync
-    const tenantId = req.headers.get('x-tenant-id') || 'global';
+    const tenantId = req.headers.get('x-tenant-id');
+    if (!tenantId) return NextResponse.json({ error: 'Missing tenant context' }, { status: 400 });
     const raw = await redisGet(KEYS.TOOL_CREDS(tenantId));
     const storedCreds: Record<string, Record<string, string>> = raw
       ? JSON.parse(decrypt(raw))

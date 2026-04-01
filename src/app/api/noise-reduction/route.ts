@@ -11,7 +11,7 @@ const CACHE_KEY = (t: string) => `wt:${t}:noise_analysis`;
 export async function POST(req: NextRequest) {
   try {
     const tenantId = req.headers.get('x-tenant-id') ||
-      (await cookies()).get('wt_tenant')?.value || 'global';
+      req.headers.get('x-tenant-id') || 'global';
     const userId = req.headers.get('x-user-id') || 'anon';
 
     const rl = await checkRateLimit(`noise:${userId}`, 5, 300);

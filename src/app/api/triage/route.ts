@@ -178,7 +178,8 @@ export async function POST(req: NextRequest) {
     if (!isAdminReq && userTier !== 'mssp' && (tierLevels[userTier] || 0) < 1) {
       return NextResponse.json({ ok: false, error: 'APEX deep analysis requires Essentials plan or above.' }, { status: 403 });
     }
-    const tenantId = req.headers.get('x-tenant-id') || (await cookies()).get('wt_tenant')?.value || 'global';
+    const tenantId = req.headers.get('x-tenant-id');
+    if (!tenantId) return NextResponse.json({ error: 'Missing tenant context' }, { status: 400 });
 
     const body = await req.json() as {
       alertId: string; title: string; severity: string; source: string;

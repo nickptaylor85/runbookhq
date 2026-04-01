@@ -157,10 +157,11 @@ export async function middleware(req: NextRequest) {
     headers.set('x-user-id', session.userId);
     headers.set('x-tenant-id', session.tenantId);
     headers.set('x-is-admin', String(session.isAdmin));
-    // Inject tier: admins get full access; read from signed JWT payload (not cookie)
-    // The tier in the JWT is set at login/signup and is tamper-proof
+    // Inject tier and role from signed JWT payload (tamper-proof)
     const jwtTier = (session as any).tier as string | undefined;
+    const jwtRole = (session as any).role as string | undefined;
     headers.set('x-user-tier', session.isAdmin ? 'mssp' : (jwtTier || 'community'));
+    headers.set('x-user-role', session.isAdmin ? 'owner' : (jwtRole || 'viewer'));
     return NextResponse.next({ request: { headers } });
   }
 

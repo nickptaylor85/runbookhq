@@ -4,7 +4,9 @@ import { encrypt, decrypt } from '@/lib/encrypt';
 
 function getTenantId(req: NextRequest): string {
   // Read from middleware-injected header (verified server-side)
-  return req.headers.get('x-tenant-id') || 'global';
+  const tid = req.headers.get('x-tenant-id');
+  if (!tid) return 'global'; // middleware always sets this
+  return tid;
 }
 
 export async function GET(req: NextRequest) {
@@ -36,6 +38,15 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    // Credential writes: require tech_admin or higher role
+    // Viewers and sales roles cannot modify integration credentials
+    const userRole = req.headers.get('x-user-role') || 'viewer';
+    const isAdmin = req.headers.get('x-is-admin') === 'true';
+    const allowedRoles = ['owner', 'tech_admin'];
+    if (!isAdmin && !allowedRoles.includes(userRole)) {
+      return NextResponse.json({ error: 'Insufficient permissions to modify integrations' }, { status: 403 });
+    }
+
     const body = await req.json() as { toolId: unknown; credentials: unknown };
     
     // Input validation

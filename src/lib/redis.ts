@@ -67,7 +67,9 @@ export const KEYS = {
 };
 
 // Resolve the Anthropic API key for a given tenant.
-// Priority: tenant BYOK key > env var > global fallback key
+// Priority: tenant BYOK key > env var (no global fallback for non-admin tenants)
+// Security: non-admin tenants MUST provide their own BYOK key — they cannot use the
+// platform Anthropic key. Only the 'global' admin tenant may use the platform key.
 export async function getAnthropicKey(tenantId?: string): Promise<string | null> {
   const { decrypt } = await import('@/lib/encrypt');
   // 1. Tenant-specific BYOK key from Redis (stored encrypted)
@@ -79,6 +81,9 @@ export async function getAnthropicKey(tenantId?: string): Promise<string | null>
         try { return decrypt(tenantKey); } catch { return tenantKey; }
       }
     } catch(e) { /* fall through */ }
+    // Non-admin tenants stop here — do NOT fall back to platform key
+    // This prevents free AI usage on the platform operator's Anthropic budget
+    if (tenantId !== 'global') return null;
   }
   // 2. Environment variable (Vercel dashboard — not encrypted, direct)
   if (process.env.ANTHROPIC_API_KEY) return process.env.ANTHROPIC_API_KEY;

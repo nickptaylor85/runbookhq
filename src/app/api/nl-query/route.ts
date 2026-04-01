@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'This feature requires Essentials plan or above. Upgrade at /pricing.' }, { status: 403 });
   }
     const tenantId = req.headers.get('x-tenant-id') ||
-      (await cookies()).get('wt_tenant')?.value || 'global';
+      req.headers.get('x-tenant-id') || 'global';
     const userId = req.headers.get('x-user-id') || 'anon';
 
     const rl = await checkRateLimit(`nl-query:${userId}`, 20, 60);

@@ -10,7 +10,7 @@ const CACHE_KEY = (t: string) => `wt:${t}:ai_insight`;
 export async function POST(req: NextRequest) {
   try {
     const tenantId = req.headers.get('x-tenant-id') ||
-      (await cookies()).get('wt_tenant')?.value || 'global';
+      req.headers.get('x-tenant-id') || 'global';
     const userId = req.headers.get('x-user-id') || 'anon';
 
     const rl = await checkRateLimit(`insight:${userId}`, 10, 3600);

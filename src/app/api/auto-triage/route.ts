@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     const rl = await checkRateLimit(`auto-triage:${userId}`, 10, 60);
     if (!rl.ok) return NextResponse.json({ ok: false, error: `Rate limit exceeded. Resets in ${rl.reset}s.` }, { status: 429 });
 
-    const tenantId = req.headers.get('x-tenant-id') || (await cookies()).get('wt_tenant')?.value || 'global';
+    const tenantId = req.headers.get('x-tenant-id') || 'global';
     const body = await req.json() as { alerts: AlertInput[] };
     if (!body.alerts?.length) return NextResponse.json({ ok: false, error: 'alerts array required' }, { status: 400 });
 

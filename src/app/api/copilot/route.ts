@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
     }
 
     const tenantId = req.headers.get('x-tenant-id') ||
-      (await cookies()).get('wt_tenant')?.value || 'global';
+      req.headers.get('x-tenant-id') || 'global';
 
     const apiKey = await getAnthropicKey(tenantId);
     if (!apiKey) {

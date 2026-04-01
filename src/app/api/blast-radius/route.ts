@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'This feature requires Essentials plan or above. Upgrade at /pricing.' }, { status: 403 });
   }
     const tenantId = req.headers.get('x-tenant-id') ||
-      (await cookies()).get('wt_tenant')?.value || 'global';
+      req.headers.get('x-tenant-id') || 'global';
 
     const body = await req.json() as {
       alertId: string;

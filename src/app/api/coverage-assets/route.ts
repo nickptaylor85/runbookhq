@@ -15,7 +15,8 @@ export async function GET(req: NextRequest) {
   const _rl = await checkRateLimit(`api:${_rlId}:${req.nextUrl.pathname}`, 60, 60);
   if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
 
-  const tenantId = req.headers.get('x-tenant-id') || 'global';
+  const tenantId = req.headers.get('x-tenant-id');
+    if (!tenantId) return NextResponse.json({ error: 'Missing tenant context' }, { status: 400 });
 
   // Serve from cache if fresh
   try {
