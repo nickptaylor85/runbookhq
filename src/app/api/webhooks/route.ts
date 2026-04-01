@@ -90,12 +90,13 @@ export async function POST(req: NextRequest) {
     const events = body.events?.length ? body.events : ['alert.critical', 'incident.created'];
     await redisHSet(webhooksKey(tenantId), id, JSON.stringify({ url: body.url, events, createdAt: new Date().toISOString() }));
 
-    // Send a test ping
-    try {
-      await
+    // Validate URL before storing and pinging
     const _ssrfCheck = validateWebhookUrl(body.url);
     if (!_ssrfCheck.ok) return NextResponse.json({ error: `Blocked: ${_ssrfCheck.error}` }, { status: 400 });
-    fetch(body.url, {
+
+    // Send a test ping
+    try {
+      await fetch(body.url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Watchtower-Event': 'webhook.test' },
         body: JSON.stringify({ event: 'webhook.test', source: 'Watchtower', timestamp: new Date().toISOString(), message: 'Webhook registered successfully' }),
