@@ -393,7 +393,7 @@ function RemediationOutput({ text }) {
           <div key={i} style={{position:'relative',background:'#020306',border:'1px solid #1a2235',borderRadius:8,overflow:'hidden'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'5px 10px',borderBottom:'1px solid #1a2235',background:'#060912'}}>
               <span style={{fontSize:'0.86rem',fontWeight:700,color:'#00e5ff',letterSpacing:'0.5px',textTransform:'uppercase'}}>Query</span>
-              <button onClick={()=>copyCode(block.content, block.id||'')} style={{fontSize:'0.8rem',fontWeight:600,padding:'2px 8px',borderRadius:4,border:'1px solid #1e2536',background:'transparent',color:copied===block.id?'#00ff88':'var(--wt-muted)',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",transition:'color .15s'}}>
+              <button onClick={()=>copyCode(block.content, block.id||'')} style={{fontSize:'0.8rem',fontWeight:600,padding:'2px 8px',borderRadius:4,border:'1px solid #1e2536',background:'transparent',color:copied===block.id?'#00ff88':'var(--wt-muted)',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",transition:'color .15s'}}>
                 {copied===block.id?'✓ Copied':'Copy'}
               </button>
             </div>
@@ -1499,7 +1499,7 @@ export default function DashboardPage() {
   // ── End alerts derived vars ────────────────────────────────────────────────
 
   return (
-    <div className={`wt-root${theme === 'light' ? ' light' : ''}${digitalFont ? ' wt-digital' : ''}`} style={{display:'flex',flexDirection:'column',minHeight:'100vh',maxWidth:'100vw',overflowX:'hidden',background:'var(--wt-bg)',color:'var(--wt-text)',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>
+    <div className={`wt-root${theme === 'light' ? ' light' : ''}${digitalFont ? ' wt-digital' : ''}`} style={{display:'flex',flexDirection:'column',minHeight:'100vh',maxWidth:'100vw',overflowX:'hidden',background:'var(--wt-bg)',color:'var(--wt-text)',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>
       <style dangerouslySetInnerHTML={{__html:DASHBOARD_CSS}} />
       {/* MAIN — full width, no sidebar */}
       <div style={{display:'flex',flexDirection:'column',overflow:'hidden',flex:1,maxWidth:'100vw'}}>
@@ -1508,7 +1508,7 @@ export default function DashboardPage() {
           <div style={{display:'flex',alignItems:'center',gap:10,padding:'8px 18px',background:'#ffb30015',borderBottom:'1px solid #ffb30030',flexShrink:0}}>
             <span style={{fontSize:'0.86rem'}}>📢</span>
             <span style={{fontSize:'0.82rem',color:'#f0c070',flex:1,fontWeight:500}}>{clientBanner}</span>
-            {!isAdmin && <button onClick={()=>setClientBanner(null)} style={{padding:'2px 8px',borderRadius:5,border:'1px solid #ffb30030',background:'transparent',color:'#ffb300',fontSize:'0.86rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>Dismiss ×</button>}
+            {!isAdmin && <button onClick={()=>setClientBanner(null)} style={{padding:'2px 8px',borderRadius:5,border:'1px solid #ffb30030',background:'transparent',color:'#ffb300',fontSize:'0.86rem',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",flexShrink:0}}>Dismiss ×</button>}
           </div>
         )}
 
@@ -1529,7 +1529,7 @@ export default function DashboardPage() {
           <div className="wt-tabbar" style={{display:'flex',gap:0,height:'100%',alignItems:'stretch',overflowX:'auto'}}>
             {/* Primary tabs */}
             {['overview','alerts','incidents','coverage','intel'].map(t=>(
-              <button key={t} onClick={()=>setActiveTab(t)} style={{height:'100%',padding:'0 14px',border:'none',borderBottom:`2px solid ${activeTab===t?'#00e5ff':'transparent'}`,background:'transparent',color:activeTab===t?'#00e5ff':'var(--wt-muted)',fontSize:'0.8rem',fontWeight:activeTab===t?700:500,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",transition:'all .15s',whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:5}}>
+              <button key={t} onClick={()=>setActiveTab(t)} style={{height:'100%',padding:'0 14px',border:'none',borderBottom:`2px solid ${activeTab===t?'#00e5ff':'transparent'}`,background:'transparent',color:activeTab===t?'#00e5ff':'var(--wt-muted)',fontSize:'0.8rem',fontWeight:activeTab===t?700:500,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",transition:'all .15s',whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:5}}>
                 {t==='incidents'?'Cases':t.charAt(0).toUpperCase()+t.slice(1)}
                 {t==='alerts'&&critAlerts.length>0&&<span style={{fontSize:'0.58rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#ff2244',color:'#fff'}}>{critAlerts.length}</span>}
               </button>
@@ -1548,13 +1548,13 @@ export default function DashboardPage() {
               const activeInMore = moreTabs.some(m=>m.t===activeTab);
               return (
                 <div style={{position:'relative',height:'100%',display:'flex',alignItems:'center'}}>
-                  <button onClick={()=>setShowTabMore(s=>!s)} style={{height:'100%',padding:'0 12px',border:'none',borderBottom:`2px solid ${activeInMore?'#00e5ff':'transparent'}`,background:'transparent',color:activeInMore?'#00e5ff':'var(--wt-muted)',fontSize:'0.8rem',fontWeight:activeInMore?700:500,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",display:'flex',alignItems:'center',gap:4}}>
+                  <button onClick={()=>setShowTabMore(s=>!s)} style={{height:'100%',padding:'0 12px',border:'none',borderBottom:`2px solid ${activeInMore?'#00e5ff':'transparent'}`,background:'transparent',color:activeInMore?'#00e5ff':'var(--wt-muted)',fontSize:'0.8rem',fontWeight:activeInMore?700:500,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",display:'flex',alignItems:'center',gap:4}}>
                     {activeInMore ? (moreTabs.find(m=>m.t===activeTab)?.l||'More') : 'More'} ▾
                   </button>
                   {showTabMore && (
                     <div style={{position:'absolute',top:'100%',left:0,background:'var(--wt-sidebar)',border:'1px solid var(--wt-border2)',borderRadius:8,boxShadow:'0 8px 24px rgba(0,0,0,0.4)',zIndex:200,minWidth:130,padding:'4px 0',marginTop:2}} onClick={()=>setShowTabMore(false)}>
                       {moreTabs.map(({t,l,badge,badgeColor})=>(
-                        <button key={t} onClick={()=>setActiveTab(t)} style={{width:'100%',display:'flex',alignItems:'center',gap:6,padding:'8px 14px',background:activeTab===t?'#00e5ff10':'transparent',border:'none',color:activeTab===t?'#00e5ff':'var(--wt-secondary)',fontSize:'0.82rem',fontWeight:activeTab===t?700:500,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",textAlign:'left'}}>
+                        <button key={t} onClick={()=>setActiveTab(t)} style={{width:'100%',display:'flex',alignItems:'center',gap:6,padding:'8px 14px',background:activeTab===t?'#00e5ff10':'transparent',border:'none',color:activeTab===t?'#00e5ff':'var(--wt-secondary)',fontSize:'0.82rem',fontWeight:activeTab===t?700:500,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",textAlign:'left'}}>
                           {l}
                           {badge&&<span style={{fontSize:'0.6rem',fontWeight:800,padding:'1px 4px',borderRadius:3,background:badgeColor,color:'#fff'}}>{badge}</span>}
                         </button>
@@ -1578,45 +1578,45 @@ export default function DashboardPage() {
               {!demoMode && syncStatus==='ok' && hasSynced && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#00ff88',boxShadow:'0 0 6px #00ff88',display:'block'}} />{tools.filter(t=>t.active).length} live</span>}
             {!demoMode && (syncStatus==='syncing'||!hasSynced) && Object.keys(connectedTools).length>0 && <span style={{display:'inline-flex',alignItems:'center',gap:4,animation:'pulse 1s ease infinite'}}><span style={{width:6,height:6,borderRadius:'50%',background:'#ffb300',display:'block'}} />syncing</span>}
               {!demoMode && syncStatus==='idle' && <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#6b7a94',display:'block'}} />{Object.keys(connectedTools).length}</span>}
-              {!demoMode && Object.keys(connectedTools).length>0 && <button onClick={()=>doSync()} disabled={syncStatus==='syncing'} style={{padding:'2px 8px',borderRadius:5,border:'1px solid #00e5ff30',background:'#00e5ff0f',color:'#00e5ff',fontSize:'0.84rem',fontWeight:700,cursor:syncStatus==='syncing'?'not-allowed':'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",opacity:syncStatus==='syncing'?0.6:1}}>⟳</button>}
+              {!demoMode && Object.keys(connectedTools).length>0 && <button onClick={()=>doSync()} disabled={syncStatus==='syncing'} style={{padding:'2px 8px',borderRadius:5,border:'1px solid #00e5ff30',background:'#00e5ff0f',color:'#00e5ff',fontSize:'0.84rem',fontWeight:700,cursor:syncStatus==='syncing'?'not-allowed':'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",opacity:syncStatus==='syncing'?0.6:1}}>⟳</button>}
             </div>
             {/* Automation */}
             {(canUse('team')||isAdmin) ? (
               <div style={{display:'flex',alignItems:'center',gap:3,padding:'3px 8px',borderRadius:7,background:'var(--wt-card2)',border:'1px solid #0f2040'}}>
                 <span style={{fontSize:'0.82rem',color:'var(--wt-muted)'}}>Auto:</span>
                 {(['Rec','Notify','Full']).map((l,i)=>(
-                  <button key={l} onClick={()=>{setAutomation(i);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({automation:String(i)})}).catch(()=>{});}} style={{padding:'2px 6px',borderRadius:4,fontSize:'0.8rem',fontWeight:700,border:'none',cursor:'pointer',background:automation===i?autColor:'transparent',color:automation===i?'#fff':'#6b7a94',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>{l}</button>
+                  <button key={l} onClick={()=>{setAutomation(i);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({automation:String(i)})}).catch(()=>{});}} style={{padding:'2px 6px',borderRadius:4,fontSize:'0.8rem',fontWeight:700,border:'none',cursor:'pointer',background:automation===i?autColor:'transparent',color:automation===i?'#fff':'#6b7a94',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>{l}</button>
                 ))}
               </div>
             ) : (
               <a href='/pricing' style={{fontSize:'0.84rem',color:'#00e5ff',fontWeight:700,textDecoration:'none',padding:'3px 8px',borderRadius:6,border:'1px solid #00e5ff20',background:'#00e5ff08'}}>🔒 Upgrade</a>
             )}
             {/* Demo/Live toggle */}
-            <button onClick={()=>setDemoMode(d=>{const next=!d;if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode',String(next));fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});return next;})} style={{padding:'3px 10px',borderRadius:6,border:`1px solid ${demoMode?'#ffb30030':'#00ff8830'}`,background:demoMode?'#ffb30010':'#00ff8810',color:demoMode?'#ffb300':'#00ff88',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>{demoMode?'DEMO':'LIVE'}</button>
+            <button onClick={()=>setDemoMode(d=>{const next=!d;if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode',String(next));fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});return next;})} style={{padding:'3px 10px',borderRadius:6,border:`1px solid ${demoMode?'#ffb30030':'#00ff8830'}`,background:demoMode?'#ffb30010':'#00ff8810',color:demoMode?'#ffb300':'#00ff88',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",flexShrink:0}}>{demoMode?'DEMO':'LIVE'}</button>
             {/* Admin: tier sim + tenant */}
-            {isAdmin&&<select value={userTier} onChange={e=>{setUserTier(e.target.value);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({userTier:e.target.value})}).catch(()=>{});}} style={{padding:'3px 6px',borderRadius:6,border:'1px solid #bd00ff30',background:'#bd00ff10',color:'#bd00ff',fontSize:'0.82rem',fontWeight:700,fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",cursor:'pointer',outline:'none'}}>
+            {isAdmin&&<select value={userTier} onChange={e=>{setUserTier(e.target.value);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({userTier:e.target.value})}).catch(()=>{});}} style={{padding:'3px 6px',borderRadius:6,border:'1px solid #bd00ff30',background:'#bd00ff10',color:'#bd00ff',fontSize:'0.82rem',fontWeight:700,fontFamily:"'Rajdhani','JetBrains Mono',monospace",cursor:'pointer',outline:'none'}}>
               {([['community','Free'],['team','Essentials'],['business','Pro'],['mssp','Enterprise']]).map(([v,l])=><option key={v} value={v}>{l}</option>)}
             </select>}
-            {isAdmin&&<select value={currentTenant} onChange={e=>setCurrentTenant(e.target.value)} style={{padding:'3px 6px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.84rem',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",cursor:'pointer',outline:'none',maxWidth:120}}>
+            {isAdmin&&<select value={currentTenant} onChange={e=>setCurrentTenant(e.target.value)} style={{padding:'3px 6px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.84rem',fontFamily:"'Rajdhani','JetBrains Mono',monospace",cursor:'pointer',outline:'none',maxWidth:120}}>
               {DEMO_TENANTS.map(t=>(<option key={t.id} value={t.id}>{t.type==='client'?'◦ ':''}{t.name}</option>))}
             </select>}
-            {(canUse('team')||isAdmin)&&<button onClick={()=>{setShowCopilot(s=>!s);setTimeout(()=>copilotBottomRef.current?.scrollIntoView({behavior:'auto'}),100);}} style={{padding:'3px 10px',borderRadius:6,border:`1px solid ${showCopilot?'#bd00ff':'#bd00ff30'}`,background:showCopilot?'#bd00ff15':'#bd00ff0a',color:'#bd00ff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>✦ Co-Pilot</button>}
+            {(canUse('team')||isAdmin)&&<button onClick={()=>{setShowCopilot(s=>!s);setTimeout(()=>copilotBottomRef.current?.scrollIntoView({behavior:'auto'}),100);}} style={{padding:'3px 10px',borderRadius:6,border:`1px solid ${showCopilot?'#bd00ff':'#bd00ff30'}`,background:showCopilot?'#bd00ff15':'#bd00ff0a',color:'#bd00ff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",flexShrink:0}}>✦ Co-Pilot</button>}
             <button onClick={toggleTheme} title={theme==='dark'?'Switch to light mode':'Switch to dark mode'} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem',flexShrink:0}}>{theme==='dark'?'☀️':'🌙'}</button>
             {/* Settings flyout — collapses font, guide, push, CISO, handover, settings, logout */}
             <div style={{position:'relative',flexShrink:0}}>
               <button onClick={()=>setShowSettingsFlyout(s=>!s)} style={{width:30,height:30,borderRadius:7,border:`1px solid ${showSettingsFlyout?'#00e5ff40':'var(--wt-border)'}`,background:showSettingsFlyout?'#00e5ff12':'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.82rem',color:showSettingsFlyout?'#00e5ff':'var(--wt-muted)'}} title='Settings & utilities'>⚙️</button>
               {showSettingsFlyout && (
                 <div style={{position:'absolute',top:'calc(100% + 6px)',right:0,width:200,background:'var(--wt-sidebar)',border:'1px solid var(--wt-border2)',borderRadius:10,boxShadow:'0 8px 32px rgba(0,0,0,0.4)',zIndex:300,overflow:'hidden',padding:'4px 0'}} onClick={()=>setShowSettingsFlyout(false)}>
-                  {(canUse('team')||isAdmin)&&<button onClick={()=>setActiveTab('incidents')} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",textAlign:'left'}}>⇄ Shift Handover</button>}
-                  {(canUse('business')||isAdmin)&&<button onClick={()=>setActiveTab('compliance')} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",textAlign:'left'}}>📊 Board Report</button>}
-                  <a href='/guide' target='_blank' rel='noopener noreferrer' style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",textDecoration:'none'}}>📖 User Guide</a>
-                  <a href='/settings' style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",textDecoration:'none'}}>⚙ Account Settings</a>
+                  {(canUse('team')||isAdmin)&&<button onClick={()=>setActiveTab('incidents')} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",textAlign:'left'}}>⇄ Shift Handover</button>}
+                  {(canUse('business')||isAdmin)&&<button onClick={()=>setActiveTab('compliance')} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",textAlign:'left'}}>📊 Board Report</button>}
+                  <a href='/guide' target='_blank' rel='noopener noreferrer' style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",textDecoration:'none'}}>📖 User Guide</a>
+                  <a href='/settings' style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",textDecoration:'none'}}>⚙ Account Settings</a>
                   <div style={{height:1,background:'var(--wt-border)',margin:'4px 0'}} />
 
-                  <button onClick={toggleDigitalFont} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:digitalFont?'#00e5ff':'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",textAlign:'left'}}>01 {digitalFont?'Proportional font':'Digital font'}</button>
-                  {hasSW && <button onClick={subscribePush} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:pushEnabled?'#00ff88':'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",textAlign:'left'}}>{pushEnabled?'🔔 Push on':'🔕 Push off'}</button>}
+                  <button onClick={toggleDigitalFont} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:digitalFont?'#00e5ff':'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",textAlign:'left'}}>01 {digitalFont?'Proportional font':'Digital font'}</button>
+                  {hasSW && <button onClick={subscribePush} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:pushEnabled?'#00ff88':'var(--wt-secondary)',fontSize:'0.82rem',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",textAlign:'left'}}>{pushEnabled?'🔔 Push on':'🔕 Push off'}</button>}
                   <div style={{height:1,background:'var(--wt-border)',margin:'4px 0'}} />
-                  <button onClick={async()=>{await fetch('/api/auth/logout',{method:'POST'});window.location.href='/login';}} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'#ff2244',fontSize:'0.82rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",textAlign:'left'}}>↩ Sign out</button>
+                  <button onClick={async()=>{await fetch('/api/auth/logout',{method:'POST'});window.location.href='/login';}} style={{width:'100%',display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'transparent',border:'none',color:'#ff2244',fontSize:'0.82rem',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",textAlign:'left'}}>↩ Sign out</button>
                 </div>
               )}
             </div>
@@ -1624,7 +1624,7 @@ export default function DashboardPage() {
           {/* Mobile: logo + demo toggle only */}
           <div className="wt-topbar-controls-mobile" style={{marginLeft:'auto',alignItems:'center',gap:6}}>
             <button onClick={toggleTheme} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem'}}>{theme==='dark'?'☀️':'🌙'}</button>
-            <button onClick={()=>setDemoMode(d=>{const next=!d;if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode',String(next));fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});return next;})} style={{padding:'3px 8px',borderRadius:6,border:`1px solid ${demoMode?'#ffb30030':'#00ff8830'}`,background:demoMode?'#ffb30010':'#00ff8810',color:demoMode?'#ffb300':'#00ff88',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>{demoMode?'DEMO':'LIVE'}</button>
+            <button onClick={()=>setDemoMode(d=>{const next=!d;if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode',String(next));fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});return next;})} style={{padding:'3px 8px',borderRadius:6,border:`1px solid ${demoMode?'#ffb30030':'#00ff8830'}`,background:demoMode?'#ffb30010':'#00ff8810',color:demoMode?'#ffb300':'#00ff88',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>{demoMode?'DEMO':'LIVE'}</button>
           </div>
         </div>
 
@@ -1640,7 +1640,7 @@ export default function DashboardPage() {
                 {syncError && <div style={{fontSize:'0.8rem',color:'#ff2244',marginTop:2}}>{syncError}</div>}
                 {!syncError && syncStatus!=='syncing' && <div style={{fontSize:'0.8rem',color:'var(--wt-muted)',marginTop:1}}>Connected: {Object.keys(connectedTools).slice(0,5).join(', ')}{Object.keys(connectedTools).length>5?` +${Object.keys(connectedTools).length-5} more`:''} · Syncs every 60s</div>}
               </div>
-              {!syncError && syncStatus!=='syncing' && <button onClick={()=>fetch('/api/integrations/sync',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({integrations:Object.keys(connectedTools).map(id=>({id}))})}).then(r=>r.json()).then(d=>setSyncStatus('ok'))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #00e5ff30',background:'#00e5ff10',color:'#00e5ff',fontSize:'0.8rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>⟳ Sync now</button>}
+              {!syncError && syncStatus!=='syncing' && <button onClick={()=>fetch('/api/integrations/sync',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({integrations:Object.keys(connectedTools).map(id=>({id}))})}).then(r=>r.json()).then(d=>setSyncStatus('ok'))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #00e5ff30',background:'#00e5ff10',color:'#00e5ff',fontSize:'0.8rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",flexShrink:0}}>⟳ Sync now</button>}
             </div>
           )}
           {/* AI key prompt: shown in live mode with tools connected but before AI features used */}
@@ -1658,7 +1658,7 @@ export default function DashboardPage() {
                   <div style={{fontSize:'0.82rem',fontWeight:700,color:'#bd00ff'}}>Add your Anthropic API key to unlock APEX AI triage</div>
                   <div style={{fontSize:'0.8rem',color:'var(--wt-muted)',marginTop:1}}>BYOK — your key, your data. AI costs go direct to your Anthropic account.</div>
                 </div>
-                <button onClick={()=>setActiveTab('tools')} style={{padding:'5px 12px',borderRadius:6,background:'#bd00ff',color:'#fff',border:'none',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>Add key →</button>
+                <button onClick={()=>setActiveTab('tools')} style={{padding:'5px 12px',borderRadius:6,background:'#bd00ff',color:'#fff',border:'none',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",flexShrink:0}}>Add key →</button>
               </div>
             </div>
           )}
@@ -1695,13 +1695,13 @@ export default function DashboardPage() {
                     <div style={{fontSize:'1rem',marginBottom:6}}>{s.icon}</div>
                     <div style={{fontSize:'0.84rem',fontWeight:700,marginBottom:4}}>{s.title}</div>
                     <div style={{fontSize:'0.82rem',color:'var(--wt-muted)',lineHeight:1.5,marginBottom:10}}>{s.desc}</div>
-                    {s.action && <button onClick={s.action} style={{padding:'5px 12px',borderRadius:6,background:'#00e5ff',color:'#fff',border:'none',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>{s.cta} →</button>}
+                    {s.action && <button onClick={s.action} style={{padding:'5px 12px',borderRadius:6,background:'#00e5ff',color:'#fff',border:'none',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>{s.cta} →</button>}
                   </div>
                 ))}
               </div>
               <div style={{padding:'10px 20px',borderTop:'1px solid #1a2535',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
                 <span style={{fontSize:'0.8rem',color:'var(--wt-dim)'}}>Not ready to connect? Explore with demo data first.</span>
-                <button onClick={()=>setDemoMode(true)} style={{padding:'5px 14px',borderRadius:6,border:'1px solid #00e5ff30',background:'#00e5ff10',color:'#00e5ff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Switch to Demo mode</button>
+                <button onClick={()=>setDemoMode(true)} style={{padding:'5px 14px',borderRadius:6,border:'1px solid #00e5ff30',background:'#00e5ff10',color:'#00e5ff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>Switch to Demo mode</button>
               </div>
             </div>
           )}
@@ -2196,7 +2196,7 @@ export default function DashboardPage() {
                     {/* Filter tabs */}
                     <div style={{display:'flex',gap:6,marginBottom:10}}>
                       {[['all','All devices'],['missing','Missing Taegis'],['taegis-only','Taegis only']].map(([f,l])=>(
-                        <button key={f} onClick={()=>setCmpFilter(f)} style={{padding:'3px 10px',borderRadius:6,border:`1px solid ${cmpFilter===f?'#00e5ff40':'var(--wt-border)'}`,background:cmpFilter===f?'#00e5ff12':'transparent',color:cmpFilter===f?'#00e5ff':'var(--wt-muted)',fontSize:'0.78rem',fontWeight:600,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>{l}</button>
+                        <button key={f} onClick={()=>setCmpFilter(f)} style={{padding:'3px 10px',borderRadius:6,border:`1px solid ${cmpFilter===f?'#00e5ff40':'var(--wt-border)'}`,background:cmpFilter===f?'#00e5ff12':'transparent',color:cmpFilter===f?'#00e5ff':'var(--wt-muted)',fontSize:'0.78rem',fontWeight:600,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>{l}</button>
                       ))}
                       <span style={{marginLeft:'auto',fontSize:'0.78rem',color:'var(--wt-dim)'}}>{displayRows.length} devices</span>
                     </div>
@@ -2239,8 +2239,8 @@ export default function DashboardPage() {
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a'); a.href=url; a.download=`coverage-gaps-${gapToolFilter}.csv`; a.click();
                         URL.revokeObjectURL(url);
-                      }} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #00ff8830',background:'#00ff8810',color:'#00ff88',fontSize:'0.86rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Export CSV ↓</button>
-                      <button onClick={()=>setGapToolFilter(null)} style={{padding:'3px 8px',borderRadius:5,border:'1px solid var(--wt-border)',background:'none',color:'var(--wt-muted)',fontSize:'0.84rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Clear ×</button>
+                      }} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #00ff8830',background:'#00ff8810',color:'#00ff88',fontSize:'0.86rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>Export CSV ↓</button>
+                      <button onClick={()=>setGapToolFilter(null)} style={{padding:'3px 8px',borderRadius:5,border:'1px solid var(--wt-border)',background:'none',color:'var(--wt-muted)',fontSize:'0.84rem',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>Clear ×</button>
                     </div>
                   )}
                   {(gapToolFilter ? gapDevices.filter(d=>d.missing.some(m=>ALL_TOOLS.find(t=>t.id===gapToolFilter)?.name && m.includes(ALL_TOOLS.find(t=>t.id===gapToolFilter).name.split(' ')[0]))) : gapDevices).map(dev=>{
@@ -2263,7 +2263,7 @@ export default function DashboardPage() {
                           </div>
                           <div style={{fontSize:'0.82rem',color:'var(--wt-muted)'}}>{dev.reason} · Last seen {dev.lastSeen}</div>
                         </div>
-                        <button onClick={()=>setDeployAgentDevice(dev)} style={{padding:'5px 12px',borderRadius:7,border:'1px solid #00e5ff30',background:'#00e5ff10',color:'#00e5ff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>Deploy Agent →</button>
+                        <button onClick={()=>setDeployAgentDevice(dev)} style={{padding:'5px 12px',borderRadius:7,border:'1px solid #00e5ff30',background:'#00e5ff10',color:'#00e5ff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",flexShrink:0}}>Deploy Agent →</button>
                       </div>
                     </div>
                   );})}
@@ -2328,7 +2328,7 @@ export default function DashboardPage() {
                               <span style={{fontSize:'1rem',fontWeight:900,fontFamily:"'JetBrains Mono',monospace",color:'#ffb300'}}>{(vuln.affectedAssets||vuln.affectedDevices||[vuln.device].filter(Boolean)).length}</span>
                               <span style={{fontSize:'0.8rem',color:'var(--wt-secondary)'}}>device{(vuln.affectedAssets||vuln.affectedDevices||[]).length!==1?'s':''} affected</span>
                               {(vuln.affectedAssets||vuln.affectedDevices||[]).length > 0 && (
-                                <button onClick={e=>{e.stopPropagation();const assets=vuln.affectedAssets||vuln.affectedDevices||[vuln.device].filter(Boolean);const csv=['Hostname,CVE,Severity,Plugin'].concat(assets.map(h=>`${h},${vuln.cve||'N/A'},${vuln.severity},${vuln.sourceId||''}`)).join('\n');const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`${(vuln.cve||vuln.id).replace(/[^a-z0-9]/gi,'_')}_assets.csv`;a.click();URL.revokeObjectURL(url);}} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #00ff8830',background:'#00ff880a',color:'#00ff88',fontSize:'0.86rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",display:'flex',alignItems:'center',gap:4}}>⬇ Export CSV</button>
+                                <button onClick={e=>{e.stopPropagation();const assets=vuln.affectedAssets||vuln.affectedDevices||[vuln.device].filter(Boolean);const csv=['Hostname,CVE,Severity,Plugin'].concat(assets.map(h=>`${h},${vuln.cve||'N/A'},${vuln.severity},${vuln.sourceId||''}`)).join('\n');const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`${(vuln.cve||vuln.id).replace(/[^a-z0-9]/gi,'_')}_assets.csv`;a.click();URL.revokeObjectURL(url);}} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #00ff8830',background:'#00ff880a',color:'#00ff88',fontSize:'0.86rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",display:'flex',alignItems:'center',gap:4}}>⬇ Export CSV</button>
                               )}
                             </div>
                             {(()=>{const assets=(vuln.affectedAssets||vuln.affectedDevices||[vuln.device].filter(Boolean));if(!assets.length) return null;const show=assets.slice(0,8);const rest=assets.length-8;return(<div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:4}}>{show.map(d=>(<span key={d} style={{fontSize:'0.84rem',fontFamily:"'JetBrains Mono',monospace",padding:'2px 7px',borderRadius:4,background:'#ffb30010',border:'1px solid #ffb30025',color:'#f0c070'}}>{d}</span>))}{rest>0&&<span style={{fontSize:'0.84rem',color:'var(--wt-dim)',padding:'2px 7px'}}>+{rest} more</span>}</div>);})()}
@@ -2363,7 +2363,7 @@ export default function DashboardPage() {
                                   const isLoading = vulnAiLoading === key;
                                   const hasResult = !!vulnAiTexts[key];
                                   return (
-                                    <button key={q.type} onClick={()=>getVulnAiHelp(vuln,q.type)} disabled={isLoading} style={{padding:'4px 11px',borderRadius:5,border:'1px solid ' + q.color + '40',background:hasResult ? q.color + '20' : 'transparent',color:q.color,fontSize:'0.82rem',fontWeight:700,cursor:isLoading?'not-allowed':'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",display:'flex',alignItems:'center',gap:4,opacity:isLoading?0.7:1}}>
+                                    <button key={q.type} onClick={()=>getVulnAiHelp(vuln,q.type)} disabled={isLoading} style={{padding:'4px 11px',borderRadius:5,border:'1px solid ' + q.color + '40',background:hasResult ? q.color + '20' : 'transparent',color:q.color,fontSize:'0.82rem',fontWeight:700,cursor:isLoading?'not-allowed':'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",display:'flex',alignItems:'center',gap:4,opacity:isLoading?0.7:1}}>
                                       {isLoading && <span style={{display:'inline-block',width:8,height:8,borderRadius:'50%',border:'2px solid ' + q.color,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />}
                                       {!isLoading && hasResult && <span>✓</span>}
                                       {!isLoading && !hasResult && <span>✦</span>}
@@ -2372,7 +2372,7 @@ export default function DashboardPage() {
                                   );
                                 })}
                                 {['splunk','sentinel','defender','iocs'].some(t=>vulnAiTexts[vuln.id+':'+t]) && (
-                                  <button onClick={()=>setVulnAiTexts(prev=>{const n={...prev};['splunk','sentinel','defender','iocs'].forEach(t=>{delete n[vuln.id+':'+t];}); return n;})} style={{marginLeft:'auto',fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-dim)',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Clear all</button>
+                                  <button onClick={()=>setVulnAiTexts(prev=>{const n={...prev};['splunk','sentinel','defender','iocs'].forEach(t=>{delete n[vuln.id+':'+t];}); return n;})} style={{marginLeft:'auto',fontSize:'0.82rem',padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-dim)',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>Clear all</button>
                                 )}
                               </div>
                               {['splunk','sentinel','defender','iocs'].map(t=>{
@@ -2380,7 +2380,7 @@ export default function DashboardPage() {
                                 if (!vulnAiTexts[key]) return null;
                                 const colors = {splunk:'#ffb300',sentinel:'#00e5ff',defender:'#00ff88',iocs:'#ff2244'};
                                 // Save Hunt button on triage results
-                            const huntBtnStyle = {padding:'3px 8px',borderRadius:4,border:'1px solid #00ff8830',background:'#00ff880a',color:'#00ff88',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0};
+                            const huntBtnStyle = {padding:'3px 8px',borderRadius:4,border:'1px solid #00ff8830',background:'#00ff880a',color:'#00ff88',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",flexShrink:0};
                             const labels = {splunk:'Splunk SPL',sentinel:'Sentinel KQL',defender:'Defender KQL',iocs:'IOCs'};
                                 return (
                                   <div key={t} style={{marginBottom:8}}>
@@ -2505,12 +2505,12 @@ export default function DashboardPage() {
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Threat Intelligence</h2>
                 <div style={{display:'flex',alignItems:'center',gap:6,marginLeft:'auto'}}>
                   <span style={{fontSize:'0.86rem',color:'var(--wt-muted)'}}>Industry:</span>
-                  <select value={industry} onChange={e=>{setIndustryPersisted(e.target.value);fetchIntelForIndustry(e.target.value);}} style={{padding:'4px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.84rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>
+                  <select value={industry} onChange={e=>{setIndustryPersisted(e.target.value);fetchIntelForIndustry(e.target.value);}} style={{padding:'4px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.84rem',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>
                     {INDUSTRIES.map(i=><option key={i} value={i}>{i}</option>)}
                   </select>
                   {intelLoading
                     ? <span style={{width:14,height:14,borderRadius:'50%',border:'2px solid #00e5ff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}} />
-                    : <button onClick={()=>fetchIntelForIndustry(industry)} title='Refresh threat intel' style={{padding:'3px 10px',borderRadius:5,border:'1px solid #00e5ff28',background:'#00e5ff0a',color:'#00e5ff',fontSize:'0.8rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>⟳ Refresh</button>
+                    : <button onClick={()=>fetchIntelForIndustry(industry)} title='Refresh threat intel' style={{padding:'3px 10px',borderRadius:5,border:'1px solid #00e5ff28',background:'#00e5ff0a',color:'#00e5ff',fontSize:'0.8rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>⟳ Refresh</button>
                   }
                   {customIntel && !demoMode && (
                     <span style={{fontSize:'0.84rem',color:'#00ff88',background:'#00ff880a',padding:'2px 8px',borderRadius:4,border:'1px solid #00ff8825',fontWeight:600}}>
@@ -2560,7 +2560,7 @@ export default function DashboardPage() {
                             <div key={ioc} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 8px',background:'#0d0208',border:'1px solid #1e1010',borderRadius:6}}>
                               <span style={{width:6,height:6,borderRadius:'50%',background:'#ffb300',flexShrink:0}} />
                               <code style={{fontSize:'0.84rem',fontFamily:"'JetBrains Mono',monospace",color:'#f0c070',flex:1,wordBreak:'break-all'}}>{ioc}</code>
-                              <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(ioc);}} style={{fontSize:'0.86rem',padding:'2px 7px',borderRadius:3,border:'1px solid #ffb30025',background:'transparent',color:'#ffb300',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>Copy</button>
+                              <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(ioc);}} style={{fontSize:'0.86rem',padding:'2px 7px',borderRadius:3,border:'1px solid #ffb30025',background:'transparent',color:'#ffb300',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",flexShrink:0}}>Copy</button>
                             </div>
                           ))}
                         </div>
@@ -2624,7 +2624,7 @@ export default function DashboardPage() {
                                       <div key={ioc} style={{display:'flex',alignItems:'center',gap:6,padding:'3px 6px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:5}}>
                                         <span style={{width:5,height:5,borderRadius:'50%',background:'#ffb300',flexShrink:0}} />
                                         <code style={{fontSize:'0.82rem',fontFamily:"'JetBrains Mono',monospace",color:'#f0c070',flex:1,wordBreak:'break-all'}}>{ioc}</code>
-                                        <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(ioc);}} style={{fontSize:'0.84rem',padding:'1px 6px',borderRadius:3,border:'1px solid #ffb30025',background:'transparent',color:'#ffb300',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>Copy</button>
+                                        <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(ioc);}} style={{fontSize:'0.84rem',padding:'1px 6px',borderRadius:3,border:'1px solid #ffb30025',background:'transparent',color:'#ffb300',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",flexShrink:0}}>Copy</button>
                                       </div>
                                     ))}
                                   </div>
@@ -2635,7 +2635,7 @@ export default function DashboardPage() {
                                         const key=item.id+':'+tool;
                                         const isLoading=iocQueryLoading===key;
                                         const hasResult=!!iocQueries[key];
-                                        return (<button key={tool} onClick={e=>{e.stopPropagation();if(isLoading)return;setIocQueryLoading(key);const toolLabel={'splunk':'Splunk SPL','sentinel':'Microsoft Sentinel KQL','defender':'Microsoft Defender Advanced Hunting','elastic':'Elastic EQL'}[tool];fetch('/api/copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:'ioc_hunt',prompt:'Generate a '+toolLabel+' query to hunt for these IOCs: '+item.iocs.join(', ')+'. Provide ONLY the raw query, no preamble.'})}).then(r=>r.json()).then(d=>{setIocQueries(prev=>({...prev,[key]:d.response||''}));setIocQueryLoading(null);}).catch(()=>setIocQueryLoading(null));}} disabled={isLoading} style={{padding:'3px 8px',borderRadius:4,border:`1px solid ${color}40`,background:hasResult?`${color}20`:'transparent',color,fontSize:'0.82rem',fontWeight:700,cursor:isLoading?'not-allowed':'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",display:'flex',alignItems:'center',gap:3,opacity:isLoading?0.7:1}}>{isLoading&&<span style={{display:'inline-block',width:6,height:6,borderRadius:'50%',border:`2px solid ${color}`,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />}{!isLoading&&hasResult&&'✓'}{label}</button>);
+                                        return (<button key={tool} onClick={e=>{e.stopPropagation();if(isLoading)return;setIocQueryLoading(key);const toolLabel={'splunk':'Splunk SPL','sentinel':'Microsoft Sentinel KQL','defender':'Microsoft Defender Advanced Hunting','elastic':'Elastic EQL'}[tool];fetch('/api/copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({industry:'ioc_hunt',prompt:'Generate a '+toolLabel+' query to hunt for these IOCs: '+item.iocs.join(', ')+'. Provide ONLY the raw query, no preamble.'})}).then(r=>r.json()).then(d=>{setIocQueries(prev=>({...prev,[key]:d.response||''}));setIocQueryLoading(null);}).catch(()=>setIocQueryLoading(null));}} disabled={isLoading} style={{padding:'3px 8px',borderRadius:4,border:`1px solid ${color}40`,background:hasResult?`${color}20`:'transparent',color,fontSize:'0.82rem',fontWeight:700,cursor:isLoading?'not-allowed':'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",display:'flex',alignItems:'center',gap:3,opacity:isLoading?0.7:1}}>{isLoading&&<span style={{display:'inline-block',width:6,height:6,borderRadius:'50%',border:`2px solid ${color}`,borderTopColor:'transparent',animation:'spin 0.8s linear infinite'}} />}{!isLoading&&hasResult&&'✓'}{label}</button>);
                                       })}
                                     </div>
                                     {[{tool:'splunk',label:'Splunk SPL',color:'#ffb300'},{tool:'sentinel',label:'Sentinel KQL',color:'#00e5ff'},{tool:'defender',label:'Defender AH',color:'#00ff88'},{tool:'elastic',label:'Elastic EQL',color:'#00bfb3'}].map(({tool,label,color})=>{const key=item.id+':'+tool;if(!iocQueries[key])return null;return(<div key={tool} style={{marginTop:6}}><div style={{fontSize:'0.84rem',fontWeight:700,color,textTransform:'uppercase',marginBottom:3}}>{label}</div><RemediationOutput text={iocQueries[key]} /></div>);})}
@@ -2735,7 +2735,7 @@ export default function DashboardPage() {
                   <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'12px 16px'}}>
                     <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
                       <span style={{fontSize:'0.84rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Analyst Workload</span>
-                      {analystFilter && <button onClick={()=>setAnalystFilter(null)} style={{fontSize:'0.82rem',padding:'1px 8px',borderRadius:4,border:'1px solid #00e5ff30',background:'#00e5ff10',color:'#00e5ff',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Showing: {analystFilter} ×</button>}
+                      {analystFilter && <button onClick={()=>setAnalystFilter(null)} style={{fontSize:'0.82rem',padding:'1px 8px',borderRadius:4,border:'1px solid #00e5ff30',background:'#00e5ff10',color:'#00e5ff',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>Showing: {analystFilter} ×</button>}
                     </div>
                     <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
                       {entries.map(([name,stats])=>{
@@ -2809,7 +2809,7 @@ export default function DashboardPage() {
                       </div>
                       <div style={{display:'flex',alignItems:'center',gap:4,flexShrink:0}}>
                         {incidentAssignees&&incidentAssignees[inc.id]&&<span style={{fontSize:'0.84rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:'#00e5ff18',color:'#00e5ff',border:'1px solid #00e5ff25'}}>→ {incidentAssignees[inc.id]}</span>}
-                        <button onClick={e=>{e.stopPropagation();setIncidentAssignees(prev=>({...prev,[inc.id]:prev[inc.id]?null:'Me'}));}} style={{fontSize:'0.84rem',padding:'2px 7px',borderRadius:4,border:`1px solid ${incidentAssignees&&incidentAssignees[inc.id]?'#00e5ff40':'var(--wt-border2)'}`,background:incidentAssignees&&incidentAssignees[inc.id]?'#00e5ff15':'transparent',color:incidentAssignees&&incidentAssignees[inc.id]?'#00e5ff':'var(--wt-dim)',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",fontWeight:700}}>{incidentAssignees&&incidentAssignees[inc.id]?'✓ Me':'Assign'}</button>
+                        <button onClick={e=>{e.stopPropagation();setIncidentAssignees(prev=>({...prev,[inc.id]:prev[inc.id]?null:'Me'}));}} style={{fontSize:'0.84rem',padding:'2px 7px',borderRadius:4,border:`1px solid ${incidentAssignees&&incidentAssignees[inc.id]?'#00e5ff40':'var(--wt-border2)'}`,background:incidentAssignees&&incidentAssignees[inc.id]?'#00e5ff15':'transparent',color:incidentAssignees&&incidentAssignees[inc.id]?'#00e5ff':'var(--wt-dim)',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",fontWeight:700}}>{incidentAssignees&&incidentAssignees[inc.id]?'✓ Me':'Assign'}</button>
                         <span style={{fontSize:'0.86rem',color:'var(--wt-dim)'}}>{isSel?'▲':'▼'}</span>
                       </div>
                     </div>
@@ -2855,19 +2855,19 @@ export default function DashboardPage() {
                                     <div style={{fontSize:'0.84rem',color:'var(--wt-secondary)',marginBottom:2}}>{e.action}</div>
                                     <div style={{padding:'4px 8px',background:'#0d1520',border:'1px solid #1a2535',borderRadius:4,fontSize:'0.84rem',fontFamily:"'JetBrains Mono',monospace",color:'#00ff88',wordBreak:'break-all',whiteSpace:'pre-wrap',lineHeight:1.6}}>{e.cmd}</div>
                                   </div>
-                                  <button onClick={()=>navigator.clipboard.writeText(e.cmd)} style={{padding:'2px 6px',borderRadius:3,border:'1px solid #0f2040',background:'transparent',color:'var(--wt-dim)',fontSize:'0.84rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0,marginTop:3}}>Copy</button>
+                                  <button onClick={()=>navigator.clipboard.writeText(e.cmd)} style={{padding:'2px 6px',borderRadius:3,border:'1px solid #0f2040',background:'transparent',color:'var(--wt-dim)',fontSize:'0.84rem',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",flexShrink:0,marginTop:3}}>Copy</button>
                                 </div>
                               ))}
                             </div>
                           </div>
                         )}
                         <div style={{display:'flex',gap:6,marginTop:10,flexWrap:'wrap',alignItems:'center',position:'relative'}}>
-                          <button onClick={()=>setAddingNoteTo(addingNoteTo===inc.id?null:inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid var(--wt-border2)',background:addingNoteTo===inc.id?'#00e5ff12':'transparent',color:'#8a9ab0',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>📝 Note</button>
-                          {(canUse('team')||isAdmin)&&<button onClick={()=>{const si=showInvest;const n=new Set(si);if(!n.has(inc.id)){n.add(inc.id);setShowInvest(n);runInvestigation(inc);}else{n.delete(inc.id);setShowInvest(n);}}} style={{padding:'5px 12px',borderRadius:6,border:`1px solid ${showInvest.has(inc.id)?'#bd00ff':'#bd00ff30'}`,background:showInvest.has(inc.id)?'#bd00ff20':'#bd00ff0a',color:'#bd00ff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>✦ {investLoading.has(inc.id)?'Investigating…':investResults[inc.id]&&!investResults[inc.id]._error?'Investigation ▲':'Deep Investigate'}</button>}
-                          <button onClick={()=>setIncidentStatuses(prev=>({...prev,[inc.id]:'Escalated'}))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #ffb30030',background:'#ffb30008',color:'#ffb300',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>⬆ Escalate</button>
-                          <button onClick={()=>closeIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #00ff8830',background:'#00ff880a',color:'#00ff88',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>✓ Close</button>
+                          <button onClick={()=>setAddingNoteTo(addingNoteTo===inc.id?null:inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid var(--wt-border2)',background:addingNoteTo===inc.id?'#00e5ff12':'transparent',color:'#8a9ab0',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>📝 Note</button>
+                          {(canUse('team')||isAdmin)&&<button onClick={()=>{const si=showInvest;const n=new Set(si);if(!n.has(inc.id)){n.add(inc.id);setShowInvest(n);runInvestigation(inc);}else{n.delete(inc.id);setShowInvest(n);}}} style={{padding:'5px 12px',borderRadius:6,border:`1px solid ${showInvest.has(inc.id)?'#bd00ff':'#bd00ff30'}`,background:showInvest.has(inc.id)?'#bd00ff20':'#bd00ff0a',color:'#bd00ff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>✦ {investLoading.has(inc.id)?'Investigating…':investResults[inc.id]&&!investResults[inc.id]._error?'Investigation ▲':'Deep Investigate'}</button>}
+                          <button onClick={()=>setIncidentStatuses(prev=>({...prev,[inc.id]:'Escalated'}))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #ffb30030',background:'#ffb30008',color:'#ffb300',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>⬆ Escalate</button>
+                          <button onClick={()=>closeIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #00ff8830',background:'#00ff880a',color:'#00ff88',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>✓ Close</button>
                           {/* Assign to me */}
-                          <button onClick={()=>setCreatedIncidents(prev=>prev.map(i=>i.id===inc.id?{...i,assignedTo:currentUserName||'Me'}:i))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #00e5ff30',background:'#00e5ff08',color:'#00e5ff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>👤 Assign to me</button>
+                          <button onClick={()=>setCreatedIncidents(prev=>prev.map(i=>i.id===inc.id?{...i,assignedTo:currentUserName||'Me'}:i))} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #00e5ff30',background:'#00e5ff08',color:'#00e5ff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>👤 Assign to me</button>
                           {/* Assign to analyst dropdown */}
                           {(()=>{
                             // Live: pull from staffUsers (Redis); demo: derive from demo incident assignedTo
@@ -2879,11 +2879,11 @@ export default function DashboardPage() {
                             const allAnalysts=[...new Set([...baseAnalysts,...(!demoMode&&staffUsers.length>0?[]:[])])].filter(Boolean);
                             return (
                               <div style={{position:'relative'}}>
-                                <button onClick={e=>{e.stopPropagation();setAssignDropdown(assignDropdown===inc.id?null:inc.id);}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #bd00ff30',background:'#bd00ff08',color:'#bd00ff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Assign ▾</button>
+                                <button onClick={e=>{e.stopPropagation();setAssignDropdown(assignDropdown===inc.id?null:inc.id);}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #bd00ff30',background:'#bd00ff08',color:'#bd00ff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>Assign ▾</button>
                                 {assignDropdown===inc.id && (
                                   <div onClick={e=>e.stopPropagation()} style={{position:'absolute',bottom:'100%',left:0,marginBottom:4,background:'var(--wt-sidebar)',border:'1px solid #0f2040',borderRadius:8,boxShadow:'0 4px 20px rgba(0,0,0,0.5)',zIndex:200,minWidth:160,padding:4}}>
                                     {allAnalysts.map(name=>(
-                                      <button key={name} onClick={()=>{setCreatedIncidents(prev=>prev.map(i=>i.id===inc.id?{...i,assignedTo:name}:i));setAssignDropdown(null);}} style={{display:'block',width:'100%',padding:'7px 12px',border:'none',borderRadius:5,background:inc.assignedTo===name?'#00e5ff18':'transparent',color:inc.assignedTo===name?'#00e5ff':'var(--wt-secondary)',fontSize:'0.8rem',fontWeight:inc.assignedTo===name?700:400,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",textAlign:'left'}}>
+                                      <button key={name} onClick={()=>{setCreatedIncidents(prev=>prev.map(i=>i.id===inc.id?{...i,assignedTo:name}:i));setAssignDropdown(null);}} style={{display:'block',width:'100%',padding:'7px 12px',border:'none',borderRadius:5,background:inc.assignedTo===name?'#00e5ff18':'transparent',color:inc.assignedTo===name?'#00e5ff':'var(--wt-secondary)',fontSize:'0.8rem',fontWeight:inc.assignedTo===name?700:400,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",textAlign:'left'}}>
                                         {inc.assignedTo===name?'✓ ':''}{name}
                                       </button>
                                     ))}
@@ -2892,13 +2892,13 @@ export default function DashboardPage() {
                               </div>
                             );
                           })()}
-                          <button onClick={()=>deleteIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #ff224425',background:'#ff22440a',color:'#ff2244',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>🗑</button>
-                          {inc.alerts&&inc.alerts.length>0&&<button onClick={()=>{setAlertSevFilter('all');setAlertSearch('');inc.alerts.forEach(id=>setExpandedAlerts(prev=>{const n=new Set(prev);n.add(id);return n;}));setActiveTab('alerts');}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #00e5ff30',background:'#00e5ff08',color:'#00e5ff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>🔗 Alerts</button>}
+                          <button onClick={()=>deleteIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #ff224425',background:'#ff22440a',color:'#ff2244',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>🗑</button>
+                          {inc.alerts&&inc.alerts.length>0&&<button onClick={()=>{setAlertSevFilter('all');setAlertSearch('');inc.alerts.forEach(id=>setExpandedAlerts(prev=>{const n=new Set(prev);n.add(id);return n;}));setActiveTab('alerts');}} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #00e5ff30',background:'#00e5ff08',color:'#00e5ff',fontSize:'0.84rem',fontWeight:600,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>🔗 Alerts</button>}
                         </div>
                         {addingNoteTo===inc.id && (
                           <div style={{marginTop:8,display:'flex',gap:6}}>
-                            <input value={noteInput} onChange={e=>setNoteInput(e.target.value)} placeholder='Type a note...' style={{flex:1,padding:'6px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.82rem',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",outline:'none'}} />
-                            <button onClick={()=>{if(noteInput.trim()){setIncidentNotes(prev=>({...prev,[inc.id]:[...(prev[inc.id]||[]),{text:noteInput.trim(),time:new Date().toLocaleTimeString()}]}));setNoteInput('');setAddingNoteTo(null);}}} style={{padding:'6px 12px',borderRadius:6,border:'none',background:'#00e5ff',color:'#fff',fontSize:'0.86rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Save</button>
+                            <input value={noteInput} onChange={e=>setNoteInput(e.target.value)} placeholder='Type a note...' style={{flex:1,padding:'6px 10px',borderRadius:6,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.82rem',fontFamily:"'Rajdhani','JetBrains Mono',monospace",outline:'none'}} />
+                            <button onClick={()=>{if(noteInput.trim()){setIncidentNotes(prev=>({...prev,[inc.id]:[...(prev[inc.id]||[]),{text:noteInput.trim(),time:new Date().toLocaleTimeString()}]}));setNoteInput('');setAddingNoteTo(null);}}} style={{padding:'6px 12px',borderRadius:6,border:'none',background:'#00e5ff',color:'#fff',fontSize:'0.86rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>Save</button>
                           </div>
                         )}
                         {incidentNotes[inc.id] && incidentNotes[inc.id].length>0 && (
@@ -2919,7 +2919,7 @@ export default function DashboardPage() {
                               {investResults[inc.id] && <span style={{fontSize:'0.8rem',color:'var(--wt-muted)',marginLeft:'auto'}}>AI-generated · verify with your tools</span>}
                             </div>
                             {investLoading.has(inc.id) && <div style={{padding:'14px',fontSize:'0.8rem',color:'var(--wt-muted)',display:'flex',alignItems:'center',gap:8}}><span style={{width:10,height:10,borderRadius:'50%',border:'2px solid #bd00ff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>Running deep investigation…</div>}
-                            {investResults[inc.id]?._error && <div style={{padding:'12px 14px',background:'#ff224408',border:'1px solid #ff224425',borderRadius:8,display:'flex',alignItems:'center',gap:8}}><span style={{color:'#ff2244',fontSize:'0.8rem'}}>⚠</span><div><div style={{fontSize:'0.8rem',color:'#ff2244',fontWeight:600,marginBottom:2}}>Investigation failed</div><div style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>{investResults[inc.id]._error}</div></div><button onClick={()=>{setInvestResults(prev=>{const n={...prev};delete n[inc.id];return n;});runInvestigation(inc);}} style={{marginLeft:'auto',padding:'4px 12px',borderRadius:6,border:'1px solid #bd00ff30',background:'#bd00ff10',color:'#bd00ff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>↺ Retry</button></div>}
+                            {investResults[inc.id]?._error && <div style={{padding:'12px 14px',background:'#ff224408',border:'1px solid #ff224425',borderRadius:8,display:'flex',alignItems:'center',gap:8}}><span style={{color:'#ff2244',fontSize:'0.8rem'}}>⚠</span><div><div style={{fontSize:'0.8rem',color:'#ff2244',fontWeight:600,marginBottom:2}}>Investigation failed</div><div style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>{investResults[inc.id]._error}</div></div><button onClick={()=>{setInvestResults(prev=>{const n={...prev};delete n[inc.id];return n;});runInvestigation(inc);}} style={{marginLeft:'auto',padding:'4px 12px',borderRadius:6,border:'1px solid #bd00ff30',background:'#bd00ff10',color:'#bd00ff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",flexShrink:0}}>↺ Retry</button></div>}
                             {investResults[inc.id] && !investResults[inc.id]._error && (()=>{const inv=investResults[inc.id];return(
                               <div style={{padding:'14px',display:'flex',flexDirection:'column',gap:14}}>
                                 {inv.rootCause&&<div style={{marginBottom:10}}><div style={{fontSize:'0.72rem',fontWeight:800,color:'#ff2244',textTransform:'uppercase',letterSpacing:'1px',marginBottom:6}}>Root Cause</div><div style={{padding:'10px 12px',background:'rgba(240,64,94,0.04)',border:'1px solid rgba(240,64,94,0.12)',borderRadius:7}}><WtMarkdown text={inv.rootCause} accent='#ff2244' compact={true} /></div></div>}
@@ -2928,7 +2928,7 @@ export default function DashboardPage() {
                                 {inv.attackTimeline?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#00e5ff',textTransform:'uppercase',marginBottom:6}}>Reconstructed Timeline</div>{inv.attackTimeline.map((ev,i)=>(<div key={i} style={{display:'flex',gap:8,padding:'5px 0',borderBottom:'1px solid var(--wt-border)',alignItems:'flex-start'}}><span style={{fontSize:'0.84rem',fontFamily:"'JetBrains Mono',monospace",color:'#00e5ff',flexShrink:0,minWidth:36}}>{ev.time}</span><div style={{flex:1}}><div style={{fontSize:'0.82rem',fontWeight:600,color:'var(--wt-text)',marginBottom:1}}>{ev.event}</div><div style={{fontSize:'0.84rem',color:'var(--wt-dim)'}}>{ev.significance}</div></div><span style={{fontSize:'0.84rem',color:'#00e5ff',fontWeight:700,flexShrink:0,padding:'1px 5px',background:'#00e5ff12',borderRadius:3}}>{ev.source}</span></div>))}</div>}
                                 {inv.lateralMovementPaths?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#ffb300',textTransform:'uppercase',marginBottom:4}}>Lateral Movement Paths</div>{inv.lateralMovementPaths.map((path,i)=><div key={i} style={{fontSize:'0.8rem',color:'#ffb300',marginBottom:2}}>→ {path}</div>)}</div>}
                                 {inv.remediationSteps?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#00ff88',textTransform:'uppercase',marginBottom:6}}>Remediation Plan</div>{inv.remediationSteps.map((s,i)=>{const pc=s.priority==='Critical'?'#ff2244':s.priority==='High'?'#ffb300':'#ffb300';return(<div key={i} style={{display:'flex',gap:8,padding:'5px 8px',background:`${pc}08`,borderRadius:6,border:`1px solid ${pc}20`,marginBottom:4}}><span style={{fontSize:'0.84rem',fontWeight:700,color:pc,padding:'1px 5px',background:`${pc}15`,borderRadius:3,flexShrink:0,marginTop:2}}>{s.priority}</span><div><div style={{fontSize:'0.82rem',color:'var(--wt-text)',fontWeight:600}}>{s.action}</div><div style={{fontSize:'0.82rem',color:'var(--wt-dim)'}}>Owner: {s.owner}</div></div></div>);})}</div>}
-                                {inv.forensicCommands?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#00e5ff',textTransform:'uppercase',marginBottom:6}}>Forensic Commands</div>{inv.forensicCommands.map((fc,i)=>(<div key={i} style={{marginBottom:8}}><div style={{display:'flex',justifyContent:'space-between',marginBottom:2}}><span style={{fontSize:'0.8rem',color:'var(--wt-dim)',fontWeight:700}}>{fc.tool} — {fc.purpose}</span><button onClick={()=>navigator.clipboard?.writeText(fc.command)} style={{padding:'2px 7px',borderRadius:3,border:'1px solid #00e5ff30',background:'#00e5ff12',color:'#00e5ff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Copy</button></div><code style={{display:'block',fontSize:'0.84rem',fontFamily:"'JetBrains Mono',monospace",color:'#00ff88',background:'#050810',padding:'6px 8px',borderRadius:5,wordBreak:'break-all',lineHeight:1.5}}>{fc.command}</code></div>))}</div>}
+                                {inv.forensicCommands?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#00e5ff',textTransform:'uppercase',marginBottom:6}}>Forensic Commands</div>{inv.forensicCommands.map((fc,i)=>(<div key={i} style={{marginBottom:8}}><div style={{display:'flex',justifyContent:'space-between',marginBottom:2}}><span style={{fontSize:'0.8rem',color:'var(--wt-dim)',fontWeight:700}}>{fc.tool} — {fc.purpose}</span><button onClick={()=>navigator.clipboard?.writeText(fc.command)} style={{padding:'2px 7px',borderRadius:3,border:'1px solid #00e5ff30',background:'#00e5ff12',color:'#00e5ff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>Copy</button></div><code style={{display:'block',fontSize:'0.84rem',fontFamily:"'JetBrains Mono',monospace",color:'#00ff88',background:'#050810',padding:'6px 8px',borderRadius:5,wordBreak:'break-all',lineHeight:1.5}}>{fc.command}</code></div>))}</div>}
                                 {inv.iocs?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#ffb300',textTransform:'uppercase',marginBottom:4}}>Extracted IOCs</div><div style={{display:'flex',flexWrap:'wrap',gap:4}}>{inv.iocs.map((ioc,i)=>(<span key={i} style={{fontSize:'0.86rem',fontFamily:"'JetBrains Mono',monospace",padding:'2px 7px',background:'#ffb30010',border:'1px solid #ffb30025',borderRadius:4,color:'#ffb300'}}>{ioc}</span>))}</div></div>}
                                 {inv.detectionGaps?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Detection Gaps Found</div>{inv.detectionGaps.map((g,i)=><div key={i} style={{fontSize:'0.86rem',color:'var(--wt-muted)',marginBottom:2}}>⚠️ {g}</div>)}</div>}
                               </div>
@@ -2991,7 +2991,7 @@ export default function DashboardPage() {
                       const r=await fetch('/api/exec-summary',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current,'x-is-admin':isAdmin?'true':'false','x-user-tier':userTier},body:JSON.stringify({org:'Watchtower SOC',period:'Last 30 days',totalAlerts,critAlerts:critAlerts.length,openCases,closedCases:incidents.filter(i=>(incidentStatuses[i.id]||i.status)==='Resolved').length,slaBreaches,fpsClosed:fpAlerts.length,tpConfirmed:tpAlerts.length,posture,coverage:coveredPct,tools:Object.keys(connectedTools).length,topAlerts:critAlerts.slice(0,5).map(a=>a.title),topVulns:vulns.slice(0,3).map(v=>v.title)})});
                       const d=await r.json();if(d.html&&w){w.document.open();w.document.write(d.html);w.document.close();setTimeout(()=>w.print(),500);}else if(!d.ok&&w){w.document.open();w.document.write('<html><body style="font-family:sans-serif;padding:40px;color:#333"><h2>Report generation failed</h2><p>'+((d.error||'Check your Anthropic API key in the Tools tab.').replace(/</g,'&lt;').replace(/>/g,'&gt;'))+'</p></body></html>');w.document.close();}
                     }catch(e){if(w)w.close();}
-                  }} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #00ff8830',background:'#00ff8812',color:'#00ff88',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>
+                  }} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #00ff8830',background:'#00ff8812',color:'#00ff88',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>
                     📊 Board Report PDF
                   </button>
                   <button onClick={async()=>{
@@ -3004,7 +3004,7 @@ export default function DashboardPage() {
                         if(sd.shareUrl){setShareReportUrl(sd.shareUrl);navigator.clipboard.writeText(sd.shareUrl).catch(()=>{});}
                       }
                     }catch{}
-                  }} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #bd00ff30',background:'#bd00ff12',color:'#bd00ff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>
+                  }} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #bd00ff30',background:'#bd00ff12',color:'#bd00ff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>
                     🔗 Share Link
                   </button>
                   {shareReportUrl&&<a href={shareReportUrl} target='_blank' rel='noopener noreferrer' style={{fontSize:'0.72rem',color:'#bd00ff',fontFamily:"'JetBrains Mono',monospace",textDecoration:'none',padding:'2px 6px',border:'1px solid #bd00ff20',borderRadius:3,overflow:'hidden',textOverflow:'ellipsis',maxWidth:200,display:'inline-block',whiteSpace:'nowrap'}}>{shareReportUrl.split('/').pop()}</a>}
@@ -3186,8 +3186,8 @@ export default function DashboardPage() {
                   ))}
                 </div>
                 <div style={{display:'flex',gap:8}}>
-                  <button onClick={()=>{setShowOnboarding(false);setActiveTab('tools');}} style={{flex:1,padding:'10px',borderRadius:8,border:'none',background:'#00e5ff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Go to Tools →</button>
-                  {Object.keys(connectedTools).length>0&&<button onClick={()=>setOnboardingStep(1)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid #00ff8830',background:'#00ff8810',color:'#00ff88',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Next ✓</button>}
+                  <button onClick={()=>{setShowOnboarding(false);setActiveTab('tools');}} style={{flex:1,padding:'10px',borderRadius:8,border:'none',background:'#00e5ff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>Go to Tools →</button>
+                  {Object.keys(connectedTools).length>0&&<button onClick={()=>setOnboardingStep(1)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid #00ff8830',background:'#00ff8810',color:'#00ff88',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>Next ✓</button>}
                 </div>
               </div>
             )}
@@ -3197,9 +3197,9 @@ export default function DashboardPage() {
                 <div style={{fontSize:'0.82rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:16}}>Watchtower uses Claude Haiku to triage alerts, generate attack narratives, and power the Co-Pilot. Add your own key to activate AI features.</div>
                 <div style={{padding:'12px',background:'#00e5ff08',border:'1px solid #00e5ff20',borderRadius:8,fontSize:'0.8rem',color:'var(--wt-secondary)',marginBottom:16,lineHeight:1.6}}>Get a free key at <a href='https://console.anthropic.com/account/keys' target='_blank' rel='noopener noreferrer' style={{color:'#00e5ff'}}>console.anthropic.com</a> → API Keys → Create Key. It starts with <code style={{fontFamily:"'JetBrains Mono',monospace",background:'var(--wt-border)',padding:'1px 4px',borderRadius:3}}>sk-ant-</code></div>
                 <div style={{display:'flex',gap:8}}>
-                  <button onClick={()=>setOnboardingStep(0)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid var(--wt-border)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.82rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>← Back</button>
-                  <button onClick={()=>{setShowOnboarding(false);setActiveTab('tools');}} style={{flex:1,padding:'10px',borderRadius:8,border:'none',background:'#00e5ff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Add in Tools tab →</button>
-                  <button onClick={()=>setOnboardingStep(2)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid #00ff8830',background:'#00ff8810',color:'#00ff88',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Skip</button>
+                  <button onClick={()=>setOnboardingStep(0)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid var(--wt-border)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.82rem',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>← Back</button>
+                  <button onClick={()=>{setShowOnboarding(false);setActiveTab('tools');}} style={{flex:1,padding:'10px',borderRadius:8,border:'none',background:'#00e5ff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>Add in Tools tab →</button>
+                  <button onClick={()=>setOnboardingStep(2)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid #00ff8830',background:'#00ff8810',color:'#00ff88',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>Skip</button>
                 </div>
               </div>
             )}
@@ -3212,8 +3212,8 @@ export default function DashboardPage() {
                   <div style={{fontSize:'0.8rem',color:'var(--wt-secondary)',lineHeight:1.6}}>Watchtower will sync your tools every 60 seconds and start triaging alerts automatically.</div>
                 </div>
                 <div style={{display:'flex',gap:8}}>
-                  <button onClick={()=>setOnboardingStep(1)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid var(--wt-border)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.82rem',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>← Back</button>
-                  <button onClick={()=>{setDemoMode(false);if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode','false');setShowOnboarding(false);}} style={{flex:1,padding:'10px',borderRadius:8,border:'none',background:'#00ff88',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Go Live! →</button>
+                  <button onClick={()=>setOnboardingStep(1)} style={{padding:'10px 16px',borderRadius:8,border:'1px solid var(--wt-border)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.82rem',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>← Back</button>
+                  <button onClick={()=>{setDemoMode(false);if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode','false');setShowOnboarding(false);}} style={{flex:1,padding:'10px',borderRadius:8,border:'none',background:'#00ff88',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>Go Live! →</button>
                 </div>
               </div>
             )}
@@ -3352,7 +3352,7 @@ export default function DashboardPage() {
                   <span style={{fontSize:'0.82rem',color:sr?.error?'#ff2244':sr?'#00ff88':'#ffb300',fontWeight:700}}>
                     {sr?.error ? '✗ Error' : sr ? `✓ ${sr.count} records` : 'Pending'}
                   </span>
-                  {!demoMode && doSync && <button onClick={()=>doSync([tool.id])} style={{padding:'2px 8px',borderRadius:4,border:'1px solid #00e5ff28',background:'#00e5ff0a',color:'#00e5ff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>⟳</button>}
+                  {!demoMode && doSync && <button onClick={()=>doSync([tool.id])} style={{padding:'2px 8px',borderRadius:4,border:'1px solid #00e5ff28',background:'#00e5ff0a',color:'#00e5ff',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>⟳</button>}
                 </div>
                 {sr && <div style={{paddingLeft:18,marginTop:4,fontSize:'0.84rem',color:sr.error?'#ff2244':'var(--wt-dim)',fontFamily:"'JetBrains Mono',monospace",lineHeight:1.5}}>
                   {sr.error ? sr.error : `Last sync: ${new Date(sr.syncedAt).toLocaleTimeString('en-GB')} · ${sr.count} record${sr.count!==1?'s':''} pulled`}
@@ -3362,7 +3362,7 @@ export default function DashboardPage() {
           })}
           {tools.filter(t=>!t.active&&!connectedTools[t.id]).length > 0 && (
             <div style={{marginTop:10,padding:'8px 10px',background:'var(--wt-card2)',borderRadius:7,fontSize:'0.82rem',color:'var(--wt-dim)'}}>
-              {tools.filter(t=>!t.active&&!connectedTools[t.id]).length} tools not connected — <button onClick={()=>{setModal(null);setActiveTab('tools');}} style={{color:'#00e5ff',background:'none',border:'none',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",fontSize:'0.82rem',padding:0}}>Setup wizard →</button> or <button onClick={e=>{e.stopPropagation();setActiveTab('tools');}} style={{color:'#00ff88',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:'inherit',padding:0}}>Tools tab →</button>
+              {tools.filter(t=>!t.active&&!connectedTools[t.id]).length} tools not connected — <button onClick={()=>{setModal(null);setActiveTab('tools');}} style={{color:'#00e5ff',background:'none',border:'none',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",fontSize:'0.82rem',padding:0}}>Setup wizard →</button> or <button onClick={e=>{e.stopPropagation();setActiveTab('tools');}} style={{color:'#00ff88',background:'none',border:'none',cursor:'pointer',fontFamily:'inherit',fontSize:'inherit',padding:0}}>Tools tab →</button>
             </div>
           )}
         </Modal>
@@ -3403,14 +3403,14 @@ export default function DashboardPage() {
               {demoMode?'DEMO':'LIVE'} · {alerts.length} alerts
             </span>
 {userTier==='community'&&!isAdmin&&<span style={{fontSize:'0.72rem',fontWeight:700,padding:'2px 7px',borderRadius:4,background:copilotDailyCount>=COPILOT_COMMUNITY_LIMIT?'#ff224415':'#ffb30015',color:copilotDailyCount>=COPILOT_COMMUNITY_LIMIT?'#ff2244':'#ffb300',border:`1px solid ${copilotDailyCount>=COPILOT_COMMUNITY_LIMIT?'#ff224430':'#ffb30030'}`}}>{copilotDailyCount}/{COPILOT_COMMUNITY_LIMIT} today</span>}
-            {copilotMessages.length>0&&<button onClick={()=>setCopilotMessages([])} title='Clear conversation' style={{background:'none',border:'1px solid var(--wt-border)',borderRadius:5,color:'var(--wt-dim)',fontSize:'0.86rem',cursor:'pointer',padding:'2px 7px',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Clear</button>}
+            {copilotMessages.length>0&&<button onClick={()=>setCopilotMessages([])} title='Clear conversation' style={{background:'none',border:'1px solid var(--wt-border)',borderRadius:5,color:'var(--wt-dim)',fontSize:'0.86rem',cursor:'pointer',padding:'2px 7px',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>Clear</button>}
             <button onClick={()=>setShowCopilot(false)} aria-label='Close Co-Pilot' style={{background:'none',border:'none',color:'var(--wt-muted)',fontSize:'1.3rem',cursor:'pointer',lineHeight:1,padding:'0 4px'}}>×</button>
           </div>
           {/* Mode tabs */}
           {(canUse('team')||isAdmin) && (
             <div style={{display:'flex',borderBottom:'1px solid var(--wt-border)',flexShrink:0}}>
               {[['chat','💬','Chat'],['ioc','🔍','IOC'],['nl','🔎','Query'],['hunt','🎯','Hunts']].map(([mode,icon,label])=>(
-                <button key={mode} onClick={()=>setCopilotMode(mode)} style={{flex:1,padding:'8px 4px',border:'none',borderBottom:`2px solid ${copilotMode===mode?'#bd00ff':'transparent'}`,background:copilotMode===mode?'#bd00ff08':'transparent',color:copilotMode===mode?'#bd00ff':'var(--wt-dim)',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",transition:'all .12s',display:'flex',flexDirection:'column',alignItems:'center',gap:2}}><span style={{fontSize:'1rem',lineHeight:1}}>{icon}</span><span style={{fontSize:'0.65rem',fontWeight:copilotMode===mode?700:500}}>{label}</span></button>
+                <button key={mode} onClick={()=>setCopilotMode(mode)} style={{flex:1,padding:'8px 4px',border:'none',borderBottom:`2px solid ${copilotMode===mode?'#bd00ff':'transparent'}`,background:copilotMode===mode?'#bd00ff08':'transparent',color:copilotMode===mode?'#bd00ff':'var(--wt-dim)',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",transition:'all .12s',display:'flex',flexDirection:'column',alignItems:'center',gap:2}}><span style={{fontSize:'1rem',lineHeight:1}}>{icon}</span><span style={{fontSize:'0.65rem',fontWeight:copilotMode===mode?700:500}}>{label}</span></button>
               ))}
             </div>
           )}
@@ -3430,7 +3430,7 @@ export default function DashboardPage() {
                     <div style={{fontSize:'0.72rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>IOC / Indicator Search</div>
                     <div style={{display:'flex',gap:6}}>
                       <input value={iocInput} onChange={e=>setIocInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&searchIoc(iocInput)} placeholder='IP, domain, hash, CVE, hostname…' style={{flex:1,padding:'7px 10px',borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.82rem',fontFamily:"'JetBrains Mono',monospace",outline:'none'}} />
-                      <button onClick={()=>searchIoc(iocInput)} disabled={iocSearching} style={{padding:'7px 14px',borderRadius:7,border:'none',background:'#00e5ff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>{iocSearching?'…':'Search'}</button>
+                      <button onClick={()=>searchIoc(iocInput)} disabled={iocSearching} style={{padding:'7px 14px',borderRadius:7,border:'none',background:'#00e5ff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",flexShrink:0}}>{iocSearching?'…':'Search'}</button>
                     </div>
                   </div>
                   <div style={{flex:1,overflowY:'auto',padding:'12px 16px'}}>
@@ -3464,12 +3464,12 @@ export default function DashboardPage() {
                   <div style={{padding:'12px 16px',borderBottom:'1px solid var(--wt-border)',flexShrink:0}}>
                     <div style={{fontSize:'0.72rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Natural Language Query</div>
                     <div style={{display:'flex',gap:6}}>
-                      <input value={nlInput} onChange={e=>setNlInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&sendNlQuery(nlInput)} placeholder='Show me all critical alerts from CrowdStrike…' style={{flex:1,padding:'7px 10px',borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.82rem',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",outline:'none'}} />
-                      <button onClick={()=>sendNlQuery(nlInput)} disabled={nlLoading} style={{padding:'7px 14px',borderRadius:7,border:'none',background:'#bd00ff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0}}>{nlLoading?'…':'Ask'}</button>
+                      <input value={nlInput} onChange={e=>setNlInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&sendNlQuery(nlInput)} placeholder='Show me all critical alerts from CrowdStrike…' style={{flex:1,padding:'7px 10px',borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.82rem',fontFamily:"'Rajdhani','JetBrains Mono',monospace",outline:'none'}} />
+                      <button onClick={()=>sendNlQuery(nlInput)} disabled={nlLoading} style={{padding:'7px 14px',borderRadius:7,border:'none',background:'#bd00ff',color:'#fff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",flexShrink:0}}>{nlLoading?'…':'Ask'}</button>
                     </div>
                     <div style={{display:'flex',flexWrap:'wrap',gap:4,marginTop:6}}>
                       {['Top 5 critical alerts this week','Which devices have unresolved high severity alerts?','Summarise open incidents by analyst','What are my highest CVSS vulnerabilities?'].map(q=>(
-                        <button key={q} onClick={()=>{setNlInput(q);sendNlQuery(q);}} style={{fontSize:'0.68rem',padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border)',background:'var(--wt-card)',color:'var(--wt-dim)',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>{q}</button>
+                        <button key={q} onClick={()=>{setNlInput(q);sendNlQuery(q);}} style={{fontSize:'0.68rem',padding:'2px 7px',borderRadius:4,border:'1px solid var(--wt-border)',background:'var(--wt-card)',color:'var(--wt-dim)',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>{q}</button>
                       ))}
                     </div>
                   </div>
@@ -3496,14 +3496,14 @@ export default function DashboardPage() {
                         <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
                           <span style={{fontSize:'0.78rem',fontWeight:700,flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{hunt.title}</span>
                           <span style={{fontSize:'0.68rem',color:'var(--wt-dim)',flexShrink:0}}>{hunt.savedAt}</span>
-                          <button onClick={()=>setSavedHunts(prev=>prev.filter(h=>h.id!==hunt.id))} style={{fontSize:'0.72rem',color:'var(--wt-dim)',background:'none',border:'none',cursor:'pointer',flexShrink:0,fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>✕</button>
+                          <button onClick={()=>setSavedHunts(prev=>prev.filter(h=>h.id!==hunt.id))} style={{fontSize:'0.72rem',color:'var(--wt-dim)',background:'none',border:'none',cursor:'pointer',flexShrink:0,fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>✕</button>
                         </div>
                         {Object.entries(hunt.queries||{}).filter(([,v])=>v).map(([tool,query])=>(
                           <div key={tool} style={{marginBottom:4}}>
                             <div style={{fontSize:'0.64rem',fontWeight:700,color:'#00e5ff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:2}}>{tool}</div>
                             <div style={{position:'relative'}}>
                               <code style={{display:'block',fontSize:'0.66rem',fontFamily:"'JetBrains Mono',monospace",color:'#00ff88',background:'#030510',padding:'4px 28px 4px 6px',borderRadius:4,whiteSpace:'pre-wrap',wordBreak:'break-all',lineHeight:1.5}}>{String(query).slice(0,200)}</code>
-                              <button onClick={()=>navigator.clipboard.writeText(String(query))} style={{position:'absolute',top:3,right:3,fontSize:'0.62rem',padding:'1px 4px',borderRadius:3,border:'1px solid #00e5ff20',background:'transparent',color:'#00e5ff',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\"}}>Copy</button>
+                              <button onClick={()=>navigator.clipboard.writeText(String(query))} style={{position:'absolute',top:3,right:3,fontSize:'0.62rem',padding:'1px 4px',borderRadius:3,border:'1px solid #00e5ff20',background:'transparent',color:'#00e5ff',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>Copy</button>
                             </div>
                           </div>
                         ))}
@@ -3529,7 +3529,7 @@ export default function DashboardPage() {
                       `What should I prioritise right now?`,
                     ].filter(Boolean).slice(0,4).map(p=>(
                       <button key={p} onClick={()=>sendCopilotMessage(p)}
-                        style={{padding:'8px 12px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:8,color:'var(--wt-secondary)',fontSize:'0.82rem',textAlign:'left',cursor:'pointer',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",transition:'border-color .15s',lineHeight:1.4}}
+                        style={{padding:'8px 12px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:8,color:'var(--wt-secondary)',fontSize:'0.82rem',textAlign:'left',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",transition:'border-color .15s',lineHeight:1.4}}
                         onMouseEnter={e=>e.currentTarget.style.borderColor='#00e5ff40'}
                         onMouseLeave={e=>e.currentTarget.style.borderColor='var(--wt-border)'}
                       >{p}</button>
@@ -3563,12 +3563,12 @@ export default function DashboardPage() {
                   onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendCopilotMessage(copilotInput);}}}
                   placeholder='Ask a security question… (Enter to send)'
                   rows={2}
-                  style={{flex:1,resize:'none',padding:'8px 12px',borderRadius:8,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.86rem',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",outline:'none',lineHeight:1.5}}
+                  style={{flex:1,resize:'none',padding:'8px 12px',borderRadius:8,border:'1px solid var(--wt-border2)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.86rem',fontFamily:"'Rajdhani','JetBrains Mono',monospace",outline:'none',lineHeight:1.5}}
                 />
                 <button
                   onClick={()=>sendCopilotMessage(copilotInput)}
                   disabled={!copilotInput.trim()||copilotLoading}
-                  style={{padding:'8px 14px',borderRadius:8,background:copilotInput.trim()&&!copilotLoading?'#00e5ff':'var(--wt-card)',border:'1px solid var(--wt-border2)',color:copilotInput.trim()&&!copilotLoading?'#fff':'var(--wt-dim)',fontSize:'0.86rem',fontWeight:700,cursor:copilotInput.trim()&&!copilotLoading?'pointer':'default',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",flexShrink:0,transition:'all .15s',alignSelf:'flex-end'}}
+                  style={{padding:'8px 14px',borderRadius:8,background:copilotInput.trim()&&!copilotLoading?'#00e5ff':'var(--wt-card)',border:'1px solid var(--wt-border2)',color:copilotInput.trim()&&!copilotLoading?'#fff':'var(--wt-dim)',fontSize:'0.86rem',fontWeight:700,cursor:copilotInput.trim()&&!copilotLoading?'pointer':'default',fontFamily:"'Rajdhani','JetBrains Mono',monospace",flexShrink:0,transition:'all .15s',alignSelf:'flex-end'}}
                 >↑</button>
               </div>}
             </>
@@ -3626,12 +3626,12 @@ export default function DashboardPage() {
                   ...(isAdmin?[{t:'admin',i:'🔧',l:'Admin'}]:[]),
                 ].map(({t,i,l})=>(
                   <button key={t} onClick={()=>{setActiveTab(t);setShowMobileMore(false);}}
-                    style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'10px 4px',background:'none',border:'none',cursor:'pointer',color:activeTab===t?'#00e5ff':'var(--wt-muted)',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",fontSize:'0.62rem',fontWeight:600}}>
+                    style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'10px 4px',background:'none',border:'none',cursor:'pointer',color:activeTab===t?'#00e5ff':'var(--wt-muted)',fontFamily:"'Rajdhani','JetBrains Mono',monospace",fontSize:'0.62rem',fontWeight:600}}>
                     <span style={{fontSize:'1.3rem'}}>{i}</span>{l}
                   </button>
                 ))}
                 <a href='/changelog' onClick={()=>setShowMobileMore(false)}
-                  style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'10px 4px',color:'var(--wt-muted)',textDecoration:'none',fontFamily:\"'Rajdhani','JetBrains Mono',monospace\",fontSize:'0.62rem',fontWeight:600}}>
+                  style={{display:'flex',flexDirection:'column',alignItems:'center',gap:4,padding:'10px 4px',color:'var(--wt-muted)',textDecoration:'none',fontFamily:"'Rajdhani','JetBrains Mono',monospace",fontSize:'0.62rem',fontWeight:600}}>
                   <span style={{fontSize:'1.3rem'}}>📝</span>Log
                 </a>
               </div>
