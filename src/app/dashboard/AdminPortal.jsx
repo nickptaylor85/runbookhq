@@ -874,17 +874,15 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                         {managingTenant&&managingTenant.id===t.id?'Close':'Manage'}
                       </button>
                     )}
-                    {t.active&&(
-                      <button
-                        onClick={async()=>{
-                          if(!window.confirm('Revoke this tenant? All users will be immediately locked out. This cannot be undone.')) return;
-                          const r=await fetch('/api/admin/tenants?id='+t.id,{method:'DELETE'});
-                          if(r.ok){setTenants(prev=>prev.map(x=>x.id===t.id?{...x,active:false}:x));if(managingTenant&&managingTenant.id===t.id)setManagingTenant(null);}
-                        }}
-                        style={{padding:'3px 8px',borderRadius:5,border:'1px solid #f0405e30',background:'#f0405e08',color:'#f0405e',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
-                        Revoke
-                      </button>
-                    )}
+                    <button
+                      onClick={async()=>{
+                        if(!window.confirm('Permanently delete this tenant? All users will be locked out and all data wiped. This cannot be undone.')) return;
+                        const r=await fetch('/api/admin/tenants?id='+t.id,{method:'DELETE'});
+                        if(r.ok){setTenants(prev=>prev.filter(x=>x.id!==t.id));if(managingTenant&&managingTenant.id===t.id)setManagingTenant(null);}
+                      }}
+                      style={{padding:'3px 8px',borderRadius:5,border:'1px solid #f0405e30',background:'#f0405e08',color:'#f0405e',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                      Delete
+                    </button>
                   </div>
                 </div>
                 {managingTenant&&managingTenant.id===t.id&&(

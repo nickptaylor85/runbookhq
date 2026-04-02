@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   if (!(await requireAdmin(req))) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
-  const rl = await checkRateLimit(`admin-tenants-post:${req.headers.get('x-user-id') || 'anon'}`, 10, 3600);
+  const rl = await checkRateLimit(`admin-tenants-post:${req.headers.get('x-user-id') || 'anon'}`, 50, 3600);
   if (!rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
 
   try {
@@ -134,12 +134,23 @@ export async function DELETE(req: NextRequest) {
     const registry = await getRegistry();
     const idx = registry.findIndex(t => t.id === tenantId);
     if (idx === -1) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    registry[idx].active = false;
+
+    // Fully remove from registry
+    registry.splice(idx, 1);
     await redisSet(REGISTRY_KEY, JSON.stringify(registry));
-    // Wipe user list so existing sessions are dead
+
+    // Wipe all tenant data — users, settings, email index entries
+    const { getUsers } = await import('@/lib/users');
+    const users = await getUsers(tenantId).catch(() => []);
+    for (const u of users) {
+      await redisSet('wt:email_tenant:' + u.email.toLowerCase(), '').catch(() => {});
+    }
     await redisSet('wt:tenant:' + tenantId + ':users', JSON.stringify([]));
+    await redisSet('wt:' + tenantId + ':settings:v2', JSON.stringify({}));
+
     return NextResponse.json({ ok: true });
   } catch (e: any) {
+    console.error('[admin/tenants DELETE]', e?.message);
     return NextResponse.json({ ok: false, error: 'Internal server error' }, { status: 500 });
   }
 }
