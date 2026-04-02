@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
 
     // Disable demo mode for this tenant so users land on a real empty dashboard
     const SETTINGS_KEY = `wt:${tenantId}:settings:v2`;
-    await redisSet(SETTINGS_KEY, JSON.stringify({ demoMode: 'false' }));
+    await redisSet(SETTINGS_KEY, JSON.stringify({ demoMode: 'true', userTier: 'mssp' }));
 
     const record: TenantRecord = {
       id: tenantId,
@@ -165,6 +165,20 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ ok: true, users: users.map(u => ({ id: u.id, name: u.name, email: u.email, role: u.role, status: u.status })) });
     }
 
+    if (action === 'set_settings') {
+      const SETTINGS_KEY = 'wt:' + tenantId + ':settings:v2';
+      const existing = await redisGet(SETTINGS_KEY).then((r: string | null) => r ? JSON.parse(r) : {}).catch(() => ({}));
+      const merged: Record<string, string> = { ...existing };
+      if (body.demoMode !== undefined) merged.demoMode = String(body.demoMode);
+      if (body.userTier !== undefined) {
+        const tiers = ['community', 'team', 'business', 'mssp'];
+        if (!tiers.includes(body.userTier)) return NextResponse.json({ error: 'Invalid tier' }, { status: 400 });
+        merged.userTier = body.userTier;
+      }
+      await redisSet(SETTINGS_KEY, JSON.stringify(merged));
+      return NextResponse.json({ ok: true, settings: merged });
+    }
+
     // Find specific user for password/role actions
     if (!email) return NextResponse.json({ error: 'email required' }, { status: 400 });
     const idx = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
@@ -185,20 +199,6 @@ export async function PATCH(req: NextRequest) {
       users[idx].role = role as 'viewer' | 'tech_admin' | 'sales';
       await saveUsers(tenantId, users);
       return NextResponse.json({ ok: true, message: 'Role updated for ' + email });
-    }
-
-    if (action === 'set_settings') {
-      const SETTINGS_KEY = 'wt:' + tenantId + ':settings:v2';
-      const existing = await redisGet(SETTINGS_KEY).then(r => r ? JSON.parse(r) : {}).catch(() => ({}));
-      const merged = { ...existing };
-      if (body.demoMode !== undefined) merged.demoMode = String(body.demoMode);
-      if (body.userTier !== undefined) {
-        const tiers = ['community', 'team', 'business', 'mssp'];
-        if (!tiers.includes(body.userTier as string)) return NextResponse.json({ error: 'Invalid tier' }, { status: 400 });
-        merged.userTier = body.userTier;
-      }
-      await redisSet(SETTINGS_KEY, JSON.stringify(merged));
-      return NextResponse.json({ ok: true, settings: merged });
     }
 
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
