@@ -1526,7 +1526,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Primary tabs — always visible */}
-          <div className="wt-tabbar" style={{display:'flex',gap:0,height:'100%',alignItems:'stretch',overflowX:'auto'}}>
+          <div className="wt-tabbar" style={{display:'flex',gap:0,height:'100%',alignItems:'stretch',overflow:'visible'}}>
             {/* Primary tabs */}
             {['overview','alerts','incidents','coverage','intel'].map(t=>(
               <button key={t} onClick={()=>setActiveTab(t)} style={{height:'100%',padding:'0 14px',border:'none',borderBottom:`2px solid ${activeTab===t?'#00e5ff':'transparent'}`,background:'transparent',color:activeTab===t?'#00e5ff':'var(--wt-muted)',fontSize:'0.8rem',fontWeight:activeTab===t?700:500,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",transition:'all .15s',whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:5}}>
