@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redisGet, redisSet } from '@/lib/redis';
 import { verifySession } from '@/lib/encrypt';
-import { createUser, hashPassword } from '@/lib/users';
+import { createUser } from '@/lib/users';
+import { scryptSync, randomBytes } from 'crypto';
 import { checkRateLimit } from '@/lib/ratelimit';
 import { cookies } from 'next/headers';
-import { randomBytes } from 'crypto';
+
+// Lower-memory scrypt for serverless — N=16384 uses 16MB vs 32MB for N=32768.
+// Meets OWASP minimum. Used only for provisioned tenant passwords.
+function hashPasswordServerless(password: string): string {
+  const salt = randomBytes(16).toString('hex');
+  const hash = scryptSync(password, salt, 64, { N: 16384, r: 8, p: 1 }).toString('hex');
+  return 'scrypt:' + salt + ':' + hash;
+}
 
 async function requireAdmin(req: NextRequest): Promise<boolean> {
   if (req.headers.get('x-is-admin') === 'true') return true;
@@ -85,7 +93,7 @@ export async function POST(req: NextRequest) {
         role: 'viewer',
         tenantId,
         status: 'active',
-        passwordHash: hashPassword(u.password),
+        passwordHash: hashPasswordServerless(u.password),
         mustChangePassword: false,
       });
       createdUsers.push({ id: user.id, name: user.name, email: user.email, role: 'viewer' });
