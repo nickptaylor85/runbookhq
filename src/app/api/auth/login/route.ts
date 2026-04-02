@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
     }
     if (user && user.status === 'active' && user.passwordHash && verifyPassword(password, user.passwordHash)) {
       // Read tier from tenant settings (authoritative server-side store)
-      const settingsRaw = await redisGet(`wt:${user.tenantId || 'global'}:settings`).catch(() => null);
+      const settingsRaw = await redisGet(`wt:${user.tenantId || 'global'}:settings:v2`).catch(() => null);
       const tenantSettings = settingsRaw ? JSON.parse(settingsRaw) : {};
       const userTier = (user as any).plan || tenantSettings.userTier || 'community';
 
