@@ -109,7 +109,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, tenant: record, users: createdUsers });
   } catch (e: any) {
-    return NextResponse.json({ ok: false, error: 'Internal server error' }, { status: 500 });
+    console.error('[admin/tenants POST]', e?.message, e?.stack?.slice(0, 300));
+    return NextResponse.json({ ok: false, error: e?.message || 'Internal server error' }, { status: 500 });
   }
 }
 
