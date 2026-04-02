@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redisLPush, redisLTrim, redisGet, KEYS } from '@/lib/redis';
 import { checkRateLimit } from '@/lib/ratelimit';
+import { sanitiseKeySegment } from '@/lib/redis';
 
 export const maxDuration = 30;
 
-const inboundKey = (t: string) => `wt:${t}:inbound_alerts`;
+const inboundKey = (t: string) => `wt:${sanitiseKeySegment(t)}:inbound_alerts`;
 
 function normSevLocal(s: any): 'Critical' | 'High' | 'Medium' | 'Low' {
   const v = String(s || '').toLowerCase();
@@ -41,14 +42,21 @@ function normalise(body: any, source: string): Record<string, unknown> {
     const p = body?.properties || body;
     return { id, source, title: p?.alertDisplayName || 'Sentinel Alert', severity: normSevLocal(p?.severity), device: p?.compromisedEntity || 'Unknown', description: p?.description || '', time: p?.timeGeneratedUtc || new Date(ts).toISOString(), rawTime: new Date(p?.timeGeneratedUtc || ts).getTime(), verdict: 'Pending', confidence: 78, tags: ['sentinel', 'inbound', 'microsoft'], fromWebhook: true };
   }
-  // Generic
   return { id, source: body?.source || source, title: body?.title || body?.name || body?.alert_name || 'Inbound Alert', severity: normSevLocal(body?.severity || body?.priority || 'medium'), device: body?.device || body?.host || body?.hostname || 'Unknown', user: body?.user, ip: body?.ip || body?.src_ip, description: body?.description || body?.message || '', time: new Date(body?.time || body?.timestamp || ts).toISOString(), rawTime: body?.time || body?.timestamp || ts, verdict: 'Pending', confidence: 65, tags: ['webhook', 'inbound'], fromWebhook: true };
 }
 
+// SECURITY: inbound-alerts POST requires authentication.
+// The GET (webhook URL discovery) also requires auth — the webhook URL is a secret per-tenant value.
+// Tenant param is sanitised via sanitiseKeySegment before use in Redis keys.
 export async function POST(req: NextRequest) {
+  // Must be authenticated — inbound webhook token from a configured integration
+  const userId = req.headers.get('x-user-id');
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   try {
     const url = new URL(req.url);
-    const tenantId = url.searchParams.get('tenant') || req.headers.get('x-tenant-id') || 'global';
+    const rawTenant = url.searchParams.get('tenant') || req.headers.get('x-tenant-id') || 'global';
+    const tenantId = sanitiseKeySegment(rawTenant);
     const rl = await checkRateLimit(`inbound:${tenantId}`, 500, 60);
     if (!rl.ok) return NextResponse.json({ ok: false, error: 'Rate limit' }, { status: 429 });
     const body = await req.json().catch(() => ({}));
@@ -64,8 +72,13 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
+  // Auth required — do not expose webhook URL to unauthenticated callers
+  const userId = req.headers.get('x-user-id');
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
   const url = new URL(req.url);
-  const tenantId = url.searchParams.get('tenant') || req.headers.get('x-tenant-id') || 'global';
+  const rawTenant = url.searchParams.get('tenant') || req.headers.get('x-tenant-id') || 'global';
+  const tenantId = sanitiseKeySegment(rawTenant);
   const base = process.env.NEXT_PUBLIC_BASE_URL || 'https://getwatchtower.io';
   return NextResponse.json({ ok: true, webhookUrl: `${base}/api/inbound-alerts?tenant=${tenantId}`, supportedSources: ['CrowdStrike', 'SentinelOne', 'Splunk', 'Microsoft Sentinel', 'Generic JSON'] });
 }

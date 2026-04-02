@@ -4,6 +4,20 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.16.11',
+    date: '2026-04-02',
+    tag: 'Security',
+    tagColor: '#ff2244',
+    summary: 'Round 3 pentest: 3 new critical/high findings fixed — inbound-alerts unauthenticated POST, PUBLIC_PREFIXES collision exposing /auth/sessions and /auth/totp-test, unsanitised tenant param in Redis keys.',
+    changes: [
+      { type: 'security', text: 'CRITICAL: /api/inbound-alerts POST was fully unauthenticated. Any internet actor could inject arbitrary fake alerts (title, severity, source) directly into any tenant Redis alert queue by POST with ?tenant=global. GET also exposed the webhook URL without auth. Both handlers now require x-user-id from JWT.' },
+      { type: 'security', text: 'CRITICAL: Unsanitised tenant param in inbound-alerts. The ?tenant= query param was interpolated directly into Redis keys with no validation, allowing path traversal values (../../etc/passwd) reflected verbatim in responses and written into Redis key space. sanitiseKeySegment() now applied to the raw tenant value before all Redis key construction.' },
+      { type: 'security', text: 'HIGH: PUBLIC_PREFIXES startsWith collision exposed /api/auth/sessions without auth. The prefix /api/auth/session matched /api/auth/sessions via startsWith(), bypassing middleware. Confirmed live: HTTP 200 {"ok":true,"sessions":[]} with no credentials. All /api/* public routes now use exact Set matching (PUBLIC_API_EXACT) — prefix matching only applies to non-API paths.' },
+      { type: 'security', text: 'HIGH: PUBLIC_PREFIXES startsWith collision exposed /api/auth/totp-test without auth. The prefix /api/auth/totp matched /api/auth/totp-test. That route accepts {userId, code} unauthenticated, looks up the target users MFA secret from Redis, and returns valid:true for any user with MFA disabled — an MFA enrollment oracle. Fixed by same PUBLIC_API_EXACT change above.' },
+      { type: 'security', text: 'LOW: JS bundle analysis confirmed no secrets in client bundles. Source maps not served in production (404 on .js.map). robots.txt disallows /api/ and /dashboard as expected.' },
+    ],
+  },
+  {
     version: 'v74.16.8',
     date: '2026-04-01',
     tag: 'Security',

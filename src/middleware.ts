@@ -35,22 +35,35 @@ const PUBLIC_EXACT = new Set(['/', '/demo', '/pricing', '/guide', '/login', '/si
   '/setup-2fa', '/stripe/success', '/press', '/blog', '/security', '/privacy', '/terms',
   '/changelog', '/docs', '/robots.txt', '/sitemap.xml']);
 
-// Prefix-match public paths (must NOT start with /api/ to avoid auth bypass)
+// Non-API prefix matches only (//_next/, favicon, etc.)
 const PUBLIC_PREFIXES = [
   '/demo/', '/pricing/', '/guide/', '/login/', '/signup/', '/press/', '/blog/',
   '/security/', '/privacy/', '/terms/', '/changelog/', '/docs/',
   '/_next/', '/favicon', '/robots.', '/sitemap',
-  // Auth endpoints that must be public
-  '/api/auth/login', '/api/auth/logout', '/api/auth/session',
-  '/api/auth/totp', '/api/auth/saml', '/api/auth/signup', '/api/auth/register',
-  '/api/auth/reset-password', '/api/auth/verify', '/api/auth/invite',
-  '/api/stripe/webhook',
-  '/api/waitlist', '/api/widget', '/api/inbound-alerts',
 ];
+
+// SECURITY: All /api/* public routes use EXACT path matching, never prefix matching.
+// Prefix matching caused /api/auth/session to match /api/auth/sessions,
+// and /api/auth/totp to match /api/auth/totp-test (confirmed live exploits).
+const PUBLIC_API_EXACT = new Set([
+  '/api/auth/login',
+  '/api/auth/logout',
+  '/api/auth/session',
+  '/api/auth/totp',
+  '/api/auth/saml',
+  '/api/auth/signup',
+  '/api/auth/register',
+  '/api/auth/reset-password',
+  '/api/auth/verify',
+  '/api/auth/invite',
+  '/api/stripe/webhook',
+  '/api/waitlist',
+  '/api/widget',
+]);
 
 function isPublicPath(pathname: string): boolean {
   if (PUBLIC_EXACT.has(pathname)) return true;
-  // IMPORTANT: never treat bare '/' as a prefix — it would match everything
+  if (PUBLIC_API_EXACT.has(pathname)) return true;
   return PUBLIC_PREFIXES.some(p => pathname.startsWith(p));
 }
 
