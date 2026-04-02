@@ -4,6 +4,24 @@ import { useRouter } from 'next/navigation';
 
 const VERSIONS = [
   {
+    version: 'v74.17.0',
+    date: '2026-04-02',
+    tag: 'OT / ICS',
+    tagColor: '#f0a030',
+    summary: 'Major OT/ICS Security module expansion: live data pipeline from Claroty/Nozomi/Dragos/Armis, IEC 62443 compliance view, protocol heatmap, maintenance windows, CVE drill-down, and OT response actions.',
+    changes: [
+      { type: 'feature', text: 'Live asset inventory via /api/ot/assets — fetchAssets() methods for Claroty CTD, Nozomi Vantage, Dragos Platform, and Armis. Purdue zone auto-detected from segment strings. Deduplicated by IP, Claroty preferred. 5-min Redis cache.' },
+      { type: 'feature', text: 'Live OT alerts via /api/ot/alerts — calls fetchAlerts() on all connected OT tools, tags results as OT/ICS, 2-min cache. Falls back to demo data when no OT tools connected or in demo mode.' },
+      { type: 'feature', text: 'IEC 62443 view (5th tab) — per-zone SL1-SL4 across FR1-FR7. MITRE ATT&CK for ICS codes mapped per FR. Alert severity, CVE count, zone criticality feed into scoring. Target SL3 for L0/L1, SL2 for L2-L4.' },
+      { type: 'feature', text: 'Protocol heatmap — protocol vs zone matrix showing device count per cell. OT protocols in L3/L4 flagged anomalous with red highlight and warning label.' },
+      { type: 'feature', text: 'CVE drill-down modal — click CVE badge on any asset. Loads /api/ot/cve-lookup with vendor/model/firmware. Static map covers Siemens S7, Allen Bradley, ABB RTU500, Wonderware, Rockwell FactoryTalk, OSIsoft PI, GE D25 plus live NVD API (CVSS >= 7.0). 24-hour Redis cache.' },
+      { type: 'feature', text: 'Maintenance window management — create/delete windows from OT Alerts tab. Suppressed alerts shown dimmed with purple border. Active/upcoming windows shown in header. Stored in /api/ot/maintenance with tenant isolation.' },
+      { type: 'feature', text: 'OT response action buttons — Notify plant engineer, Create work order, Add to watchlist. All with loading/done state. Posts to /api/response-actions with OT context. Analyst confirmation required for any network action.' },
+      { type: 'feature', text: 'Asset risk scoring — composite 0-100 score from CVE count, zone criticality, device status. Visual risk bar in asset table. Computed in ot-adapters.ts, carried into all live and demo assets.' },
+      { type: 'feature', text: 'Asset search and zone filter with Refresh button. New ot-adapters.ts library with fetchClarotyAssets, fetchNozomiAssets, fetchDragosAssets, fetchArmisAssets, detectZone, riskScore, OT_ASSET_FETCHERS registry.' },
+    ],
+  },
+  {
     version: 'v74.16.11',
     date: '2026-04-02',
     tag: 'Security',
