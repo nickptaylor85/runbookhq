@@ -293,7 +293,8 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
   const [createdTenantResult, setCreatedTenantResult] = useState(null);
   const [managingTenant, setManagingTenant] = useState(null); // { id, name, users }
   const [resetPassState, setResetPassState] = useState({}); // { [email]: { val, saving, done, error } }
-  const [anthropicKeyState, setAnthropicKeyState] = useState({}); // { [tenantId]: { val, saving, done, error } }
+  const [anthropicKeyState, setAnthropicKeyState] = useState({});
+  const [mfaResetState, setMfaResetState] = useState({}); // { [email]: 'idle'|'resetting'|'done'|'error' } // { [tenantId]: { val, saving, done, error } }
 
   // Load users from Redis on mount
   useEffect(()=>{
@@ -1007,6 +1008,18 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                               {ps.done?'✓ Password set':'Reset password'}
                             </button>
                           )}
+                          {/* Reset MFA */}
+                          <button
+                            disabled={mfaResetState[u.email]==='resetting'||mfaResetState[u.email]==='done'}
+                            onClick={async()=>{
+                              if(!window.confirm('Reset MFA for '+u.name+'? They will be required to re-enroll their authenticator on next login.')) return;
+                              setMfaResetState(prev=>({...prev,[u.email]:'resetting'}));
+                              const r=await fetch('/api/admin/tenants',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({tenantId:t.id,action:'reset_mfa',email:u.email})});
+                              setMfaResetState(prev=>({...prev,[u.email]:r.ok?'done':'error'}));
+                            }}
+                            style={{padding:'4px 10px',borderRadius:5,border:'1px solid '+(mfaResetState[u.email]==='done'?'#22d49a30':mfaResetState[u.email]==='error'?'#f0405e30':'#8b6fff30'),background:mfaResetState[u.email]==='done'?'#22d49a08':mfaResetState[u.email]==='error'?'#f0405e08':'#8b6fff08',color:mfaResetState[u.email]==='done'?'#22d49a':mfaResetState[u.email]==='error'?'#f0405e':'#8b6fff',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',opacity:mfaResetState[u.email]==='resetting'?0.5:1}}>
+                            {mfaResetState[u.email]==='done'?'✓ MFA reset':mfaResetState[u.email]==='resetting'?'...':mfaResetState[u.email]==='error'?'Error':'Reset MFA'}
+                          </button>
                         </div>
                       );
                     })}

@@ -120,11 +120,26 @@ export async function POST(req: NextRequest) {
         return res;
       }
       await updateUser(userTenantId, user.id, { lastSeen: new Date().toISOString() });
-      const res = NextResponse.json({ ok: true, role: user.role });
+
+      // Force MFA setup for provisioned tenant users who have not yet enrolled
+      const mfaRaw2 = await redisGet('wt:user:' + user.id + ':mfa').catch(() => null);
+      let mfaAlreadyEnabled = false;
+      if (mfaRaw2) {
+        try { mfaAlreadyEnabled = JSON.parse(decrypt(mfaRaw2)).enabled === true; } catch {}
+      }
+      // Mark as requiring setup — middleware will redirect to /setup-2fa
+      if (!mfaAlreadyEnabled) {
+        await redisSet('wt:user:' + user.id + ':mfa_setup_required', '1').catch(() => {});
+      }
+
+      const res = NextResponse.json({ ok: true, role: user.role, mfaSetupRequired: !mfaAlreadyEnabled });
       res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 86400, path: '/' });
       res.cookies.set('wt_tier', userTier, { httpOnly: false, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 86400, path: '/' });
-      // Clear any stale MFA-pending cookie
-      res.cookies.set('wt_mfa_pending', '', { httpOnly: false, maxAge: 0, path: '/' });
+      if (!mfaAlreadyEnabled) {
+        res.cookies.set('wt_mfa_pending', '1', { httpOnly: false, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 3600, path: '/' });
+      } else {
+        res.cookies.set('wt_mfa_pending', '', { httpOnly: false, maxAge: 0, path: '/' });
+      }
       return res;
     }
 

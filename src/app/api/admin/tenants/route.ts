@@ -216,6 +216,18 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ ok: true, message: 'Role updated for ' + email });
     }
 
+    if (action === 'reset_mfa') {
+      // Find the user to get their ID
+      if (!email) return NextResponse.json({ error: 'email required' }, { status: 400 });
+      const allUsers = await getUsers(tenantId);
+      const targetUser = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+      if (!targetUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      // Delete MFA secret and setup-required flag — forces re-enrollment on next login
+      await redisDel('wt:user:' + targetUser.id + ':mfa').catch(() => {});
+      await redisDel('wt:user:' + targetUser.id + ':mfa_setup_required').catch(() => {});
+      return NextResponse.json({ ok: true, message: 'MFA reset for ' + email + '. User will be prompted to re-enroll on next login.' });
+    }
+
     if (action === 'set_anthropic_key') {
       const apiKey = body.apiKey as string | undefined;
       if (!apiKey || !apiKey.startsWith('sk-ant-') || apiKey.length > 200) {
