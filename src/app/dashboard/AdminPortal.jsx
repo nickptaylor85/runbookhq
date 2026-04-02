@@ -861,9 +861,13 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                       <button
                         onClick={async()=>{
                           if(managingTenant&&managingTenant.id===t.id){setManagingTenant(null);return;}
-                          const r=await fetch('/api/admin/tenants',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({tenantId:t.id,action:'list'})});
-                          const d=await r.json();
-                          setManagingTenant({id:t.id,name:t.name,users:d.users||[]});
+                          const [ur,sr]=await Promise.all([
+                            fetch('/api/admin/tenants',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({tenantId:t.id,action:'list'})}),
+                            fetch('/api/settings/user',{headers:{'x-tenant-id':t.id}}),
+                          ]);
+                          const ud=await ur.json();
+                          const sd=await sr.json().catch(()=>({}));
+                          setManagingTenant({id:t.id,name:t.name,users:ud.users||[],settings:sd.settings||{}});
                           setResetPassState({});
                         }}
                         style={{padding:'3px 8px',borderRadius:5,border:'1px solid #4f8fff30',background:managingTenant&&managingTenant.id===t.id?'#4f8fff25':'#4f8fff08',color:'#4f8fff',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
@@ -885,6 +889,40 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                 </div>
                 {managingTenant&&managingTenant.id===t.id&&(
                   <div style={{padding:'10px 0 14px 0'}}>
+                    {/* Tenant settings */}
+                    <div style={{display:'flex',alignItems:'center',gap:10,padding:'10px 12px',background:'var(--wt-card2)',borderRadius:8,marginBottom:12,flexWrap:'wrap'}}>
+                      <span style={{fontSize:'0.7rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Tenant Settings</span>
+                      {/* Demo mode toggle */}
+                      <div style={{display:'flex',alignItems:'center',gap:6}}>
+                        <span style={{fontSize:'0.72rem',color:'var(--wt-secondary)'}}>Demo data</span>
+                        <button
+                          onClick={async()=>{
+                            const newVal = managingTenant.settings?.demoMode !== 'true' ? 'true' : 'false';
+                            const r=await fetch('/api/admin/tenants',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({tenantId:t.id,action:'set_settings',demoMode:newVal})});
+                            if(r.ok) setManagingTenant(prev=>({...prev,settings:{...prev.settings,demoMode:newVal}}));
+                          }}
+                          style={{padding:'3px 10px',borderRadius:5,border:'1px solid '+(managingTenant.settings?.demoMode==='true'?'#22d49a40':'var(--wt-border)'),background:managingTenant.settings?.demoMode==='true'?'#22d49a15':'transparent',color:managingTenant.settings?.demoMode==='true'?'#22d49a':'var(--wt-muted)',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                          {managingTenant.settings?.demoMode==='true'?'ON':'OFF'}
+                        </button>
+                      </div>
+                      {/* Tier selector */}
+                      <div style={{display:'flex',alignItems:'center',gap:6}}>
+                        <span style={{fontSize:'0.72rem',color:'var(--wt-secondary)'}}>Tier</span>
+                        <select
+                          value={managingTenant.settings?.userTier||'community'}
+                          onChange={async e=>{
+                            const newTier=e.target.value;
+                            const r=await fetch('/api/admin/tenants',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({tenantId:t.id,action:'set_settings',userTier:newTier})});
+                            if(r.ok) setManagingTenant(prev=>({...prev,settings:{...prev.settings,userTier:newTier}}));
+                          }}
+                          style={{padding:'3px 8px',borderRadius:5,border:'1px solid #f0a03040',background:'#f0a03012',color:'#f0a030',fontSize:'0.68rem',fontFamily:'Inter,sans-serif',outline:'none',cursor:'pointer'}}>
+                          <option value='community'>Community</option>
+                          <option value='team'>Team</option>
+                          <option value='business'>Business</option>
+                          <option value='mssp'>MSSP (Top)</option>
+                        </select>
+                      </div>
+                    </div>
                     <div style={{fontSize:'0.66rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Users — reset password</div>
                     {managingTenant.users.length===0&&<div style={{fontSize:'0.76rem',color:'var(--wt-dim)'}}>No users found. The tenant may have been created before v74.17.7 — try recreating it.</div>}
                     {managingTenant.users.map(u=>{

@@ -187,6 +187,20 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ ok: true, message: 'Role updated for ' + email });
     }
 
+    if (action === 'set_settings') {
+      const SETTINGS_KEY = 'wt:' + tenantId + ':settings:v2';
+      const existing = await redisGet(SETTINGS_KEY).then(r => r ? JSON.parse(r) : {}).catch(() => ({}));
+      const merged = { ...existing };
+      if (body.demoMode !== undefined) merged.demoMode = String(body.demoMode);
+      if (body.userTier !== undefined) {
+        const tiers = ['community', 'team', 'business', 'mssp'];
+        if (!tiers.includes(body.userTier as string)) return NextResponse.json({ error: 'Invalid tier' }, { status: 400 });
+        merged.userTier = body.userTier;
+      }
+      await redisSet(SETTINGS_KEY, JSON.stringify(merged));
+      return NextResponse.json({ ok: true, settings: merged });
+    }
+
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
   } catch (e: any) {
     console.error('[admin/tenants PATCH]', e?.message);
