@@ -285,6 +285,13 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
   const [inviteStatus, setInviteStatus] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
 
+  // Tenant provisioning state
+  const [tenants, setTenants] = useState([]);
+  const [tenantsLoaded, setTenantsLoaded] = useState(false);
+  const [tenantForm, setTenantForm] = useState({ name:'', purpose:'', users:[{ name:'', email:'', password:'' }] });
+  const [tenantStatus, setTenantStatus] = useState(null); // null | 'creating' | 'created' | 'error'
+  const [createdTenantResult, setCreatedTenantResult] = useState(null);
+
   // Load users from Redis on mount
   useEffect(()=>{
     fetch('/api/admin/users').then(r=>r.json()).then(d=>{
@@ -345,7 +352,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
           <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginTop:3}}>All organisations subscribed to Watchtower · Impersonate any tenant to view their dashboard</div>
         </div>
         <div style={{marginLeft:'auto',display:'flex',gap:4,background:'var(--wt-card2)',borderRadius:7,padding:3,overflowX:'auto',flexShrink:0}}>
-          {['analytics','subscribers','users','platform','stripe','saml','broadcast','ailog','audit'].map(v=>(
+          {['analytics','subscribers','users','tenants','platform','stripe','saml','broadcast','ailog','audit'].map(v=>(
             <button key={v} onClick={()=>{setAdminView(v);if(v==='ailog')fetchAiLog();}} style={{padding:'5px 11px',borderRadius:5,border:'none',background:adminView===v?'#f0a030':'transparent',color:adminView===v?'#fff':'var(--wt-muted)',fontSize:'0.64rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',whiteSpace:'nowrap',flexShrink:0}}>{v==='ailog'?'✦ AI Log':v.charAt(0).toUpperCase()+v.slice(1)}</button>
           ))}
         </div>
@@ -670,6 +677,215 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
               );
             })}
           </div>
+        </div>
+      )}
+
+      {adminView==='tenants' && (
+        <div style={{display:'flex',flexDirection:'column',gap:16}}>
+
+          {/* Header */}
+          <div style={{padding:'12px 16px',background:'#f0a03008',border:'1px solid #f0a03025',borderRadius:10,display:'flex',alignItems:'center',gap:10}}>
+            <span style={{fontSize:'1.1rem'}}>🏢</span>
+            <div>
+              <div style={{fontSize:'0.82rem',fontWeight:700,color:'#f0a030'}}>Tenant Provisioning</div>
+              <div style={{fontSize:'0.72rem',color:'var(--wt-muted)',lineHeight:1.5}}>Create isolated tenants for pentesters, trial customers, or demo environments. Users created here are <strong style={{color:'var(--wt-text)'}}>viewer-only</strong> and cannot access any other tenant data.</div>
+            </div>
+          </div>
+
+          {/* Create form */}
+          <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'18px 20px'}}>
+            <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:14}}>Create New Tenant</div>
+
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:12}}>
+              <div>
+                <label style={{display:'block',fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Tenant Name</label>
+                <input
+                  value={tenantForm.name}
+                  onChange={e=>setTenantForm(f=>({...f,name:e.target.value}))}
+                  placeholder='e.g. Pentest April 2026'
+                  style={{width:'100%',padding:'8px 11px',background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:7,color:'var(--wt-text)',fontSize:'0.8rem',fontFamily:'Inter,sans-serif',outline:'none',boxSizing:'border-box'}}
+                />
+                {tenantForm.name && <div style={{fontSize:'0.62rem',color:'var(--wt-dim)',marginTop:3,fontFamily:'JetBrains Mono,monospace'}}>ID: {tenantForm.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40)}-xxxxxx</div>}
+              </div>
+              <div>
+                <label style={{display:'block',fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Purpose <span style={{fontWeight:400,textTransform:'none'}}>(optional)</span></label>
+                <input
+                  value={tenantForm.purpose}
+                  onChange={e=>setTenantForm(f=>({...f,purpose:e.target.value}))}
+                  placeholder='e.g. External pentest — CyberCo — April 2026'
+                  style={{width:'100%',padding:'8px 11px',background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:7,color:'var(--wt-text)',fontSize:'0.8rem',fontFamily:'Inter,sans-serif',outline:'none',boxSizing:'border-box'}}
+                />
+              </div>
+            </div>
+
+            {/* User rows */}
+            <div style={{marginBottom:12}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
+                <label style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Users (all created as Viewer — no admin access)</label>
+                <button
+                  onClick={()=>setTenantForm(f=>({...f,users:[...f.users,{name:'',email:'',password:''}]}))}
+                  style={{marginLeft:'auto',padding:'2px 10px',borderRadius:5,border:'1px solid #4f8fff40',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                  + Add user
+                </button>
+              </div>
+              {tenantForm.users.map((u,i)=>(
+                <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr 28px',gap:8,marginBottom:8,alignItems:'flex-end'}}>
+                  <div>
+                    {i===0&&<label style={{display:'block',fontSize:'0.58rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:3}}>Full Name</label>}
+                    <input
+                      value={u.name}
+                      onChange={e=>setTenantForm(f=>({...f,users:f.users.map((x,j)=>j===i?{...x,name:e.target.value}:x)}))}
+                      placeholder='Name'
+                      style={{width:'100%',padding:'7px 10px',background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:7,color:'var(--wt-text)',fontSize:'0.78rem',fontFamily:'Inter,sans-serif',outline:'none',boxSizing:'border-box'}}
+                    />
+                  </div>
+                  <div>
+                    {i===0&&<label style={{display:'block',fontSize:'0.58rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:3}}>Email</label>}
+                    <input
+                      value={u.email}
+                      onChange={e=>setTenantForm(f=>({...f,users:f.users.map((x,j)=>j===i?{...x,email:e.target.value}:x)}))}
+                      placeholder='tester@firm.com'
+                      type='email'
+                      style={{width:'100%',padding:'7px 10px',background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:7,color:'var(--wt-text)',fontSize:'0.78rem',fontFamily:'Inter,sans-serif',outline:'none',boxSizing:'border-box'}}
+                    />
+                  </div>
+                  <div>
+                    {i===0&&<label style={{display:'block',fontSize:'0.58rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:3}}>Password (min 12 chars)</label>}
+                    <input
+                      value={u.password}
+                      onChange={e=>setTenantForm(f=>({...f,users:f.users.map((x,j)=>j===i?{...x,password:e.target.value}:x)}))}
+                      placeholder='Min 12 characters'
+                      type='text'
+                      style={{width:'100%',padding:'7px 10px',background:'var(--wt-card2)',border:`1px solid ${u.password&&u.password.length<12?'#f0405e40':u.password.length>=12?'#22d49a40':'var(--wt-border2)'}`,borderRadius:7,color:'var(--wt-text)',fontSize:'0.78rem',fontFamily:'JetBrains Mono,monospace',outline:'none',boxSizing:'border-box'}}
+                    />
+                  </div>
+                  <button
+                    onClick={()=>setTenantForm(f=>({...f,users:f.users.filter((_,j)=>j!==i)}))}
+                    disabled={tenantForm.users.length<=1}
+                    style={{width:28,height:28,borderRadius:6,border:'1px solid #f0405e25',background:'#f0405e08',color:'#f0405e',fontSize:'0.8rem',cursor:tenantForm.users.length<=1?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',opacity:tenantForm.users.length<=1?0.3:1}}>
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Submit */}
+            <div style={{display:'flex',alignItems:'center',gap:10}}>
+              <button
+                onClick={async()=>{
+                  setTenantStatus('creating');
+                  setCreatedTenantResult(null);
+                  try {
+                    const r = await fetch('/api/admin/tenants',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(tenantForm)});
+                    const d = await r.json();
+                    if (r.ok && d.ok) {
+                      setCreatedTenantResult(d);
+                      setTenants(prev=>[d.tenant,...prev]);
+                      setTenantForm({name:'',purpose:'',users:[{name:'',email:'',password:''}]});
+                      setTenantStatus('created');
+                    } else {
+                      setTenantStatus(d.error||'Error creating tenant');
+                    }
+                  } catch(e) { setTenantStatus('Network error'); }
+                }}
+                disabled={tenantStatus==='creating'||!tenantForm.name||tenantForm.users.some(u=>!u.name||!u.email||u.password.length<12)}
+                style={{padding:'9px 20px',borderRadius:7,border:'none',background:tenantStatus==='created'?'#22d49a':typeof tenantStatus==='string'&&tenantStatus!=='creating'&&tenantStatus!=='created'?'#f0405e':'#4f8fff',color:'#fff',fontSize:'0.8rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',opacity:tenantStatus==='creating'||!tenantForm.name||tenantForm.users.some(u=>!u.name||!u.email||u.password.length<12)?0.5:1}}>
+                {tenantStatus==='creating'?'Creating…':tenantStatus==='created'?'✓ Tenant created!':typeof tenantStatus==='string'&&tenantStatus!=='creating'?tenantStatus:'Create Tenant'}
+              </button>
+              {tenantStatus==='created'&&<button onClick={()=>{setTenantStatus(null);setCreatedTenantResult(null);}} style={{padding:'9px 14px',borderRadius:7,border:'1px solid var(--wt-border)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.78rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Create another</button>}
+            </div>
+          </div>
+
+          {/* Success — show credentials */}
+          {createdTenantResult && (
+            <div style={{background:'#22d49a08',border:'1px solid #22d49a30',borderRadius:12,padding:'16px 18px'}}>
+              <div style={{fontSize:'0.78rem',fontWeight:700,color:'#22d49a',marginBottom:10}}>✓ Tenant provisioned — share these credentials securely</div>
+              <div style={{marginBottom:8}}>
+                <span style={{fontSize:'0.66rem',color:'var(--wt-dim)',textTransform:'uppercase',fontWeight:700,letterSpacing:'0.5px'}}>Login URL</span>
+                <div style={{fontSize:'0.78rem',fontFamily:'JetBrains Mono,monospace',color:'var(--wt-text)',marginTop:2}}>https://getwatchtower.io/login</div>
+              </div>
+              <div style={{marginBottom:8}}>
+                <span style={{fontSize:'0.66rem',color:'var(--wt-dim)',textTransform:'uppercase',fontWeight:700,letterSpacing:'0.5px'}}>Tenant ID</span>
+                <div style={{fontSize:'0.78rem',fontFamily:'JetBrains Mono,monospace',color:'#f0a030',marginTop:2}}>{createdTenantResult.tenant?.id}</div>
+              </div>
+              <div>
+                <span style={{fontSize:'0.66rem',color:'var(--wt-dim)',textTransform:'uppercase',fontWeight:700,letterSpacing:'0.5px'}}>User Credentials</span>
+                {(createdTenantResult.users||[]).map((u,i)=>(
+                  <div key={i} style={{marginTop:6,padding:'8px 12px',background:'var(--wt-card)',borderRadius:7,fontFamily:'JetBrains Mono,monospace',fontSize:'0.76rem'}}>
+                    <span style={{color:'var(--wt-muted)'}}>Email: </span><span style={{color:'var(--wt-text)'}}>{u.email}</span>
+                    <span style={{color:'var(--wt-dim)',margin:'0 8px'}}>·</span>
+                    <span style={{color:'var(--wt-muted)'}}>Role: </span><span style={{color:'#8b6fff'}}>viewer (no admin)</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{marginTop:10,fontSize:'0.72rem',color:'#f0a030'}}>⚠ Passwords are not shown here. Share them via a separate secure channel (1Password, Signal, etc).</div>
+            </div>
+          )}
+
+          {/* Existing tenants list */}
+          <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
+            <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
+              <div style={{fontSize:'0.72rem',fontWeight:700}}>Provisioned Tenants</div>
+              <button
+                onClick={async()=>{
+                  setTenantsLoaded(false);
+                  const r=await fetch('/api/admin/tenants');
+                  const d=await r.json();
+                  if(d.ok) setTenants(d.tenants||[]);
+                  setTenantsLoaded(true);
+                }}
+                style={{marginLeft:'auto',padding:'3px 10px',borderRadius:5,border:'1px solid var(--wt-border)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.68rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                ⟳ Refresh
+              </button>
+            </div>
+            {!tenantsLoaded&&tenants.length===0&&(
+              <div style={{textAlign:'center',padding:'20px 0',color:'var(--wt-muted)',fontSize:'0.78rem'}}>
+                <button onClick={async()=>{const r=await fetch('/api/admin/tenants');const d=await r.json();if(d.ok)setTenants(d.tenants||[]);setTenantsLoaded(true);}} style={{color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontSize:'0.78rem'}}>Load tenants</button>
+              </div>
+            )}
+            {tenantsLoaded&&tenants.length===0&&<div style={{color:'var(--wt-dim)',fontSize:'0.78rem',padding:'12px 0'}}>No tenants provisioned yet.</div>}
+            {tenants.map(t=>(
+              <div key={t.id} style={{display:'grid',gridTemplateColumns:'1fr 120px 80px 80px',gap:10,padding:'10px 0',borderBottom:'1px solid var(--wt-border)',alignItems:'center',opacity:t.active?1:0.45}}>
+                <div>
+                  <div style={{fontSize:'0.78rem',fontWeight:600,color:t.active?'var(--wt-text)':'var(--wt-muted)'}}>{t.name}</div>
+                  <div style={{fontSize:'0.64rem',fontFamily:'JetBrains Mono,monospace',color:'var(--wt-dim)',marginTop:2}}>{t.id}</div>
+                  {t.purpose&&<div style={{fontSize:'0.66rem',color:'var(--wt-muted)',marginTop:2}}>{t.purpose}</div>}
+                </div>
+                <div style={{fontSize:'0.66rem',color:'var(--wt-dim)'}}>{new Date(t.createdAt).toLocaleDateString()} · {t.userCount} user{t.userCount!==1?'s':''}</div>
+                <div><span style={{fontSize:'0.62rem',fontWeight:700,padding:'2px 7px',borderRadius:4,background:t.active?'#22d49a12':'#f0405e12',color:t.active?'#22d49a':'#f0405e'}}>{t.active?'Active':'Revoked'}</span></div>
+                <div style={{textAlign:'right'}}>
+                  {t.active&&(
+                    <button
+                      onClick={async()=>{
+                        if(!window.confirm('Revoke this tenant? All users will be immediately locked out and cannot log in. This cannot be undone.')) return;
+                        const r=await fetch('/api/admin/tenants?id='+t.id,{method:'DELETE'});
+                        if(r.ok) setTenants(prev=>prev.map(x=>x.id===t.id?{...x,active:false}:x));
+                      }}
+                      style={{padding:'3px 10px',borderRadius:5,border:'1px solid #f0405e30',background:'#f0405e08',color:'#f0405e',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                      Revoke
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Isolation guarantee */}
+          <div style={{padding:'12px 16px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:10}}>
+            <div style={{fontSize:'0.72rem',fontWeight:700,color:'var(--wt-text)',marginBottom:6}}>Isolation guarantees</div>
+            {[
+              'All data scoped to wt:tenant:{id}:* — physically separate Redis keyspace from global and all other tenants',
+              'tenantId is injected by middleware from the signed JWT — the user cannot override it via headers or cookies',
+              'isAdmin is always false for provisioned users — admin routes check x-is-admin header set by middleware, never by client',
+              'Tool credentials, alert data, AI keys, and settings for other tenants are inaccessible by construction',
+              'Revoking a tenant immediately wipes the user list — existing sessions become dead (next API call returns 401)',
+            ].map((line,i)=>(
+              <div key={i} style={{display:'flex',gap:8,fontSize:'0.7rem',color:'var(--wt-secondary)',padding:'3px 0',lineHeight:1.5}}>
+                <span style={{color:'#22d49a',flexShrink:0}}>✓</span>{line}
+              </div>
+            ))}
+          </div>
+
         </div>
       )}
 
