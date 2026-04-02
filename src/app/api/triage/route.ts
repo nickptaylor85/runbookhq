@@ -170,7 +170,7 @@ export async function POST(req: NextRequest) {
     const effectiveUserId = req.headers.get('x-user-id') || sessionUserId;
     console.log(`[triage] userId=${effectiveUserId} tier=${userTier} isAdmin=${isAdminReq} sessionIsAdmin=${sessionIsAdmin} sessionTier=${sessionTier}`);
 
-    const rl = await checkRateLimit(`ai:${effectiveUserId}`, 30, 60);
+    const rl = await checkRateLimit(`ai:${effectiveUserId}`, 60, 60);
     if (!rl.ok) return NextResponse.json({ ok: false, error: `Rate limit exceeded. Resets in ${rl.reset}s.` }, { status: 429 });
 
     // Tier gate: APEX requires Essentials+ (bypass for admin and mssp)

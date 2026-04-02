@@ -293,6 +293,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
   const [createdTenantResult, setCreatedTenantResult] = useState(null);
   const [managingTenant, setManagingTenant] = useState(null); // { id, name, users }
   const [resetPassState, setResetPassState] = useState({}); // { [email]: { val, saving, done, error } }
+  const [anthropicKeyState, setAnthropicKeyState] = useState({}); // { [tenantId]: { val, saving, done, error } }
 
   // Load users from Redis on mount
   useEffect(()=>{
@@ -921,6 +922,33 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                         </select>
                       </div>
                     </div>
+                    {/* Anthropic key */}
+                    {(()=>{
+                      const aks=anthropicKeyState[t.id]||{};
+                      return React.createElement('div',{style:{display:'flex',alignItems:'center',gap:6,marginTop:6}},
+                        React.createElement('span',{style:{fontSize:'0.72rem',color:'var(--wt-secondary)'}},'Anthropic Key'),
+                        aks.open ? React.createElement(React.Fragment,null,
+                          React.createElement('input',{autoFocus:true,type:'text',placeholder:'sk-ant-...',value:aks.val||'',
+                            onChange:e=>setAnthropicKeyState(prev=>({...prev,[t.id]:{...aks,val:e.target.value}})),
+                            style:{padding:'3px 8px',width:260,background:'var(--wt-card2)',border:'1px solid #4f8fff40',borderRadius:5,color:'var(--wt-text)',fontSize:'0.72rem',fontFamily:'JetBrains Mono,monospace',outline:'none'}}),
+                          React.createElement('button',{
+                            disabled:aks.saving||!aks.val||!aks.val.startsWith('sk-ant-'),
+                            onClick:async()=>{
+                              setAnthropicKeyState(prev=>({...prev,[t.id]:{...aks,saving:true}}));
+                              const r=await fetch('/api/admin/tenants',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({tenantId:t.id,action:'set_anthropic_key',apiKey:aks.val})});
+                              const d=await r.json();
+                              if(r.ok){setAnthropicKeyState(prev=>({...prev,[t.id]:{open:false,done:true}}));}
+                              else{setAnthropicKeyState(prev=>({...prev,[t.id]:{...aks,saving:false,error:d.error||'Failed'}}));}
+                            },
+                            style:{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.66rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',opacity:aks.saving||!aks.val||!aks.val.startsWith('sk-ant-')?0.5:1}},aks.saving?'...':'Save'),
+                          React.createElement('button',{onClick:()=>setAnthropicKeyState(prev=>({...prev,[t.id]:{...aks,open:false}})),style:{padding:'3px 6px',borderRadius:5,border:'1px solid var(--wt-border)',background:'transparent',color:'var(--wt-dim)',fontSize:'0.66rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}},'✕'),
+                          aks.error&&React.createElement('span',{style:{fontSize:'0.64rem',color:'#f0405e'}},aks.error)
+                        ) : React.createElement('button',{
+                          onClick:()=>setAnthropicKeyState(prev=>({...prev,[t.id]:{open:true,val:'',done:false}})),
+                          style:{padding:'3px 10px',borderRadius:5,border:'1px solid '+(aks.done?'#22d49a30':'var(--wt-border)'),background:aks.done?'#22d49a08':'transparent',color:aks.done?'#22d49a':'var(--wt-muted)',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}},
+                          aks.done?'✓ Key saved':'Set key')
+                      );
+                    })()}
                     <div style={{fontSize:'0.66rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Users — reset password</div>
                     {managingTenant.users.length===0&&<div style={{fontSize:'0.76rem',color:'var(--wt-dim)'}}>No users found. The tenant may have been created before v74.17.7 — try recreating it.</div>}
                     {managingTenant.users.map(u=>{

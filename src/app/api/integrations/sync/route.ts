@@ -12,7 +12,7 @@ export const maxDuration = 60;
 export async function POST(req: NextRequest) {
   try {
     const userId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
-    const rl = await checkRateLimit(`sync:${userId}`, 30, 60);
+    const rl = await checkRateLimit(`sync:${userId}`, 60, 60);
     if (!rl.ok) {
       return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
     }

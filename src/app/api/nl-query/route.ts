@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       req.headers.get('x-tenant-id') || 'global';
     const userId = req.headers.get('x-user-id') || 'anon';
 
-    const rl = await checkRateLimit(`nl-query:${userId}`, 20, 60);
+    const rl = await checkRateLimit(`nl-query:${userId}`, 60, 60);
     if (!rl.ok) {
       return NextResponse.json({ ok: false, error: `Rate limit exceeded. Resets in ${rl.reset}s.` }, { status: 429 });
     }

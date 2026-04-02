@@ -34,7 +34,7 @@ export async function rateLimit(key: string, limit: number, windowSeconds: numbe
 }
 
 // Convenience: check rate limit and return 429 response if exceeded
-export async function checkRateLimit(identifier: string, limit = 20, windowSeconds = 60) {
+export async function checkRateLimit(identifier: string, limit = 120, windowSeconds = 60) {
   const result = await rateLimit(identifier, limit, windowSeconds);
   return result;
 }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { signSession, decrypt } from '@/lib/encrypt';
 import { checkRateLimit } from '@/lib/ratelimit';
-import { redisGet } from '@/lib/redis';
+import { redisGet, redisSet } from '@/lib/redis';
 import { getUserByEmail, hashPassword, verifyPassword, updateUser, getUsers, saveUsers } from '@/lib/users';
 
 export async function POST(req: NextRequest) {
@@ -106,6 +106,12 @@ export async function POST(req: NextRequest) {
       const tenantSettings = settingsRaw ? JSON.parse(settingsRaw) : {};
       const userTier = (user as any).plan || tenantSettings.userTier || 'community';
 
+      // If tier not yet persisted in settings (e.g. tenant set via admin panel while 429), save it now
+      if (userTier !== 'community' && !tenantSettings.userTier) {
+        const settingsKeyV2 = 'wt:' + userTenantId + ':settings:v2';
+        const merged = { ...tenantSettings, userTier };
+        await redisSet(settingsKeyV2, JSON.stringify(merged)).catch(() => {});
+      }
       const token = signSession({ userId: user.id, tenantId: user.tenantId || 'global', isAdmin: false, email: user.email, role: user.role, tier: userTier });
       // V2.3.1: Force password change if admin set a temporary password
       if ((user as any).mustChangePassword) {

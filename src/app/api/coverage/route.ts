@@ -10,7 +10,7 @@ function getTenantId(req: NextRequest): string {
 export async function GET(req: NextRequest) {
   // Rate limiting — 60 req/min per user
   const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
-  const _rl = await checkRateLimit(`api:${_rlId}:${req.nextUrl.pathname}`, 60, 60);
+  const _rl = await checkRateLimit(`api:${_rlId}:${req.nextUrl.pathname}`, 200, 60);
   if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
 
   try {

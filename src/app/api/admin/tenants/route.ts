@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { redisGet, redisSet, redisDel } from '@/lib/redis';
 import { verifySession } from '@/lib/encrypt';
 import { createUser, getUsers, saveUsers } from '@/lib/users';
+import { encrypt } from '@/lib/encrypt';
+import { KEYS } from '@/lib/redis';
 import { scryptSync, randomBytes } from 'crypto';
 import { checkRateLimit } from '@/lib/ratelimit';
 import { cookies } from 'next/headers';
@@ -164,7 +166,7 @@ export async function PATCH(req: NextRequest) {
   if (!rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
 
   try {
-    const body = await req.json() as { tenantId: string; action: string; email?: string; password?: string; role?: string; demoMode?: string; userTier?: string };
+    const body = await req.json() as { tenantId: string; action: string; email?: string; password?: string; role?: string; demoMode?: string; userTier?: string; apiKey?: string };
     const { tenantId, action, email, password, role } = body;
 
     if (!tenantId) return NextResponse.json({ error: 'tenantId required' }, { status: 400 });
@@ -212,6 +214,15 @@ export async function PATCH(req: NextRequest) {
       users[idx].role = role as 'viewer' | 'tech_admin' | 'sales';
       await saveUsers(tenantId, users);
       return NextResponse.json({ ok: true, message: 'Role updated for ' + email });
+    }
+
+    if (action === 'set_anthropic_key') {
+      const apiKey = body.apiKey as string | undefined;
+      if (!apiKey || !apiKey.startsWith('sk-ant-') || apiKey.length > 200) {
+        return NextResponse.json({ error: 'Invalid key — must start with sk-ant-' }, { status: 400 });
+      }
+      await redisSet(KEYS.TENANT_ANTHROPIC_KEY(tenantId), encrypt(apiKey.trim()));
+      return NextResponse.json({ ok: true, message: 'Anthropic key saved for tenant ' + tenantId });
     }
 
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 });

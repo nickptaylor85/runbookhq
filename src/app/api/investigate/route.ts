@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
     console.log(`[investigate] userId=${userId} tier=${userTier} isAdmin=${isAdmin} sessionIsAdmin=${sessionIsAdmin}`);
 
-    const rl = await checkRateLimit(`ai:${userId}`, 30, 60);
+    const rl = await checkRateLimit(`ai:${userId}`, 60, 60);
     if (!rl.ok) return NextResponse.json({ ok: false, error: `Rate limit exceeded. Resets in ${rl.reset}s.` }, { status: 429 });
 
     const tierLevels: Record<string, number> = { community: 0, team: 1, business: 2, mssp: 3 };

@@ -27,7 +27,7 @@ async function getSettings(tenantId: string): Promise<Record<string, string>> {
 
 export async function GET(req: NextRequest) {
   const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
-  const _rl = await checkRateLimit(`api:\${_rlId}:\${req.nextUrl?.pathname || ''}`, 60, 60);
+  const _rl = await checkRateLimit(`api:\${_rlId}:\${req.nextUrl?.pathname || ''}`, 200, 60);
   if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   try {
     const tenantId = getTenantId(req);
@@ -35,6 +35,11 @@ export async function GET(req: NextRequest) {
     // Strip server-only fields before sending to client
     const safeSettings = { ...settings };
     delete (safeSettings as any).anthropic_api_key; // never send API keys to client
+    // If userTier not in settings, fall back to JWT tier (injected by middleware)
+    if (!safeSettings.userTier) {
+      const jwtTier = req.headers.get('x-user-tier');
+      if (jwtTier && jwtTier !== 'community') safeSettings.userTier = jwtTier;
+    }
     return NextResponse.json({ ok: true, settings: safeSettings });
   } catch (e: any) {
     console.error('[settings/user GET]', e.message);

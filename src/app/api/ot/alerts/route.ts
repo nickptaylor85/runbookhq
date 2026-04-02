@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const tenantId = req.headers.get('x-tenant-id') || 'global';
-  const rl = await checkRateLimit(`ot-alerts:${userId}`, 30, 60);
+  const rl = await checkRateLimit(`ot-alerts:${userId}`, 60, 60);
   if (!rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
 
   const refresh = req.nextUrl.searchParams.get('refresh') === '1';

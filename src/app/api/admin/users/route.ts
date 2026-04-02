@@ -19,7 +19,7 @@ async function requireAdmin(req: NextRequest): Promise<boolean> {
 
 export async function GET(req: NextRequest) {
   const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
-  const _rl = await checkRateLimit(`api:\${_rlId}:\${req.nextUrl?.pathname || ''}`, 60, 60);
+  const _rl = await checkRateLimit(`api:\${_rlId}:\${req.nextUrl?.pathname || ''}`, 200, 60);
   if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   if (!(await requireAdmin(req))) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
   const tenantId = req.headers.get('x-tenant-id') || 'global';

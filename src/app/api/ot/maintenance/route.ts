@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const tenantId = req.headers.get('x-tenant-id') || 'global';
-  const rl = await checkRateLimit(`ot-mw-post:${userId}`, 20, 60);
+  const rl = await checkRateLimit(`ot-mw-post:${userId}`, 60, 60);
   if (!rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
 
   try {
