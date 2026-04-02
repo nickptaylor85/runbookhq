@@ -861,7 +861,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                       <button
                         onClick={async()=>{
                           if(managingTenant&&managingTenant.id===t.id){setManagingTenant(null);return;}
-                          const r=await fetch('/api/admin/tenants',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({tenantId:t.id,email:'_list_',action:'list'})});
+                          const r=await fetch('/api/admin/tenants',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({tenantId:t.id,action:'list'})});
                           const d=await r.json();
                           setManagingTenant({id:t.id,name:t.name,users:d.users||[]});
                           setResetPassState({});
@@ -889,12 +889,27 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                     {managingTenant.users.length===0&&<div style={{fontSize:'0.76rem',color:'var(--wt-dim)'}}>No users found. The tenant may have been created before v74.17.7 — try recreating it.</div>}
                     {managingTenant.users.map(u=>{
                       const ps=resetPassState[u.email]||{};
+                      const roleColor={viewer:'#8b6fff',tech_admin:'#4f8fff',sales:'#22d49a'}[u.role]||'#6b7a94';
                       return(
-                        <div key={u.email} style={{display:'flex',alignItems:'center',gap:8,padding:'6px 0',borderBottom:'1px solid var(--wt-border)'}}>
+                        <div key={u.email} style={{display:'flex',alignItems:'center',gap:8,padding:'8px 0',borderBottom:'1px solid var(--wt-border)',flexWrap:'wrap'}}>
                           <div style={{flex:1,minWidth:0}}>
                             <div style={{fontSize:'0.76rem',fontWeight:600}}>{u.name}</div>
                             <div style={{fontSize:'0.64rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{u.email}</div>
                           </div>
+                          {/* Role selector */}
+                          <select
+                            value={u.role}
+                            onChange={async e=>{
+                              const newRole=e.target.value;
+                              const r=await fetch('/api/admin/tenants',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({tenantId:t.id,action:'set_role',email:u.email,role:newRole})});
+                              if(r.ok) setManagingTenant(prev=>({...prev,users:prev.users.map(x=>x.email===u.email?{...x,role:newRole}:x)}));
+                            }}
+                            style={{padding:'3px 6px',borderRadius:5,border:'1px solid '+roleColor+'40',background:roleColor+'12',color:roleColor,fontSize:'0.66rem',fontFamily:'Inter,sans-serif',outline:'none',cursor:'pointer'}}>
+                            <option value='viewer'>Viewer</option>
+                            <option value='tech_admin'>Tech Admin</option>
+                            <option value='sales'>Sales</option>
+                          </select>
+                          {/* Password reset */}
                           {ps.open?(
                             <div style={{display:'flex',gap:5,alignItems:'center'}}>
                               <input
@@ -903,14 +918,14 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                                 placeholder='New password (min 12)'
                                 value={ps.val||''}
                                 onChange={e=>setResetPassState(prev=>({...prev,[u.email]:{...ps,val:e.target.value}}))}
-                                style={{padding:'4px 8px',width:180,background:'var(--wt-card2)',border:'1px solid #4f8fff40',borderRadius:5,color:'var(--wt-text)',fontSize:'0.72rem',fontFamily:'JetBrains Mono,monospace',outline:'none'}}
+                                style={{padding:'4px 8px',width:160,background:'var(--wt-card2)',border:'1px solid #4f8fff40',borderRadius:5,color:'var(--wt-text)',fontSize:'0.72rem',fontFamily:'JetBrains Mono,monospace',outline:'none'}}
                               />
                               <button
                                 disabled={ps.saving||!ps.val||ps.val.length<12}
                                 onClick={async()=>{
                                   if(!ps.val||ps.val.length<12)return;
                                   setResetPassState(prev=>({...prev,[u.email]:{...ps,saving:true}}));
-                                  const r=await fetch('/api/admin/tenants',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({tenantId:t.id,email:u.email,password:ps.val})});
+                                  const r=await fetch('/api/admin/tenants',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({tenantId:t.id,action:'set_password',email:u.email,password:ps.val})});
                                   const d=await r.json();
                                   if(r.ok){setResetPassState(prev=>({...prev,[u.email]:{open:false,done:true}}));}
                                   else{setResetPassState(prev=>({...prev,[u.email]:{...ps,saving:false,error:d.error||'Failed'}}));}
@@ -924,7 +939,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                           ):(
                             <button
                               onClick={()=>setResetPassState(prev=>({...prev,[u.email]:{open:true,val:'',done:false}}))}
-                              style={{padding:'4px 10px',borderRadius:5,border:'1px solid ' + (ps.done?'#22d49a30':'#f0a03025'),background:ps.done?'#22d49a08':'#f0a03008',color:ps.done?'#22d49a':'#f0a030',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                              style={{padding:'4px 10px',borderRadius:5,border:'1px solid '+(ps.done?'#22d49a30':'#f0a03025'),background:ps.done?'#22d49a08':'#f0a03008',color:ps.done?'#22d49a':'#f0a030',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                               {ps.done?'✓ Password set':'Reset password'}
                             </button>
                           )}

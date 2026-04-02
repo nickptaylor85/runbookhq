@@ -144,35 +144,50 @@ export async function DELETE(req: NextRequest) {
   }
 }
 
-// PATCH — reset password for a user in a provisioned tenant
+// PATCH — list users, reset password, or change role for a provisioned tenant
 export async function PATCH(req: NextRequest) {
   if (!(await requireAdmin(req))) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
-  const rl = await checkRateLimit('admin-tenants-patch:' + (req.headers.get('x-user-id') || 'anon'), 30, 3600);
+  const rl = await checkRateLimit('admin-tenants-patch:' + (req.headers.get('x-user-id') || 'anon'), 60, 3600);
   if (!rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
 
   try {
-    const body = await req.json() as { tenantId: string; email: string; password?: string; action?: string };
-    const { tenantId, email, password, action } = body;
+    const body = await req.json() as { tenantId: string; action: string; email?: string; password?: string; role?: string };
+    const { tenantId, action, email, password, role } = body;
 
-    if (!tenantId || !email) return NextResponse.json({ error: 'tenantId and email required' }, { status: 400 });
+    if (!tenantId) return NextResponse.json({ error: 'tenantId required' }, { status: 400 });
     if (tenantId === 'global') return NextResponse.json({ error: 'Use /api/admin/users for global tenant' }, { status: 400 });
 
     const { getUsers, saveUsers } = await import('@/lib/users');
     const users = await getUsers(tenantId);
+
+    // List all users in tenant
+    if (action === 'list') {
+      return NextResponse.json({ ok: true, users: users.map(u => ({ id: u.id, name: u.name, email: u.email, role: u.role, status: u.status })) });
+    }
+
+    // Find specific user for password/role actions
+    if (!email) return NextResponse.json({ error: 'email required' }, { status: 400 });
     const idx = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
     if (idx === -1) return NextResponse.json({ error: 'User not found in this tenant' }, { status: 404 });
 
-    if (action === 'list') {
-      return NextResponse.json({ ok: true, users: users.map(u => ({ id: u.id, name: u.name, email: u.email, status: u.status, createdAt: u.createdAt })) });
+    if (action === 'set_password') {
+      if (!password || password.length < 12) return NextResponse.json({ error: 'Password must be at least 12 characters' }, { status: 400 });
+      users[idx].passwordHash = hashPasswordServerless(password);
+      users[idx].status = 'active';
+      await saveUsers(tenantId, users);
+      return NextResponse.json({ ok: true, message: 'Password updated for ' + email });
     }
 
-    if (!password || password.length < 12) return NextResponse.json({ error: 'Password must be at least 12 characters' }, { status: 400 });
+    if (action === 'set_role') {
+      const allowed = ['viewer', 'tech_admin', 'sales'];
+      if (!role || !allowed.includes(role)) return NextResponse.json({ error: 'role must be viewer, tech_admin, or sales' }, { status: 400 });
+      // Provisioned tenants can never have owner or isAdmin — enforce here
+      users[idx].role = role as 'viewer' | 'tech_admin' | 'sales';
+      await saveUsers(tenantId, users);
+      return NextResponse.json({ ok: true, message: 'Role updated for ' + email });
+    }
 
-    users[idx].passwordHash = hashPasswordServerless(password);
-    users[idx].status = 'active';
-    await saveUsers(tenantId, users);
-
-    return NextResponse.json({ ok: true, message: 'Password updated for ' + email });
+    return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
   } catch (e: any) {
     console.error('[admin/tenants PATCH]', e?.message);
     return NextResponse.json({ ok: false, error: e?.message || 'Internal server error' }, { status: 500 });
