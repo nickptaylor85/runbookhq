@@ -97,6 +97,8 @@ export async function POST(req: NextRequest) {
         mustChangePassword: false,
       });
       createdUsers.push({ id: user.id, name: user.name, email: user.email, role: 'viewer' });
+      // Write email -> tenantId index so login route can find this user
+      await redisSet('wt:email_tenant:' + u.email.toLowerCase().trim(), tenantId);
     }
 
     // Disable demo mode for this tenant so users land on a real empty dashboard
@@ -135,9 +137,44 @@ export async function DELETE(req: NextRequest) {
     registry[idx].active = false;
     await redisSet(REGISTRY_KEY, JSON.stringify(registry));
     // Wipe user list so existing sessions are dead
-    await redisSet(`wt:tenant:${tenantId}:users`, JSON.stringify([]));
+    await redisSet('wt:tenant:' + tenantId + ':users', JSON.stringify([]));
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     return NextResponse.json({ ok: false, error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+// PATCH — reset password for a user in a provisioned tenant
+export async function PATCH(req: NextRequest) {
+  if (!(await requireAdmin(req))) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
+  const rl = await checkRateLimit('admin-tenants-patch:' + (req.headers.get('x-user-id') || 'anon'), 30, 3600);
+  if (!rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+
+  try {
+    const body = await req.json() as { tenantId: string; email: string; password?: string; action?: string };
+    const { tenantId, email, password, action } = body;
+
+    if (!tenantId || !email) return NextResponse.json({ error: 'tenantId and email required' }, { status: 400 });
+    if (tenantId === 'global') return NextResponse.json({ error: 'Use /api/admin/users for global tenant' }, { status: 400 });
+
+    const { getUsers, saveUsers } = await import('@/lib/users');
+    const users = await getUsers(tenantId);
+    const idx = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+    if (idx === -1) return NextResponse.json({ error: 'User not found in this tenant' }, { status: 404 });
+
+    if (action === 'list') {
+      return NextResponse.json({ ok: true, users: users.map(u => ({ id: u.id, name: u.name, email: u.email, status: u.status, createdAt: u.createdAt })) });
+    }
+
+    if (!password || password.length < 12) return NextResponse.json({ error: 'Password must be at least 12 characters' }, { status: 400 });
+
+    users[idx].passwordHash = hashPasswordServerless(password);
+    users[idx].status = 'active';
+    await saveUsers(tenantId, users);
+
+    return NextResponse.json({ ok: true, message: 'Password updated for ' + email });
+  } catch (e: any) {
+    console.error('[admin/tenants PATCH]', e?.message);
+    return NextResponse.json({ ok: false, error: e?.message || 'Internal server error' }, { status: 500 });
   }
 }

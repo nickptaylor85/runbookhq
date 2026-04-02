@@ -89,8 +89,17 @@ export async function POST(req: NextRequest) {
       return res;
     }
 
-    // ── Staff user (Redis) ────────────────────────────────────────────────
-    const user = await getUserByEmail('global', email);
+    // ── Staff user (Redis) — check global tenant first, then provisioned tenants ──
+    let user = await getUserByEmail('global', email);
+    let userTenantId = 'global';
+    if (!user) {
+      // Check email->tenantId index for provisioned tenant users
+      const mappedTenant = await redisGet('wt:email_tenant:' + email.toLowerCase()).catch(() => null);
+      if (mappedTenant) {
+        user = await getUserByEmail(mappedTenant, email).catch(() => null) || null;
+        if (user) userTenantId = mappedTenant;
+      }
+    }
     if (user && user.status === 'active' && user.passwordHash && verifyPassword(password, user.passwordHash)) {
       // Read tier from tenant settings (authoritative server-side store)
       const settingsRaw = await redisGet(`wt:${user.tenantId || 'global'}:settings`).catch(() => null);
@@ -104,7 +113,7 @@ export async function POST(req: NextRequest) {
         res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 1800, path: '/' });
         return res;
       }
-      await updateUser('global', user.id, { lastSeen: new Date().toISOString() });
+      await updateUser(userTenantId, user.id, { lastSeen: new Date().toISOString() });
       const res = NextResponse.json({ ok: true, role: user.role });
       res.cookies.set('wt_session', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 86400, path: '/' });
       res.cookies.set('wt_tier', userTier, { httpOnly: false, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 86400, path: '/' });

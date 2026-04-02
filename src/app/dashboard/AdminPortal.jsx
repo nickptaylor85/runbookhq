@@ -291,6 +291,8 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
   const [tenantForm, setTenantForm] = useState({ name:'', purpose:'', users:[{ name:'', email:'', password:'' }] });
   const [tenantStatus, setTenantStatus] = useState(null); // null | 'creating' | 'created' | 'error'
   const [createdTenantResult, setCreatedTenantResult] = useState(null);
+  const [managingTenant, setManagingTenant] = useState(null); // { id, name, users }
+  const [resetPassState, setResetPassState] = useState({}); // { [email]: { val, saving, done, error } }
 
   // Load users from Redis on mount
   useEffect(()=>{
@@ -845,27 +847,92 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
             )}
             {tenantsLoaded&&tenants.length===0&&<div style={{color:'var(--wt-dim)',fontSize:'0.78rem',padding:'12px 0'}}>No tenants provisioned yet.</div>}
             {tenants.map(t=>(
-              <div key={t.id} style={{display:'grid',gridTemplateColumns:'1fr 120px 80px 80px',gap:10,padding:'10px 0',borderBottom:'1px solid var(--wt-border)',alignItems:'center',opacity:t.active?1:0.45}}>
-                <div>
-                  <div style={{fontSize:'0.78rem',fontWeight:600,color:t.active?'var(--wt-text)':'var(--wt-muted)'}}>{t.name}</div>
-                  <div style={{fontSize:'0.64rem',fontFamily:'JetBrains Mono,monospace',color:'var(--wt-dim)',marginTop:2}}>{t.id}</div>
-                  {t.purpose&&<div style={{fontSize:'0.66rem',color:'var(--wt-muted)',marginTop:2}}>{t.purpose}</div>}
+              <div key={t.id} style={{borderBottom:'1px solid var(--wt-border)',opacity:t.active?1:0.45}}>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 120px 80px 130px',gap:10,padding:'10px 0',alignItems:'center'}}>
+                  <div>
+                    <div style={{fontSize:'0.78rem',fontWeight:600,color:t.active?'var(--wt-text)':'var(--wt-muted)'}}>{t.name}</div>
+                    <div style={{fontSize:'0.64rem',fontFamily:'JetBrains Mono,monospace',color:'var(--wt-dim)',marginTop:2}}>{t.id}</div>
+                    {t.purpose&&<div style={{fontSize:'0.66rem',color:'var(--wt-muted)',marginTop:2}}>{t.purpose}</div>}
+                  </div>
+                  <div style={{fontSize:'0.66rem',color:'var(--wt-dim)'}}>{new Date(t.createdAt).toLocaleDateString()} · {t.userCount} user{t.userCount!==1?'s':''}</div>
+                  <div><span style={{fontSize:'0.62rem',fontWeight:700,padding:'2px 7px',borderRadius:4,background:t.active?'#22d49a12':'#f0405e12',color:t.active?'#22d49a':'#f0405e'}}>{t.active?'Active':'Revoked'}</span></div>
+                  <div style={{display:'flex',gap:5,justifyContent:'flex-end'}}>
+                    {t.active&&(
+                      <button
+                        onClick={async()=>{
+                          if(managingTenant&&managingTenant.id===t.id){setManagingTenant(null);return;}
+                          const r=await fetch('/api/admin/tenants',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({tenantId:t.id,email:'_list_',action:'list'})});
+                          const d=await r.json();
+                          setManagingTenant({id:t.id,name:t.name,users:d.users||[]});
+                          setResetPassState({});
+                        }}
+                        style={{padding:'3px 8px',borderRadius:5,border:'1px solid #4f8fff30',background:managingTenant&&managingTenant.id===t.id?'#4f8fff25':'#4f8fff08',color:'#4f8fff',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                        {managingTenant&&managingTenant.id===t.id?'Close':'Manage'}
+                      </button>
+                    )}
+                    {t.active&&(
+                      <button
+                        onClick={async()=>{
+                          if(!window.confirm('Revoke this tenant? All users will be immediately locked out. This cannot be undone.')) return;
+                          const r=await fetch('/api/admin/tenants?id='+t.id,{method:'DELETE'});
+                          if(r.ok){setTenants(prev=>prev.map(x=>x.id===t.id?{...x,active:false}:x));if(managingTenant&&managingTenant.id===t.id)setManagingTenant(null);}
+                        }}
+                        style={{padding:'3px 8px',borderRadius:5,border:'1px solid #f0405e30',background:'#f0405e08',color:'#f0405e',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                        Revoke
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div style={{fontSize:'0.66rem',color:'var(--wt-dim)'}}>{new Date(t.createdAt).toLocaleDateString()} · {t.userCount} user{t.userCount!==1?'s':''}</div>
-                <div><span style={{fontSize:'0.62rem',fontWeight:700,padding:'2px 7px',borderRadius:4,background:t.active?'#22d49a12':'#f0405e12',color:t.active?'#22d49a':'#f0405e'}}>{t.active?'Active':'Revoked'}</span></div>
-                <div style={{textAlign:'right'}}>
-                  {t.active&&(
-                    <button
-                      onClick={async()=>{
-                        if(!window.confirm('Revoke this tenant? All users will be immediately locked out and cannot log in. This cannot be undone.')) return;
-                        const r=await fetch('/api/admin/tenants?id='+t.id,{method:'DELETE'});
-                        if(r.ok) setTenants(prev=>prev.map(x=>x.id===t.id?{...x,active:false}:x));
-                      }}
-                      style={{padding:'3px 10px',borderRadius:5,border:'1px solid #f0405e30',background:'#f0405e08',color:'#f0405e',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
-                      Revoke
-                    </button>
-                  )}
-                </div>
+                {managingTenant&&managingTenant.id===t.id&&(
+                  <div style={{padding:'10px 0 14px 0'}}>
+                    <div style={{fontSize:'0.66rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Users — reset password</div>
+                    {managingTenant.users.length===0&&<div style={{fontSize:'0.76rem',color:'var(--wt-dim)'}}>No users found. The tenant may have been created before v74.17.7 — try recreating it.</div>}
+                    {managingTenant.users.map(u=>{
+                      const ps=resetPassState[u.email]||{};
+                      return(
+                        <div key={u.email} style={{display:'flex',alignItems:'center',gap:8,padding:'6px 0',borderBottom:'1px solid var(--wt-border)'}}>
+                          <div style={{flex:1,minWidth:0}}>
+                            <div style={{fontSize:'0.76rem',fontWeight:600}}>{u.name}</div>
+                            <div style={{fontSize:'0.64rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{u.email}</div>
+                          </div>
+                          {ps.open?(
+                            <div style={{display:'flex',gap:5,alignItems:'center'}}>
+                              <input
+                                autoFocus
+                                type='text'
+                                placeholder='New password (min 12)'
+                                value={ps.val||''}
+                                onChange={e=>setResetPassState(prev=>({...prev,[u.email]:{...ps,val:e.target.value}}))}
+                                style={{padding:'4px 8px',width:180,background:'var(--wt-card2)',border:'1px solid #4f8fff40',borderRadius:5,color:'var(--wt-text)',fontSize:'0.72rem',fontFamily:'JetBrains Mono,monospace',outline:'none'}}
+                              />
+                              <button
+                                disabled={ps.saving||!ps.val||ps.val.length<12}
+                                onClick={async()=>{
+                                  if(!ps.val||ps.val.length<12)return;
+                                  setResetPassState(prev=>({...prev,[u.email]:{...ps,saving:true}}));
+                                  const r=await fetch('/api/admin/tenants',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({tenantId:t.id,email:u.email,password:ps.val})});
+                                  const d=await r.json();
+                                  if(r.ok){setResetPassState(prev=>({...prev,[u.email]:{open:false,done:true}}));}
+                                  else{setResetPassState(prev=>({...prev,[u.email]:{...ps,saving:false,error:d.error||'Failed'}}));}
+                                }}
+                                style={{padding:'4px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.66rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',opacity:ps.saving||!ps.val||ps.val.length<12?0.5:1}}>
+                                {ps.saving?'…':'Set'}
+                              </button>
+                              <button onClick={()=>setResetPassState(prev=>({...prev,[u.email]:{...ps,open:false}}))} style={{padding:'4px 6px',borderRadius:5,border:'1px solid var(--wt-border)',background:'transparent',color:'var(--wt-dim)',fontSize:'0.66rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✕</button>
+                              {ps.error&&<span style={{fontSize:'0.64rem',color:'#f0405e'}}>{ps.error}</span>}
+                            </div>
+                          ):(
+                            <button
+                              onClick={()=>setResetPassState(prev=>({...prev,[u.email]:{open:true,val:'',done:false}}))}
+                              style={{padding:'4px 10px',borderRadius:5,border:'1px solid ' + (ps.done?'#22d49a30':'#f0a03025'),background:ps.done?'#22d49a08':'#f0a03008',color:ps.done?'#22d49a':'#f0a030',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                              {ps.done?'✓ Password set':'Reset password'}
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             ))}
           </div>
