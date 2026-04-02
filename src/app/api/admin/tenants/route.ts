@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { redisGet, redisSet } from '@/lib/redis';
+import { redisGet, redisSet, redisDel } from '@/lib/redis';
 import { verifySession } from '@/lib/encrypt';
-import { createUser } from '@/lib/users';
+import { createUser, getUsers, saveUsers } from '@/lib/users';
 import { scryptSync, randomBytes } from 'crypto';
 import { checkRateLimit } from '@/lib/ratelimit';
 import { cookies } from 'next/headers';
@@ -140,13 +140,12 @@ export async function DELETE(req: NextRequest) {
     await redisSet(REGISTRY_KEY, JSON.stringify(registry));
 
     // Wipe all tenant data — users, settings, email index entries
-    const { getUsers } = await import('@/lib/users');
     const users = await getUsers(tenantId).catch(() => []);
     for (const u of users) {
-      await redisSet('wt:email_tenant:' + u.email.toLowerCase(), '').catch(() => {});
+      await redisDel('wt:email_tenant:' + u.email.toLowerCase()).catch(() => {});
     }
     await redisSet('wt:tenant:' + tenantId + ':users', JSON.stringify([]));
-    await redisSet('wt:' + tenantId + ':settings:v2', JSON.stringify({}));
+    await redisDel('wt:' + tenantId + ':settings:v2').catch(() => {});
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
@@ -168,7 +167,7 @@ export async function PATCH(req: NextRequest) {
     if (!tenantId) return NextResponse.json({ error: 'tenantId required' }, { status: 400 });
     if (tenantId === 'global') return NextResponse.json({ error: 'Use /api/admin/users for global tenant' }, { status: 400 });
 
-    const { getUsers, saveUsers } = await import('@/lib/users');
+    // getUsers and saveUsers imported at top
     const users = await getUsers(tenantId);
 
     // List all users in tenant
