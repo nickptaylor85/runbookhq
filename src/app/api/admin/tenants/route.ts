@@ -151,7 +151,7 @@ export async function PATCH(req: NextRequest) {
   if (!rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
 
   try {
-    const body = await req.json() as { tenantId: string; action: string; email?: string; password?: string; role?: string };
+    const body = await req.json() as { tenantId: string; action: string; email?: string; password?: string; role?: string; demoMode?: string; userTier?: string };
     const { tenantId, action, email, password, role } = body;
 
     if (!tenantId) return NextResponse.json({ error: 'tenantId required' }, { status: 400 });
