@@ -48,7 +48,7 @@ async function getRegistry(): Promise<TenantRecord[]> {
 
 export async function GET(req: NextRequest) {
   if (!(await requireAdmin(req))) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
-  const rl = await checkRateLimit(`admin-tenants-get:${req.headers.get('x-user-id') || 'anon'}`, 500, 3600);
+  const rl = await checkRateLimit(`atg2:${req.headers.get('x-user-id') || 'anon'}`, 500, 3600);
   if (!rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   try {
     return NextResponse.json({ ok: true, tenants: await getRegistry() });
@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   if (!(await requireAdmin(req))) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
-  const rl = await checkRateLimit(`admin-tenants-post:${req.headers.get('x-user-id') || 'anon'}`, 200, 3600);
+  const rl = await checkRateLimit(`atp2:${req.headers.get('x-user-id') || 'anon'}`, 200, 3600);
   if (!rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
 
   try {
@@ -130,7 +130,7 @@ export async function DELETE(req: NextRequest) {
   if (!tenantId) return NextResponse.json({ error: 'id required' }, { status: 400 });
   if (tenantId === 'global' || !tenantId.includes('-')) return NextResponse.json({ error: 'Cannot delete system tenants' }, { status: 403 });
 
-  const rlDel = await checkRateLimit('admin-tenants-delete:' + (req.headers.get('x-user-id') || 'anon'), 200, 3600);
+  const rlDel = await checkRateLimit('atd2:' + (req.headers.get('x-user-id') || 'anon'), 200, 3600);
   if (!rlDel.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
 
   try {
@@ -160,7 +160,7 @@ export async function DELETE(req: NextRequest) {
 // PATCH — list users, reset password, or change role for a provisioned tenant
 export async function PATCH(req: NextRequest) {
   if (!(await requireAdmin(req))) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
-  const rl = await checkRateLimit('admin-tenants-patch:' + (req.headers.get('x-user-id') || 'anon'), 500, 3600);
+  const rl = await checkRateLimit('atpa2:' + (req.headers.get('x-user-id') || 'anon'), 500, 3600);
   if (!rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
 
   try {
