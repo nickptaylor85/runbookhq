@@ -60,7 +60,13 @@ export async function GET(req: NextRequest) {
           }
         } catch { name = session.email?.split('@')[0] || ''; }
       }
-      return NextResponse.json({ authenticated: true, ...session, name });
+      // Also check Redis mfa_setup_required so setup-2fa page gets correct flag
+      let mfaSetupRequired = false;
+      if (session.userId && !session.isAdmin) {
+        const mfaFlag = await redisGet('wt:user:' + session.userId + ':mfa_setup_required').catch(() => null);
+        mfaSetupRequired = mfaFlag === '1';
+      }
+      return NextResponse.json({ authenticated: true, ...session, name, mfaSetupRequired, tenantId: session.tenantId || 'global' });
     }
   }
   return NextResponse.json({ authenticated: false, isAdmin: false }, { status: 401 });
