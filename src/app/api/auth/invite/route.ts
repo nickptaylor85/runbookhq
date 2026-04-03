@@ -14,8 +14,12 @@ function requireAuth(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const authError = requireAuth(req);
   if (authError) return authError;
-  // Rate limit: 10 invites per hour per tenant (prevents spam)
   const tenantId = req.headers.get('x-tenant-id') || 'global';
+  // Provisioned tenant users cannot invite members — only the platform admin can
+  if (tenantId !== 'global') {
+    return NextResponse.json({ error: 'Member invitations are managed by your platform administrator.' }, { status: 403 });
+  }
+  // Rate limit: 10 invites per hour per tenant (prevents spam)
   const rl = await checkRateLimit(`invite:${tenantId}`, 10, 3600);
   if (!rl.ok) return NextResponse.json({ error: 'Too many invite attempts. Try again later.' }, { status: 429 });
   const inviterId = req.headers.get('x-user-id') || 'admin';
@@ -46,7 +50,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, userId: user.id });
   } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json({ error: process.env.NODE_ENV === 'production' ? 'Internal server error' : e.message }, { status: 500 });
   }
 }
 

@@ -1592,7 +1592,7 @@ export default function DashboardPage() {
               <a href='/pricing' style={{fontSize:'0.84rem',color:'#00e5ff',fontWeight:700,textDecoration:'none',padding:'3px 8px',borderRadius:6,border:'1px solid #00e5ff20',background:'#00e5ff08'}}>🔒 Upgrade</a>
             )}
             {/* Demo/Live toggle */}
-            <button onClick={()=>setDemoMode(d=>{const next=!d;if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode',String(next));fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});return next;})} style={{padding:'3px 10px',borderRadius:6,border:`1px solid ${demoMode?'#ffb30030':'#00ff8830'}`,background:demoMode?'#ffb30010':'#00ff8810',color:demoMode?'#ffb300':'#00ff88',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",flexShrink:0}}>{demoMode?'DEMO':'LIVE'}</button>
+            (isAdmin||tenantRef.current==='global')&&<button onClick={()=>setDemoMode(d=>{const next=!d;if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode',String(next));fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});return next;})} style={{padding:'3px 10px',borderRadius:6,border:`1px solid ${demoMode?'#ffb30030':'#00ff8830'}`,background:demoMode?'#ffb30010':'#00ff8810',color:demoMode?'#ffb300':'#00ff88',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",flexShrink:0}}>{demoMode?'DEMO':'LIVE'}</button>
             {/* Admin: tier sim + tenant */}
             {isAdmin&&<select value={userTier} onChange={e=>{setUserTier(e.target.value);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({userTier:e.target.value})}).catch(()=>{});}} style={{padding:'3px 6px',borderRadius:6,border:'1px solid #bd00ff30',background:'#bd00ff10',color:'#bd00ff',fontSize:'0.82rem',fontWeight:700,fontFamily:"'Rajdhani','JetBrains Mono',monospace",cursor:'pointer',outline:'none'}}>
               {([['community','Free'],['team','Essentials'],['business','Pro'],['mssp','Enterprise']]).map(([v,l])=><option key={v} value={v}>{l}</option>)}
@@ -1624,7 +1624,7 @@ export default function DashboardPage() {
           {/* Mobile: logo + demo toggle only */}
           <div className="wt-topbar-controls-mobile" style={{marginLeft:'auto',alignItems:'center',gap:6}}>
             <button onClick={toggleTheme} style={{width:30,height:30,borderRadius:7,border:'1px solid var(--wt-border)',background:'var(--wt-card)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem'}}>{theme==='dark'?'☀️':'🌙'}</button>
-            <button onClick={()=>setDemoMode(d=>{const next=!d;if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode',String(next));fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});return next;})} style={{padding:'3px 8px',borderRadius:6,border:`1px solid ${demoMode?'#ffb30030':'#00ff8830'}`,background:demoMode?'#ffb30010':'#00ff8810',color:demoMode?'#ffb300':'#00ff88',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>{demoMode?'DEMO':'LIVE'}</button>
+            (isAdmin||tenantRef.current==='global')&&<button onClick={()=>setDemoMode(d=>{const next=!d;if(typeof window!=='undefined')localStorage.setItem('wt_demo_mode',String(next));fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantRef.current},body:JSON.stringify({demoMode:String(next)})}).catch(()=>{});return next;})} style={{padding:'3px 8px',borderRadius:6,border:`1px solid ${demoMode?'#ffb30030':'#00ff8830'}`,background:demoMode?'#ffb30010':'#00ff8810',color:demoMode?'#ffb300':'#00ff88',fontSize:'0.84rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>{demoMode?'DEMO':'LIVE'}</button>
           </div>
         </div>
 
@@ -1701,7 +1701,7 @@ export default function DashboardPage() {
               </div>
               <div style={{padding:'10px 20px',borderTop:'1px solid #1a2535',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
                 <span style={{fontSize:'0.8rem',color:'var(--wt-dim)'}}>Not ready to connect? Explore with demo data first.</span>
-                <button onClick={()=>setDemoMode(true)} style={{padding:'5px 14px',borderRadius:6,border:'1px solid #00e5ff30',background:'#00e5ff10',color:'#00e5ff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>Switch to Demo mode</button>
+                (isAdmin||tenantRef.current==='global')&&<button onClick={()=>setDemoMode(true)} style={{padding:'5px 14px',borderRadius:6,border:'1px solid #00e5ff30',background:'#00e5ff10',color:'#00e5ff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>Switch to Demo mode</button>
               </div>
             </div>
           )}

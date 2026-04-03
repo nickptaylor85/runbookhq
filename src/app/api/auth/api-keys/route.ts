@@ -19,7 +19,7 @@ function hashKey(key: string): string {
 
 export async function GET(req: NextRequest) {
   const _rlId = req.headers.get('x-user-id') || req.headers.get('x-forwarded-for') || 'anon';
-  const _rl = await checkRateLimit(`api:\${_rlId}:\${req.nextUrl?.pathname || ''}`, 60, 60);
+  const _rl = await checkRateLimit(`api:\${_rlId}:\${req.nextUrl?.pathname || ''}`, 200, 60);
   if (!_rl.ok) return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
   try {
     const tenantId = getTenantId(req);
@@ -35,6 +35,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const tenantId = getTenantId(req);
+    // Provisioned tenant users cannot create API keys — only global tenant (staff) can
+    if (tenantId !== 'global') {
+      return NextResponse.json({ ok: false, error: 'API key creation is not available for this account type.' }, { status: 403 });
+    }
     const body = await req.json() as { name: string; scopes?: string[] };
     const { name, scopes = ['read:alerts', 'read:incidents'] } = body;
     if (!name) return NextResponse.json({ ok: false, error: 'name required' }, { status: 400 });
