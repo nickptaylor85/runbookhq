@@ -295,6 +295,15 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [activeTab, setActiveTab] = useState<'general'|'account'|'team'|'notifications'|'api-keys'>('general');
+  const [tenantId, setTenantId] = useState<string>('global');
+
+  useEffect(() => {
+    fetch('/api/auth/session').then(r => r.json()).then((d: any) => {
+      if (d.tenantId) setTenantId(d.tenantId);
+    }).catch(() => {});
+  }, []);
+
+  const isProvisionedTenant = tenantId !== 'global';
   const [apiKeys, setApiKeys] = useState<any[]>([]);
   const [newKeyName, setNewKeyName] = useState('');
   const [newKey, setNewKey] = useState<string|null>(null);
@@ -333,9 +342,9 @@ export default function SettingsPage() {
   const tabs = [
     { id: 'general', label: 'General' },
     { id: 'account', label: 'Account' },
-    { id: 'team', label: 'Team' },
+    ...(!isProvisionedTenant ? [{ id: 'team', label: 'Team' }] : []),
     { id: 'notifications', label: 'Notifications' },
-    { id: 'api-keys', label: 'API Keys' },
+    ...(!isProvisionedTenant ? [{ id: 'api-keys', label: 'API Keys' }] : []),
   ] as const;
 
   return (
@@ -543,7 +552,7 @@ export default function SettingsPage() {
         )}
 
 
-      {activeTab === 'team' && (
+      {activeTab === 'team' && !isProvisionedTenant && (
         <div>
           <h2 style={{ fontSize: '0.96rem', fontWeight: 700, marginBottom: 4 }}>Team Members</h2>
           <p style={{ fontSize: '0.78rem', color: '#6b7a94', marginBottom: 20, lineHeight: 1.6 }}>Invite analysts and set their roles. Essentials requires minimum 2 seats.</p>
@@ -590,7 +599,7 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {activeTab === 'api-keys' && (
+      {activeTab === 'api-keys' && !isProvisionedTenant && (
         <div>
           <h2 style={{ fontSize: '0.96rem', fontWeight: 700, marginBottom: 4 }}>API Keys</h2>
           <p style={{ fontSize: '0.78rem', color: '#6b7a94', marginBottom: 20, lineHeight: 1.6 }}>Generate keys to access Watchtower data programmatically. A key is shown only once — copy it immediately.</p>
