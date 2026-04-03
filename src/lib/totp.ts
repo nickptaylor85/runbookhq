@@ -67,10 +67,24 @@ export function totpUri(secret: string, account: string, issuer = 'Watchtower'):
   return `otpauth://totp/${enc(issuer)}:${enc(account)}?secret=${secret}&issuer=${enc(issuer)}&algorithm=SHA1&digits=6&period=30`;
 }
 
-/** Generate a minimal QR code as a data URI (SVG-based, no external lib) */
+/** Generate QR code as a base64 data URI — fetched server-side to avoid client-side CORS/CSP issues */
 export async function totpQrDataUri(uri: string): Promise<string> {
-  // Use the qrcode-svg approach inline or fall back to a QR API
-  // We'll use the Google Charts QR API as it's free and reliable
   const encoded = encodeURIComponent(uri);
-  return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encoded}&format=svg&color=4F8FFF&bgcolor=050508`;
+  // Fetch QR image server-side and convert to data URI so client needs no external requests
+  const sources = [
+    'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encoded + '&format=png',
+    'https://chart.googleapis.com/chart?cht=qr&chl=' + encoded + '&chs=200x200&choe=UTF-8&chld=M|2',
+  ];
+  for (const src of sources) {
+    try {
+      const res = await fetch(src, { signal: AbortSignal.timeout(4000) });
+      if (!res.ok) continue;
+      const contentType = res.headers.get('content-type') || 'image/png';
+      const buf = await res.arrayBuffer();
+      const b64 = Buffer.from(buf).toString('base64');
+      return 'data:' + contentType.split(';')[0] + ';base64,' + b64;
+    } catch { continue; }
+  }
+  // Last resort: return the URL directly (client will try to load it)
+  return sources[0];
 }
