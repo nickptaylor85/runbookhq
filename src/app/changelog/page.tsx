@@ -1617,7 +1617,7 @@ export default function ChangelogPage() {
         )}
 
         <div style={{ marginTop:40, padding:'16px 20px', background:'#0a0d14', border:'1px solid #141820', borderRadius:10, fontSize:'0.72rem', color:'#3a4050', textAlign:'center' }}>
-          Watchtower · RunbookHQ Ltd · v74.9.11 · {new Date().getFullYear()}
+          Watchtower · v74.19.9 · {new Date().getFullYear()}
         </div>
       </div>
     </div>
