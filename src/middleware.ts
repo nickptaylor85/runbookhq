@@ -108,14 +108,15 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next({ request: { headers: cleanHeaders } });
   }
 
-  // Global rate limit: 300 req/min per IP (blocks scanners before auth overhead)
+  // Global rate limit: unauthenticated scanners only — skip for authenticated sessions
+  // Authenticated users have per-route limits in each API handler
   if (pathname.startsWith('/api/')) {
-    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || 'unknown';
-    // Lightweight fixed-window check in memory — Vercel edge functions are stateless so
-    // we use a simple Redis check only for POST/DELETE to avoid adding latency to GETs
-    if (req.method === 'POST' || req.method === 'DELETE' || req.method === 'PATCH') {
+    const sessionCookie = req.cookies.get('wt_session')?.value;
+    const isAuthenticated = !!sessionCookie;
+    if (!isAuthenticated && (req.method === 'POST' || req.method === 'DELETE' || req.method === 'PATCH')) {
+      const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || 'unknown';
       try {
-        const rlKey = `wt:middleware:rl:${clientIp}`;
+        const rlKey = `wt:middleware:rl2:${clientIp}`;
         const redisUrl = process.env.UPSTASH_REDIS_REST_URL || '';
         const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || '';
         if (redisUrl && redisToken) {
@@ -127,14 +128,13 @@ export async function middleware(req: NextRequest) {
           if (incrRes.ok) {
             const data = await incrRes.json() as { result: number };
             if (data.result === 1) {
-              // Set 60s window on first request
               fetch(redisUrl, {
                 method: 'POST',
                 headers: { Authorization: `Bearer ${redisToken}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify(['EXPIRE', rlKey, 60]),
               }).catch(() => {});
             }
-            if (data.result > 200) {
+            if (data.result > 100) {
               return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
             }
           }

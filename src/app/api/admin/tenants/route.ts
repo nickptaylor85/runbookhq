@@ -159,7 +159,7 @@ export async function DELETE(req: NextRequest) {
   }
 }
 
-// PATCH — list users, reset password, or change role for a provisioned tenant
+// PATCH — list users, reset password, change role, set Anthropic key, set settings
 export async function PATCH(req: NextRequest) {
   if (!(await requireAdmin(req))) return NextResponse.json({ error: 'Admin only' }, { status: 403 });
   const rl = await checkRateLimit('atpa2:' + (req.headers.get('x-user-id') || 'anon'), 500, 3600);
@@ -172,10 +172,9 @@ export async function PATCH(req: NextRequest) {
     if (!tenantId) return NextResponse.json({ error: 'tenantId required' }, { status: 400 });
     if (tenantId === 'global') return NextResponse.json({ error: 'Use /api/admin/users for global tenant' }, { status: 400 });
 
-    // getUsers and saveUsers imported at top
     const users = await getUsers(tenantId);
 
-    // List all users in tenant
+    // Actions that do NOT require an email
     if (action === 'list') {
       return NextResponse.json({ ok: true, users: users.map(u => ({ id: u.id, name: u.name, email: u.email, role: u.role, status: u.status })) });
     }
@@ -194,7 +193,16 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ ok: true, settings: merged });
     }
 
-    // Find specific user for password/role actions
+    if (action === 'set_anthropic_key') {
+      const apiKey = body.apiKey as string | undefined;
+      if (!apiKey || !apiKey.startsWith('sk-ant-') || apiKey.length > 200) {
+        return NextResponse.json({ error: 'Invalid key — must start with sk-ant-' }, { status: 400 });
+      }
+      await redisSet(KEYS.TENANT_ANTHROPIC_KEY(tenantId), encrypt(apiKey.trim()));
+      return NextResponse.json({ ok: true, message: 'Anthropic key saved for tenant ' + tenantId });
+    }
+
+    // Actions that DO require an email
     if (!email) return NextResponse.json({ error: 'email required' }, { status: 400 });
     const idx = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
     if (idx === -1) return NextResponse.json({ error: 'User not found in this tenant' }, { status: 404 });
@@ -210,31 +218,15 @@ export async function PATCH(req: NextRequest) {
     if (action === 'set_role') {
       const allowed = ['viewer', 'tech_admin', 'sales'];
       if (!role || !allowed.includes(role)) return NextResponse.json({ error: 'role must be viewer, tech_admin, or sales' }, { status: 400 });
-      // Provisioned tenants can never have owner or isAdmin — enforce here
       users[idx].role = role as 'viewer' | 'tech_admin' | 'sales';
       await saveUsers(tenantId, users);
       return NextResponse.json({ ok: true, message: 'Role updated for ' + email });
     }
 
     if (action === 'reset_mfa') {
-      // Find the user to get their ID
-      if (!email) return NextResponse.json({ error: 'email required' }, { status: 400 });
-      const allUsers = await getUsers(tenantId);
-      const targetUser = allUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-      if (!targetUser) return NextResponse.json({ error: 'User not found' }, { status: 404 });
-      // Delete MFA secret and setup-required flag — forces re-enrollment on next login
-      await redisDel('wt:user:' + targetUser.id + ':mfa').catch(() => {});
-      await redisDel('wt:user:' + targetUser.id + ':mfa_setup_required').catch(() => {});
-      return NextResponse.json({ ok: true, message: 'MFA reset for ' + email + '. User will be prompted to re-enroll on next login.' });
-    }
-
-    if (action === 'set_anthropic_key') {
-      const apiKey = body.apiKey as string | undefined;
-      if (!apiKey || !apiKey.startsWith('sk-ant-') || apiKey.length > 200) {
-        return NextResponse.json({ error: 'Invalid key — must start with sk-ant-' }, { status: 400 });
-      }
-      await redisSet(KEYS.TENANT_ANTHROPIC_KEY(tenantId), encrypt(apiKey.trim()));
-      return NextResponse.json({ ok: true, message: 'Anthropic key saved for tenant ' + tenantId });
+      await redisDel('wt:user:' + users[idx].id + ':mfa').catch(() => {});
+      await redisDel('wt:user:' + users[idx].id + ':mfa_setup_required').catch(() => {});
+      return NextResponse.json({ ok: true, message: 'MFA reset for ' + email + '. User will re-enroll on next login.' });
     }
 
     return NextResponse.json({ error: 'Unknown action' }, { status: 400 });
