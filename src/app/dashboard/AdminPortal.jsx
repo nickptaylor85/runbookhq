@@ -294,7 +294,8 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
   const [managingTenant, setManagingTenant] = useState(null); // { id, name, users }
   const [resetPassState, setResetPassState] = useState({}); // { [email]: { val, saving, done, error } }
   const [anthropicKeyState, setAnthropicKeyState] = useState({});
-  const [mfaResetState, setMfaResetState] = useState({}); // { [email]: 'idle'|'resetting'|'done'|'error' } // { [tenantId]: { val, saving, done, error } }
+  const [mfaResetState, setMfaResetState] = useState({});
+  const [forceMfaAllState, setForceMfaAllState] = useState({}); // { [tenantId]: 'idle'|'sending'|'done'|'error' } // { [email]: 'idle'|'resetting'|'done'|'error' } // { [tenantId]: { val, saving, done, error } }
 
   // Load users from Redis on mount
   useEffect(()=>{
@@ -950,6 +951,21 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                           aks.done?'✓ Key saved':'Set key')
                       );
                     })()}
+                    {/* Force MFA for all users */}
+                    <div style={{display:'flex',alignItems:'center',gap:6,marginTop:6}}>
+                      <span style={{fontSize:'0.72rem',color:'var(--wt-secondary)'}}>MFA</span>
+                      <button
+                        disabled={forceMfaAllState[t.id]==='sending'||forceMfaAllState[t.id]==='done'}
+                        onClick={async()=>{
+                          if(!window.confirm('Force MFA re-enrollment for all '+managingTenant.users.length+' user(s) in this tenant? They will be prompted on their next page load.')) return;
+                          setForceMfaAllState(prev=>({...prev,[t.id]:'sending'}));
+                          const r=await fetch('/api/admin/tenants',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({tenantId:t.id,action:'force_mfa_all'})});
+                          setForceMfaAllState(prev=>({...prev,[t.id]:r.ok?'done':'error'}));
+                        }}
+                        style={{padding:'3px 10px',borderRadius:5,border:'1px solid '+(forceMfaAllState[t.id]==='done'?'#22d49a30':forceMfaAllState[t.id]==='error'?'#f0405e30':'#f0a03030'),background:forceMfaAllState[t.id]==='done'?'#22d49a08':forceMfaAllState[t.id]==='error'?'#f0405e08':'#f0a03008',color:forceMfaAllState[t.id]==='done'?'#22d49a':forceMfaAllState[t.id]==='error'?'#f0405e':'#f0a030',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',opacity:forceMfaAllState[t.id]==='sending'?0.5:1}}>
+                        {forceMfaAllState[t.id]==='done'?'✓ MFA forced':forceMfaAllState[t.id]==='sending'?'...':forceMfaAllState[t.id]==='error'?'Error':'Force MFA all'}
+                      </button>
+                    </div>
                     <div style={{fontSize:'0.66rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Users — reset password</div>
                     {managingTenant.users.length===0&&<div style={{fontSize:'0.76rem',color:'var(--wt-dim)'}}>No users found. The tenant may have been created before v74.17.7 — try recreating it.</div>}
                     {managingTenant.users.map(u=>{

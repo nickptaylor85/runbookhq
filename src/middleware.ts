@@ -84,26 +84,45 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next({ request: { headers: cleanHeaders } });
   }
 
-  // Dashboard and settings: allow through, but redirect to 2FA setup if pending
+  // Dashboard and settings: check MFA pending cookie OR Redis flag for active sessions
   if (pathname === '/dashboard' || pathname.startsWith('/settings')) {
     const mfaPending = req.cookies.get('wt_mfa_pending')?.value;
     if (mfaPending === '1') {
-      // Check if this is an admin session — admin never needs 2FA setup
-      const sessionToken = req.cookies.get('wt_session')?.value;
-      let isAdminSession = false;
-      if (sessionToken) {
-        try {
-          const encoded = sessionToken.split('.')[0];
-          // Add padding for base64url → base64 conversion
-          const padded = encoded.replace(/-/g, '+').replace(/_/g, '/').padEnd(
-            encoded.length + (4 - (encoded.length % 4)) % 4, '='
-          );
-          const payload = JSON.parse(atob(padded));
-          isAdminSession = payload.isAdmin === true;
-        } catch {}
-      }
-      // V2.7.1: ALL users including admin must complete MFA setup
       return NextResponse.redirect(new URL('/setup-2fa', req.url));
+    }
+    // Also check Redis for mfa_setup_required — catches users with active sessions
+    // after admin forces re-enrollment via the tenant manage panel
+    const sessionToken = req.cookies.get('wt_session')?.value;
+    if (sessionToken) {
+      try {
+        const encoded = sessionToken.split('.')[0];
+        const padded = encoded.replace(/-/g, '+').replace(/_/g, '/').padEnd(
+          encoded.length + (4 - (encoded.length % 4)) % 4, '='
+        );
+        const payload = JSON.parse(atob(padded));
+        const userId = payload.userId;
+        const isAdmin = payload.isAdmin === true;
+        // Only check Redis for non-admin provisioned tenant users
+        if (userId && !isAdmin) {
+          const redisUrl = process.env.UPSTASH_REDIS_REST_URL || '';
+          const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN || '';
+          if (redisUrl && redisToken) {
+            const flagRes = await fetch(redisUrl, {
+              method: 'POST',
+              headers: { Authorization: 'Bearer ' + redisToken, 'Content-Type': 'application/json' },
+              body: JSON.stringify(['GET', 'wt:user:' + userId + ':mfa_setup_required']),
+            }).catch(() => null);
+            if (flagRes?.ok) {
+              const flagData = await flagRes.json().catch(() => null) as { result?: string } | null;
+              if (flagData?.result === '1') {
+                const res = NextResponse.redirect(new URL('/setup-2fa', req.url));
+                res.cookies.set('wt_mfa_pending', '1', { httpOnly: false, sameSite: 'lax', maxAge: 3600, path: '/' });
+                return res;
+              }
+            }
+          }
+        }
+      } catch {}
     }
     return NextResponse.next({ request: { headers: cleanHeaders } });
   }

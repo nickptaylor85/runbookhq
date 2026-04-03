@@ -193,6 +193,14 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ ok: true, settings: merged });
     }
 
+    if (action === 'force_mfa_all') {
+      // Write mfa_setup_required for every user in the tenant — middleware will catch them on next page load
+      for (const u of users) {
+        await redisSet('wt:user:' + u.id + ':mfa_setup_required', '1').catch(() => {});
+      }
+      return NextResponse.json({ ok: true, message: 'MFA setup required for ' + users.length + ' user(s). They will be prompted on next page load.' });
+    }
+
     if (action === 'set_anthropic_key') {
       const apiKey = body.apiKey as string | undefined;
       if (!apiKey || !apiKey.startsWith('sk-ant-') || apiKey.length > 200) {
