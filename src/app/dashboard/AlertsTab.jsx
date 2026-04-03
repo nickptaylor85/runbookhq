@@ -389,7 +389,16 @@ export default function AlertsTab({
           style={{padding:'4px 12px',borderRadius:6,border:'1px solid #8b6fff30',background:'#8b6fff10',color:selectedAlerts.size>0?'#8b6fff':'var(--wt-dim)',fontSize:'0.7rem',fontWeight:700,cursor:selectedAlerts.size>0?'pointer':'not-allowed',fontFamily:'Inter,sans-serif',opacity:selectedAlerts.size>0?1:0.4}}>
           + Incident
         </button>
-        {selectedAlerts.size>0 && <button onClick={()=>{\n            if(!window.confirm('Delete '+selectedAlerts.size+' alert'+(selectedAlerts.size!==1?'s':'')+' permanently? This cannot be undone.')) return;\n            setAlertOverrides(prev=>{const n={...prev};[...selectedAlerts].forEach(id=>{n[id]={...(n[id]||{}),deleted:true,deletedAt:Date.now()}});return n;});\n            setSelectedAlerts(new Set());\n          }}\n          style={{padding:'4px 12px',borderRadius:6,border:'1px solid #f0405e30',background:'#f0405e08',color:'#f0405e',fontSize:'0.7rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>\n          🗑 Delete\n        </button>}
+        {selectedAlerts.size>0 && <button onClick={()=>{
+            const noun = selectedAlerts.size===1 ? "alert" : "alerts";
+            const msg = "Delete " + selectedAlerts.size + " " + noun + " permanently? This cannot be undone.";
+            if(!window.confirm(msg)) return;
+            setAlertOverrides(prev=>{const n={...prev};[...selectedAlerts].forEach(id=>{n[id]={...(n[id]||{}),deleted:true,deletedAt:Date.now()}});return n;});
+            setSelectedAlerts(new Set());
+          }}
+          style={{padding:"4px 12px",borderRadius:6,border:"1px solid #f0405e30",background:"#f0405e08",color:"#f0405e",fontSize:"0.7rem",fontWeight:700,cursor:"pointer",fontFamily:"Inter,sans-serif"}}>
+          🗑 Delete
+        </button>}
         {selectedAlerts.size>0 && <button onClick={()=>setSelectedAlerts(new Set())}
           style={{marginLeft:'auto',padding:'4px 8px',borderRadius:6,border:'1px solid var(--wt-border)',background:'none',color:'var(--wt-muted)',fontSize:'0.66rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
           ×
@@ -500,7 +509,7 @@ export default function AlertsTab({
                   </>) : (<span style={{fontSize:'0.54rem',padding:'2px 6px',borderRadius:4,background:effectiveVerdict&&effectiveVerdict!=='Pending'?vStyle.bg:'transparent',color:effectiveVerdict&&effectiveVerdict!=='Pending'?vStyle.c:'var(--wt-dim)',fontWeight:700,border:effectiveVerdict&&effectiveVerdict!=='Pending'?`1px solid ${vStyle.c}30`:'none'}}>{effectiveVerdict&&effectiveVerdict!=='Pending'?effectiveVerdict:'—'}</span>)}
                 </div>
                 {aiVerdict && !demoMode && <span style={{fontSize:'0.48rem',fontWeight:800,padding:'1px 4px',borderRadius:3,background:`${aiVC}15`,color:aiVC,flexShrink:0}}>AI {aiVerdict.includes('True')?'TP':aiVerdict.includes('False')?'FP':'?'}</span>}
-                <button onClick={e=>{e.stopPropagation();if(!window.confirm('Delete this alert? This cannot be undone.')) return;setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),deleted:true,deletedAt:Date.now()}}));}}
+                <button onClick={e=>{e.stopPropagation();if(!window.confirm("Delete this alert? This cannot be undone.")) return;setAlertOverrides(prev=>({...prev,[alert.id]:{...(prev[alert.id]||{}),deleted:true,deletedAt:Date.now()}}));}}
                   title='Delete alert'
                   style={{padding:'1px 5px',borderRadius:4,border:'1px solid #f0405e20',background:'transparent',color:'#f0405e60',fontSize:'0.64rem',cursor:'pointer',lineHeight:1.4,flexShrink:0}}>🗑</button>
                 <span style={{fontSize:'0.56rem',color:'var(--wt-dim)',flexShrink:0}}>{expanded?'▲':'▼'}</span>
