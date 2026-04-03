@@ -294,7 +294,7 @@ export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState<'general'|'account'|'team'|'notifications'|'api-keys'>('general');
+  const [activeTab, setActiveTab] = useState<string>('general');
   const [tenantId, setTenantId] = useState<string>('global');
 
   useEffect(() => {
@@ -345,7 +345,7 @@ export default function SettingsPage() {
     ...(!isProvisionedTenant ? [{ id: 'team', label: 'Team' }] : []),
     { id: 'notifications', label: 'Notifications' },
     ...(!isProvisionedTenant ? [{ id: 'api-keys', label: 'API Keys' }] : []),
-  ] as const;
+  ];
 
   return (
     <div style={NAV_STYLE}>
