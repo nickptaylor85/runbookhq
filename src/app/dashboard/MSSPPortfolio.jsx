@@ -55,6 +55,44 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
   const [brandingSaved, setBrandingSaved] = React.useState(false);
   const [selectedClient, setSelectedClient] = React.useState(null);
 
+  // Subdomain slug management
+  const [showSlugManager, setShowSlugManager] = React.useState(false);
+  const [slugMap, setSlugMap] = React.useState({});
+  const [slugLoading, setSlugLoading] = React.useState(false);
+  const [newSlug, setNewSlug] = React.useState('');
+  const [newSlugTenant, setNewSlugTenant] = React.useState('');
+  const [slugMsg, setSlugMsg] = React.useState('');
+
+  // Load slug map
+  React.useEffect(()=>{
+    if(!showSlugManager) return;
+    setSlugLoading(true);
+    fetch('/api/mssp/slug-map').then(r=>r.json()).then(d=>{
+      if(d.map) setSlugMap(d.map);
+    }).catch(()=>{}).finally(()=>setSlugLoading(false));
+  },[showSlugManager]);
+
+  async function addSlug(){
+    if(!newSlug||!newSlugTenant){setSlugMsg('Both slug and tenant ID are required');return;}
+    if(!/^[a-z0-9][a-z0-9-]*$/.test(newSlug)){setSlugMsg('Slug must be lowercase alphanumeric with hyphens');return;}
+    try{
+      const r=await fetch('/api/mssp/slug-map',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug:newSlug,tenantId:newSlugTenant})});
+      const d=await r.json();
+      if(d.ok){setSlugMap(d.map);setNewSlug('');setNewSlugTenant('');setSlugMsg('✓ Saved');}
+      else setSlugMsg(d.error||'Failed');
+    }catch(e){setSlugMsg('Error saving');}
+    setTimeout(()=>setSlugMsg(''),3000);
+  }
+
+  async function removeSlug(slug){
+    if(!confirm(`Remove portal subdomain "${slug}"?`)) return;
+    try{
+      const r=await fetch('/api/mssp/slug-map',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug})});
+      const d=await r.json();
+      if(d.ok) setSlugMap(d.map);
+    }catch(e){}
+  }
+
   const totalMRR = MY_CLIENTS.reduce((s,c)=>s+c.mrr, 0);
   const totalSeats = MY_CLIENTS.reduce((s,c)=>s+c.seats, 0);
   const overdueMRR = MY_CLIENTS.filter(c=>c.billingStatus==='Overdue').reduce((s,c)=>s+c.mrr, 0);
@@ -72,6 +110,7 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
             <span style={{fontSize:'0.58rem',color:'#8b6fff',background:'#8b6fff12',padding:'2px 8px',borderRadius:4,border:'1px solid #8b6fff25',fontWeight:700}}>MSSP</span>
             {msspBranding?.name&&<span style={{fontSize:'0.58rem',color:'#8b6fff',opacity:0.7}}>· {msspBranding.name}</span>}
             <button onClick={()=>setShowBrandingConfig(s=>!s)} style={{fontSize:'0.54rem',padding:'1px 6px',borderRadius:3,border:'1px solid #8b6fff25',background:'#8b6fff0a',color:'#8b6fff',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🎨 Branding</button>
+            <button onClick={()=>setShowSlugManager(s=>!s)} style={{fontSize:'0.54rem',padding:'1px 6px',borderRadius:3,border:'1px solid #4f8fff25',background:'#4f8fff0a',color:'#4f8fff',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🌐 Portals</button>
           </div>
           <div style={{display:'flex',gap:16,alignItems:'center'}}>
             {isDemo && <span style={{fontSize:'0.6rem',color:'#f0a030',background:'#f0a03012',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025',fontWeight:700}}>⚡ Demo data — add clients via Admin → Tenants</span>}
@@ -103,6 +142,79 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
             <button onClick={async()=>{try{await fetch('/api/mssp/branding',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(brandingDraft)});if(setMsspBranding)setMsspBranding(brandingDraft);setBrandingSaved(true);setTimeout(()=>setBrandingSaved(false),3000);}catch(e){}}} style={{padding:'6px 14px',borderRadius:6,border:'none',background:'#8b6fff',color:'#fff',fontSize:'0.7rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Save</button>
             {brandingSaved&&<span style={{fontSize:'0.66rem',color:'#22d49a',fontWeight:600}}>✓ Saved</span>}
             <button onClick={()=>setShowBrandingConfig(false)} style={{marginLeft:'auto',fontSize:'0.64rem',color:'var(--wt-muted)',background:'none',border:'none',cursor:'pointer'}}>Close</button>
+          </div>
+        </div>
+      )}
+
+      {/* ── SUBDOMAIN PORTAL MANAGER ── */}
+      {showSlugManager && (
+        <div style={{padding:'14px 16px',background:'var(--wt-card)',border:'1px solid #4f8fff25',borderRadius:10}}>
+          <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:12}}>
+            <span style={{fontSize:'0.7rem',fontWeight:700,color:'#4f8fff'}}>🌐 Client Portal Subdomains</span>
+            <span style={{fontSize:'0.56rem',color:'var(--wt-dim)'}}>Map subdomains to client tenants — e.g. acme.getwatchtower.io</span>
+          </div>
+
+          {/* Existing mappings */}
+          {slugLoading ? (
+            <div style={{fontSize:'0.72rem',color:'var(--wt-muted)',padding:'8px 0'}}>Loading…</div>
+          ) : Object.keys(slugMap).length === 0 ? (
+            <div style={{fontSize:'0.72rem',color:'var(--wt-dim)',padding:'8px 0'}}>No portal subdomains configured yet</div>
+          ) : (
+            <div style={{display:'flex',flexDirection:'column',gap:4,marginBottom:12}}>
+              {Object.entries(slugMap).map(([slug, tid])=>(
+                <div key={slug} style={{display:'flex',alignItems:'center',gap:8,padding:'7px 10px',background:'var(--wt-card2)',borderRadius:7,border:'1px solid var(--wt-border)'}}>
+                  <div style={{width:6,height:6,borderRadius:'50%',background:'#22d49a',boxShadow:'0 0 4px #22d49a',flexShrink:0}} />
+                  <code style={{fontSize:'0.72rem',fontFamily:'JetBrains Mono,monospace',color:'#4f8fff',flex:'0 0 auto'}}>{slug}.getwatchtower.io</code>
+                  <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>→</span>
+                  <code style={{fontSize:'0.68rem',fontFamily:'JetBrains Mono,monospace',color:'var(--wt-muted)',flex:1}}>{tid}</code>
+                  <button onClick={()=>{navigator.clipboard.writeText(`https://${slug}.getwatchtower.io`);}} title="Copy URL" style={{padding:'2px 6px',borderRadius:4,border:'1px solid #4f8fff25',background:'#4f8fff08',color:'#4f8fff',fontSize:'0.58rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Copy</button>
+                  <button onClick={()=>window.open(`/portal?org=${slug}`,'_blank')} title="Preview portal" style={{padding:'2px 6px',borderRadius:4,border:'1px solid #8b6fff25',background:'#8b6fff08',color:'#8b6fff',fontSize:'0.58rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Preview</button>
+                  <button onClick={()=>removeSlug(slug)} title="Remove" style={{padding:'2px 6px',borderRadius:4,border:'1px solid #f0405e25',background:'#f0405e08',color:'#f0405e',fontSize:'0.58rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>×</button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add new mapping */}
+          <div style={{display:'flex',gap:8,alignItems:'flex-end',flexWrap:'wrap'}}>
+            <div>
+              <div style={{fontSize:'0.56rem',color:'var(--wt-muted)',marginBottom:3}}>Subdomain slug</div>
+              <div style={{display:'flex',alignItems:'center',gap:0}}>
+                <input value={newSlug} onChange={e=>setNewSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g,''))} placeholder="acme" style={{width:120,padding:'6px 9px',background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:'6px 0 0 6px',color:'var(--wt-text)',fontSize:'0.74rem',fontFamily:'JetBrains Mono,monospace',outline:'none',boxSizing:'border-box'}} />
+                <span style={{padding:'6px 8px',background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderLeft:'none',borderRadius:'0 6px 6px 0',fontSize:'0.62rem',color:'var(--wt-dim)',whiteSpace:'nowrap'}}>.getwatchtower.io</span>
+              </div>
+            </div>
+            <div>
+              <div style={{fontSize:'0.56rem',color:'var(--wt-muted)',marginBottom:3}}>Tenant ID</div>
+              <select value={newSlugTenant} onChange={e=>setNewSlugTenant(e.target.value)} style={{padding:'6px 9px',background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:6,color:'var(--wt-text)',fontSize:'0.74rem',fontFamily:'Inter,sans-serif',outline:'none',minWidth:160}}>
+                <option value="">Select client…</option>
+                {MY_CLIENTS.map(c=><option key={c.id} value={c.id}>{c.name} ({c.id})</option>)}
+              </select>
+            </div>
+            <button onClick={addSlug} style={{padding:'6px 14px',borderRadius:6,border:'none',background:'#4f8fff',color:'#fff',fontSize:'0.7rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',height:32}}>+ Add</button>
+            {slugMsg&&<span style={{fontSize:'0.64rem',color:slugMsg.startsWith('✓')?'#22d49a':'#f0405e',fontWeight:600}}>{slugMsg}</span>}
+          </div>
+
+          {/* Quick-register all clients */}
+          <div style={{display:'flex',gap:8,alignItems:'center',marginTop:10,paddingTop:10,borderTop:'1px solid var(--wt-border)'}}>
+            <button onClick={async()=>{
+              let count=0;
+              for(const c of MY_CLIENTS){
+                const slug=c.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+                if(slugMap[slug]) continue;
+                try{
+                  const r=await fetch('/api/mssp/slug-map',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slug,tenantId:c.id})});
+                  const d=await r.json();
+                  if(d.ok){setSlugMap(d.map);count++;}
+                }catch(e){}
+              }
+              setSlugMsg(count>0?`✓ Registered ${count} portal${count!==1?'s':''}`:'All clients already have portals');
+              setTimeout(()=>setSlugMsg(''),3000);
+            }} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a08',color:'#22d49a',fontSize:'0.66rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+              ⚡ Auto-register all clients
+            </button>
+            <span style={{fontSize:'0.56rem',color:'var(--wt-dim)'}}>Creates subdomain from client name for any unregistered clients</span>
+            <button onClick={()=>setShowSlugManager(false)} style={{marginLeft:'auto',fontSize:'0.64rem',color:'var(--wt-muted)',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Close</button>
           </div>
         </div>
       )}
