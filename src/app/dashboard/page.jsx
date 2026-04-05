@@ -1888,31 +1888,11 @@ export default function DashboardPage() {
           )}
 
           {!demoMode && Object.keys(connectedTools).length === 0 && (
-            <div style={{background:'linear-gradient(145deg,#0d111e,#0a0d18)',border:'1px solid #00e5ff25',borderRadius:14,marginBottom:14,overflow:'hidden'}}>
-              <div style={{padding:'16px 20px',borderBottom:'1px solid #1a2535'}}>
-                <div style={{fontSize:'0.86rem',fontWeight:700,color:'#00e5ff',textTransform:'uppercase',letterSpacing:'1px',marginBottom:4}}>Getting Started</div>
-                <div style={{fontSize:'0.9rem',fontWeight:700,marginBottom:2}}>Connect your first tool to see live data</div>
-                <div style={{fontSize:'0.8rem',color:'var(--wt-muted)'}}>Your SOC data from CrowdStrike, Splunk, Tenable, Okta and 76 more will appear here automatically.</div>
-              </div>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:0}} className='wt-three-col'>
-                {[
-                  {step:'01',icon:'🔌',title:'Connect a tool',desc:'Go to the Tools tab. Find your tool, click Connect, and paste your API credentials.',action:()=>setActiveTab('tools'),cta:'Open Tools tab'},
-                  {step:'02',icon:'🧠',title:'Add your AI key',desc:'In the Tools tab, paste your Anthropic API key. BYOK — your key, your data, your costs.',action:()=>setActiveTab('tools'),cta:'Add Anthropic key'},
-                  {step:'03',icon:'⚡',title:'See live alerts',desc:'Once connected, Watchtower syncs every 60s. Click Deep Analyse on any alert for APEX investigation.',action:null,cta:null},
-                ].map((s,i)=>(
-                  <div key={s.step} style={{padding:'16px 18px',borderRight:i<2?'1px solid #1a2535':'none'}}>
-                    <div style={{fontSize:'0.84rem',fontWeight:800,color:'#00e5ff30',fontFamily:"'JetBrains Mono',monospace",letterSpacing:'2px',marginBottom:4}}>{s.step}</div>
-                    <div style={{fontSize:'1rem',marginBottom:6}}>{s.icon}</div>
-                    <div style={{fontSize:'0.84rem',fontWeight:700,marginBottom:4}}>{s.title}</div>
-                    <div style={{fontSize:'0.82rem',color:'var(--wt-muted)',lineHeight:1.5,marginBottom:10}}>{s.desc}</div>
-                    {s.action && <button onClick={s.action} style={{padding:'5px 12px',borderRadius:6,background:'#00e5ff',color:'#fff',border:'none',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>{s.cta} →</button>}
-                  </div>
-                ))}
-              </div>
-              <div style={{padding:'10px 20px',borderTop:'1px solid #1a2535',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-                <span style={{fontSize:'0.8rem',color:'var(--wt-dim)'}}>Not ready to connect? Explore with demo data first.</span>
-                {(isAdmin||tenantRef.current==='global')&&<button onClick={()=>setDemoMode(true)} style={{padding:'5px 14px',borderRadius:6,border:'1px solid #00e5ff30',background:'#00e5ff10',color:'#00e5ff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>Switch to Demo mode</button>}
-              </div>
+            <div style={{display:'flex',alignItems:'center',gap:10,padding:'8px 14px',background:'#00e5ff06',border:'1px solid #00e5ff18',borderRadius:10,marginBottom:10,flexWrap:'wrap'}}>
+              <span style={{fontSize:'0.8rem'}}>🔌</span>
+              <span style={{fontSize:'0.82rem',fontWeight:700,color:'#00e5ff',flex:1,minWidth:120}}>Connect a tool to see live data</span>
+              <button onClick={()=>setActiveTab('tools')} style={{padding:'4px 12px',borderRadius:6,background:'#00e5ff',color:'#fff',border:'none',fontSize:'0.78rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",flexShrink:0}}>Open Tools →</button>
+              {(isAdmin||tenantRef.current==='global')&&<button onClick={()=>setDemoMode(true)} style={{padding:'4px 12px',borderRadius:6,border:'1px solid #00e5ff30',background:'transparent',color:'#00e5ff',fontSize:'0.78rem',fontWeight:600,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",flexShrink:0}}>Demo mode</button>}
             </div>
           )}
 
