@@ -261,7 +261,40 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
                   <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('tools');}} style={{padding:'7px 14px',borderRadius:7,border:'1px solid #22d49a30',background:'#22d49a08',color:'#22d49a',fontSize:'0.72rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}} title='Add this client Anthropic key in Tools → AI Engine'>🔑 BYOK Key</button>
                   {client.billingStatus==='Overdue' && <button onClick={e=>{e.stopPropagation();window.open(`mailto:accounts@${client.name.toLowerCase().split('').filter(c=>c>='a'&&c<='z').join('')}.com?subject=Outstanding Invoice — ${client.name}&body=Hi,%0A%0AThis is a reminder that your Watchtower subscription invoice is currently outstanding.%0APlease arrange payment at your earliest convenience.%0A%0ARegards,%0AWatchtower Team`,'_blank');}} style={{marginLeft:'auto',padding:'7px 14px',borderRadius:7,border:'1px solid #f97316',background:'#f9731610',color:'#f97316',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Chase Payment</button>}
                 </div>
-                <div style={{marginTop:10,padding:'7px 10px',background:'#22d49a06',border:'1px solid #22d49a18',borderRadius:7,fontSize:'0.64rem',color:'var(--wt-muted)'}}>
+                {/* Portal subdomain link */}
+                <div style={{marginTop:10,padding:'10px 12px',background:'#4f8fff06',border:'1px solid #4f8fff18',borderRadius:7}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+                    <span style={{fontSize:'0.64rem',fontWeight:700,color:'#4f8fff'}}>🌐 Client Portal</span>
+                    <span style={{fontSize:'0.54rem',color:'var(--wt-dim)'}}>Dedicated subdomain for this client</span>
+                  </div>
+                  <div style={{display:'flex',alignItems:'center',gap:6}}>
+                    <code style={{flex:1,fontSize:'0.72rem',fontFamily:'JetBrains Mono,monospace',color:'#4f8fff',padding:'5px 10px',background:'#070a14',borderRadius:5,border:'1px solid #1d2535'}}>
+                      {(()=>{
+                        // Derive slug from client name: "Acme Financial" → "acme-financial"
+                        const slug = client.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+                        return `${slug}.getwatchtower.io`;
+                      })()}
+                    </code>
+                    <button onClick={(e)=>{
+                      e.stopPropagation();
+                      const slug = client.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+                      navigator.clipboard.writeText(`https://${slug}.getwatchtower.io`);
+                      const btn = e.currentTarget;
+                      btn.textContent = '✓ Copied';
+                      setTimeout(()=>btn.textContent='Copy URL',2000);
+                    }} style={{padding:'5px 10px',borderRadius:5,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.66rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>
+                      Copy URL
+                    </button>
+                    <button onClick={(e)=>{
+                      e.stopPropagation();
+                      const slug = client.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+                      window.open(`/portal?org=${slug}`,'_blank');
+                    }} style={{padding:'5px 10px',borderRadius:5,border:'1px solid #8b6fff30',background:'#8b6fff10',color:'#8b6fff',fontSize:'0.66rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>
+                      Preview ↗
+                    </button>
+                  </div>
+                </div>
+                <div style={{marginTop:8,padding:'7px 10px',background:'#22d49a06',border:'1px solid #22d49a18',borderRadius:7,fontSize:'0.64rem',color:'var(--wt-muted)'}}>
                   🔒 <strong style={{color:'var(--wt-secondary)'}}>BYOK isolation:</strong> This client&apos;s AI calls run under their own Anthropic key. Add or update it via the <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('tools');}} style={{color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontSize:'0.64rem',padding:0,textDecoration:'underline'}}>Tools → AI Engine tab</button> while viewing this client.
                 </div>
               </div>
