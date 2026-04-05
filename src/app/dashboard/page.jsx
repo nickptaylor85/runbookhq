@@ -1918,7 +1918,7 @@ export default function DashboardPage() {
 
           {/* ═══════════════════════════════ OVERVIEW ═══════════════════════════════ */}
           {activeTab==='overview' && (
-            <div style={{display:'flex',flexDirection:'column',gap:14}}>
+            <div style={{display:'flex',flexDirection:'column',gap:10}}>
 
               {/* ── COMMAND STRIP: 5 hero numbers ────────────────────────────────── */}
               <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:8}} className='wt-five-col' role='list' aria-label='Security metrics'>
@@ -1954,7 +1954,14 @@ export default function DashboardPage() {
                 if (kevVulns.length>0) actions.push({icon:'🛑',text:`Patch ${kevVulns.length} CISA KEV vuln${kevVulns.length!==1?'s':''}`,tab:'vulns',color:'#ffb300'});
                 if (gapDevices.length>0) actions.push({icon:'📡',text:`${gapDevices.length} device${gapDevices.length!==1?'s':''} missing agent coverage`,tab:'coverage',color:'#ffb300'});
                 if (alerts.filter(a=>a.severity==='High'&&a.verdict==='Pending').length>0) actions.push({icon:'🟠',text:`${alerts.filter(a=>a.severity==='High'&&a.verdict==='Pending').length} high-severity alerts need triage`,tab:'alerts',color:'#ffb300'});
-                if (actions.length===0) actions.push({icon:'✓',text:'No immediate action required — monitor queue',tab:'alerts',color:'#00ff88'});
+                // Compact single-line when GUARDED with no actions
+                if (actions.length===0) return (
+                  <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:tlBg,border:`1px solid ${tlColor}20`,borderRadius:10}}>
+                    <div style={{width:7,height:7,borderRadius:'50%',background:tlColor,boxShadow:`0 0 6px ${tlColor}`,flexShrink:0}} />
+                    <span style={{fontSize:'0.78rem',fontWeight:700,color:tlColor,letterSpacing:'2px',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>THREAT LEVEL — {tlevel}</span>
+                    <span style={{fontSize:'0.78rem',color:'var(--wt-muted)',marginLeft:'auto'}}>✓ No immediate action required</span>
+                  </div>
+                );
                 return (
                   <div style={{background:tlBg,border:`1px solid ${tlColor}25`,borderRadius:12,overflow:'hidden'}}>
                     <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 16px',borderBottom:`1px solid ${tlColor}15`,flexWrap:'wrap'}}>
