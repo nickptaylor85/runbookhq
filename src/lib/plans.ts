@@ -1,9 +1,10 @@
 // Plan tier definitions
+// Internal keys (community/team/business/mssp) are used in middleware, JWT, and tier checks — DO NOT rename
 export const PLANS = {
-  community: { name: 'Community', price: 0, maxTools: 2, maxSeats: 1 },
-  team:      { name: 'Team',      price: 49,  maxTools: -1, maxSeats: -1 },
-  business:  { name: 'Business',  price: 199, maxTools: -1, maxSeats: 10 },
-  mssp:      { name: 'MSSP',      price: 799, maxTools: -1, maxSeats: -1 },
+  community:  { name: 'Community',     price: 0,     priceModel: 'free',        maxTools: 3,  maxSeats: 1,  maxAlerts: 250 },
+  team:       { name: 'Essentials',    price: 149,   priceModel: 'per-seat',    maxTools: -1, maxSeats: -1, maxAlerts: -1  },
+  business:   { name: 'Professional',  price: 1199,  priceModel: 'flat',        maxTools: -1, maxSeats: 15, maxAlerts: -1  },
+  mssp:       { name: 'Enterprise',    price: 3499,  priceModel: 'flat',        maxTools: -1, maxSeats: -1, maxAlerts: -1  },
 } as const;
 
 export type Tier = keyof typeof PLANS;

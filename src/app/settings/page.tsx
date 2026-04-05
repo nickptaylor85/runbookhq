@@ -342,7 +342,7 @@ export default function SettingsPage() {
   const tabs = [
     { id: 'general', label: 'General' },
     { id: 'account', label: 'Account' },
-    ...(!isProvisionedTenant ? [{ id: 'team', label: 'Team' }] : []),
+    ...(!isProvisionedTenant ? [{ id: 'team', label: 'Members' }] : []),
     { id: 'notifications', label: 'Notifications' },
     ...(!isProvisionedTenant ? [{ id: 'api-keys', label: 'API Keys' }] : []),
   ];

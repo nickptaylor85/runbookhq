@@ -54,10 +54,10 @@ export default function Page() {
           </div>
           <div style={{marginBottom: '28px'}}>
             <h2 style={{fontSize: '1rem', fontWeight: 800, marginBottom: '10px', color: '#e8ecf4'}}>Support</h2>
-            <p style={{fontSize: '0.87rem', color: '#8a9ab0', lineHeight: '1.8'}}>support@runbookhq.com. Community plan: community support. Team/Business/MSSP: direct email support with 24h SLA.</p>
+            <p style={{fontSize: '0.87rem', color: '#8a9ab0', lineHeight: '1.8'}}>support@getwatchtower.io. Community plan: community support. Essentials/Professional/Enterprise: direct email support with 24h SLA.</p>
           </div>
         <div style={{marginTop: 48, padding: '16px 20px', background: '#070a14', borderRadius: 10, border: '1px solid #141820', fontSize: '0.72rem', color: '#3a4050', textAlign: 'center'}}>
-          Watchtower &middot; RunbookHQ Ltd &middot; 2026 &middot; <a href="/privacy" style={{color: '#4a5568', textDecoration: 'none'}}>Privacy</a> &middot; <a href="/terms" style={{color: '#4a5568', textDecoration: 'none'}}>Terms</a>
+          Watchtower &middot; Watchtower Ltd &middot; 2026 &middot; <a href="/privacy" style={{color: '#4a5568', textDecoration: 'none'}}>Privacy</a> &middot; <a href="/terms" style={{color: '#4a5568', textDecoration: 'none'}}>Terms</a>
         </div>
       </div>
     </div>

@@ -53,7 +53,7 @@ export default function Page() {
         </SECTION>
 
         <SECTION title="Data Privacy & GDPR">
-          Watchtower is operated by RunbookHQ Ltd (UK company). We process security telemetry data on your behalf as a data processor. Your data is stored in EU-region infrastructure (Upstash Redis, EU endpoints available on request). We do not sell, share, or use your security data for any purpose other than operating the service. We support data subject access requests and right-to-erasure requests — contact privacy@runbookhq.com. Our full data processing addendum (DPA) is available on request for Business and MSSP customers.
+          Watchtower is operated by Watchtower Ltd (UK company). We process security telemetry data on your behalf as a data processor. Your data is stored in EU-region infrastructure (Upstash Redis, EU endpoints available on request). We do not sell, share, or use your security data for any purpose other than operating the service. We support data subject access requests and right-to-erasure requests — contact privacy@getwatchtower.io. Our full data processing addendum (DPA) is available on request for Professional and Enterprise customers.
         </SECTION>
 
         <SECTION title="Data Residency">
@@ -69,21 +69,21 @@ export default function Page() {
         </SECTION>
 
         <SECTION title="Penetration Testing & Security Review">
-          Watchtower undergoes regular internal security review against the OWASP Top 10. Current posture: 0 Critical, 0 High, 0 Medium findings. Four security reviews conducted across the v74 series. We are working toward a formal third-party penetration test and SOC 2 Type II certification — expected Q4 2026. Enterprise customers requiring a security questionnaire response should contact security@runbookhq.com.
+          Watchtower undergoes regular internal security review against the OWASP Top 10. Current posture: 0 Critical, 0 High, 0 Medium findings. Four security reviews conducted across the v74 series. We are working toward a formal third-party penetration test and SOC 2 Type II certification — expected Q4 2026. Enterprise customers requiring a security questionnaire response should contact security@getwatchtower.io.
         </SECTION>
 
         <SECTION title="Bug Bounty & Responsible Disclosure">
-          We operate a responsible disclosure programme. If you discover a security vulnerability, please report it to <a href="mailto:security@runbookhq.com" style={{color: '#4f8fff'}}>security@runbookhq.com</a> with a description and reproduction steps. We aim to acknowledge within 48 hours and resolve critical issues within 7 days. We credit researchers in our changelog with their permission. Please do not publicly disclose until we have had a chance to address the issue. We do not currently offer financial rewards but do offer recognition and early access to new features.
+          We operate a responsible disclosure programme. If you discover a security vulnerability, please report it to <a href="mailto:security@getwatchtower.io" style={{color: '#4f8fff'}}>security@getwatchtower.io</a> with a description and reproduction steps. We aim to acknowledge within 48 hours and resolve critical issues within 7 days. We credit researchers in our changelog with their permission. Please do not publicly disclose until we have had a chance to address the issue. We do not currently offer financial rewards but do offer recognition and early access to new features.
         </SECTION>
 
         <SECTION title="Contact">
-          Security issues: <a href="mailto:security@runbookhq.com" style={{color: '#4f8fff'}}>security@runbookhq.com</a><br/>
-          Privacy/GDPR: <a href="mailto:privacy@runbookhq.com" style={{color: '#4f8fff'}}>privacy@runbookhq.com</a><br/>
+          Security issues: <a href="mailto:security@getwatchtower.io" style={{color: '#4f8fff'}}>security@getwatchtower.io</a><br/>
+          Privacy/GDPR: <a href="mailto:privacy@getwatchtower.io" style={{color: '#4f8fff'}}>privacy@getwatchtower.io</a><br/>
           General: <a href="mailto:hello@getwatchtower.io" style={{color: '#4f8fff'}}>hello@getwatchtower.io</a>
         </SECTION>
 
         <div style={{marginTop: 48, padding: '16px 20px', background: '#131929', borderRadius: 10, border: '1px solid #1d2535', fontSize: '0.72rem', color: '#3a4050', textAlign: 'center'}}>
-          Watchtower &middot; RunbookHQ Ltd &middot; 2026 &middot; <a href="/privacy" style={{color: '#4a5568', textDecoration: 'none'}}>Privacy</a> &middot; <a href="/terms" style={{color: '#4a5568', textDecoration: 'none'}}>Terms</a>
+          Watchtower &middot; Watchtower Ltd &middot; 2026 &middot; <a href="/privacy" style={{color: '#4a5568', textDecoration: 'none'}}>Privacy</a> &middot; <a href="/terms" style={{color: '#4a5568', textDecoration: 'none'}}>Terms</a>
         </div>
       </div>
     </div>
