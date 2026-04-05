@@ -1683,7 +1683,7 @@ export default function DashboardPage() {
     setExpandedAlerts(prev => { const n = new Set(prev); n.has(id)?n.delete(id):n.add(id); return n; });
   }
 
-  const TABS = ['overview','alerts','coverage','vulns','intel','incidents','tools','ot','mssp','compliance','sales','admin'];
+  const TABS = ['overview','alerts','vulns','intel','incidents','tools','coverage','ot','mssp','compliance','sales','admin'];
   const isSales = userRole === 'sales' || isAdmin;
   const isViewer = userRole === 'viewer';
   const isTechAdmin = userRole === 'tech_admin' || isAdmin;
@@ -1740,7 +1740,7 @@ export default function DashboardPage() {
           {/* Primary tabs — always visible */}
           <div className="wt-tabbar" style={{display:'flex',gap:0,height:'100%',alignItems:'stretch',overflow:'visible'}}>
             {/* Primary tabs */}
-            {['overview','alerts','incidents','coverage','intel'].map(t=>(
+            {['overview','alerts','vulns','intel','incidents','tools'].map(t=>(
               <button key={t} onClick={()=>setActiveTab(t)} style={{height:'100%',padding:'0 14px',border:'none',borderBottom:`2px solid ${activeTab===t?'#00e5ff':'transparent'}`,background:'transparent',color:activeTab===t?'#00e5ff':'var(--wt-muted)',fontSize:'0.8rem',fontWeight:activeTab===t?700:500,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",transition:'all .15s',whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:5}}>
                 {t==='incidents'?'Cases':t.charAt(0).toUpperCase()+t.slice(1)}
                 {t==='alerts'&&critAlerts.length>0&&<span style={{fontSize:'0.58rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#ff2244',color:'#fff'}}>{critAlerts.length}</span>}
@@ -1749,12 +1749,10 @@ export default function DashboardPage() {
             {/* More overflow — secondary tabs */}
             {(()=>{
               const moreTabs = [
-                ...(!isViewer||isAdmin?[{t:'vulns',l:'Vulns',badge:kevVulns.length>0?kevVulns.length:null,badgeColor:'#ffb300'}]:[]),
-                ...(!isViewer||isAdmin?[{t:'ot',l:'OT',badge:null}]:[]),
+                ...(!isViewer||isAdmin?[{t:'coverage',l:'Coverage',badge:coveredPct<90?'!':null,badgeColor:'#f0a030'}]:[]),
                 ...(!isViewer||isAdmin?[{t:'compliance',l:'Comply',badge:null}]:[]),
-                {t:'tools',l:'Tools',badge:null},
+                ...(!isViewer||isAdmin?[{t:'ot',l:'OT/ICS',badge:null}]:[]),
                 ...(isAdmin||userTier==='mssp'?[{t:'mssp',l:'Portfolio',badge:null}]:[]),
-                ...(isSales?[{t:'sales',l:'Sales',badge:null}]:[]),
                 ...(isAdmin?[{t:'admin',l:'Admin',badge:null}]:[]),
               ];
               const activeInMore = moreTabs.some(m=>m.t===activeTab);
@@ -3810,15 +3808,12 @@ export default function DashboardPage() {
 
       {/* MOBILE BOTTOM NAV — 5 primary tabs + More drawer */}
       <nav className="wt-bottom-nav">
-        {[{t:'overview',i:'📊',l:'Overview'},{t:'alerts',i:'🔔',l:'Alerts'},{t:'incidents',i:'📋',l:'Cases'},{t:'tools',i:'🔌',l:'Tools'}].map(({t,i,l})=>(
+        {[{t:'overview',i:'📊',l:'Overview'},{t:'alerts',i:'🔔',l:'Alerts'},{t:'vulns',i:'🔍',l:'Vulns'},{t:'incidents',i:'📋',l:'Cases'}].map(({t,i,l})=>(
           <button key={t} className={activeTab===t?'active':''} onClick={()=>setActiveTab(t)} style={{position:'relative'}}>
             <span className="bnav-icon">{i}</span>{l}
             {t==='alerts'&&critAlerts.length>0&&<span style={{position:'absolute',top:4,right:'calc(50% - 12px)',width:7,height:7,borderRadius:'50%',background:'#ff2244',display:'block'}} />}
           </button>
         ))}
-        <a href='/settings' className={''}>
-          <span className="bnav-icon">⚙️</span>Settings
-        </a>
         <button onClick={()=>setShowMobileMore(s=>!s)} className={showMobileMore?'active':''}>
           <span className="bnav-icon">⋯</span>More
         </button>
@@ -3829,12 +3824,12 @@ export default function DashboardPage() {
               <div style={{width:36,height:4,borderRadius:2,background:'var(--wt-border2)',margin:'0 auto 12px'}} />
               <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:0}}>
                 {[
-                  {t:'coverage',i:'🛡',l:'Coverage'},
-                  {t:'vulns',i:'🔍',l:'Vulns'},
                   {t:'intel',i:'🌐',l:'Intel'},
-                  {t:'ot',i:'🏭',l:'OT'},
+                  {t:'tools',i:'🔌',l:'Tools'},
+                  {t:'coverage',i:'🛡',l:'Coverage'},
                   ...((isAdmin||canUse('business'))?[{t:'compliance',i:'🗂',l:'Comply'}]:[]),
-                  ...((isAdmin||userTier==='mssp')?[{t:'mssp',i:'🏢',l:'MSSP'}]:[]),
+                  {t:'ot',i:'🏭',l:'OT'},
+                  ...((isAdmin||userTier==='mssp')?[{t:'mssp',i:'🏢',l:'Portfolio'}]:[]),
                   ...(isAdmin?[{t:'admin',i:'🔧',l:'Admin'}]:[]),
                 ].map(({t,i,l})=>(
                   <button key={t} onClick={()=>{setActiveTab(t);setShowMobileMore(false);}}
