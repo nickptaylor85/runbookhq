@@ -3806,14 +3806,17 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* MOBILE BOTTOM NAV — 5 primary tabs + More drawer */}
+      {/* MOBILE BOTTOM NAV */}
       <nav className="wt-bottom-nav">
-        {[{t:'overview',i:'📊',l:'Overview'},{t:'alerts',i:'🔔',l:'Alerts'},{t:'vulns',i:'🔍',l:'Vulns'},{t:'incidents',i:'📋',l:'Cases'}].map(({t,i,l})=>(
+        {[{t:'overview',i:'📊',l:'Overview'},{t:'alerts',i:'🔔',l:'Alerts'},{t:'incidents',i:'📋',l:'Cases'},{t:'tools',i:'🔌',l:'Tools'}].map(({t,i,l})=>(
           <button key={t} className={activeTab===t?'active':''} onClick={()=>setActiveTab(t)} style={{position:'relative'}}>
             <span className="bnav-icon">{i}</span>{l}
             {t==='alerts'&&critAlerts.length>0&&<span style={{position:'absolute',top:4,right:'calc(50% - 12px)',width:7,height:7,borderRadius:'50%',background:'#ff2244',display:'block'}} />}
           </button>
         ))}
+        <a href='/settings' className={''}>
+          <span className="bnav-icon">⚙️</span>Settings
+        </a>
         <button onClick={()=>setShowMobileMore(s=>!s)} className={showMobileMore?'active':''}>
           <span className="bnav-icon">⋯</span>More
         </button>
@@ -3824,11 +3827,11 @@ export default function DashboardPage() {
               <div style={{width:36,height:4,borderRadius:2,background:'var(--wt-border2)',margin:'0 auto 12px'}} />
               <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:0}}>
                 {[
-                  {t:'intel',i:'🌐',l:'Intel'},
-                  {t:'tools',i:'🔌',l:'Tools'},
+                  {t:'vulns',i:'🔍',l:'Vulns'},
                   {t:'coverage',i:'🛡',l:'Coverage'},
-                  ...((isAdmin||canUse('business'))?[{t:'compliance',i:'🗂',l:'Comply'}]:[]),
+                  {t:'intel',i:'🌐',l:'Intel'},
                   {t:'ot',i:'🏭',l:'OT'},
+                  ...((isAdmin||canUse('business'))?[{t:'compliance',i:'🗂',l:'Comply'}]:[]),
                   ...((isAdmin||userTier==='mssp')?[{t:'mssp',i:'🏢',l:'Portfolio'}]:[]),
                   ...(isAdmin?[{t:'admin',i:'🔧',l:'Admin'}]:[]),
                 ].map(({t,i,l})=>(
