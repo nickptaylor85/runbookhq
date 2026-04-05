@@ -1740,7 +1740,7 @@ export default function DashboardPage() {
           {/* Primary tabs — always visible */}
           <div className="wt-tabbar" style={{display:'flex',gap:0,height:'100%',alignItems:'stretch',overflow:'visible'}}>
             {/* Primary tabs */}
-            {['overview','alerts','incidents','coverage','intel'].map(t=>(
+            {['overview','alerts','vulns','intel','incidents','tools'].map(t=>(
               <button key={t} onClick={()=>setActiveTab(t)} style={{height:'100%',padding:'0 14px',border:'none',borderBottom:`2px solid ${activeTab===t?'#00e5ff':'transparent'}`,background:'transparent',color:activeTab===t?'#00e5ff':'var(--wt-muted)',fontSize:'0.8rem',fontWeight:activeTab===t?700:500,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",transition:'all .15s',whiteSpace:'nowrap',display:'flex',alignItems:'center',gap:5}}>
                 {t==='incidents'?'Cases':t.charAt(0).toUpperCase()+t.slice(1)}
                 {t==='alerts'&&critAlerts.length>0&&<span style={{fontSize:'0.58rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:'#ff2244',color:'#fff'}}>{critAlerts.length}</span>}
@@ -1749,12 +1749,10 @@ export default function DashboardPage() {
             {/* More overflow — secondary tabs */}
             {(()=>{
               const moreTabs = [
-                ...(!isViewer||isAdmin?[{t:'vulns',l:'Vulns',badge:kevVulns.length>0?kevVulns.length:null,badgeColor:'#ffb300'}]:[]),
-                ...(!isViewer||isAdmin?[{t:'ot',l:'OT',badge:null}]:[]),
+                ...(!isViewer||isAdmin?[{t:'coverage',l:'Coverage',badge:coveredPct<90?'!':null,badgeColor:'#f0a030'}]:[]),
                 ...(!isViewer||isAdmin?[{t:'compliance',l:'Comply',badge:null}]:[]),
-                {t:'tools',l:'Tools',badge:null},
+                ...(!isViewer||isAdmin?[{t:'ot',l:'OT/ICS',badge:null}]:[]),
                 ...(isAdmin||userTier==='mssp'?[{t:'mssp',l:'Portfolio',badge:null}]:[]),
-                ...(isSales?[{t:'sales',l:'Sales',badge:null}]:[]),
                 ...(isAdmin?[{t:'admin',l:'Admin',badge:null}]:[]),
               ];
               const activeInMore = moreTabs.some(m=>m.t===activeTab);
