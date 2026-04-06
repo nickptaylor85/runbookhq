@@ -1898,7 +1898,7 @@ export default function DashboardPage() {
 
           {/* ═══════════════════════════════ OVERVIEW ═══════════════════════════════ */}
           {activeTab==='overview' && (
-            <div style={{display:'flex',flexDirection:'column',gap:10}}>
+            <div style={{display:'flex',flexDirection:'column',gap:14}}>
 
               {/* ── COMMAND STRIP: 5 hero numbers ────────────────────────────────── */}
               <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:8}} className='wt-five-col' role='list' aria-label='Security metrics'>
