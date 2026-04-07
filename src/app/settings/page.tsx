@@ -1,18 +1,32 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 
-const NAV_STYLE: React.CSSProperties = {
-  minHeight: '100vh', background: '#090d18', color: '#e8ecf4',
-  fontFamily: 'Inter,sans-serif', display: 'flex', flexDirection: 'column',
-};
+const PAGE_CSS = `
+.wt-page{position:relative;min-height:100vh;color:#e8ecf4;font-family:Inter,sans-serif;display:flex;flex-direction:column}
+.wt-page::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 90% 70% at 8% 12%,rgba(0,80,255,0.12) 0%,transparent 55%),
+  radial-gradient(ellipse 70% 60% at 94% 88%,rgba(130,0,255,0.10) 0%,transparent 55%),
+  radial-gradient(ellipse 50% 40% at 50% 48%,rgba(0,200,240,0.06) 0%,transparent 65%),
+  radial-gradient(rgba(0,180,240,0.045) 1px,transparent 1px),#060c18;
+  background-size:auto,auto,auto,40px 40px,auto}
+@keyframes orb-drift-a{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(42px,-30px) scale(1.06)}66%{transform:translate(-22px,34px) scale(0.96)}}
+@keyframes orb-drift-b{0%,100%{transform:translate(0,0) scale(1)}40%{transform:translate(-34px,24px) scale(1.05)}70%{transform:translate(30px,-32px) scale(0.97)}}
+.wt-orb-a,.wt-orb-b{position:fixed!important;border-radius:50%;pointer-events:none;z-index:0;mix-blend-mode:screen}
+.wt-orb-a{width:720px;height:720px;top:-180px;left:-140px;background:radial-gradient(circle,rgba(0,100,255,0.15) 0%,transparent 65%);animation:orb-drift-a 20s ease-in-out infinite}
+.wt-orb-b{width:620px;height:620px;bottom:-120px;right:-100px;background:radial-gradient(circle,rgba(120,0,255,0.12) 0%,transparent 65%);animation:orb-drift-b 26s ease-in-out infinite}
+.wt-glass-bar{background:rgba(4,8,20,0.80)!important;backdrop-filter:blur(30px) saturate(1.8) brightness(1.08);-webkit-backdrop-filter:blur(30px) saturate(1.8) brightness(1.08);border-bottom:1px solid rgba(0,180,240,0.13)}
+.wt-card{background:rgba(14,24,46,0.55);border:1px solid rgba(0,180,240,0.13);border-radius:12px;padding:20px 22px;margin-bottom:14px;transition:border-color .15s}
+.wt-card:hover{border-color:rgba(0,180,240,0.25)}
+`;
+
 const CARD: React.CSSProperties = {
-  background: '#131929', border: '1px solid #263044', borderRadius: 12, padding: '20px 22px', marginBottom: 14,
+  background: 'rgba(14,24,46,0.55)', border: '1px solid rgba(0,180,240,0.13)', borderRadius: 12, padding: '20px 22px', marginBottom: 14,
 };
 const LABEL: React.CSSProperties = {
   display: 'block', fontSize: '0.72rem', color: '#6b7a94', fontWeight: 600, marginBottom: 6,
 };
 const INPUT: React.CSSProperties = {
-  width: '100%', padding: '9px 12px', background: '#070a14', border: '1px solid #263044',
+  width: '100%', padding: '9px 12px', background: 'rgba(4,8,20,0.6)', border: '1px solid rgba(0,180,240,0.13)',
   borderRadius: 8, color: '#e8ecf4', fontSize: '0.84rem', fontFamily: 'Inter,sans-serif',
   outline: 'none', boxSizing: 'border-box',
 };
@@ -66,7 +80,7 @@ function ChangePasswordForm() {
   const [confirm, setConfirm] = React.useState('');
   const [status, setStatus] = React.useState<'idle'|'saving'|'ok'|'error'>('idle');
   const [msg, setMsg] = React.useState('');
-  const INPUT_S: React.CSSProperties = { width: '100%', padding: '9px 12px', background: '#070a14', border: '1px solid #263044', borderRadius: 8, color: '#e8ecf4', fontSize: '0.84rem', fontFamily: 'Inter,sans-serif', outline: 'none', boxSizing: 'border-box' };
+  const INPUT_S: React.CSSProperties = { width: '100%', padding: '9px 12px', background: 'rgba(4,8,20,0.6)', border: '1px solid rgba(0,180,240,0.13)', borderRadius: 8, color: '#e8ecf4', fontSize: '0.84rem', fontFamily: 'Inter,sans-serif', outline: 'none', boxSizing: 'border-box' };
 
   async function submit() {
     if (!current || !next || !confirm) { setMsg('All fields required'); setStatus('error'); return; }
@@ -123,7 +137,7 @@ function DeleteAccountButton() {
       </div>
       <div style={{ fontSize: '0.7rem', color: '#6b7a94', marginBottom: 8 }}>Type <strong style={{ color: '#e8ecf4' }}>DELETE</strong> to confirm:</div>
       <div style={{ display: 'flex', gap: 8 }}>
-        <input value={typed} onChange={e => setTyped(e.target.value)} placeholder="DELETE" style={{ flex: 1, padding: '7px 10px', background: '#070a14', border: '1px solid #f0405e40', borderRadius: 7, color: '#e8ecf4', fontSize: '0.8rem', fontFamily: 'Inter,sans-serif', outline: 'none' }} />
+        <input value={typed} onChange={e => setTyped(e.target.value)} placeholder="DELETE" style={{ flex: 1, padding: '7px 10px', background: 'rgba(4,8,20,0.6)', border: '1px solid #f0405e40', borderRadius: 7, color: '#e8ecf4', fontSize: '0.8rem', fontFamily: 'Inter,sans-serif', outline: 'none' }} />
         <button onClick={doDelete} disabled={typed !== 'DELETE' || step === 'deleting'} style={{ padding: '7px 14px', borderRadius: 7, border: 'none', background: typed === 'DELETE' ? '#f0405e' : '#1d2535', color: '#fff', fontSize: '0.76rem', fontWeight: 700, cursor: typed === 'DELETE' ? 'pointer' : 'not-allowed', fontFamily: 'Inter,sans-serif' }}>
           {step === 'deleting' ? 'Deleting…' : 'Delete Forever'}
         </button>
@@ -195,14 +209,14 @@ function MfaSetup() {
             1. Scan this QR code with your authenticator app<br/>
             2. Enter the 6-digit code to verify and activate
           </div>
-          <img src={qrUrl} alt="MFA QR Code" width={180} height={180} style={{ borderRadius: 8, border: '1px solid #263044', display: 'block', marginBottom: 12 }} />
+          <img src={qrUrl} alt="MFA QR Code" width={180} height={180} style={{ borderRadius: 8, border: '1px solid rgba(0,180,240,0.13)', display: 'block', marginBottom: 12 }} />
           <div style={{ fontSize: '0.62rem', color: '#6b7a94', marginBottom: 6 }}>Manual entry key:</div>
           <div style={{ fontFamily: 'JetBrains Mono,monospace', fontSize: '0.74rem', color: '#4f8fff', background: '#4f8fff12', padding: '6px 10px', borderRadius: 6, marginBottom: 16, letterSpacing: 2 }}>{secret}</div>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             <input value={code} onChange={e => setCode(e.target.value)} placeholder="Enter 6-digit code" maxLength={6}
               style={{ ...INPUT, width: 160, fontFamily: 'JetBrains Mono,monospace', fontSize: '1.1rem', letterSpacing: 4, textAlign: 'center' }} />
             <button onClick={verifyCode} style={BTN}>Verify & Enable</button>
-            <button onClick={() => setStep('idle')} style={{ padding: '9px 16px', background: 'transparent', border: '1px solid #263044', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>Cancel</button>
+            <button onClick={() => setStep('idle')} style={{ padding: '9px 16px', background: 'transparent', border: '1px solid rgba(0,180,240,0.13)', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>Cancel</button>
           </div>
           {error && <div style={{ color: '#f0405e', fontSize: '0.72rem', marginTop: 8 }}>{error}</div>}
         </div>
@@ -214,7 +228,7 @@ function MfaSetup() {
             <input value={code} onChange={e => setCode(e.target.value)} placeholder="6-digit code" maxLength={6}
               style={{ ...INPUT, width: 160, fontFamily: 'JetBrains Mono,monospace', fontSize: '1.1rem', letterSpacing: 4, textAlign: 'center' }} />
             <button onClick={disableMfa} style={{ ...BTN, background: '#f0405e' }}>Disable MFA</button>
-            <button onClick={() => setStep('idle')} style={{ padding: '9px 16px', background: 'transparent', border: '1px solid #263044', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>Cancel</button>
+            <button onClick={() => setStep('idle')} style={{ padding: '9px 16px', background: 'transparent', border: '1px solid rgba(0,180,240,0.13)', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>Cancel</button>
           </div>
           {error && <div style={{ color: '#f0405e', fontSize: '0.72rem', marginTop: 8 }}>{error}</div>}
         </div>
@@ -348,9 +362,12 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div style={NAV_STYLE}>
+    <div className="wt-page">
+      <style>{PAGE_CSS}</style>
+      <div className="wt-orb-a" />
+      <div className="wt-orb-b" />
       {/* Top nav */}
-      <div style={{ display: 'flex', alignItems: 'center', padding: '14px 24px', borderBottom: '1px solid #1d2535', background: '#0c1122', gap: 12 }}>
+      <div className="wt-glass-bar" style={{ display: 'flex', alignItems: 'center', padding: '14px 24px', gap: 12, position: 'sticky', top: 0, zIndex: 50 }}>
         <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', color: 'inherit' }}>
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none" style={{ flexShrink: 0 }}>
             <rect width="28" height="28" rx="7" fill="url(#sg)"/>
@@ -364,22 +381,24 @@ export default function SettingsPage() {
         <span style={{ fontSize: '0.86rem', color: '#6b7a94', fontWeight: 600 }}>Settings</span>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
           {saved && <span style={{ fontSize: '0.72rem', color: '#22d49a', fontWeight: 600, padding: '5px 10px', background: '#22d49a10', borderRadius: 6, border: '1px solid #22d49a30' }}>✓ Saved</span>}
-          <a href="/dashboard" style={{ padding: '7px 16px', background: 'transparent', border: '1px solid #263044', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none' }}>← Dashboard</a>
-          <a href="/changelog" style={{ padding: '7px 16px', background: 'transparent', border: '1px solid #263044', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none' }}>📝 Changelog</a>
+          <a href="/dashboard" style={{ padding: '7px 16px', background: 'transparent', border: '1px solid rgba(0,180,240,0.13)', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none' }}>← Dashboard</a>
+          <a href="/changelog" style={{ padding: '7px 16px', background: 'transparent', border: '1px solid rgba(0,180,240,0.13)', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none' }}>📝 Changelog</a>
         </div>
       </div>
 
-      <div style={{ flex: 1, maxWidth: 780, width: '100%', margin: '0 auto', padding: '32px 24px' }}>
+      <div style={{ flex: 1, maxWidth: 780, width: '100%', margin: '0 auto', padding: '32px 24px', position: 'relative', zIndex: 1 }}>
         <h1 style={{ fontSize: '1.4rem', fontWeight: 900, letterSpacing: -0.5, marginBottom: 24 }}>Settings</h1>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: 2, marginBottom: 24, background: '#131929', borderRadius: 10, padding: 4, border: '1px solid #263044', width: 'fit-content' }}>
+        <div style={{ display: 'flex', gap: 2, marginBottom: 24, background: 'rgba(14,24,46,0.55)', borderRadius: 10, padding: 4, border: '1px solid rgba(0,180,240,0.13)', width: 'fit-content' }}>
           {tabs.map(t => (
             <button key={t.id} onClick={() => setActiveTab(t.id)}
-              style={{ padding: '7px 18px', borderRadius: 7, border: 'none', fontFamily: 'Inter,sans-serif',
-                background: activeTab === t.id ? '#4f8fff' : 'transparent',
-                color: activeTab === t.id ? '#fff' : '#6b7a94',
-                fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', transition: 'all .15s' }}>
+              style={{ padding: '7px 18px', borderRadius: 7, border: 'none', fontFamily: 'Rajdhani,Inter,sans-serif',
+                background: activeTab === t.id ? 'rgba(0,229,255,0.07)' : 'transparent',
+                color: activeTab === t.id ? '#00d4f0' : '#6b7a94',
+                fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', transition: 'all .15s',
+                boxShadow: activeTab === t.id ? 'inset 0 0 0 1px rgba(0,229,255,0.25)' : 'none',
+                letterSpacing: '0.5px', textTransform: 'uppercase' }}>
               {t.label}
             </button>
           ))}
@@ -396,7 +415,7 @@ export default function SettingsPage() {
                 <div style={{ display: 'flex', gap: 8 }}>
                   {['dark', 'light'].map(t => (
                     <button key={t} onClick={() => saveSettings({ theme: t })}
-                      style={{ padding: '8px 20px', borderRadius: 8, border: `1px solid ${settings.theme === t || (!settings.theme && t === 'dark') ? '#4f8fff' : '#263044'}`,
+                      style={{ padding: '8px 20px', borderRadius: 8, border: `1px solid ${settings.theme === t || (!settings.theme && t === 'dark') ? '#4f8fff' : 'rgba(0,180,240,0.13)'}`,
                         background: settings.theme === t || (!settings.theme && t === 'dark') ? '#4f8fff15' : 'transparent',
                         color: settings.theme === t || (!settings.theme && t === 'dark') ? '#4f8fff' : '#6b7a94',
                         fontWeight: 600, fontSize: '0.8rem', cursor: 'pointer', fontFamily: 'Inter,sans-serif',
@@ -428,7 +447,7 @@ export default function SettingsPage() {
                   {[['true', '● DEMO', '#f0a030'], ['false', '● LIVE', '#22d49a']].map(([val, label, col]) => (
                     <button key={val} onClick={() => saveSettings({ demoMode: val })}
                       style={{ padding: '8px 20px', borderRadius: 8,
-                        border: `1px solid ${settings.demoMode === val || (!settings.demoMode && val === 'true') ? col + '50' : '#263044'}`,
+                        border: `1px solid ${settings.demoMode === val || (!settings.demoMode && val === 'true') ? col + '50' : 'rgba(0,180,240,0.13)'}`,
                         background: settings.demoMode === val || (!settings.demoMode && val === 'true') ? col + '15' : 'transparent',
                         color: settings.demoMode === val || (!settings.demoMode && val === 'true') ? col : '#6b7a94',
                         fontWeight: 700, fontSize: '0.78rem', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
@@ -443,7 +462,7 @@ export default function SettingsPage() {
                   {[['0', 'Recommend Only', '#6b7a94'], ['1', 'Auto + Notify', '#f0a030'], ['2', 'Full Auto', '#22d49a']].map(([val, label, col]) => (
                     <button key={val} onClick={() => saveSettings({ automation: val })}
                       style={{ padding: '8px 14px', borderRadius: 8,
-                        border: `1px solid ${settings.automation === val ? col + '50' : '#263044'}`,
+                        border: `1px solid ${settings.automation === val ? col + '50' : 'rgba(0,180,240,0.13)'}`,
                         background: settings.automation === val ? col + '15' : 'transparent',
                         color: settings.automation === val ? col : '#6b7a94',
                         fontWeight: 600, fontSize: '0.72rem', cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
@@ -469,7 +488,7 @@ export default function SettingsPage() {
           <div>
             <div style={CARD}>
               <div style={{ fontSize: '0.82rem', fontWeight: 700, marginBottom: 16, color: '#e8ecf4' }}>Plan & Billing</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: '#070a14', borderRadius: 9, border: '1px solid #263044', marginBottom: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 14px', background: 'rgba(4,8,20,0.6)', borderRadius: 9, border: '1px solid rgba(0,180,240,0.13)', marginBottom: 14 }}>
                 <div style={{ width: 36, height: 36, borderRadius: 9, background: '#8b6fff15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>🛡</div>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '0.86rem' }}>
@@ -529,7 +548,7 @@ export default function SettingsPage() {
                 <span style={{ fontSize: '0.8rem' }}>{item.label}</span>
                 <button onClick={() => saveSettings({ [item.key]: settings[item.key] === 'false' ? 'true' : 'false' })}
                   style={{ width: 42, height: 24, borderRadius: 12, border: 'none', cursor: 'pointer', fontFamily: 'Inter,sans-serif',
-                    background: (settings[item.key] ?? item.default) === 'true' ? '#22d49a' : '#263044',
+                    background: (settings[item.key] ?? item.default) === 'true' ? '#22d49a' : 'rgba(0,180,240,0.13)',
                     position: 'relative', transition: 'background .2s' }}>
                   <span style={{ position: 'absolute', top: 3, width: 18, height: 18, borderRadius: '50%', background: '#fff',
                     transition: 'left .2s', left: (settings[item.key] ?? item.default) === 'true' ? 21 : 3 }} />
@@ -560,8 +579,8 @@ export default function SettingsPage() {
           <div style={{ background: '#0a0d18', border: '1px solid #1d2535', borderRadius: 10, padding: '16px', marginBottom: 20 }}>
             <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#4f8fff', marginBottom: 12 }}>Invite a team member</div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <input placeholder="colleague@company.com" style={{ flex: 1, minWidth: 180, padding: '9px 12px', background: '#070a14', border: '1px solid #263044', borderRadius: 8, color: '#e8ecf4', fontSize: '0.84rem', fontFamily: 'Inter,sans-serif', outline: 'none' }} />
-              <select style={{ padding: '9px 12px', background: '#070a14', border: '1px solid #263044', borderRadius: 8, color: '#e8ecf4', fontSize: '0.84rem', fontFamily: 'Inter,sans-serif', cursor: 'pointer' }}>
+              <input placeholder="colleague@company.com" style={{ flex: 1, minWidth: 180, padding: '9px 12px', background: 'rgba(4,8,20,0.6)', border: '1px solid rgba(0,180,240,0.13)', borderRadius: 8, color: '#e8ecf4', fontSize: '0.84rem', fontFamily: 'Inter,sans-serif', outline: 'none' }} />
+              <select style={{ padding: '9px 12px', background: 'rgba(4,8,20,0.6)', border: '1px solid rgba(0,180,240,0.13)', borderRadius: 8, color: '#e8ecf4', fontSize: '0.84rem', fontFamily: 'Inter,sans-serif', cursor: 'pointer' }}>
                 <option value="analyst">Analyst</option>
                 <option value="tech_admin">Tech Admin</option>
                 <option value="viewer">Viewer (read-only)</option>
@@ -604,7 +623,7 @@ export default function SettingsPage() {
           <h2 style={{ fontSize: '0.96rem', fontWeight: 700, marginBottom: 4 }}>API Keys</h2>
           <p style={{ fontSize: '0.78rem', color: '#6b7a94', marginBottom: 20, lineHeight: 1.6 }}>Generate keys to access Watchtower data programmatically. A key is shown only once — copy it immediately.</p>
           <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
-            <input value={newKeyName} onChange={e => setNewKeyName(e.target.value)} placeholder="Key name (e.g. SIEM Integration)" style={{ flex: 1, padding: '9px 12px', background: '#070a14', border: '1px solid #263044', borderRadius: 8, color: '#e8ecf4', fontSize: '0.84rem', fontFamily: 'Inter, sans-serif', outline: 'none' }} />
+            <input value={newKeyName} onChange={e => setNewKeyName(e.target.value)} placeholder="Key name (e.g. SIEM Integration)" style={{ flex: 1, padding: '9px 12px', background: 'rgba(4,8,20,0.6)', border: '1px solid rgba(0,180,240,0.13)', borderRadius: 8, color: '#e8ecf4', fontSize: '0.84rem', fontFamily: 'Inter, sans-serif', outline: 'none' }} />
             <button disabled={!newKeyName.trim() || keyLoading} onClick={async () => {
               setKeyLoading(true);
               try {

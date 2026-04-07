@@ -1498,7 +1498,7 @@ export default function ChangelogPage() {
   }, [router]);
 
   if (loading) return (
-    <div style={{ minHeight:'100vh', background:'#050508', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter,sans-serif', color:'#6b7a94' }}>
+    <div style={{ minHeight:'100vh', background:'#060c18', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter,sans-serif', color:'#6b7a94' }}>
       Loading…
     </div>
   );
@@ -1517,9 +1517,25 @@ export default function ChangelogPage() {
   const totalSec = VERSIONS.flatMap(v => v.changes).filter(c => c.type === 'security').length;
 
   return (
-    <div style={{ minHeight:'100vh', background:'#050508', color:'#e8ecf4', fontFamily:'Inter,sans-serif' }}>
+    <div style={{ position:'relative', minHeight:'100vh', color:'#e8ecf4', fontFamily:'Inter,sans-serif' }}>
+      <style>{`
+.cl-page::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 90% 70% at 8% 12%,rgba(0,80,255,0.12) 0%,transparent 55%),
+  radial-gradient(ellipse 70% 60% at 94% 88%,rgba(130,0,255,0.10) 0%,transparent 55%),
+  radial-gradient(ellipse 50% 40% at 50% 48%,rgba(0,200,240,0.06) 0%,transparent 65%),
+  radial-gradient(rgba(0,180,240,0.045) 1px,transparent 1px),#060c18;
+  background-size:auto,auto,auto,40px 40px,auto}
+@keyframes cl-orb-a{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(42px,-30px) scale(1.06)}66%{transform:translate(-22px,34px) scale(0.96)}}
+@keyframes cl-orb-b{0%,100%{transform:translate(0,0) scale(1)}40%{transform:translate(-34px,24px) scale(1.05)}70%{transform:translate(30px,-32px) scale(0.97)}}
+.cl-orb-a,.cl-orb-b{position:fixed!important;border-radius:50%;pointer-events:none;z-index:0;mix-blend-mode:screen}
+.cl-orb-a{width:720px;height:720px;top:-180px;left:-140px;background:radial-gradient(circle,rgba(0,100,255,0.15) 0%,transparent 65%);animation:cl-orb-a 20s ease-in-out infinite}
+.cl-orb-b{width:620px;height:620px;bottom:-120px;right:-100px;background:radial-gradient(circle,rgba(120,0,255,0.12) 0%,transparent 65%);animation:cl-orb-b 26s ease-in-out infinite}
+      `}</style>
+      <div className="cl-page" style={{position:'absolute',inset:0}} />
+      <div className="cl-orb-a" />
+      <div className="cl-orb-b" />
       {/* Top bar */}
-      <div style={{ display:'flex', alignItems:'center', padding:'12px 24px', borderBottom:'1px solid #141820', background:'#07090f', gap:12, position:'sticky', top:0, zIndex:50 }}>
+      <div style={{ display:'flex', alignItems:'center', padding:'12px 24px', background:'rgba(4,8,20,0.80)', backdropFilter:'blur(30px) saturate(1.8) brightness(1.08)', WebkitBackdropFilter:'blur(30px) saturate(1.8) brightness(1.08)', borderBottom:'1px solid rgba(0,180,240,0.13)', gap:12, position:'sticky', top:0, zIndex:50 }}>
         <a href="/dashboard" style={{ display:'flex', alignItems:'center', gap:8, textDecoration:'none', color:'inherit' }}>
           <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
             <rect width="26" height="26" rx="7" fill="url(#clg)"/>
@@ -1532,10 +1548,10 @@ export default function ChangelogPage() {
         <span style={{ color:'#2a3448', margin:'0 2px' }}>/</span>
         <span style={{ fontSize:'0.82rem', color:'#6b7a94', fontWeight:600 }}>Feature Updates</span>
         <span style={{ fontSize:'0.6rem', fontWeight:700, padding:'2px 8px', borderRadius:4, background:'#f0405e12', color:'#f0405e', border:'1px solid #f0405e25', marginLeft:4 }}>ADMIN ONLY</span>
-        <a href="/dashboard" style={{ marginLeft:'auto', padding:'6px 14px', background:'transparent', border:'1px solid #1e2536', borderRadius:7, color:'#6b7a94', fontSize:'0.76rem', fontWeight:600, textDecoration:'none' }}>← Dashboard</a>
+        <a href="/dashboard" style={{ marginLeft:'auto', padding:'6px 14px', background:'transparent', border:'1px solid rgba(0,180,240,0.13)', borderRadius:7, color:'#6b7a94', fontSize:'0.76rem', fontWeight:600, textDecoration:'none' }}>← Dashboard</a>
       </div>
 
-      <div style={{ maxWidth:900, margin:'0 auto', padding:'32px 24px' }}>
+      <div style={{ maxWidth:900, margin:'0 auto', padding:'32px 24px', position:'relative', zIndex:1 }}>
         {/* Header */}
         <div style={{ marginBottom:32 }}>
           <h1 style={{ fontSize:'1.6rem', fontWeight:900, letterSpacing:-1, marginBottom:8 }}>Feature Updates</h1>
@@ -1549,7 +1565,7 @@ export default function ChangelogPage() {
               { v:`${totalFix}`, l:'Bugs fixed', c:'#22d49a' },
               { v:`${totalSec}`, l:'Security items', c:'#f0405e' },
             ].map(s => (
-              <div key={s.l} style={{ padding:'14px 16px', background:'#0a0d14', border:'1px solid #141820', borderRadius:10 }}>
+              <div key={s.l} style={{ padding:'14px 16px', background:'rgba(14,24,46,0.55)', border:'1px solid rgba(0,180,240,0.13)', borderRadius:10 }}>
                 <div style={{ fontSize:'1.5rem', fontWeight:900, fontFamily:'JetBrains Mono,monospace', color:s.c, letterSpacing:-1 }}>{s.v}</div>
                 <div style={{ fontSize:'0.66rem', color:'#6b7a94', marginTop:4 }}>{s.l}</div>
               </div>
@@ -1565,7 +1581,7 @@ export default function ChangelogPage() {
               </button>
             ))}
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search changes…"
-              style={{ marginLeft:'auto', padding:'6px 12px', borderRadius:7, border:'1px solid #1e2536', background:'#0a0d14', color:'#e8ecf4', fontSize:'0.76rem', fontFamily:'Inter,sans-serif', outline:'none', width:200 }} />
+              style={{ marginLeft:'auto', padding:'6px 12px', borderRadius:7, border:'1px solid rgba(0,180,240,0.13)', background:'rgba(14,24,46,0.55)', color:'#e8ecf4', fontSize:'0.76rem', fontFamily:'Inter,sans-serif', outline:'none', width:200 }} />
           </div>
         </div>
 
@@ -1596,7 +1612,7 @@ export default function ChangelogPage() {
                   {v.changes.map((c, ci) => {
                     const t = TAG_TYPES[c.type] || TAG_TYPES.feat;
                     return (
-                      <div key={ci} style={{ display:'flex', gap:10, alignItems:'flex-start', padding:'7px 10px', background:'#0a0d14', borderRadius:8, border:'1px solid #0e1218' }}>
+                      <div key={ci} style={{ display:'flex', gap:10, alignItems:'flex-start', padding:'7px 10px', background:'rgba(14,24,46,0.55)', borderRadius:8, border:'1px solid rgba(0,180,240,0.08)' }}>
                         <span style={{ fontSize:'0.58rem', fontWeight:700, padding:'2px 6px', borderRadius:3, background:`${t.color}15`, color:t.color, border:`1px solid ${t.color}20`, flexShrink:0, marginTop:1, letterSpacing:'0.3px' }}>
                           {c.type === 'feat' ? 'FEAT' : c.type === 'fix' ? 'FIX' : c.type === 'security' ? 'SEC' : 'PERF'}
                         </span>
@@ -1616,7 +1632,7 @@ export default function ChangelogPage() {
           </div>
         )}
 
-        <div style={{ marginTop:40, padding:'16px 20px', background:'#0a0d14', border:'1px solid #141820', borderRadius:10, fontSize:'0.72rem', color:'#3a4050', textAlign:'center' }}>
+        <div style={{ marginTop:40, padding:'16px 20px', background:'rgba(14,24,46,0.55)', border:'1px solid rgba(0,180,240,0.13)', borderRadius:10, fontSize:'0.72rem', color:'#3a4050', textAlign:'center' }}>
           Watchtower · v74.19.9 · {new Date().getFullYear()}
         </div>
       </div>
