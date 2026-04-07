@@ -21,7 +21,7 @@ export default function OverviewTab({
               {/* Estate Health 2×2 */}
               <div>
                 <div style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Estate Health</div>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:10}}>
+                <div className='wt-two-col' style={{display:'grid',gridTemplateColumns:'repeat(2,1fr)',gap:10}}>
 
                   {/* Devices + Gaps */}
                   <div onClick={()=>setModal({type:'gaps'})} style={{padding:16,background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12,cursor:'pointer',transition:'border-color .15s'}}
@@ -115,7 +115,7 @@ export default function OverviewTab({
               </div>
 
               {/* Recent Activity Row */}
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+              <div className='wt-two-col' style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
                 {/* Recent Alerts */}
                 <div style={{padding:'14px 16px',background:'var(--wt-card)',border:'1px solid #141820',borderRadius:12}}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:10}}>
@@ -162,7 +162,7 @@ export default function OverviewTab({
                   <div style={{fontSize:'0.62rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'1px',flex:1}}>🔥 Top Threats Right Now</div>
                   <button onClick={()=>setActiveTab('intel')} style={{fontSize:'0.58rem',color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:600}}>View intel →</button>
                 </div>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+                <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
                   {[
                     {title:'CVE-2024-21413',desc:'Outlook NTLM — CISA KEV',color:'#f0405e',badge:'CRITICAL'},
                     {title:'TA505 Active',desc:'Cobalt Strike campaign — fin. sector',color:'#f0a030',badge:'HIGH'},

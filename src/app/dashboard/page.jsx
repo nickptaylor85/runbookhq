@@ -152,6 +152,19 @@ const DASHBOARD_CSS = `*{margin:0;padding:0;box-sizing:border-box}
           .wt-three-col{grid-template-columns:1fr!important}
           .wt-two-col{grid-template-columns:1fr!important}
           .wt-stat-grid{grid-template-columns:1fr 1fr!important}
+          .wt-sync-row{grid-template-columns:50px 80px 1fr!important}
+          .wt-sync-row>*:last-child{display:none!important}
+          .wt-admin-grid{grid-template-columns:1fr 1fr!important}
+          .wt-admin-grid>*:nth-child(n+3){display:none!important}
+          .wt-seven-col{grid-template-columns:repeat(4,1fr)!important}
+          /* ── Overflow guards ── */
+          .wt-content *{max-width:100%!important;overflow-wrap:break-word!important}
+          .wt-content pre,.wt-content code{overflow-x:auto!important}
+          /* ── Tool cards ── */
+          .wt-content [style*="gap:12"]{gap:8px!important}
+          /* ── Flexible text ── */
+          .wt-content h2{font-size:0.82rem!important}
+          .wt-content [style*="fontSize:'2rem'"]{font-size:1.4rem!important}
           /* ── Filters ── */
           .wt-filter-row{flex-direction:column!important;gap:6px!important}
           .wt-filter-row select,.wt-filter-row input,.wt-filter-row button{width:100%!important;box-sizing:border-box!important}
@@ -161,6 +174,12 @@ const DASHBOARD_CSS = `*{margin:0;padding:0;box-sizing:border-box}
           .alert-card{border-radius:8px}
           /* ── Co-Pilot panel ── */
           .wt-copilot{max-width:100%!important;width:100%!important;left:0!important;right:0!important;bottom:64px!important;border-radius:16px 16px 0 0!important}
+          /* ── Tools tab ── */
+          .wt-tool-filters{margin-left:0!important;width:100%!important}
+          .wt-tool-header{flex-direction:column!important;align-items:flex-start!important}
+          .wt-tool-header h2{margin-bottom:4px}
+          /* ── OT sidebar ── */
+          [style*="gridTemplateColumns: selectedZone"]{grid-template-columns:1fr!important}
         }
         @media(min-width:641px) and (max-width:900px){
           .wt-content{padding:12px 14px!important}
@@ -1903,7 +1922,7 @@ export default function DashboardPage() {
             <div style={{display:'flex',flexDirection:'column',gap:10}}>
 
               {/* ── COMMAND STRIP: 5 hero numbers ────────────────────────────────── */}
-              <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:8}} className='wt-five-col' role='list' aria-label='Security metrics'>
+              <div className='wt-five-col' style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:8}} className='wt-five-col' role='list' aria-label='Security metrics'>
                 {[
                   {val:critAlerts.length, label:'Critical Alerts', color:'#ff2244', sub:critAlerts.length>0?'Immediate action':demoMode?'Demo data':'Live', tab:'alerts', icon:'🔴', onClickExtra:()=>setAlertSevFilter('Critical')},
                   {val:totalAlerts, label:'Total Alerts', color:'#ffb300', sub:(!demoMode&&liveAlerts.length>0?'Live from tools':'Today'), tab:'alerts', icon:'🔔'},
@@ -1952,7 +1971,7 @@ export default function DashboardPage() {
               )}
 
               {/* ── FOUR QUADRANT DRILL-DOWN GRID ────────────────────────────────── */}
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}} className='wt-two-col'>
+              <div className='wt-two-col' style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}} className='wt-two-col'>
 
                 {/* Quadrant 1: Active Alerts breakdown */}
                 <div onClick={()=>setActiveTab('alerts')} style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'14px',overflow:'hidden',cursor:'pointer',transition:'border-color .15s'}}
@@ -2354,7 +2373,7 @@ export default function DashboardPage() {
                       <span style={{fontSize:'0.84rem',color:'#00ff88',background:'#00ff880a',padding:'1px 6px',borderRadius:3,border:'1px solid #00ff8820',fontWeight:600}}>✦ live</span>
                     </div>
                     {/* Summary strip */}
-                    <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6,marginBottom:12}} className='wt-three-col'>
+                    <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:6,marginBottom:12}} className='wt-three-col'>
                       {[
                         {label:'Both tools',val:bothCount,color:'#00ff88',icon:'✓',filter:'all'},
                         {label:'Tenable only — no XDR',val:tenableOnly.length,color:'#ff2244',icon:'⚠',filter:'missing'},
@@ -2493,7 +2512,7 @@ export default function DashboardPage() {
                     </div>
                     {selectedVuln?.id===vuln.id && (
                       <div style={{padding:'14px 16px',background:'var(--wt-card2)',border:'1px solid #00e5ff40',borderTop:'2px solid #00e5ff',borderRadius:'0 0 10px 10px',marginBottom:0,boxShadow:'0 4px 20px rgba(0,0,0,0.3)'}}>
-                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}} className='wt-two-col'>
+                        <div className='wt-two-col' style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}} className='wt-two-col'>
                           <div>
                             <div style={{fontSize:'0.86rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:10}}>{vuln.description}</div>
                             <div style={{fontSize:'0.84rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Affected Devices</div>
@@ -2612,7 +2631,7 @@ export default function DashboardPage() {
                 })()}
 
                 {/* Key metrics */}
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}} className='wt-two-col'>
+                <div className='wt-two-col' style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}} className='wt-two-col'>
                   {[
                     {label:'KEV Active',val:kevVulns.length,color:'#ffb300',icon:'⚠'},
                     {label:'Avg CVSS',val:(()=>{const withCvss=vulns.filter(v=>v.cvss&&v.cvss!=='N/A'&&Number(v.cvss)>0);return withCvss.length?(withCvss.reduce((a,v)=>a+Number(v.cvss),0)/withCvss.length).toFixed(1):'—';})(),color:'#bd00ff',icon:'📊'},
@@ -2702,7 +2721,7 @@ export default function DashboardPage() {
                   {industry} — Active Threats
                   <span style={{fontSize:'0.86rem',fontWeight:600,color:'var(--wt-dim)',fontFamily:"'JetBrains Mono',monospace"}}>{industryIntel.filter(i=>i.industrySpecific).length} items</span>
                 </div>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}} className='wt-three-col'>
+                <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}} className='wt-three-col'>
                 {industryIntel.filter(i=>i.industrySpecific).slice(0,6).map(item=>{
                   const isExpanded = expandedIntel.has(item.id);
                   return (
@@ -2769,7 +2788,7 @@ export default function DashboardPage() {
                           <span>{source}</span>
                           <span style={{fontSize:'0.84rem',color:'var(--wt-dim)',fontWeight:400}}>{items.length} indicator{items.length!==1?'s':''}</span>
                         </div>
-                        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}} className='wt-three-col'>
+                        <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}} className='wt-three-col'>
                         {items.slice(0,6).map((item,i)=>{
                           const isExpanded = expandedIntel.has(item.id);
                           const c = {Critical:'#ff2244',High:'#ffb300',Medium:'#ffb300',Low:'#00e5ff'}[item.severity]||'#6b7a94';
@@ -2831,7 +2850,7 @@ export default function DashboardPage() {
                   Tenable Research
                   <span style={{fontSize:'0.86rem',fontWeight:600,color:'var(--wt-dim)',fontFamily:"'JetBrains Mono',monospace"}}>in the news</span>
                 </div>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,minWidth:0}} className='wt-three-col'>
+                <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,minWidth:0}} className='wt-three-col'>
                 {tenableNewsItems.slice(0,3).map(item=>(
                   <div key={item.id} style={{background:'var(--wt-card)',border:'1px solid #00b3e318',borderRadius:10,padding:'12px 14px',minWidth:0,overflow:'hidden'}}>
                     <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4}}>
@@ -3097,7 +3116,7 @@ export default function DashboardPage() {
                               <div style={{padding:'14px',display:'flex',flexDirection:'column',gap:14}}>
                                 {inv.rootCause&&<div style={{marginBottom:10}}><div style={{fontSize:'0.72rem',fontWeight:800,color:'#ff2244',textTransform:'uppercase',letterSpacing:'1px',marginBottom:6}}>Root Cause</div><div style={{padding:'10px 12px',background:'rgba(240,64,94,0.04)',border:'1px solid rgba(240,64,94,0.12)',borderRadius:7}}><WtMarkdown text={inv.rootCause} accent='#ff2244' compact={true} /></div></div>}
                                 {inv.attackerObjective&&<div style={{marginBottom:10,padding:'10px 12px',background:'#ffb30008',border:'1px solid #ffb30020',borderRadius:7,display:'flex',gap:8,alignItems:'flex-start'}}><span style={{fontSize:'1rem',flexShrink:0}}>🎯</span><div><div style={{fontSize:'0.72rem',fontWeight:800,color:'#ffb300',textTransform:'uppercase',letterSpacing:'1px',marginBottom:3}}>Attacker Objective</div><div style={{fontSize:'0.84rem',color:'#ffb300',lineHeight:1.6}}>{inv.attackerObjective}</div></div></div>}
-                                {inv.affectedScope&&<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}><div><div style={{fontSize:'0.8rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Users at Risk</div>{(inv.affectedScope.users||[]).map((u,i)=><div key={i} style={{fontSize:'0.8rem',color:'var(--wt-secondary)',marginBottom:1}}>👤 {u}</div>)}</div><div><div style={{fontSize:'0.8rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Devices at Risk</div>{(inv.affectedScope.devices||[]).map((d,i)=><div key={i} style={{fontSize:'0.8rem',color:'var(--wt-secondary)',marginBottom:1}}>💻 {d}</div>)}</div></div>}
+                                {inv.affectedScope&&<div className='wt-two-col' style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}><div><div style={{fontSize:'0.8rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Users at Risk</div>{(inv.affectedScope.users||[]).map((u,i)=><div key={i} style={{fontSize:'0.8rem',color:'var(--wt-secondary)',marginBottom:1}}>👤 {u}</div>)}</div><div><div style={{fontSize:'0.8rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Devices at Risk</div>{(inv.affectedScope.devices||[]).map((d,i)=><div key={i} style={{fontSize:'0.8rem',color:'var(--wt-secondary)',marginBottom:1}}>💻 {d}</div>)}</div></div>}
                                 {inv.attackTimeline?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#00e5ff',textTransform:'uppercase',marginBottom:6}}>Reconstructed Timeline</div>{inv.attackTimeline.map((ev,i)=>(<div key={i} style={{display:'flex',gap:8,padding:'5px 0',borderBottom:'1px solid var(--wt-border)',alignItems:'flex-start'}}><span style={{fontSize:'0.84rem',fontFamily:"'JetBrains Mono',monospace",color:'#00e5ff',flexShrink:0,minWidth:36}}>{ev.time}</span><div style={{flex:1}}><div style={{fontSize:'0.82rem',fontWeight:600,color:'var(--wt-text)',marginBottom:1}}>{ev.event}</div><div style={{fontSize:'0.84rem',color:'var(--wt-dim)'}}>{ev.significance}</div></div><span style={{fontSize:'0.84rem',color:'#00e5ff',fontWeight:700,flexShrink:0,padding:'1px 5px',background:'#00e5ff12',borderRadius:3}}>{ev.source}</span></div>))}</div>}
                                 {inv.lateralMovementPaths?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#ffb300',textTransform:'uppercase',marginBottom:4}}>Lateral Movement Paths</div>{inv.lateralMovementPaths.map((path,i)=><div key={i} style={{fontSize:'0.8rem',color:'#ffb300',marginBottom:2}}>→ {path}</div>)}</div>}
                                 {inv.remediationSteps?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#00ff88',textTransform:'uppercase',marginBottom:6}}>Remediation Plan</div>{inv.remediationSteps.map((s,i)=>{const pc=s.priority==='Critical'?'#ff2244':s.priority==='High'?'#ffb300':'#ffb300';return(<div key={i} style={{display:'flex',gap:8,padding:'5px 8px',background:`${pc}08`,borderRadius:6,border:`1px solid ${pc}20`,marginBottom:4}}><span style={{fontSize:'0.84rem',fontWeight:700,color:pc,padding:'1px 5px',background:`${pc}15`,borderRadius:3,flexShrink:0,marginTop:2}}>{s.priority}</span><div><div style={{fontSize:'0.82rem',color:'var(--wt-text)',fontWeight:600}}>{s.action}</div><div style={{fontSize:'0.82rem',color:'var(--wt-dim)'}}>Owner: {s.owner}</div></div></div>);})}</div>}
@@ -3130,7 +3149,7 @@ export default function DashboardPage() {
                     OT-safe APEX triage (never auto-isolates live devices), cross-zone anomaly detection,
                     and IEC 62443 compliance posture.
                   </p>
-                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:24,textAlign:'left'}}>
+                  <div className='wt-two-col' style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:24,textAlign:'left'}}>
                     {[['Purdue Model Map','Interactive L0–L4 zone diagram'],['OT Asset Inventory','PLCs, RTUs, HMIs, SCADA servers'],['OT-Safe APEX Triage','Never auto-isolates live process devices'],['Claroty + Nozomi','OT-specific alert ingestion'],['Dragos + Armis','ICS threat detection'],['Cross-zone Anomalies','IT→OT bypass detection']].map(([t,d])=>(
                       <div key={t} style={{padding:'10px 12px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:8}}>
                         <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:2}}>{t}</div>
@@ -3347,7 +3366,7 @@ export default function DashboardPage() {
               <div>
                 <div style={{fontSize:'0.82rem',fontWeight:700,marginBottom:8}}>Step 1 — Connect your first integration</div>
                 <div style={{fontSize:'0.82rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:16}}>Watchtower connects to your existing tools — CrowdStrike, Tenable, Splunk, Sentinel, and 14 others. Click "+ Connect" on any tool to add your credentials.</div>
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:16}}>
+                <div className='wt-two-col' style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:16}}>
                   {[{id:'crowdstrike',name:'CrowdStrike Falcon',cat:'EDR',color:'#ff2244'},{id:'tenable',name:'Tenable.io',cat:'Vuln',color:'#00b3e3'},{id:'splunk',name:'Splunk SIEM',cat:'SIEM',color:'#65a637'},{id:'sentinel',name:'Microsoft Sentinel',cat:'SIEM',color:'#00e5ff'}].map(t=>(
                     <div key={t.id} style={{padding:'10px 12px',background:'var(--wt-card)',border:`1px solid ${t.color}20`,borderRadius:8,display:'flex',alignItems:'center',gap:8}}>
                       <div style={{width:8,height:8,borderRadius:'50%',background:connectedTools[t.id]?'#00ff88':'#252e42',flexShrink:0}} />
@@ -3544,7 +3563,7 @@ export default function DashboardPage() {
       {/* Alerts Ingested Modal */}
       {modal?.type==='alerts-ingested' && (
         <Modal title={`Alert Ingestion — What AI Did`} onClose={()=>setModal(null)}>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:16}} className='wt-three-col'>
+          <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:16}} className='wt-three-col'>
             {[{val:alerts.length,label:'Ingested',c:'#00e5ff'},{val:fpAlerts.length,label:'Auto-Closed FPs',c:'#00ff88'},{val:tpAlerts.length,label:'Escalated TPs',c:'#ff2244'}].map(s=>(
               <div key={s.label} style={{textAlign:'center',padding:'10px',background:'var(--wt-bg)',borderRadius:8,border:'1px solid var(--wt-border)'}}>
                 <div style={{fontSize:'1.6rem',fontWeight:900,fontFamily:"'JetBrains Mono',monospace",color:s.c,letterSpacing:-1}}>{s.val}</div>
@@ -3788,7 +3807,7 @@ export default function DashboardPage() {
           <div onClick={()=>setShowMobileMore(false)} style={{position:'fixed',inset:0,zIndex:300,background:'rgba(0,0,0,0.6)'}}>
             <div onClick={e=>e.stopPropagation()} style={{position:'absolute',bottom:64,left:0,right:0,background:'var(--wt-sidebar)',borderTop:'1px solid var(--wt-border2)',borderRadius:'16px 16px 0 0',padding:'12px 0 8px'}}>
               <div style={{width:36,height:4,borderRadius:2,background:'var(--wt-border2)',margin:'0 auto 12px'}} />
-              <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:0}}>
+              <div className='wt-four-col' style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:0}}>
                 {[
                   {t:'coverage',i:'🛡',l:'Coverage'},
                   {t:'vulns',i:'🔍',l:'Vulns'},

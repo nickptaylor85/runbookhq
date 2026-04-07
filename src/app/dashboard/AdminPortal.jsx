@@ -26,7 +26,7 @@ function AnalyticsView() {
 
   return (
     <div style={{display:'flex',flexDirection:'column',gap:14}}>
-      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+      <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
         {stats.map(s=>(
           <div key={s.label} style={{padding:'14px 16px',background:'var(--wt-card)',border:`1px solid ${s.color}18`,borderRadius:12}}>
             <div style={{fontSize:'1.8rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.color,letterSpacing:-2,lineHeight:1}}>{s.val}</div>
@@ -367,7 +367,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
       <SignupToggle />
       <OTLicensePanel tenantId={currentTenant} />
 
-      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+      <div className='wt-four-col' style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
         {[
           {label:'Total MRR',      val:`£${totalMRR.toLocaleString()}`, sub:'monthly recurring', color:'#22d49a'},
           {label:'Active Orgs',    val:activeSubs.length,  sub:`${WTC_SUBSCRIBERS.length} total`, color:'#4f8fff'},
@@ -445,7 +445,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
           <div style={{background:'var(--wt-card)',border:'1px solid #4f8fff20',borderRadius:12,padding:'18px 20px'}}>
             <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:4}}>Invite or Create Staff User</div>
             <div style={{fontSize:'0.7rem',color:'var(--wt-muted)',marginBottom:14,lineHeight:1.6}}>Add a team member. Set a temp password to let them log in immediately, or leave blank to send an invite link.</div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 140px 140px 110px',gap:10,alignItems:'flex-end',flexWrap:'wrap'}}>
+            <div className='wt-admin-grid' style={{display:'grid',gridTemplateColumns:'1fr 1fr 140px 140px 110px',gap:10,alignItems:'flex-end',flexWrap:'wrap'}}>
               <div>
                 <label style={{display:'block',fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Full Name</label>
                 <input value={inviteForm.name} onChange={e=>setInviteForm(f=>({...f,name:e.target.value}))}
@@ -514,7 +514,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
           </div>
 
           {/* Role capability guide */}
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+          <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
             {[
               {role:'Tech Admin', color:'#4f8fff', icon:'⚙️', caps:[
                 'All customer account adds, moves, changes',
@@ -701,7 +701,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
           <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'18px 20px'}}>
             <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:14}}>Create New Tenant</div>
 
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:12}}>
+            <div className='wt-two-col' style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:12}}>
               <div>
                 <label style={{display:'block',fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Tenant Name</label>
                 <input
@@ -1067,7 +1067,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
       {adminView==='platform' && (
         <div style={{display:'flex',flexDirection:'column',gap:14}}>
           {/* Stats grid */}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}}>
+        <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10}}>
           {[
             {label:'API Calls Today',val:'12,847',color:'#4f8fff',sub:'↑ 8% vs yesterday'},
             {label:'AI Tokens Used',val:'4.2M',color:'#8b6fff',sub:'across all tenants'},
@@ -1100,7 +1100,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
               Connect your Stripe account to enable subscription payments. Keys are encrypted at rest.
               <a href='https://dashboard.stripe.com/apikeys' target='_blank' rel='noopener' style={{color:'#4f8fff',marginLeft:6}}>Get your keys →</a>
             </div>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
+            <div className='wt-two-col' style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}}>
               {[
                 {key:'publishableKey', label:'Publishable Key', placeholder:'pk_live_...', hint:'Safe to use in browser'},
                 {key:'secretKey', label:'Secret Key', placeholder:'sk_live_...', hint:'Never share — server only', secret:true},
@@ -1152,7 +1152,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
             </div>
           </div>
 
-          <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+          <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
             {[
               {plan:'Enterprise', price:'£3,499/mo', id:stripeConfig.priceMssp, color:'#8b6fff'},
               {plan:'Professional', price:'£1,199/mo', id:stripeConfig.priceBusiness, color:'#22d49a'},
@@ -1184,7 +1184,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
               Users without accounts are auto-provisioned with the default role.
             </div>
 
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:12}}>
+            <div className='wt-two-col' style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:12}}>
               {[
                 {key:'idpEntityId', label:'IdP Entity ID', placeholder:'https://your-idp.okta.com/...'},
                 {key:'idpSsoUrl', label:'IdP SSO URL (POST binding)', placeholder:'https://your-idp.okta.com/app/.../sso/saml'},
@@ -1219,7 +1219,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
 
             <div style={{marginBottom:16,padding:'12px 14px',background:'var(--wt-card2)',borderRadius:8,border:'1px solid var(--wt-border)'}}>
               <div style={{fontSize:'0.7rem',fontWeight:700,marginBottom:6}}>Attribute Mapping</div>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+              <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
                 {[['email','Email attribute','email'],['name','Name attribute','displayName'],['role','Role attribute (optional)','role']].map(([key,lbl,ph])=>(
                   <div key={key}>
                     <label style={{display:'block',fontSize:'0.6rem',fontWeight:600,color:'var(--wt-dim)',marginBottom:3}}>{lbl}</label>
@@ -1303,7 +1303,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
             <button onClick={fetchAiLog} disabled={aiLogLoading} style={{marginLeft:'auto',padding:'4px 12px',borderRadius:5,border:'1px solid #4f8fff28',background:'#4f8fff0a',color:'#4f8fff',fontSize:'0.64rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{aiLogLoading?'Loading…':'⟳ Refresh'}</button>
           </div>
           {aiLog && aiLog.stats && (
-            <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+            <div className='wt-four-col' style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
               {[{l:'Total',v:aiLog.stats.total,c:'#4f8fff'},{l:'OK',v:aiLog.stats.ok,c:'#22d49a'},{l:'Errors',v:aiLog.stats.errors,c:'#f0405e'},{l:'Avg ms',v:aiLog.stats.avgDurationMs,c:'#f0a030'}].map(s=>(
                 <div key={s.l} style={{padding:'10px',background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:8,textAlign:'center'}}>
                   <div style={{fontSize:'1.3rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.c}}>{s.v}</div>

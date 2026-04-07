@@ -288,7 +288,7 @@ export default function OTTab({ tenantId, connectedTools = {}, demoMode, theme }
     ),
 
     /* Stat tiles */
-    React.createElement('div', { style:{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:8 } },
+    React.createElement('div', { className:'wt-five-col', style:{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:8 } },
       [
         { label:'OT Assets', val:assets.length, color:'#4f8fff' },
         { label:'Active OT Alerts', val:alerts.length, color:'#f0405e' },
@@ -472,7 +472,7 @@ export default function OTTab({ tenantId, connectedTools = {}, demoMode, theme }
       /* MW form */
       showMWForm && React.createElement('div', { style:{ padding:16, background:'var(--wt-card)', border:'1px solid #8b6fff30', borderRadius:10 } },
         React.createElement('div', { style:{ fontSize:'0.82rem', fontWeight:700, marginBottom:10 } }, 'New Maintenance Window'),
-        React.createElement('div', { style:{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:10 } },
+        React.createElement('div', { className:'wt-three-col', style:{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:10 } },
           React.createElement('div', null,
             React.createElement('label', { style:{ fontSize:'0.7rem', color:'var(--wt-muted)', display:'block', marginBottom:3 } }, 'Name'),
             React.createElement('input', { value:mwForm.name, onChange: function(e) { setMwForm(function(f) { return {...f, name:e.target.value}; }); }, placeholder:'e.g. PLC firmware update', style:inp })
@@ -597,7 +597,7 @@ export default function OTTab({ tenantId, connectedTools = {}, demoMode, theme }
               totalCVEs > 0 && React.createElement('span', { style:{ fontSize:'0.72rem', color:'#8b6fff', background:'#8b6fff12', padding:'1px 6px', borderRadius:3 } }, totalCVEs + ' CVEs')
             )
           ),
-          React.createElement('div', { style:{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:0 } },
+          React.createElement('div', { className:'wt-seven-col', style:{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:0 } },
             frs.map(function(fr) {
               const gap = fr.currentSL < fr.targetSL;
               const slColor = fr.currentSL >= 3 ? '#22d49a' : fr.currentSL === 2 ? '#f0a030' : '#f0405e';

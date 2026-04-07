@@ -34,7 +34,7 @@ export default function VulnsTab({
                     </div>
                     {selectedVuln?.id===vuln.id && (
                       <div style={{padding:'14px 16px',background:'#070912',border:'1px solid #4f8fff20',borderTop:'none',borderRadius:'0 0 10px 10px',marginBottom:0}}>
-                        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+                        <div className='wt-two-col' style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
                           <div>
                             <div style={{fontSize:'0.7rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:10}}>{vuln.description}</div>
                             <div style={{fontSize:'0.6rem',fontWeight:700,color:'var(--wt-dim)',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>Affected Devices</div>

@@ -815,7 +815,7 @@ export default function AlertsTab({
                     </div>
                     {blastIsLoading && <div style={{padding:'10px 12px',fontSize:'0.72rem',color:'var(--wt-muted)',display:'flex',alignItems:'center',gap:8}}><span style={{width:10,height:10,borderRadius:'50%',border:'2px solid #f0405e',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>Mapping blast radius…</div>}
                     {blastResult && (
-                      <div style={{padding:'10px 12px',display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+                      <div className='wt-two-col' style={{padding:'10px 12px',display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
                         {blastResult.affectedScope && (
                           <div>
                             <div style={{fontSize:'0.54rem',fontWeight:700,color:'#f0405e',marginBottom:4,textTransform:'uppercase',letterSpacing:'0.5px'}}>Affected Scope</div>

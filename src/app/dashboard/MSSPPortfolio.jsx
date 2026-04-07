@@ -130,7 +130,7 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
       {showBrandingConfig && (
         <div style={{padding:'14px 16px',background:'var(--wt-card)',border:'1px solid #8b6fff25',borderRadius:10}}>
           <div style={{fontSize:'0.7rem',fontWeight:700,marginBottom:10,color:'#8b6fff'}}>🎨 White-Label Branding</div>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,marginBottom:10}}>
+          <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,marginBottom:10}}>
             {[{k:'name',label:'Product Name',ph:'CyberGuard SOC'},{k:'tagline',label:'Tagline',ph:'Powered by AI'},{k:'primaryColor',label:'Brand Colour',ph:'#8b6fff'}].map(f=>(
               <div key={f.k}>
                 <div style={{fontSize:'0.6rem',color:'var(--wt-muted)',marginBottom:3}}>{f.label}</div>
@@ -243,7 +243,7 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
 
       {/* Security summary stats */}
       {portfolioView==='security' && (
-        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+        <div className='wt-four-col' style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
           {[
             {label:'Active Incidents',  val:MY_CLIENTS.reduce((s,c)=>s+c.incidents,0),  color:'#f0405e'},
             {label:'Critical Alerts',   val:MY_CLIENTS.reduce((s,c)=>s+c.critAlerts,0), color:'#f0405e'},
@@ -260,7 +260,7 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
 
       {/* Revenue summary */}
       {portfolioView==='revenue' && (
-        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
+        <div className='wt-four-col' style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>
           {[
             {label:'Monthly Recurring Revenue', val:`£${totalMRR.toLocaleString()}`, sub:'MRR', color:'#22d49a'},
             {label:'Annual Recurring Revenue',  val:`£${(totalMRR*12/1000).toFixed(1)}k`, sub:'ARR', color:'#4f8fff'},
@@ -278,7 +278,7 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
 
       {/* Usage summary */}
       {portfolioView==='usage' && (
-        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
+        <div className='wt-three-col' style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8}}>
           {[
             {label:'Total Alerts This Week',  val:MY_CLIENTS.reduce((s,c)=>s+c.alerts,0),   color:'#4f8fff'},
             {label:'AI Auto-Closed',          val:Math.round(MY_CLIENTS.reduce((s,c)=>s+c.alerts,0)*0.68)+' FPs', color:'#22d49a'},
@@ -352,7 +352,7 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
             {/* Expanded detail */}
             {isSel && (
               <div style={{borderTop:'1px solid var(--wt-border)',padding:'14px 16px',background:'var(--wt-card2)'}}>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,marginBottom:14}}>
+                <div className='wt-four-col' style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8,marginBottom:14}}>
                   {[
                     {label:'Contract Start',val:client.contractStart,c:'var(--wt-secondary)'},
                     {label:'Next Renewal',  val:client.renewalDate,  c:renewalColor},

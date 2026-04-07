@@ -462,11 +462,11 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
     <div style={{display:'flex',flexDirection:'column',gap:14}}>
 
       {/* Header row */}
-      <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+      <div className='wt-tool-header' style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
         <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Integrations</h2>
         <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{Object.keys(connected).length} connected</span>
         {isCommunity && <span style={{fontSize:'0.62rem',color:'#f0a030',background:'#f0a03012',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025'}}>{connectedCount}/2 tools — <a href='/pricing' style={{color:'#f0a030',textDecoration:'underline'}}>upgrade for unlimited</a></span>}
-        <div style={{display:'flex',gap:6,marginLeft:'auto',flexWrap:'wrap',alignItems:'center'}}>
+        <div className='wt-tool-filters' style={{display:'flex',gap:6,marginLeft:'auto',flexWrap:'wrap',alignItems:'center'}}>
           <div style={{position:'relative'}}>
             <span style={{position:'absolute',left:8,top:'50%',transform:'translateY(-50%)',fontSize:'0.7rem',color:'var(--wt-muted)',pointerEvents:'none'}}>🔍</span>
             <input type='text' placeholder='Search tools...' value={toolSearch} onChange={e=>setToolSearch(e.target.value)}
@@ -650,7 +650,7 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
           {syncLog&&syncLog.length>0 ? syncLog.slice().reverse().map((entry,i)=>{
             const toolColor = entry.toolId==='tenable'?'#00b3e3':entry.toolId==='crowdstrike'?'#f0405e':entry.toolId==='sentinel'?'#4f8fff':entry.toolId==='splunk'?'#65a637':entry.toolId==='defender'?'#00a4ef':entry.toolId==='sentinelone'?'#8c2be2':'#7c6aff';
             return (
-              <div key={i} style={{display:'grid',gridTemplateColumns:'58px 110px 1fr 55px',alignItems:'center',gap:6,padding:'4px 14px',borderBottom:'1px solid #0d1520',background:entry.error?'#f0405e06':i===0?'#0a1525':'transparent'}}>
+              <div key={i} className='wt-sync-row' style={{display:'grid',gridTemplateColumns:'58px 110px 1fr 55px',alignItems:'center',gap:6,padding:'4px 14px',borderBottom:'1px solid #0d1520',background:entry.error?'#f0405e06':i===0?'#0a1525':'transparent'}}>
                 <span style={{color:'#3a4a5e',fontSize:'0.54rem'}}>{new Date(entry.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>
                 <span style={{color:toolColor,fontWeight:700,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{entry.toolId}</span>
                 {entry.error
