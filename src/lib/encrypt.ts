@@ -4,7 +4,10 @@ import { createCipheriv, createDecipheriv, randomBytes, createHmac } from 'crypt
 function getKey(): Buffer {
   const key = process.env.WATCHTOWER_ENCRYPT_KEY;
   if (!key || key.length < 32) {
-    // Fallback for dev — NOT secure for production
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('FATAL: WATCHTOWER_ENCRYPT_KEY must be set in production (64-char hex string)');
+    }
+    // Dev-only deterministic key — NEVER used in production
     return Buffer.from('watchtower-dev-key-not-for-prod!!', 'utf8').subarray(0, 32);
   }
   return Buffer.from(key.slice(0, 64), 'hex');

@@ -25,11 +25,11 @@ export async function POST(req: NextRequest) {
     // Until xmldsig verification is implemented, reject all SAML responses to prevent
     // account takeover via forged assertions. SAML SSO must remain disabled.
     return NextResponse.redirect(`${base}/login?error=saml_signature_verification_required`);
-    // eslint-disable-next-line no-unreachable
+
+    /* ── Unreachable until signature verification is implemented ──────────
     const attrs = parseSamlResponse(samlResponse, config);
     if (!attrs) return NextResponse.redirect(`${base}/login?error=saml_parse_failed`);
 
-    // Find or create user
     let user = await getUserByEmail(tenantId, attrs.email);
     if (!user) {
       user = await createUser(tenantId, {
@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
       sameSite: 'lax', maxAge: 86400, path: '/',
     });
     return res;
+    ──────────────────────────────────────────────────────────────────── */
   } catch (e: any) {
     return NextResponse.redirect(`${base}/login?error=saml_error`);
   }

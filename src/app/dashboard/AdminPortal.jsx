@@ -6,7 +6,7 @@ function AnalyticsView() {
   const [data, setData] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   React.useEffect(()=>{
-    fetch('/api/admin/analytics',{headers:{'x-is-admin':'true'}})
+    fetch('/api/admin/analytics')
       .then(r=>r.json()).then(d=>{ setData(d); setLoading(false); }).catch(()=>setLoading(false));
   },[]);
 
@@ -107,13 +107,13 @@ function OTLicensePanel({ tenantId }) {
   const [loaded, setLoaded] = useState(false);
   const [deviceLimit, setDeviceLimit] = useState('0');
   useEffect(()=>{
-    fetch('/api/ot/license',{headers:{'x-is-admin':'true','x-tenant-id':tenantId||'global'}})
+    fetch('/api/ot/license',{headers:{'x-tenant-id':tenantId||'global'}})
       .then(r=>r.json()).then(d=>{ if(d.ok){setLicense(d);setDeviceLimit(String(d.deviceLimit||0));} setLoaded(true); }).catch(()=>setLoaded(true));
   },[tenantId]);
   const save = async (enabled) => {
     setSaving(true);
     const limit = parseInt(deviceLimit,10)||0;
-    const r = await fetch('/api/ot/license',{method:'POST',headers:{'Content-Type':'application/json','x-is-admin':'true','x-tenant-id':tenantId||'global'},body:JSON.stringify({enabled,deviceLimit:limit})});
+    const r = await fetch('/api/ot/license',{method:'POST',headers:{'Content-Type':'application/json','x-tenant-id':tenantId||'global'},body:JSON.stringify({enabled,deviceLimit:limit})});
     const d = await r.json();
     if(d.ok) setLicense(d);
     setSaving(false);
@@ -152,11 +152,11 @@ function SignupToggle() {
   const [loaded, setLoaded] = useState(false);
   const [waitlistCount, setWaitlistCount] = useState(0);
   useEffect(()=>{
-    fetch('/api/admin/platform',{headers:{'x-is-admin':'true'}}).then(r=>r.json()).then(d=>{
+    fetch('/api/admin/platform').then(r=>r.json()).then(d=>{
       if (typeof d.signup_enabled === 'boolean') setEnabled(d.signup_enabled);
       setLoaded(true);
     }).catch(()=>setLoaded(true));
-    fetch('/api/waitlist',{headers:{'x-is-admin':'true'}}).then(r=>r.json()).then(d=>{
+    fetch('/api/waitlist').then(r=>r.json()).then(d=>{
       if (d.count) setWaitlistCount(d.count);
     }).catch(()=>{});
   },[]);
@@ -263,7 +263,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
     setAiLogLoading(true);
     try {
       // Always fetch global tenant for AI log — entries are logged under admin's own tenant
-      const r = await fetch('/api/ai/ailog?limit=200', {headers:{'x-is-admin':'true','x-tenant-id':'global'}});
+      const r = await fetch('/api/ai/ailog?limit=200', {headers:{'x-tenant-id':'global'}});
       if (r.ok) {
         const d = await r.json();
         if (d.ok) setAiLog(d);
@@ -413,7 +413,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
               <div style={{textAlign:'center',fontSize:'0.74rem',fontWeight:700,fontFamily:'JetBrains Mono,monospace',color:sub.posture>=85?'#22d49a':sub.posture>=70?'#f0a030':sub.posture>0?'#f0405e':'var(--wt-dim)'}}>{sub.posture>0?sub.posture+'%':'—'}</div>
               <div style={{display:'flex',gap:4,justifyContent:'flex-end'}}>
                 {sub.status!=='Churned' && <button onClick={async()=>{
-                    await fetch('/api/admin/impersonate',{method:'POST',headers:{'Content-Type':'application/json','x-is-admin':'true','x-user-id':'admin','x-tenant-id':currentTenant||'global'},body:JSON.stringify({targetTenantId:sub.id,targetTenantName:sub.name})}).catch(()=>{});
+                    await fetch('/api/admin/impersonate',{method:'POST',headers:{'Content-Type':'application/json','x-user-id':'admin','x-tenant-id':currentTenant||'global'},body:JSON.stringify({targetTenantId:sub.id,targetTenantName:sub.name})}).catch(()=>{});
                     setCurrentTenant(sub.id);setActiveTab('overview');
                   }} style={{padding:'4px 8px',borderRadius:5,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.58rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Impersonate →</button>}
                 <button onClick={()=>setAdminBannerInput(`[${sub.name}] `)} style={{padding:'4px 7px',borderRadius:5,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.58rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📢</button>

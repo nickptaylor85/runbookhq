@@ -1,10 +1,15 @@
 // Sliding window rate limiter using Upstash Redis REST API
 // No @upstash/ratelimit package needed — uses existing REST client pattern
 
-const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || 'https://dominant-polecat-18841.upstash.io';
+const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || '';
 const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || '';
 
 async function redisCommand(...args: (string | number)[]): Promise<unknown> {
+  if (!REDIS_URL || !REDIS_TOKEN) {
+    // Fail open if Redis not configured — log warning
+    console.warn('[ratelimit] Redis not configured, skipping rate limit check');
+    return 0;
+  }
   const res = await fetch(REDIS_URL, {
     method: 'POST',
     headers: { Authorization: `Bearer ${REDIS_TOKEN}`, 'Content-Type': 'application/json' },

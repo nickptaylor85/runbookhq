@@ -19,16 +19,19 @@ export interface WTUser {
 
 const USERS_KEY = (tenantId: string) => `wt:tenant:${tenantId}:users`;
 
+// scrypt params: N=32768 r=8 p=1 → ~256MB memory, strong against GPU attacks
+const SCRYPT_PARAMS = { N: 32768, r: 8, p: 1, maxmem: 512 * 1024 * 1024 };
+
 export function hashPassword(password: string, salt?: string): string {
   const s = salt || randomBytes(16).toString('hex');
-  const hash = scryptSync(password, s, 64, { N: 32768, r: 8, p: 1 }).toString('hex');
+  const hash = scryptSync(password, s, 64, SCRYPT_PARAMS).toString('hex');
   return `scrypt:${s}:${hash}`;
 }
 
 export function verifyPassword(password: string, stored: string): boolean {
   if (stored.startsWith('scrypt:')) {
     const [, salt, hash] = stored.split(':');
-    const derived = scryptSync(password, salt, 64);
+    const derived = scryptSync(password, salt, 64, SCRYPT_PARAMS);
     const storedBuf = Buffer.from(hash, 'hex');
     return timingSafeEqual(derived, storedBuf);
   }

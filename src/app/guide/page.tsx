@@ -116,7 +116,7 @@ Structured triage includes: verdict, confidence, 4-step evidence chain, MITRE ma
       { heading: `Notifications`, body: `Configure Slack webhook URL and email address for critical alert notifications. Toggle the weekly digest on/off. Notifications only fire in Live mode.` },
       { heading: `API Keys`, body: `Generate, list, and revoke named API keys for programmatic access to the Watchtower API. Each key shows its creation date, last-used date, and can be revoked instantly. Professional+ plan.` },
     ],
-  },,
+  },
   {
     id: 'mobile', title: 'Mobile & PWA', icon: '📱',
     items: [
@@ -147,7 +147,7 @@ export default function GuidePage() {
     ? SECTIONS.map(s => ({ ...s, items: s.items.filter(i => i.heading.toLowerCase().includes(search.toLowerCase()) || i.body.toLowerCase().includes(search.toLowerCase())) })).filter(s => s.items.length > 0)
     : SECTIONS;
 
-  const currentSection = filtered.find(s => s.id === activeSection) || filtered[0];
+  const currentSection = filtered.find(s => s.id === activeSection) ?? filtered[0] ?? { id: '', title: '', icon: '', items: [] };
 
   return (
     <div style={{ minHeight: '100vh', background: '#090d18', color: '#e8ecf4', fontFamily: 'Inter,sans-serif', display: 'flex', flexDirection: 'column' }}>

@@ -12,7 +12,7 @@ export default function SalesDashboard() {
 
   // Load live analytics in live mode, fall back to demo data
   useEffect(() => {
-    fetch('/api/admin/analytics', { headers: { 'x-is-admin': 'true' } })
+    fetch('/api/admin/analytics')
       .then(r => r.json())
       .then(d => {
         if (d && (d.mrr !== undefined || d.totalSignups !== undefined)) {

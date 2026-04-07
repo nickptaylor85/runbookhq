@@ -1,8 +1,14 @@
 // Upstash Redis REST client — uses fetch, no npm package required
-const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || 'https://dominant-polecat-18841.upstash.io';
+const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || '';
 const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || '';
 
 async function redisCommand(...args: (string | number)[]): Promise<unknown> {
+  if (!REDIS_URL || !REDIS_TOKEN) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('FATAL: UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN must be set');
+    }
+    throw new Error('Redis not configured — set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN');
+  }
   const res = await fetch(`${REDIS_URL}`, {
     method: 'POST',
     headers: {
