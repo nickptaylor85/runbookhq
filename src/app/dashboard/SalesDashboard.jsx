@@ -137,9 +137,9 @@ QUICK WINS: [2-3 immediate actions this week that could close deals fast]`;
     <div style={{display:'flex',flexDirection:'column',gap:16,overflowX:'hidden',maxWidth:'100%'}}>
       <div style={{display:'flex',alignItems:'center',gap:10}}>
         <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Sales Dashboard</h2>
-        <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4,border:'1px solid #22d49a25',fontWeight:700}}>SALES</span>
-        {liveData && <span style={{fontSize:'0.58rem',color:'#4f8fff',background:'#4f8fff12',padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff25'}}>✦ Live data</span>}
-        {!liveData && !dataLoading && <span style={{fontSize:'0.58rem',color:'#f0a030',background:'#f0a03012',padding:'2px 8px',borderRadius:4}}>Demo data</span>}
+        <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a25',padding:'2px 8px',borderRadius:4,border:'1px solid #22d49a25',fontWeight:700}}>SALES</span>
+        {liveData && <span style={{fontSize:'0.58rem',color:'#4f8fff',background:'#4f8fff25',padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff25'}}>✦ Live data</span>}
+        {!liveData && !dataLoading && <span style={{fontSize:'0.58rem',color:'#f0a030',background:'#f0a03025',padding:'2px 8px',borderRadius:4}}>Demo data</span>}
       </div>
 
       {/* KPI strip */}
@@ -277,7 +277,7 @@ QUICK WINS: [2-3 immediate actions this week that could close deals fast]`;
             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:analysisLoading||aiAnalysis?10:0}}>
               <span style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px'}}>⚡ AI Go-to-Market Strategy</span>
               {analysisLoading && <span style={{fontSize:'0.6rem',color:'#4f8fff',display:'flex',alignItems:'center',gap:4}}><span style={{width:8,height:8,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}} />Generating…</span>}
-              {!analysisLoading && <button onClick={getAiAnalysis} style={{marginLeft:'auto',fontSize:'0.6rem',padding:'3px 10px',borderRadius:5,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:700}}>{aiAnalysis?'↻ Regenerate':'⚡ Generate'}</button>}
+              {!analysisLoading && <button onClick={getAiAnalysis} style={{marginLeft:'auto',fontSize:'0.6rem',padding:'3px 10px',borderRadius:5,border:'1px solid #4f8fff30',background:'#4f8fff25',color:'#4f8fff',cursor:'pointer',fontFamily:'Inter,sans-serif',fontWeight:700}}>{aiAnalysis?'↻ Regenerate':'⚡ Generate'}</button>}
             </div>
             {analysisLoading && (
               <div style={{display:'flex',flexDirection:'column',gap:6}}>

@@ -464,8 +464,8 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
       {/* Header row */}
       <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
         <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Integrations</h2>
-        <span style={{fontSize:'0.62rem',color:'#22d49a',background:'#22d49a12',padding:'2px 8px',borderRadius:4}}>{Object.keys(connected).length} connected</span>
-        {isCommunity && <span style={{fontSize:'0.62rem',color:'#f0a030',background:'#f0a03012',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025'}}>{connectedCount}/2 tools — <a href='/pricing' style={{color:'#f0a030',textDecoration:'underline'}}>upgrade for unlimited</a></span>}
+        <span style={{fontSize:'0.62rem',color:'#22d49a',background:'rgba(34,212,154,0.18)',padding:'2px 8px',borderRadius:4}}>{Object.keys(connected).length} connected</span>
+        {isCommunity && <span style={{fontSize:'0.62rem',color:'#f0a030',background:'rgba(240,160,48,0.18)',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025'}}>{connectedCount}/2 tools — <a href='/pricing' style={{color:'#f0a030',textDecoration:'underline'}}>upgrade for unlimited</a></span>}
         <div style={{display:'flex',gap:6,marginLeft:'auto',flexWrap:'wrap',alignItems:'center'}}>
           <div style={{position:'relative'}}>
             <span style={{position:'absolute',left:8,top:'50%',transform:'translateY(-50%)',fontSize:'0.7rem',color:'var(--wt-muted)',pointerEvents:'none'}}>🔍</span>
@@ -474,13 +474,13 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
             />
           </div>
           {CATEGORIES.map(c=>(
-            <button key={c} onClick={()=>setFilter(c)} style={{padding:'3px 10px',borderRadius:5,border:`1px solid ${filter===c?'#4f8fff40':'var(--wt-border2)'}`,background:filter===c?'#4f8fff18':'transparent',color:filter===c?'#4f8fff':'#6b7a94',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{c}</button>
+            <button key={c} onClick={()=>setFilter(c)} style={{padding:'3px 10px',borderRadius:5,border:`1px solid ${filter===c?'#4f8fff40':'var(--wt-border2)'}`,background:filter===c?'rgba(79,143,255,0.25)':'rgba(14,24,46,0.5)',color:filter===c?'#4f8fff':'#6b7a94',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{c}</button>
           ))}
         </div>
       </div>
 
       {/* Anthropic API Key */}
-      <div style={{padding:'16px',background:'linear-gradient(135deg,rgba(79,143,255,0.13),rgba(139,111,255,0.13))',border:'1px solid #4f8fff25',borderRadius:12}}>
+      <div style={{padding:'16px',background:'linear-gradient(135deg,rgba(16,22,42,0.90),rgba(20,16,40,0.90))',border:'1px solid rgba(79,143,255,0.35)',borderRadius:12}}>
         <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:10}}>
           <div style={{width:8,height:8,borderRadius:'50%',background: aiTestStatus?.ok ? '#22c992' : '#f0a030',boxShadow: aiTestStatus?.ok ? '0 0 6px #22c992' : 'none',flexShrink:0}} />
           <span style={{fontSize:'0.82rem',fontWeight:700}}>AI Engine — Anthropic API Key</span>
@@ -492,7 +492,7 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
           </button>
         </div>
         {aiTestStatus && (
-          <div style={{padding:'8px 10px',borderRadius:7,background: aiTestStatus.ok ? '#22d49a08' : '#f0405e08',border:`1px solid ${aiTestStatus.ok ? '#22d49a20' : '#f0405e20'}`,fontSize:'0.7rem',color: aiTestStatus.ok ? '#22d49a' : '#f0a030',marginBottom:10,lineHeight:1.6}}>
+          <div style={{padding:'8px 10px',borderRadius:7,background: aiTestStatus.ok ? 'rgba(34,212,154,0.15)' : 'rgba(240,64,94,0.15)',border:`1px solid ${aiTestStatus.ok ? '#22d49a20' : '#f0405e20'}`,fontSize:'0.7rem',color: aiTestStatus.ok ? '#22d49a' : '#f0a030',marginBottom:10,lineHeight:1.6}}>
             {aiTestStatus.message}
           </div>
         )}
@@ -517,7 +517,7 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
           <div style={{fontSize:'0.7rem',color:'var(--wt-muted)',lineHeight:1.6}}>
             AI triage, Co-Pilot, and remediation assistant are all active.
           </div>
-          <button onClick={handleRemoveKey} style={{marginTop:8,padding:'5px 12px',borderRadius:7,border:'1px solid #f0405e25',background:'#f0405e0a',color:'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Remove Key</button>
+          <button onClick={handleRemoveKey} style={{marginTop:8,padding:'5px 12px',borderRadius:7,border:'1px solid #f0405e25',background:'rgba(240,64,94,0.15)',color:'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Remove Key</button>
           </>
         )}
       </div>
@@ -551,7 +551,7 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
                 <div style={{flex:1}}>
                   <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:1}}>
                     <span style={{fontSize:'0.82rem',fontWeight:700}}>{tool.name}</span>
-                    <span style={{fontSize:'0.5rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff18'}}>{tool.category}</span>
+                    <span style={{fontSize:'0.5rem',fontWeight:700,padding:'1px 6px',borderRadius:3,background:'#4f8fff25',color:'#4f8fff',border:'1px solid #4f8fff18'}}>{tool.category}</span>
                     {(TOOL_FEEDS[tool.id]||[]).map(feed=>(
                       <span key={feed} style={{fontSize:'0.48rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:feed==='Alerts'?'#f0405e12':feed==='Vulns'?'#8b6fff12':feed==='Coverage'?'#22d49a12':'#f0a03012',color:feed==='Alerts'?'#f0405e':feed==='Vulns'?'#8b6fff':feed==='Coverage'?'#22d49a':'#f0a030',border:`1px solid ${feed==='Alerts'?'#f0405e':feed==='Vulns'?'#8b6fff':feed==='Coverage'?'#22d49a':'#f0a030'}20`}}>{feed}</span>
                     ))}
@@ -577,9 +577,9 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
                     ? <button onClick={()=>{if(window.confirm('Disconnect '+tool.name+'?')) handleDisconnect(tool.id);}} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #f0405e30',background:'#f0405e10',color:'#f0405e',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:5}}>🗑 Disconnect</button>
                     : atToolLimit
                       ? <a href='/pricing' style={{padding:'5px 14px',borderRadius:7,border:'1px solid #f0a03030',background:'#f0a03010',color:'#f0a030',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',textDecoration:'none'}}>🔒 Upgrade</a>
-                      : <button onClick={()=>openModal(tool)} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #4f8fff40',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>+ Connect</button>}
+                      : <button onClick={()=>openModal(tool)} style={{padding:'5px 14px',borderRadius:7,border:'1px solid #4f8fff40',background:'#4f8fff25',color:'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>+ Connect</button>}
                   {isOn && !demoMode && doSync && (
-                    <button onClick={()=>doSync([tool.id])} disabled={isRetrying} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #4f8fff28',background:'#4f8fff0a',color:isRetrying?'var(--wt-dim)':'#4f8fff',fontSize:'0.6rem',fontWeight:700,cursor:isRetrying?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>
+                    <button onClick={()=>doSync([tool.id])} disabled={isRetrying} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #4f8fff28',background:'#4f8fff20',color:isRetrying?'var(--wt-dim)':'#4f8fff',fontSize:'0.6rem',fontWeight:700,cursor:isRetrying?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>
                       {isRetrying ? <span style={{display:'inline-flex',alignItems:'center',gap:4}}><span style={{width:8,height:8,borderRadius:'50%',border:'1.5px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}} />Syncing…</span> : '⟳ Sync'}
                     </button>
                   )}
@@ -674,7 +674,7 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={()=>setModal(null)}>
           <div style={{background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:16,maxWidth:480,width:'100%',padding:24,maxHeight:'85vh',overflow:'auto'}} onClick={e=>e.stopPropagation()}>
             <div style={{fontSize:'0.92rem',fontWeight:800,marginBottom:4}}>Connect {modal.name}</div>
-            <div style={{fontSize:'0.66rem',color:'#22d49a',background:'#22d49a08',border:'1px solid #22d49a20',borderRadius:6,padding:'6px 10px',marginBottom:12,display:'flex',alignItems:'center',gap:6}}>
+            <div style={{fontSize:'0.66rem',color:'#22d49a',background:'#22d49a20',border:'1px solid #22d49a20',borderRadius:6,padding:'6px 10px',marginBottom:12,display:'flex',alignItems:'center',gap:6}}>
               <span>🔒</span> Credentials encrypted at rest with AES-256-GCM — never returned to browser after saving.
             </div>
             <div style={{fontSize:'0.7rem',color:'var(--wt-muted)',marginBottom:18}}>Credentials are sent directly to the integration API for validation and never stored on our servers.</div>
@@ -690,7 +690,7 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
               </div>
             )}
             <div style={{display:'flex',gap:8,marginTop:4}}>
-              <button onClick={handleTest} disabled={testing||Object.keys(formVals).length===0} style={{flex:1,padding:'9px 0',borderRadius:8,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.78rem',fontWeight:700,cursor:testing?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',opacity:testing?0.7:1}}>
+              <button onClick={handleTest} disabled={testing||Object.keys(formVals).length===0} style={{flex:1,padding:'9px 0',borderRadius:8,border:'1px solid #4f8fff30',background:'#4f8fff25',color:'#4f8fff',fontSize:'0.78rem',fontWeight:700,cursor:testing?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',opacity:testing?0.7:1}}>
                 {testing?'Testing…':'Test Connection'}
               </button>
               <button onClick={handleSave} disabled={Object.keys(formVals).length===0} style={{flex:1,padding:'9px 0',borderRadius:8,border:'none',background:Object.keys(formVals).length>0?'#4f8fff':'var(--wt-border2)',color:Object.keys(formVals).length>0?'#fff':'#3a4050',fontSize:'0.78rem',fontWeight:700,cursor:Object.keys(formVals).length>0?'pointer':'not-allowed',fontFamily:'Inter,sans-serif'}}>

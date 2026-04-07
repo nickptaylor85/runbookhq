@@ -492,7 +492,7 @@ export default function AlertsTab({
                 </div>
                 <div style={{display:'flex',gap:5,alignItems:'center',flexWrap:'wrap'}}>
                   <SevBadge sev={alert.severity}/>
-                  <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:'#4f8fff12',color:'#4f8fff',border:'1px solid #4f8fff20'}}>{alert.source}</span>
+                  <span style={{fontSize:'0.52rem',fontWeight:700,padding:'1px 5px',borderRadius:3,background:'#4f8fff25',color:'#4f8fff',border:'1px solid #4f8fff20'}}>{alert.source}</span>
                   {alert.device && <span style={{fontSize:'0.52rem',color:'var(--wt-dim)',fontFamily:'JetBrains Mono,monospace'}}>{alert.device}</span>}
                   {alert.mitre && <span style={{fontSize:'0.48rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{alert.mitre}</span>}
                 </div>
@@ -662,7 +662,7 @@ export default function AlertsTab({
                       </button>
                     )}
                     {!structTriage && !structLoading && !canTeam && !demoMode && (
-                      <div style={{display:'flex',alignItems:'center',gap:10,padding:'8px 14px',borderRadius:8,border:'1px solid #4f8fff20',background:'#4f8fff08',marginBottom:8,cursor:'pointer'}} onClick={()=>window.location.href='/pricing'}>
+                      <div style={{display:'flex',alignItems:'center',gap:10,padding:'8px 14px',borderRadius:8,border:'1px solid #4f8fff20',background:'#4f8fff20',marginBottom:8,cursor:'pointer'}} onClick={()=>window.location.href='/pricing'}>
                         <span style={{fontSize:'0.9rem',opacity:0.5}}>✦</span>
                         <div style={{flex:1}}>
                           <div style={{fontSize:'0.72rem',fontWeight:700,color:'#4f8fff50'}}>APEX Deep Analysis</div>
@@ -673,7 +673,7 @@ export default function AlertsTab({
                     )}
                     {/* Loading state with skeleton */}
                     {structLoading && (
-                      <div style={{display:'flex',flexDirection:'column',gap:8,padding:'12px 16px',borderRadius:8,border:'1px solid #4f8fff20',background:'#4f8fff06',marginBottom:8}}>
+                      <div style={{display:'flex',flexDirection:'column',gap:8,padding:'12px 16px',borderRadius:8,border:'1px solid #4f8fff20',background:'#4f8fff28',marginBottom:8}}>
                         <div style={{display:'flex',alignItems:'center',gap:8}}>
                           <span style={{width:12,height:12,borderRadius:'50%',border:'2px solid #4f8fff',borderTopColor:'transparent',display:'block',animation:'spin 0.7s linear infinite',flexShrink:0}} />
                           <span style={{fontSize:'0.8rem',color:'#4f8fff',fontWeight:600}}>APEX analysing…</span>
@@ -686,7 +686,7 @@ export default function AlertsTab({
                     )}
                     {/* Error state */}
                     {structTriage && structTriage.error && (
-                      <div style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',borderRadius:8,border:'1px solid #f0405e25',background:'#f0405e08',marginBottom:8}}>
+                      <div style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',borderRadius:8,border:'1px solid #f0405e25',background:'#f0405e20',marginBottom:8}}>
                         <span style={{fontSize:'1rem'}}>⚠</span>
                         <div style={{flex:1}}>
                           <div style={{fontSize:'0.72rem',fontWeight:700,color:'#f0405e'}}>APEX analysis failed</div>
@@ -703,7 +703,7 @@ export default function AlertsTab({
                           <span style={{fontSize:'0.6rem',fontWeight:800,padding:'1px 8px',borderRadius:4,background:(structTriage.verdict==='TP'?'#f0405e':structTriage.verdict==='FP'?'#22d49a':'#f0a030')+'18',color:structTriage.verdict==='TP'?'#f0405e':structTriage.verdict==='FP'?'#22d49a':'#f0a030'}}>{structTriage.verdict} · {structTriage.confidence}%</span>
                           {structTriage.mitreMapping?.id && <span style={{fontSize:'0.52rem',color:'#8b6fff',fontFamily:'JetBrains Mono,monospace'}}>{structTriage.mitreMapping.id} — {structTriage.mitreMapping.tactic}</span>}
                           {structTriage.modelVersion && <span style={{fontSize:'0.5rem',color:'var(--wt-dim)',marginLeft:'auto',fontFamily:'JetBrains Mono,monospace'}}>{structTriage.modelVersion}</span>}
-                          <button onClick={()=>{setTriageResults(prev=>{const n={...prev};delete n[alert.id];return n;});fetchTriage(alert);}} style={{padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff25',background:'#4f8fff0a',color:'#4f8fff',fontSize:'0.52rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}} aria-label='Re-run APEX analysis' title='Re-run analysis'>↺ Re-analyse</button>
+                          <button onClick={()=>{setTriageResults(prev=>{const n={...prev};delete n[alert.id];return n;});fetchTriage(alert);}} style={{padding:'2px 8px',borderRadius:4,border:'1px solid #4f8fff25',background:'#4f8fff20',color:'#4f8fff',fontSize:'0.52rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}} aria-label='Re-run APEX analysis' title='Re-run analysis'>↺ Re-analyse</button>
                         </div>
                         <div style={{padding:'10px 12px'}}>
                           <div style={{padding:'10px 12px',background:'rgba(79,143,255,0.10)',border:'1px solid rgba(79,143,255,0.1)',borderRadius:7,marginBottom:12}}><WtMarkdown text={structTriage.analystNarrative || structTriage.reasoning} compact={true} /></div>
@@ -746,7 +746,7 @@ export default function AlertsTab({
                             </div>
                           )}
                           {structTriage.counterarguments?.length > 0 && (
-                            <div style={{marginBottom:8,padding:'8px 10px',background:'#f0a03008',border:'1px solid #f0a03020',borderRadius:6}}>
+                            <div style={{marginBottom:8,padding:'8px 10px',background:'#f0a03020',border:'1px solid #f0a03020',borderRadius:6}}>
                               <div style={{fontSize:'0.54rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>⚖ Counterarguments Considered</div>
                               {structTriage.counterarguments.map((c,i)=>(
                                 <div key={i} style={{fontSize:'0.64rem',color:'#f0a030',marginBottom:2,opacity:0.8}}>• {c}</div>
@@ -754,7 +754,7 @@ export default function AlertsTab({
                             </div>
                           )}
                           {structTriage.escalationTriggers?.length > 0 && (
-                            <div style={{marginBottom:8,padding:'8px 10px',background:'#f0405e06',border:'1px solid #f0405e18',borderRadius:6}}>
+                            <div style={{marginBottom:8,padding:'8px 10px',background:'#f0405e28',border:'1px solid #f0405e18',borderRadius:6}}>
                               <div style={{fontSize:'0.54rem',fontWeight:700,color:'#f0405e',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>🚨 Escalation Triggers</div>
                               {structTriage.escalationTriggers.map((t,i)=>(
                                 <div key={i} style={{fontSize:'0.64rem',color:'#f0405e',marginBottom:2,opacity:0.85}}>• {t}</div>
@@ -762,7 +762,7 @@ export default function AlertsTab({
                             </div>
                           )}
                           {structTriage.campaignIndicators?.length > 0 && (
-                            <div style={{padding:'8px 10px',background:'#8b6fff06',border:'1px solid #8b6fff18',borderRadius:6}}>
+                            <div style={{padding:'8px 10px',background:'#8b6fff28',border:'1px solid #8b6fff18',borderRadius:6}}>
                               <div style={{fontSize:'0.54rem',fontWeight:700,color:'#8b6fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:5}}>🔗 Campaign Indicators</div>
                               {structTriage.campaignIndicators.map((c,i)=>(
                                 <div key={i} style={{fontSize:'0.64rem',color:'#8b6fff',marginBottom:2,opacity:0.85}}>• {c}</div>
@@ -811,7 +811,7 @@ export default function AlertsTab({
                     <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px',borderBottom:'1px solid #f0405e20'}}>
                       <span style={{fontSize:'0.6rem',fontWeight:800,color:'#f0405e',letterSpacing:'0.5px'}}>💥 BLAST RADIUS ANALYSIS</span>
                       {blastResult && <span style={{fontSize:'0.58rem',fontWeight:700,padding:'1px 7px',borderRadius:3,background:(blastResult.estimatedSeverity==='Critical'?'#f0405e':blastResult.estimatedSeverity==='Expanding'?'#f97316':'#22d49a')+'20',color:blastResult.estimatedSeverity==='Critical'?'#f0405e':blastResult.estimatedSeverity==='Expanding'?'#f97316':'#22d49a'}}>{blastResult.estimatedSeverity}</span>}
-                      {!blastResult && <button onClick={()=>fetchBlastRadius(alert)} style={{marginLeft:'auto',padding:'3px 10px',borderRadius:4,border:'1px solid #f0405e30',background:'#f0405e12',color:'#f0405e',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Run Analysis</button>}
+                      {!blastResult && <button onClick={()=>fetchBlastRadius(alert)} style={{marginLeft:'auto',padding:'3px 10px',borderRadius:4,border:'1px solid #f0405e30',background:'#f0405e25',color:'#f0405e',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Run Analysis</button>}
                     </div>
                     {blastIsLoading && <div style={{padding:'10px 12px',fontSize:'0.72rem',color:'var(--wt-muted)',display:'flex',alignItems:'center',gap:8}}><span style={{width:10,height:10,borderRadius:'50%',border:'2px solid #f0405e',borderTopColor:'transparent',display:'block',animation:'spin 0.8s linear infinite'}}/>Mapping blast radius…</div>}
                     {blastResult && (
@@ -843,7 +843,7 @@ export default function AlertsTab({
                             {blastResult.forensicCommands.map((cmd,i)=>(
                               <div key={i} style={{display:'flex',gap:6,alignItems:'flex-start',marginBottom:4}}>
                                 <code style={{flex:1,fontSize:'0.58rem',fontFamily:'JetBrains Mono,monospace',color:'#22c992',background:'#050810',padding:'4px 7px',borderRadius:4,display:'block',wordBreak:'break-all'}}>{cmd}</code>
-                                <button onClick={()=>navigator.clipboard?.writeText(cmd)} style={{padding:'3px 7px',borderRadius:3,border:'1px solid #4f8fff30',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.5rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Copy</button>
+                                <button onClick={()=>navigator.clipboard?.writeText(cmd)} style={{padding:'3px 7px',borderRadius:3,border:'1px solid #4f8fff30',background:'#4f8fff25',color:'#4f8fff',fontSize:'0.5rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Copy</button>
                               </div>
                             ))}
                           </div>
@@ -874,7 +874,7 @@ export default function AlertsTab({
                   ) : (
                     <div style={{display:'flex',alignItems:'flex-start',gap:8}}>
                       {alertNotes[alert.id] ? (
-                        <div style={{flex:1,fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,padding:'7px 10px',background:'#f0a03008',border:'1px solid #f0a03020',borderRadius:7,fontStyle:'italic'}}>
+                        <div style={{flex:1,fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,padding:'7px 10px',background:'#f0a03020',border:'1px solid #f0a03020',borderRadius:7,fontStyle:'italic'}}>
                           "{alertNotes[alert.id]}"
                         </div>
                       ) : (

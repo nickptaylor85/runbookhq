@@ -133,10 +133,10 @@ function OTLicensePanel({ tenantId }) {
         </button>
       </div>
       {license.enabled && (
-        <div style={{padding:'10px 16px',borderTop:'1px solid #8b6fff15',background:'#8b6fff06',display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
+        <div style={{padding:'10px 16px',borderTop:'1px solid #8b6fff30',background:'#8b6fff28',display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
           <span style={{fontSize:'0.72rem',color:'var(--wt-muted)'}}>Device limit:</span>
           <input type='number' min='0' value={deviceLimit} onChange={e=>setDeviceLimit(e.target.value)} style={{width:70,padding:'3px 7px',borderRadius:5,border:'1px solid var(--wt-border)',background:'var(--wt-card)',color:'var(--wt-text)',fontSize:'0.78rem',fontFamily:'JetBrains Mono,monospace'}} />
-          <button onClick={()=>save(true)} disabled={saving} style={{padding:'4px 10px',borderRadius:5,border:'1px solid #8b6fff30',background:'#8b6fff12',color:'#8b6fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Save</button>
+          <button onClick={()=>save(true)} disabled={saving} style={{padding:'4px 10px',borderRadius:5,border:'1px solid #8b6fff30',background:'#8b6fff25',color:'#8b6fff',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Save</button>
           <span style={{marginLeft:'auto',fontSize:'0.76rem',fontFamily:'JetBrains Mono,monospace',color:'#8b6fff',fontWeight:700}}>£{monthly.toLocaleString()}/mo est.</span>
           <span style={{fontSize:'0.68rem',color:'var(--wt-dim)'}}>£999 flat + £{parseInt(deviceLimit,10)||0} devices</span>
         </div>
@@ -186,7 +186,7 @@ function SignupToggle() {
         </button>
       </div>
       {!enabled && waitlistCount > 0 && (
-        <div style={{padding:'8px 16px',borderTop:'1px solid #f0405e15',background:'#f0405e06',display:'flex',alignItems:'center',gap:8}}>
+        <div style={{padding:'8px 16px',borderTop:'1px solid #f0405e30',background:'#f0405e28',display:'flex',alignItems:'center',gap:8}}>
           <span style={{fontSize:'0.72rem',color:'#f0a030'}}>📋</span>
           <span style={{fontSize:'0.72rem',color:'var(--wt-muted)'}}>
             <span style={{fontWeight:700,color:'#f0a030',fontFamily:'JetBrains Mono,monospace'}}>{waitlistCount}</span> email{waitlistCount!==1?'s':''} on waitlist
@@ -352,7 +352,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
         <div>
           <h2 style={{fontSize:'0.88rem',fontWeight:700,display:'flex',alignItems:'center',gap:8}}>
             🔧 Watchtower Admin
-            <span style={{fontSize:'0.62rem',color:'#f0a030',background:'#f0a03012',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025',fontWeight:700}}>PLATFORM ADMIN</span>
+            <span style={{fontSize:'0.62rem',color:'#f0a030',background:'#f0a03025',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025',fontWeight:700}}>PLATFORM ADMIN</span>
           </h2>
           <div style={{fontSize:'0.68rem',color:'var(--wt-muted)',marginTop:3}}>All organisations subscribed to Watchtower · Impersonate any tenant to view their dashboard</div>
         </div>
@@ -672,7 +672,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                           setStaffUsers(prev=>[...prev, user].sort((a,b)=>a.name?.localeCompare(b.name||'')||0));
                         }
                       }}
-                        style={{padding:'3px 8px',borderRadius:5,border:'1px solid #f0405e25',background:'#f0405e08',color:'#f0405e',fontSize:'0.6rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Remove</button>
+                        style={{padding:'3px 8px',borderRadius:5,border:'1px solid #f0405e25',background:'#f0405e20',color:'#f0405e',fontSize:'0.6rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Remove</button>
                     )}
                     {user.status==='Pending' && (
                       <button style={{padding:'3px 8px',borderRadius:5,border:'1px solid #4f8fff30',background:'#4f8fff10',color:'#4f8fff',fontSize:'0.6rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Resend</button>
@@ -689,7 +689,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
         <div style={{display:'flex',flexDirection:'column',gap:16}}>
 
           {/* Header */}
-          <div style={{padding:'12px 16px',background:'#f0a03008',border:'1px solid #f0a03025',borderRadius:10,display:'flex',alignItems:'center',gap:10}}>
+          <div style={{padding:'12px 16px',background:'#f0a03020',border:'1px solid #f0a03025',borderRadius:10,display:'flex',alignItems:'center',gap:10}}>
             <span style={{fontSize:'1.1rem'}}>🏢</span>
             <div>
               <div style={{fontSize:'0.82rem',fontWeight:700,color:'#f0a030'}}>Tenant Provisioning</div>
@@ -729,7 +729,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                 <label style={{fontSize:'0.62rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',letterSpacing:'0.5px'}}>Users (all created as Viewer — no admin access)</label>
                 <button
                   onClick={()=>setTenantForm(f=>({...f,users:[...f.users,{name:'',email:'',password:''}]}))}
-                  style={{marginLeft:'auto',padding:'2px 10px',borderRadius:5,border:'1px solid #4f8fff40',background:'#4f8fff12',color:'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                  style={{marginLeft:'auto',padding:'2px 10px',borderRadius:5,border:'1px solid #4f8fff40',background:'#4f8fff25',color:'#4f8fff',fontSize:'0.68rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                   + Add user
                 </button>
               </div>
@@ -767,7 +767,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                   <button
                     onClick={()=>setTenantForm(f=>({...f,users:f.users.filter((_,j)=>j!==i)}))}
                     disabled={tenantForm.users.length<=1}
-                    style={{width:28,height:28,borderRadius:6,border:'1px solid #f0405e25',background:'#f0405e08',color:'#f0405e',fontSize:'0.8rem',cursor:tenantForm.users.length<=1?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',opacity:tenantForm.users.length<=1?0.3:1}}>
+                    style={{width:28,height:28,borderRadius:6,border:'1px solid #f0405e25',background:'#f0405e20',color:'#f0405e',fontSize:'0.8rem',cursor:tenantForm.users.length<=1?'not-allowed':'pointer',fontFamily:'Inter,sans-serif',opacity:tenantForm.users.length<=1?0.3:1}}>
                     ✕
                   </button>
                 </div>
@@ -803,7 +803,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
 
           {/* Success — show credentials */}
           {createdTenantResult && (
-            <div style={{background:'#22d49a08',border:'1px solid #22d49a30',borderRadius:12,padding:'16px 18px'}}>
+            <div style={{background:'#22d49a20',border:'1px solid #22d49a30',borderRadius:12,padding:'16px 18px'}}>
               <div style={{fontSize:'0.78rem',fontWeight:700,color:'#22d49a',marginBottom:10}}>✓ Tenant provisioned — share these credentials securely</div>
               <div style={{marginBottom:8}}>
                 <span style={{fontSize:'0.66rem',color:'var(--wt-dim)',textTransform:'uppercase',fontWeight:700,letterSpacing:'0.5px'}}>Login URL</span>
@@ -883,7 +883,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                         const r=await fetch('/api/admin/tenants?id='+t.id,{method:'DELETE'});
                         if(r.ok){setTenants(prev=>prev.filter(x=>x.id!==t.id));if(managingTenant&&managingTenant.id===t.id)setManagingTenant(null);}
                       }}
-                      style={{padding:'3px 8px',borderRadius:5,border:'1px solid #f0405e30',background:'#f0405e08',color:'#f0405e',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+                      style={{padding:'3px 8px',borderRadius:5,border:'1px solid #f0405e30',background:'#f0405e20',color:'#f0405e',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
                       Delete
                     </button>
                   </div>
@@ -916,7 +916,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
                             const r=await fetch('/api/admin/tenants',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({tenantId:t.id,action:'set_settings',userTier:newTier})});
                             if(r.ok) setManagingTenant(prev=>({...prev,settings:{...prev.settings,userTier:newTier}}));
                           }}
-                          style={{padding:'3px 8px',borderRadius:5,border:'1px solid #f0a03040',background:'#f0a03012',color:'#f0a030',fontSize:'0.68rem',fontFamily:'Inter,sans-serif',outline:'none',cursor:'pointer'}}>
+                          style={{padding:'3px 8px',borderRadius:5,border:'1px solid #f0a03040',background:'#f0a03025',color:'#f0a030',fontSize:'0.68rem',fontFamily:'Inter,sans-serif',outline:'none',cursor:'pointer'}}>
                           <option value='community'>Community</option>
                           <option value='team'>Team</option>
                           <option value='business'>Business</option>
@@ -1094,7 +1094,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
           <div style={{padding:'16px 18px',background:'var(--wt-card)',border:'1px solid #8b6fff20',borderRadius:12}}>
             <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:4,display:'flex',alignItems:'center',gap:8}}>
               💳 Stripe Configuration
-              {stripeConfig.publishableKey && stripeConfig.publishableKey !== '••••••••' && <span style={{fontSize:'0.58rem',color:'#22d49a',background:'#22d49a12',padding:'2px 7px',borderRadius:4,border:'1px solid #22d49a25'}}>✓ Configured</span>}
+              {stripeConfig.publishableKey && stripeConfig.publishableKey !== '••••••••' && <span style={{fontSize:'0.58rem',color:'#22d49a',background:'#22d49a25',padding:'2px 7px',borderRadius:4,border:'1px solid #22d49a25'}}>✓ Configured</span>}
             </div>
             <div style={{fontSize:'0.7rem',color:'var(--wt-muted)',marginBottom:18,lineHeight:1.6}}>
               Connect your Stripe account to enable subscription payments. Keys are encrypted at rest.
@@ -1276,9 +1276,9 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
             <textarea value={adminBannerInput} onChange={e=>setAdminBannerInput(e.target.value)} placeholder='e.g. Scheduled maintenance Sunday 02:00–04:00 UTC…' rows={3} style={{width:'100%',padding:'10px 12px',borderRadius:8,border:'1px solid var(--wt-border2)',background:'var(--wt-card2)',color:'var(--wt-text)',fontSize:'0.78rem',fontFamily:'Inter,sans-serif',resize:'none',outline:'none',boxSizing:'border-box'}} />
             <div style={{display:'flex',gap:8,marginTop:10}}>
               <button onClick={()=>{if(!adminBannerInput.trim())return;setClientBanner(adminBannerInput.trim());setAdminBannerInput('');fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientBanner:adminBannerInput.trim()})}).catch(()=>{});}} style={{padding:'8px 20px',borderRadius:8,border:'none',background:'#f0a030',color:'#fff',fontSize:'0.78rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>📢 Publish Platform-Wide</button>
-              {clientBanner && <button onClick={()=>{setClientBanner(null);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientBanner:''})}).catch(()=>{});}} style={{padding:'8px 16px',borderRadius:8,border:'1px solid #f0405e30',background:'#f0405e0a',color:'#f0405e',fontSize:'0.78rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✕ Clear</button>}
+              {clientBanner && <button onClick={()=>{setClientBanner(null);fetch('/api/settings/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clientBanner:''})}).catch(()=>{});}} style={{padding:'8px 16px',borderRadius:8,border:'1px solid #f0405e30',background:'#f0405e20',color:'#f0405e',fontSize:'0.78rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>✕ Clear</button>}
             </div>
-            {clientBanner && <div style={{marginTop:10,padding:'10px 14px',background:'#f0a03012',border:'1px solid #f0a03030',borderRadius:8,fontSize:'0.74rem',color:'#f0a030'}}>📢 Active: {clientBanner}</div>}
+            {clientBanner && <div style={{marginTop:10,padding:'10px 14px',background:'#f0a03025',border:'1px solid #f0a03030',borderRadius:8,fontSize:'0.74rem',color:'#f0a030'}}>📢 Active: {clientBanner}</div>}
           </div>
           <div style={{background:'var(--wt-card)',border:'1px solid var(--wt-border)',borderRadius:12,padding:'16px 18px'}}>
             <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:12}}>Target Specific Subscriber</div>
@@ -1300,7 +1300,7 @@ export default function AdminPortal({ setCurrentTenant, setActiveTab, clientBann
           <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
             <h3 style={{fontSize:'0.88rem',fontWeight:700}}>AI Query Log</h3>
             <span style={{fontSize:'0.62rem',color:'var(--wt-muted)'}}>Every AI call through Watchtower — admin only</span>
-            <button onClick={fetchAiLog} disabled={aiLogLoading} style={{marginLeft:'auto',padding:'4px 12px',borderRadius:5,border:'1px solid #4f8fff28',background:'#4f8fff0a',color:'#4f8fff',fontSize:'0.64rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{aiLogLoading?'Loading…':'⟳ Refresh'}</button>
+            <button onClick={fetchAiLog} disabled={aiLogLoading} style={{marginLeft:'auto',padding:'4px 12px',borderRadius:5,border:'1px solid #4f8fff28',background:'#4f8fff20',color:'#4f8fff',fontSize:'0.64rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>{aiLogLoading?'Loading…':'⟳ Refresh'}</button>
           </div>
           {aiLog && aiLog.stats && (
             <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:8}}>

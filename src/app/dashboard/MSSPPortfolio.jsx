@@ -107,13 +107,13 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
         <div style={{flex:1}}>
           <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:3}}>
             <h2 style={{fontSize:'0.88rem',fontWeight:700,margin:0}}>Client Portfolio</h2>
-            <span style={{fontSize:'0.58rem',color:'#8b6fff',background:'#8b6fff12',padding:'2px 8px',borderRadius:4,border:'1px solid #8b6fff25',fontWeight:700}}>MSSP</span>
+            <span style={{fontSize:'0.58rem',color:'#8b6fff',background:'#8b6fff25',padding:'2px 8px',borderRadius:4,border:'1px solid #8b6fff25',fontWeight:700}}>MSSP</span>
             {msspBranding?.name&&<span style={{fontSize:'0.58rem',color:'#8b6fff',opacity:0.7}}>· {msspBranding.name}</span>}
-            <button onClick={()=>setShowBrandingConfig(s=>!s)} style={{fontSize:'0.54rem',padding:'1px 6px',borderRadius:3,border:'1px solid #8b6fff25',background:'#8b6fff0a',color:'#8b6fff',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🎨 Branding</button>
-            <button onClick={()=>setShowSlugManager(s=>!s)} style={{fontSize:'0.54rem',padding:'1px 6px',borderRadius:3,border:'1px solid #4f8fff25',background:'#4f8fff0a',color:'#4f8fff',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🌐 Portals</button>
+            <button onClick={()=>setShowBrandingConfig(s=>!s)} style={{fontSize:'0.54rem',padding:'1px 6px',borderRadius:3,border:'1px solid #8b6fff25',background:'#8b6fff20',color:'#8b6fff',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🎨 Branding</button>
+            <button onClick={()=>setShowSlugManager(s=>!s)} style={{fontSize:'0.54rem',padding:'1px 6px',borderRadius:3,border:'1px solid #4f8fff25',background:'#4f8fff20',color:'#4f8fff',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🌐 Portals</button>
           </div>
           <div style={{display:'flex',gap:16,alignItems:'center'}}>
-            {isDemo && <span style={{fontSize:'0.6rem',color:'#f0a030',background:'#f0a03012',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025',fontWeight:700}}>⚡ Demo data — add clients via Admin → Tenants</span>}
+            {isDemo && <span style={{fontSize:'0.6rem',color:'#f0a030',background:'#f0a03025',padding:'2px 8px',borderRadius:4,border:'1px solid #f0a03025',fontWeight:700}}>⚡ Demo data — add clients via Admin → Tenants</span>}
             <span style={{fontSize:'0.66rem',color:'var(--wt-muted)'}}>{MY_CLIENTS.length} clients · £{totalMRR.toLocaleString()}/mo MRR</span>
             {totalCrits>0&&<span style={{fontSize:'0.62rem',fontWeight:700,color:'#f0405e',display:'flex',alignItems:'center',gap:4}}><span style={{width:6,height:6,borderRadius:'50%',background:'#f0405e',boxShadow:'0 0 6px #f0405e',display:'block',animation:'pulse 1.5s ease infinite'}} />{totalCrits} active critical alerts across portfolio</span>}
             {overdueMRR>0&&<span style={{fontSize:'0.62rem',fontWeight:700,color:'#f97316'}}>⚠ £{overdueMRR}/mo overdue</span>}
@@ -167,9 +167,9 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
                   <code style={{fontSize:'0.72rem',fontFamily:'JetBrains Mono,monospace',color:'#4f8fff',flex:'0 0 auto'}}>{slug}.getwatchtower.io</code>
                   <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>→</span>
                   <code style={{fontSize:'0.68rem',fontFamily:'JetBrains Mono,monospace',color:'var(--wt-muted)',flex:1}}>{tid}</code>
-                  <button onClick={()=>{navigator.clipboard.writeText(`https://${slug}.getwatchtower.io`);}} title="Copy URL" style={{padding:'2px 6px',borderRadius:4,border:'1px solid #4f8fff25',background:'#4f8fff08',color:'#4f8fff',fontSize:'0.58rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Copy</button>
-                  <button onClick={()=>window.open(`/portal?org=${slug}`,'_blank')} title="Preview portal" style={{padding:'2px 6px',borderRadius:4,border:'1px solid #8b6fff25',background:'#8b6fff08',color:'#8b6fff',fontSize:'0.58rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Preview</button>
-                  <button onClick={()=>removeSlug(slug)} title="Remove" style={{padding:'2px 6px',borderRadius:4,border:'1px solid #f0405e25',background:'#f0405e08',color:'#f0405e',fontSize:'0.58rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>×</button>
+                  <button onClick={()=>{navigator.clipboard.writeText(`https://${slug}.getwatchtower.io`);}} title="Copy URL" style={{padding:'2px 6px',borderRadius:4,border:'1px solid #4f8fff25',background:'#4f8fff20',color:'#4f8fff',fontSize:'0.58rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Copy</button>
+                  <button onClick={()=>window.open(`/portal?org=${slug}`,'_blank')} title="Preview portal" style={{padding:'2px 6px',borderRadius:4,border:'1px solid #8b6fff25',background:'#8b6fff20',color:'#8b6fff',fontSize:'0.58rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Preview</button>
+                  <button onClick={()=>removeSlug(slug)} title="Remove" style={{padding:'2px 6px',borderRadius:4,border:'1px solid #f0405e25',background:'#f0405e20',color:'#f0405e',fontSize:'0.58rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>×</button>
                 </div>
               ))}
             </div>
@@ -210,7 +210,7 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
               }
               setSlugMsg(count>0?`✓ Registered ${count} portal${count!==1?'s':''}`:'All clients already have portals');
               setTimeout(()=>setSlugMsg(''),3000);
-            }} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a08',color:'#22d49a',fontSize:'0.66rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
+            }} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #22d49a30',background:'#22d49a20',color:'#22d49a',fontSize:'0.66rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
               ⚡ Auto-register all clients
             </button>
             <span style={{fontSize:'0.56rem',color:'var(--wt-dim)'}}>Creates subdomain from client name for any unregistered clients</span>
@@ -232,7 +232,7 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
                 <div style={{display:'flex',gap:6}}>
                   {c.critAlerts>0&&<span style={{fontSize:'0.58rem',fontWeight:800,padding:'1px 6px',borderRadius:4,background:'#f0405e15',color:'#f0405e',border:'1px solid #f0405e25'}}>{c.critAlerts} critical</span>}
                   {c.billingStatus==='Overdue'&&<span style={{fontSize:'0.58rem',fontWeight:800,padding:'1px 6px',borderRadius:4,background:'#f9731615',color:'#f97316',border:'1px solid #f9731625'}}>overdue</span>}
-                  {c.posture<75&&<span style={{fontSize:'0.58rem',fontWeight:700,padding:'1px 6px',borderRadius:4,background:'#f0a03012',color:'#f0a030'}}>posture {c.posture}%</span>}
+                  {c.posture<75&&<span style={{fontSize:'0.58rem',fontWeight:700,padding:'1px 6px',borderRadius:4,background:'#f0a03025',color:'#f0a030'}}>posture {c.posture}%</span>}
                 </div>
                 <button onClick={e=>{e.stopPropagation();setCurrentTenant(c.id);if(setActiveTab)setActiveTab('alerts');}} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #f0405e30',background:'#f0405e10',color:'#f0405e',fontSize:'0.62rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>View alerts →</button>
               </div>
@@ -370,11 +370,11 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
                   <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('alerts');}} style={{padding:'7px 14px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.72rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Alerts</button>
                   <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('incidents');}} style={{padding:'7px 14px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.72rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Incidents</button>
                   <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('vulns');}} style={{padding:'7px 14px',borderRadius:7,border:'1px solid var(--wt-border2)',background:'transparent',color:'var(--wt-muted)',fontSize:'0.72rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Vulns</button>
-                  <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('tools');}} style={{padding:'7px 14px',borderRadius:7,border:'1px solid #22d49a30',background:'#22d49a08',color:'#22d49a',fontSize:'0.72rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}} title='Add this client Anthropic key in Tools → AI Engine'>🔑 BYOK Key</button>
+                  <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('tools');}} style={{padding:'7px 14px',borderRadius:7,border:'1px solid #22d49a30',background:'#22d49a20',color:'#22d49a',fontSize:'0.72rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}} title='Add this client Anthropic key in Tools → AI Engine'>🔑 BYOK Key</button>
                   {client.billingStatus==='Overdue' && <button onClick={e=>{e.stopPropagation();window.open(`mailto:accounts@${client.name.toLowerCase().split('').filter(c=>c>='a'&&c<='z').join('')}.com?subject=Outstanding Invoice — ${client.name}&body=Hi,%0A%0AThis is a reminder that your Watchtower subscription invoice is currently outstanding.%0APlease arrange payment at your earliest convenience.%0A%0ARegards,%0AWatchtower Team`,'_blank');}} style={{marginLeft:'auto',padding:'7px 14px',borderRadius:7,border:'1px solid #f97316',background:'#f9731610',color:'#f97316',fontSize:'0.72rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>Chase Payment</button>}
                 </div>
                 {/* Portal subdomain link */}
-                <div style={{marginTop:10,padding:'10px 12px',background:'#4f8fff06',border:'1px solid #4f8fff18',borderRadius:7}}>
+                <div style={{marginTop:10,padding:'10px 12px',background:'#4f8fff28',border:'1px solid #4f8fff18',borderRadius:7}}>
                   <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
                     <span style={{fontSize:'0.64rem',fontWeight:700,color:'#4f8fff'}}>🌐 Client Portal</span>
                     <span style={{fontSize:'0.54rem',color:'var(--wt-dim)'}}>Dedicated subdomain for this client</span>
@@ -406,7 +406,7 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
                     </button>
                   </div>
                 </div>
-                <div style={{marginTop:8,padding:'7px 10px',background:'#22d49a06',border:'1px solid #22d49a18',borderRadius:7,fontSize:'0.64rem',color:'var(--wt-muted)'}}>
+                <div style={{marginTop:8,padding:'7px 10px',background:'#22d49a28',border:'1px solid #22d49a18',borderRadius:7,fontSize:'0.64rem',color:'var(--wt-muted)'}}>
                   🔒 <strong style={{color:'var(--wt-secondary)'}}>BYOK isolation:</strong> This client&apos;s AI calls run under their own Anthropic key. Add or update it via the <button onClick={()=>{setCurrentTenant(client.id);if(setActiveTab)setActiveTab('tools');}} style={{color:'#4f8fff',background:'none',border:'none',cursor:'pointer',fontFamily:'Inter,sans-serif',fontSize:'0.64rem',padding:0,textDecoration:'underline'}}>Tools → AI Engine tab</button> while viewing this client.
                 </div>
               </div>
@@ -418,10 +418,10 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
       {/* Cross-tenant correlation — IOCs and vulns seen across multiple clients */}
       {portfolioView==='security' && (
         <div style={{background:'var(--wt-card)',border:'1px solid #f97316 20',borderRadius:12,overflow:'hidden'}}>
-          <div style={{padding:'10px 16px',background:'#f9731608',borderBottom:'1px solid #f9731620',display:'flex',alignItems:'center',gap:8}}>
+          <div style={{padding:'10px 16px',background:'#f9731620',borderBottom:'1px solid #f9731620',display:'flex',alignItems:'center',gap:8}}>
             <span style={{fontSize:'0.64rem',fontWeight:800,color:'#f97316',textTransform:'uppercase',letterSpacing:'0.5px'}}>⚡ Cross-Tenant Correlation</span>
             <span style={{fontSize:'0.58rem',color:'var(--wt-muted)'}}>IOCs and vulnerabilities detected across multiple clients</span>
-            <span style={{fontSize:'0.54rem',color:'#f97316',background:'#f9731612',padding:'1px 6px',borderRadius:3,border:'1px solid #f9731625',fontWeight:700,marginLeft:'auto'}}>MSSP Intelligence</span>
+            <span style={{fontSize:'0.54rem',color:'#f97316',background:'#f9731625',padding:'1px 6px',borderRadius:3,border:'1px solid #f9731625',fontWeight:700,marginLeft:'auto'}}>MSSP Intelligence</span>
           </div>
           <div style={{padding:'12px 16px',display:'flex',flexDirection:'column',gap:8}}>
             {(liveCorrelations.length > 0 ? liveCorrelations : [

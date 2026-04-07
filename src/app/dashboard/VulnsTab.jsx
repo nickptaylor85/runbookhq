@@ -9,8 +9,8 @@ export default function VulnsTab({
       <div style={{display:'flex',flexDirection:'column',gap:0}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Top 10 Vulnerabilities</h2>
-                <span style={{fontSize:'0.62rem',color:'#f0405e',background:'#f0405e12',padding:'2px 8px',borderRadius:4}}>Ranked by severity × prevalence in your estate</span>
-                <span style={{marginLeft:'auto',fontSize:'0.62rem',color:'#f97316',background:'#f9731612',padding:'2px 8px',borderRadius:4}}>{kevVulns.length} CISA KEV — 72h deadline</span>
+                <span style={{fontSize:'0.62rem',color:'#f0405e',background:'#f0405e25',padding:'2px 8px',borderRadius:4}}>Ranked by severity × prevalence in your estate</span>
+                <span style={{marginLeft:'auto',fontSize:'0.62rem',color:'#f97316',background:'#f9731625',padding:'2px 8px',borderRadius:4}}>{kevVulns.length} CISA KEV — 72h deadline</span>
               </div>
               <div style={{display:'flex',flexDirection:'column',gap:6}}>
                 {DEMO_VULNS.map((vuln,rank)=>(
