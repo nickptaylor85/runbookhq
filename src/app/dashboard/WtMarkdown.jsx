@@ -15,7 +15,7 @@ function CodeBlock({ lang, code }) {
   const col = langColors[lang?.toLowerCase()] || langColors.default;
   return (
     <div style={{ position:'relative', marginBottom:10, marginTop:6 }}>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'4px 10px', background:'#080c18', borderRadius:'7px 7px 0 0', borderBottom:'1px solid #1d2535' }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'4px 10px', background:'rgba(14,18,30,0.85)', borderRadius:'7px 7px 0 0', borderBottom:'1px solid rgba(0,180,240,0.15)' }}>
         {lang && <span style={{ fontSize:'0.66rem', fontWeight:700, color:col, fontFamily:'JetBrains Mono,monospace', letterSpacing:'0.5px' }}>{lang.toUpperCase()}</span>}
         <button onClick={()=>{ navigator.clipboard?.writeText(code); setCopied(true); setTimeout(()=>setCopied(false),1800); }}
           aria-label='Copy code' style={{ padding:'2px 8px', borderRadius:4, border:`1px solid ${col}30`, background:`${col}10`, color:col, fontSize:'0.64rem', fontWeight:700, cursor:'pointer', fontFamily:'Inter,sans-serif', marginLeft:'auto' }}>

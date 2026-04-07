@@ -789,7 +789,7 @@ export default function AlertsTab({
                       </div>
                     )}
                     {structTriage && showingHunt && (
-                      <div style={{background:'#080a12',border:'1px solid #1e2536',borderRadius:10,padding:'10px 12px',marginBottom:8}}>
+                      <div style={{background:'rgba(14,18,30,0.85)',border:'1px solid rgba(0,180,240,0.18)',borderRadius:10,padding:'10px 12px',marginBottom:8}}>
                         <div style={{fontSize:'0.58rem',fontWeight:700,color:'#4f8fff',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Hunt Queries</div>
                         {[{label:'Splunk SPL',val:structTriage.huntQueries?.splunk,c:'#65a637'},{label:'Sentinel KQL',val:structTriage.huntQueries?.sentinel,c:'#00a4ef'},{label:'Defender AH',val:structTriage.huntQueries?.defender,c:'#f97316'},{label:'Elastic EQL',val:structTriage.huntQueries?.elastic,c:'#00bfb3'}].map(({label,val,c})=>val&&(
                           <div key={label} style={{marginBottom:8}}>

@@ -31,7 +31,7 @@ function ToolLogo({toolId, color, abbr}) {
           src={`https://cdn.simpleicons.org/${slug}/ffffff`}
           alt=""
           aria-hidden="true"
-          style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'contain',padding:'4px',background:'#0d111e'}}
+          style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'contain',padding:'4px',background:'rgba(16,20,36,0.90)'}}
           onError={e=>{e.currentTarget.style.display='none';}}
         />
       )}

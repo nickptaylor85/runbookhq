@@ -380,7 +380,7 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
                     <span style={{fontSize:'0.54rem',color:'var(--wt-dim)'}}>Dedicated subdomain for this client</span>
                   </div>
                   <div style={{display:'flex',alignItems:'center',gap:6}}>
-                    <code style={{flex:1,fontSize:'0.72rem',fontFamily:'JetBrains Mono,monospace',color:'#4f8fff',padding:'5px 10px',background:'#070a14',borderRadius:5,border:'1px solid #1d2535'}}>
+                    <code style={{flex:1,fontSize:'0.72rem',fontFamily:'JetBrains Mono,monospace',color:'#4f8fff',padding:'5px 10px',background:'rgba(12,16,28,0.85)',borderRadius:5,border:'1px solid #1d2535'}}>
                       {(()=>{
                         // Derive slug from client name: "Acme Financial" → "acme-financial"
                         const slug = client.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');

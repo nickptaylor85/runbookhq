@@ -42,10 +42,10 @@ const DASHBOARD_CSS = `*{margin:0;padding:0;box-sizing:border-box}
         .wt-root {
           --wt-bg:       #060c18;
           --wt-sidebar:  #080f1e;
-          --wt-card:     rgba(14,24,46,0.55);
-          --wt-card2:    rgba(20,32,60,0.65);
-          --wt-border:   rgba(0,180,240,0.13);
-          --wt-border2:  rgba(0,200,255,0.22);
+          --wt-card:     rgba(14,24,46,0.78);
+          --wt-card2:    rgba(20,32,60,0.82);
+          --wt-border:   rgba(0,180,240,0.20);
+          --wt-border2:  rgba(0,200,255,0.28);
           --wt-text:     #e8f0fc;
           --wt-muted:    #6a85b0;
           --wt-secondary:#90aad0;
@@ -601,8 +601,8 @@ function RemediationOutput({ text }) {
           <div key={i} style={{fontSize:'0.84rem',fontWeight:700,color:'var(--wt-text)',marginTop:4,marginBottom:-4}}>{block.content}</div>
         );
         if (block.type === 'code') return (
-          <div key={i} style={{position:'relative',background:'#020306',border:'1px solid #1a2235',borderRadius:8,overflow:'hidden'}}>
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'5px 10px',borderBottom:'1px solid #1a2235',background:'#060912'}}>
+          <div key={i} style={{position:'relative',background:'rgba(8,10,16,0.85)',border:'1px solid rgba(0,180,240,0.15)',borderRadius:8,overflow:'hidden'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'5px 10px',borderBottom:'1px solid rgba(0,180,240,0.12)',background:'rgba(12,16,26,0.82)'}}>
               <span style={{fontSize:'0.86rem',fontWeight:700,color:'#00e5ff',letterSpacing:'0.5px',textTransform:'uppercase'}}>Query</span>
               <button onClick={()=>copyCode(block.content, block.id||'')} style={{fontSize:'0.8rem',fontWeight:600,padding:'2px 8px',borderRadius:4,border:'1px solid #1e2536',background:'transparent',color:copied===block.id?'#00ff88':'var(--wt-muted)',cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",transition:'color .15s'}}>
                 {copied===block.id?'✓ Copied':'Copy'}
@@ -1941,7 +1941,7 @@ export default function DashboardPage() {
               })()}
               {/* Shift handover panel */}
               {shiftHandover&&(
-                <div style={{background:'#06100e',border:'1px solid #00ff8825',borderRadius:10,padding:'12px 16px',position:'relative'}}>
+                <div style={{background:'rgba(12,22,18,0.88)',border:'1px solid #00ff8825',borderRadius:10,padding:'12px 16px',position:'relative'}}>
                   <button onClick={()=>setShiftHandover(null)} aria-label='Close handover' style={{position:'absolute',top:8,right:10,background:'none',border:'none',color:'var(--wt-dim)',cursor:'pointer',fontSize:'0.8rem'}}>×</button>
                   <div style={{fontSize:'0.84rem',fontWeight:700,color:'#00ff88',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>⇄ Shift Handover Brief</div>
                   <WtMarkdown text={shiftHandover.summary} accent='#00ff88' />

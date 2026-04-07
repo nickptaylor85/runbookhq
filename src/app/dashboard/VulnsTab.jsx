@@ -33,7 +33,7 @@ export default function VulnsTab({
                       <span style={{fontSize:'0.62rem',color:'#4f8fff',flexShrink:0}}>{selectedVuln?.id===vuln.id?'▲':'▼'}</span>
                     </div>
                     {selectedVuln?.id===vuln.id && (
-                      <div style={{padding:'14px 16px',background:'#070912',border:'1px solid #4f8fff20',borderTop:'none',borderRadius:'0 0 10px 10px',marginBottom:0}}>
+                      <div style={{padding:'14px 16px',background:'rgba(12,16,28,0.85)',border:'1px solid #4f8fff20',borderTop:'none',borderRadius:'0 0 10px 10px',marginBottom:0}}>
                         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
                           <div>
                             <div style={{fontSize:'0.7rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:10}}>{vuln.description}</div>
