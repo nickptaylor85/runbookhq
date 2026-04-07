@@ -76,7 +76,7 @@ export default function SignupPage() {
             body: JSON.stringify({ email, password }),
           });
           const loginData = await loginRes.json() as { ok?: boolean };
-          if (loginData.ok) { router.push(data.redirect || '/setup-2fa'); return; }
+          if (loginData.ok) { router.push(data.redirect || '/onboarding'); return; }
         }
         setError(data.error || 'Signup failed');
       } else {
@@ -101,7 +101,7 @@ export default function SignupPage() {
             body: JSON.stringify({ email, password }),
           });
           const loginData = await loginRes.json() as { ok?: boolean };
-          if (loginData.ok) { router.push(data.redirect || '/setup-2fa'); return; }
+          if (loginData.ok) { router.push(data.redirect || '/onboarding'); return; }
         }
         setError(data.error || 'Signup failed');
       }

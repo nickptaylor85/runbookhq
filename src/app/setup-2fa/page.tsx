@@ -58,7 +58,7 @@ export default function Setup2FAPage() {
         body: JSON.stringify({ action: 'verify', code }),
       });
       const d = await res.json();
-      if (d.ok) { setStep('done'); setTimeout(() => router.replace('/dashboard'), 2000); }
+      if (d.ok) { setStep('done'); setTimeout(() => router.replace('/onboarding'), 2000); }
       else setError('Invalid code — check your authenticator app and try again');
     } catch { setError('Network error'); }
     setLoading(false);

@@ -458,6 +458,118 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* PRODUCT TOUR — SCREENSHOTS */}
+      <section style={{ padding:'70px 24px' }}>
+        <div style={{ maxWidth:1000, margin:'0 auto' }}>
+          <div style={{ textAlign:'center', marginBottom:48 }}>
+            <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>INSIDE THE PRODUCT</div>
+            <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:-1.5 }}>See what your SOC actually gets</h2>
+            <p style={{ fontSize:'0.88rem', color:'#6b7a94', marginTop:10 }}>Not mockups — this is the real dashboard running demo data.</p>
+          </div>
+
+          {/* Screenshot 1: AI Triage */}
+          <div style={{ marginBottom:48 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1.4fr', gap:32, alignItems:'center' }} className="feat-grid">
+              <div>
+                <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#f0405e', textTransform:'uppercase', letterSpacing:'1px', marginBottom:8 }}>AI TRIAGE</div>
+                <h3 style={{ fontSize:'1.3rem', fontWeight:800, letterSpacing:-0.5, marginBottom:10, lineHeight:1.2 }}>Every alert investigated in 3.2 seconds</h3>
+                <p style={{ fontSize:'0.82rem', color:'#6b7a94', lineHeight:1.7 }}>APEX — the AI analyst — cross-references every alert against your Tenable vulns, Entra ID logs, and threat intel. Full evidence chain, MITRE mapping, and recommended action.</p>
+              </div>
+              <div style={{ background:'rgba(14,24,46,0.55)', border:'1px solid rgba(0,180,240,0.13)', borderRadius:14, padding:'16px', overflow:'hidden' }}>
+                <div style={{ padding:'10px 14px', background:'rgba(240,64,94,0.08)', border:'1px solid rgba(240,64,94,0.20)', borderRadius:10, marginBottom:10 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
+                    <span style={{ fontSize:'0.58rem', fontWeight:800, padding:'2px 6px', borderRadius:3, background:'#f0405e20', color:'#f0405e' }}>CRITICAL</span>
+                    <span style={{ fontSize:'0.72rem', fontWeight:700 }}>LSASS credential dump — DC01</span>
+                    <span style={{ marginLeft:'auto', fontSize:'0.62rem', color:'#4a5568' }}>09:14</span>
+                  </div>
+                  <div style={{ fontSize:'0.68rem', color:'#6b7a94', marginBottom:8 }}>CrowdStrike Falcon · T1003.001 Credential Access</div>
+                  <div style={{ padding:'8px 10px', background:'rgba(4,8,20,0.5)', borderRadius:8, border:'1px solid rgba(0,180,240,0.08)' }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4 }}>
+                      <span style={{ fontSize:'0.58rem', fontWeight:800, padding:'2px 6px', borderRadius:3, background:'#f0405e15', color:'#f0405e' }}>TRUE POSITIVE</span>
+                      <span style={{ fontSize:'0.62rem', color:'#f0405e', fontWeight:700, fontFamily:'JetBrains Mono,monospace' }}>98% confidence</span>
+                    </div>
+                    <p style={{ fontSize:'0.68rem', color:'#8a9ab0', lineHeight:1.6, margin:0 }}>Mimikatz-style LSASS access detected. Service account credentials at risk. Tenable shows CVE-2024-XXXX on this host (CVSS 9.8, CISA KEV). Entra ID: admin_svc authenticated from unusual IP 12m prior. Immediate escalation recommended.</p>
+                    <div style={{ marginTop:6, fontSize:'0.62rem', color:'#22d49a', fontWeight:600 }}>✓ Isolated host · Opened INC-0847 · Disabled admin_svc</div>
+                  </div>
+                </div>
+                <div style={{ display:'flex', gap:8 }}>
+                  <div style={{ flex:1, padding:'8px 10px', background:'rgba(34,212,154,0.06)', border:'1px solid rgba(34,212,154,0.12)', borderRadius:8, fontSize:'0.64rem' }}>
+                    <div style={{ color:'#22d49a', fontWeight:700, marginBottom:2 }}>17 auto-closed FPs</div>
+                    <div style={{ color:'#4a5568' }}>85% noise eliminated</div>
+                  </div>
+                  <div style={{ flex:1, padding:'8px 10px', background:'rgba(79,143,255,0.06)', border:'1px solid rgba(79,143,255,0.12)', borderRadius:8, fontSize:'0.64rem' }}>
+                    <div style={{ color:'#4f8fff', fontWeight:700, marginBottom:2 }}>3.2s avg triage</div>
+                    <div style={{ color:'#4a5568' }}>vs 3.5hr manual</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Screenshot 2: MSSP Portfolio */}
+          <div style={{ marginBottom:48 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'1.4fr 1fr', gap:32, alignItems:'center' }} className="feat-grid">
+              <div style={{ background:'rgba(14,24,46,0.55)', border:'1px solid rgba(0,180,240,0.13)', borderRadius:14, padding:'16px', overflow:'hidden' }}>
+                <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#6b7a94', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:10 }}>MSSP PORTFOLIO — 4 CLIENTS</div>
+                {[
+                  { name:'Acme Financial', score:87, alerts:3, color:'#22d49a', status:'Healthy' },
+                  { name:'GlobalTech Corp', score:44, alerts:12, color:'#f0405e', status:'At Risk' },
+                  { name:'Highland Distillers', score:72, alerts:5, color:'#f0a030', status:'Needs Attention' },
+                  { name:'Nordic Energy AS', score:91, alerts:1, color:'#22d49a', status:'Healthy' },
+                ].map(c => (
+                  <div key={c.name} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 12px', background:'rgba(4,8,20,0.4)', border:'1px solid rgba(0,180,240,0.08)', borderRadius:8, marginBottom:6 }}>
+                    <div style={{ width:36, height:36, borderRadius:8, background:`${c.color}15`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.9rem', fontWeight:900, color:c.color, fontFamily:'JetBrains Mono,monospace' }}>{c.score}</div>
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontSize:'0.78rem', fontWeight:700 }}>{c.name}</div>
+                      <div style={{ fontSize:'0.62rem', color:c.color }}>{c.status} · {c.alerts} active alert{c.alerts!==1?'s':''}</div>
+                    </div>
+                    <span style={{ fontSize:'0.72rem', color:'#4f8fff' }}>↗</span>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#8b6fff', textTransform:'uppercase', letterSpacing:'1px', marginBottom:8 }}>MSSP PORTFOLIO</div>
+                <h3 style={{ fontSize:'1.3rem', fontWeight:800, letterSpacing:-0.5, marginBottom:10, lineHeight:1.2 }}>50 clients. One screen.</h3>
+                <p style={{ fontSize:'0.82rem', color:'#6b7a94', lineHeight:1.7 }}>Per-client posture scores, alert volumes, SLA tracking, and AI cross-tenant correlation. White-label ready — your brand on every client portal. BYOK isolation per tenant.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Screenshot 3: Integrations */}
+          <div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1.4fr', gap:32, alignItems:'center' }} className="feat-grid">
+              <div>
+                <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#22d49a', textTransform:'uppercase', letterSpacing:'1px', marginBottom:8 }}>INTEGRATIONS</div>
+                <h3 style={{ fontSize:'1.3rem', fontWeight:800, letterSpacing:-0.5, marginBottom:10, lineHeight:1.2 }}>80+ tools. One API call.</h3>
+                <p style={{ fontSize:'0.82rem', color:'#6b7a94', lineHeight:1.7 }}>EDR, SIEM, XDR, Cloud, Identity, Vuln, CSPM, OT/ICS, SOAR, ITSM. Connect in under 5 minutes. Normalised alert schema across every source.</p>
+              </div>
+              <div style={{ background:'rgba(14,24,46,0.55)', border:'1px solid rgba(0,180,240,0.13)', borderRadius:14, padding:'16px', overflow:'hidden' }}>
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:6 }}>
+                  {[
+                    {n:'CrowdStrike',c:'#f0405e'},{n:'Defender',c:'#00a4ef'},{n:'SentinelOne',c:'#8c2be2'},{n:'Splunk',c:'#65a637'},{n:'Sentinel',c:'#0078d4'},{n:'Tenable',c:'#00b3e3'},
+                    {n:'Okta',c:'#007dc1'},{n:'Elastic',c:'#00bfb3'},{n:'QRadar',c:'#006699'},{n:'Darktrace',c:'#6b4fbd'},{n:'Zscaler',c:'#00aae7'},{n:'Palo Alto',c:'#fa582d'},
+                    {n:'AWS',c:'#ff9900'},{n:'Wiz',c:'#10b981'},{n:'Rapid7',c:'#e53935'},{n:'Proofpoint',c:'#007dba'},{n:'ServiceNow',c:'#62d84e'},{n:'Jira',c:'#0052cc'},
+                    {n:'Entra ID',c:'#0078d4'},{n:'CyberArk',c:'#e31837'},{n:'FortiGate',c:'#da291c'},{n:'Chronicle',c:'#4285f4'},{n:'Sophos',c:'#005cb9'},{n:'+ 56 more',c:'#4f8fff'},
+                  ].map(t=>(
+                    <div key={t.n} style={{ padding:'8px 4px', background:`${t.c}08`, border:`1px solid ${t.c}20`, borderRadius:6, textAlign:'center' }}>
+                      <div style={{ width:24, height:24, borderRadius:5, background:`linear-gradient(135deg,${t.c}cc,${t.c}55)`, margin:'0 auto 4px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.42rem', fontWeight:900, color:'#fff' }}>{t.n.slice(0,2).toUpperCase()}</div>
+                      <div style={{ fontSize:'0.52rem', color:'#6b7a94', lineHeight:1.2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.n}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop:10, display:'flex', gap:8, fontSize:'0.64rem' }}>
+                  <span style={{ padding:'3px 8px', background:'rgba(34,212,154,0.10)', border:'1px solid rgba(34,212,154,0.20)', borderRadius:4, color:'#22d49a', fontWeight:600 }}>EDR</span>
+                  <span style={{ padding:'3px 8px', background:'rgba(79,143,255,0.10)', border:'1px solid rgba(79,143,255,0.20)', borderRadius:4, color:'#4f8fff', fontWeight:600 }}>SIEM</span>
+                  <span style={{ padding:'3px 8px', background:'rgba(139,111,255,0.10)', border:'1px solid rgba(139,111,255,0.20)', borderRadius:4, color:'#8b6fff', fontWeight:600 }}>Cloud</span>
+                  <span style={{ padding:'3px 8px', background:'rgba(240,160,48,0.10)', border:'1px solid rgba(240,160,48,0.20)', borderRadius:4, color:'#f0a030', fontWeight:600 }}>Identity</span>
+                  <span style={{ padding:'3px 8px', background:'rgba(0,179,227,0.10)', border:'1px solid rgba(0,179,227,0.20)', borderRadius:4, color:'#00b3e3', fontWeight:600 }}>OT/ICS</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* BEFORE / AFTER */}
       <section style={{ padding:'60px 24px', background:'#0c1020', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
         <div style={{ maxWidth:860, margin:'0 auto' }}>
