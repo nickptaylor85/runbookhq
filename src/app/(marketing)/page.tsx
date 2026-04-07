@@ -148,7 +148,7 @@ function LogoBadge({ color, abbr, slug }: { color: string; abbr: string; slug?: 
 function ToolChip({ name, color, abbr, id }: { name: string; color: string; abbr: string; id?: string }) {
   const slug = id ? (LOGO_MAP[id] ?? null) : null;
   return (
-    <span style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'6px 12px', background:'#131929', border:'1px solid #1a2030', borderRadius:20, fontSize:'0.72rem', color:'#8a9ab0', fontWeight:600, transition:'all .15s', cursor:'default' }}
+    <span style={{ display:'inline-flex', alignItems:'center', gap:7, padding:'6px 12px', background:'rgba(16,22,40,0.85)', border:'1px solid rgba(0,180,240,0.10)', borderRadius:20, fontSize:'0.72rem', color:'#8a9ab0', fontWeight:600, transition:'all .15s', cursor:'default' }}
     onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor=color+'40';(e.currentTarget as HTMLElement).style.color='#e8ecf4';}}
     onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor='#1a2030';(e.currentTarget as HTMLElement).style.color='#8a9ab0';}}>
       <LogoBadge color={color} abbr={abbr} slug={slug} />
@@ -164,8 +164,8 @@ function ROICalculator() {
   const hoursSaved = Math.round(alertsPerDay * 0.72 * 0.05 * 22 * analysts);
   const moneySaved = Math.round(hoursSaved * hourlyRate);
   return (
-    <div style={{ maxWidth:640, margin:'0 auto', background:'#131929', border:'1px solid #1a2030', borderRadius:16, padding:'28px 32px' }}>
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:20, marginBottom:24 }}>
+    <div style={{ maxWidth:640, margin:'0 auto', background:'rgba(16,22,40,0.85)', border:'1px solid rgba(0,180,240,0.10)', borderRadius:16, padding:'28px 32px' }}>
+      <div className='roi-grid' style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:20, marginBottom:24 }}>
         <div>
           <label style={{ display:'block', fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1px', marginBottom:8 }}>Analysts</label>
           <input type='range' min={1} max={20} value={analysts} onChange={e=>setAnalysts(Number(e.target.value))} style={{ width:'100%', accentColor:'#4f8fff' }} />
@@ -187,7 +187,7 @@ function ROICalculator() {
           { label:'Analyst hours saved/mo', val:`${hoursSaved.toLocaleString()}h`, color:'#4f8fff' },
           { label:'Estimated cost saving/mo', val:`£${moneySaved.toLocaleString()}`, color:'#22d49a' },
         ].map(s => (
-          <div key={s.label} style={{ padding:'18px 20px', background:'#0c1020', border:`1px solid ${s.color}20`, borderRadius:12 }}>
+          <div key={s.label} style={{ padding:'18px 20px', background:'rgba(10,14,28,0.90)', border:`1px solid ${s.color}20`, borderRadius:12 }}>
             <div style={{ fontSize:'2rem', fontWeight:900, fontFamily:'JetBrains Mono,monospace', color:s.color, letterSpacing:-2 }}>{s.val}</div>
             <div style={{ fontSize:'0.66rem', color:'#6b7a94', marginTop:4 }}>{s.label}</div>
           </div>
@@ -214,16 +214,16 @@ function LiveDashPreview() {
   const sevColor: Record<string,string> = { crit:'#f0405e', high:'#f97316', med:'#f0a030', low:'#4f8fff' };
   const vStyle: Record<string,{c:string;bg:string}> = { TP:{c:'#f0405e',bg:'#f0405e12'}, FP:{c:'#22d49a',bg:'#22d49a12'}, SUS:{c:'#f0a030',bg:'#f0a03012'} };
   return (
-    <div style={{ background:'#0c1020', border:'1px solid #1e2a3a', borderRadius:14, overflow:'hidden', fontFamily:'Inter,sans-serif', maxWidth:860, margin:'0 auto', boxShadow:'0 40px 80px rgba(0,0,0,0.6)' }}>
-      <div style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 14px', background:'#0a0d18', borderBottom:'1px solid #1a2030' }}>
+    <div style={{ background:'rgba(10,14,28,0.90)', border:'1px solid rgba(0,180,240,0.15)', borderRadius:14, overflow:'hidden', fontFamily:'Inter,sans-serif', maxWidth:860, margin:'0 auto', boxShadow:'0 40px 80px rgba(0,0,0,0.6)' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 14px', background:'rgba(8,12,22,0.90)', borderBottom:'1px solid rgba(0,180,240,0.10)' }}>
         <div style={{ display:'flex', gap:5 }}>
           {['#f0405e80','#f0a03080','#22c99280'].map((c,i)=><span key={i} style={{width:9,height:9,borderRadius:'50%',background:c,display:'block'}}/>)}
         </div>
         <span style={{ flex:1, textAlign:'center', fontSize:'0.6rem', color:'#3a4a60', fontFamily:'JetBrains Mono,monospace', background:'#060810', padding:'3px 12px', borderRadius:4 }}>getwatchtower.io/dashboard</span>
         <span style={{ fontSize:'0.58rem', color:'#22c992', display:'flex', alignItems:'center', gap:4 }}><span style={{width:5,height:5,borderRadius:'50%',background:'#22c992',boxShadow:'0 0 6px #22c992',display:'block'}}/>LIVE</span>
       </div>
-      <div style={{ display:'flex', minHeight:300 }}>
-        <div style={{ width:44, background:'#08090f', borderRight:'1px solid #121820', padding:'10px 0', display:'flex', flexDirection:'column', alignItems:'center', gap:6 }}>
+      <div className='dash-preview' style={{ display:'flex', minHeight:300 }}>
+        <div className='dash-preview-sidebar' style={{ width:44, background:'#08090f', borderRight:'1px solid rgba(0,180,240,0.08)', padding:'10px 0', display:'flex', flexDirection:'column', alignItems:'center', gap:6 }}>
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none" style={{marginBottom:8}}>
             <rect width="28" height="28" rx="7" fill="url(#pg2)"/>
             <path d="M14 5.5L22 9V15.5C22 19.5 18.5 23 14 24.5C9.5 23 6 19.5 6 15.5V9L14 5.5Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" strokeWidth="0.7"/>
@@ -237,9 +237,9 @@ function LiveDashPreview() {
             <span style={{width:6,height:6,borderRadius:'50%',background:'#4f8fff',boxShadow:'0 0 8px #4f8fff',flexShrink:0,marginTop:2}}/>
             <span style={{fontSize:'0.6rem'}}>{aiText}<span style={{opacity:aiText.length<fullText.length?1:0,borderRight:'2px solid #4f8fff',marginLeft:1}}> </span></span>
           </div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6, marginBottom:10 }}>
+          <div className='dash-preview-stats' style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6, marginBottom:10 }}>
             {[{l:'Posture',v:'91%',c:'#22d49a'},{l:'Critical',v:'0',c:'#22d49a'},{l:'Coverage',v:'99%',c:'#22d49a'},{l:'AI Closed',v:'847',c:'#4f8fff'}].map(s=>(
-              <div key={s.l} style={{padding:'8px',background:'#131929',borderRadius:8,textAlign:'center'}}>
+              <div key={s.l} style={{padding:'8px',background:'rgba(16,22,40,0.85)',borderRadius:8,textAlign:'center'}}>
                 <div style={{fontSize:'1rem',fontWeight:900,fontFamily:'JetBrains Mono,monospace',color:s.c,letterSpacing:-1}}>{s.v}</div>
                 <div style={{fontSize:'0.5rem',color:'#4a5568',marginTop:2}}>{s.l}</div>
               </div>
@@ -247,7 +247,7 @@ function LiveDashPreview() {
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
             {ALERTS.map((a,i)=>(
-              <div key={i} style={{display:visibleAlerts.includes(i)?'flex':'none',alignItems:'center',gap:8,padding:'6px 8px',background:'#131929',borderRadius:8,border:'1px solid #1d2535',animation:'slideIn 0.3s ease'}}>
+              <div key={i} style={{display:visibleAlerts.includes(i)?'flex':'none',alignItems:'center',gap:8,padding:'6px 8px',background:'rgba(16,22,40,0.85)',borderRadius:8,border:'1px solid rgba(0,180,240,0.13)',animation:'slideIn 0.3s ease'}}>
                 <div style={{width:3,height:24,borderRadius:2,background:sevColor[a.sev],flexShrink:0}}/>
                 <div style={{flex:1,minWidth:0}}>
                   <div style={{fontSize:'0.68rem',fontWeight:600,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.title}</div>
@@ -305,19 +305,19 @@ function IntegrationsFloatButton({ tools }: { tools: typeof TOOLS }) {
 
       {open && (
         <div onClick={() => setOpen(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.75)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
-          <div onClick={e => e.stopPropagation()} style={{ background:'#0d1122', border:'1px solid #1d2535', borderRadius:18, width:'100%', maxWidth:680, maxHeight:'82vh', display:'flex', flexDirection:'column', overflow:'hidden', boxShadow:'0 24px 80px rgba(0,0,0,0.6)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background:'#0d1122', border:'1px solid rgba(0,180,240,0.13)', borderRadius:18, width:'100%', maxWidth:680, maxHeight:'82vh', display:'flex', flexDirection:'column', overflow:'hidden', boxShadow:'0 24px 80px rgba(0,0,0,0.6)' }}>
             {/* Header */}
             <div style={{ padding:'18px 20px', borderBottom:'1px solid #1d2535', display:'flex', alignItems:'center', gap:12 }}>
               <div style={{ flex:1 }}>
                 <div style={{ fontSize:'1rem', fontWeight:800 }}>80+ Integrations</div>
                 <div style={{ fontSize:'0.74rem', color:'#6b7a94', marginTop:2 }}>Connects to your existing security stack — no rip-and-replace</div>
               </div>
-              <button onClick={() => setOpen(false)} style={{ background:'none', border:'1px solid #1d2535', borderRadius:8, color:'#6b7a94', cursor:'pointer', fontSize:'1rem', width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter,sans-serif' }}>×</button>
+              <button onClick={() => setOpen(false)} style={{ background:'none', border:'1px solid rgba(0,180,240,0.13)', borderRadius:8, color:'#6b7a94', cursor:'pointer', fontSize:'1rem', width:32, height:32, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Inter,sans-serif' }}>×</button>
             </div>
             {/* Search + filter */}
             <div style={{ padding:'12px 20px', borderBottom:'1px solid #1d2535', display:'flex', gap:8, flexDirection:'column' }}>
               <input value={filter} onChange={e => setFilter(e.target.value)} placeholder='Search integrations…'
-                style={{ width:'100%', padding:'8px 12px', background:'#0a0d18', border:'1px solid #1d2535', borderRadius:8, color:'#e8ecf4', fontSize:'0.84rem', fontFamily:'Inter,sans-serif', outline:'none', boxSizing:'border-box' as const }} />
+                style={{ width:'100%', padding:'8px 12px', background:'rgba(8,12,22,0.90)', border:'1px solid rgba(0,180,240,0.13)', borderRadius:8, color:'#e8ecf4', fontSize:'0.84rem', fontFamily:'Inter,sans-serif', outline:'none', boxSizing:'border-box' as const }} />
               <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
                 {cats.map(ct => (
                   <button key={ct} onClick={() => setCat(ct)}
@@ -331,7 +331,7 @@ function IntegrationsFloatButton({ tools }: { tools: typeof TOOLS }) {
             <div style={{ overflowY:'auto', padding:'16px 20px' }}>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(150px,1fr))', gap:8 }}>
                 {filtered.map((t, i) => (
-                  <div key={t.name+i} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', background:'#131929', border:'1px solid #1d2535', borderRadius:10, transition:'border-color .12s' }}
+                  <div key={t.name+i} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 12px', background:'rgba(16,22,40,0.85)', border:'1px solid rgba(0,180,240,0.13)', borderRadius:10, transition:'border-color .12s' }}
                     onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor=t.color+'40';}}
                     onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor='#1d2535';}}>
                     <div style={{ width:28, height:28, borderRadius:7, background:t.color+'18', border:`1px solid ${t.color}30`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.62rem', fontWeight:900, color:t.color, flexShrink:0, fontFamily:'JetBrains Mono,monospace' }}>{t.abbr}</div>
@@ -380,7 +380,28 @@ export default function LandingPage() {
     .btn-outline{padding:10px 22px;background:transparent;color:#e8ecf4;border:1px solid #2a3448;border-radius:9px;font-weight:600;font-size:0.85rem;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-block;font-family:inherit}
     .btn-outline:hover{border-color:#4f8fff;color:#4f8fff}
     .section{max-width:1200px;margin:0 auto}
-    @media(max-width:768px){.feat-grid{grid-template-columns:1fr!important}.plan-grid{grid-template-columns:1fr!important}.hero-btns{flex-direction:column}}
+    @media(max-width:768px){
+      .feat-grid{grid-template-columns:1fr!important}
+      .plan-grid{grid-template-columns:1fr!important;max-width:400px!important;margin-left:auto!important;margin-right:auto!important}
+      .hero-btns{flex-direction:column;align-items:center}
+      .stats-bar{grid-template-columns:repeat(2,1fr)!important;gap:12px!important}
+      .before-after{grid-template-columns:1fr!important;gap:14px!important}
+      .before-after .ba-arrow{display:none!important}
+      .how-grid{grid-template-columns:1fr!important}
+      .int-grid{grid-template-columns:repeat(4,1fr)!important}
+      .ot-grid{grid-template-columns:1fr!important}
+      .roi-grid{grid-template-columns:1fr!important}
+      .desktop-nav{display:none!important}
+      .desktop-auth{gap:6px!important}
+      .nav-bar{gap:12px!important;padding:0 14px!important}
+      .nav-bar .btn-outline{display:none!important}
+      .nav-bar .btn-primary{padding:7px 14px!important;font-size:0.74rem!important}
+      .footer-wrap{flex-direction:column!important;text-align:center!important;gap:16px!important}
+      .footer-links{justify-content:center!important;flex-wrap:wrap!important;gap:12px!important}
+      .dash-preview-sidebar{display:none!important}
+      .dash-preview-stats{grid-template-columns:repeat(2,1fr)!important}
+      .dash-preview{min-height:240px!important}
+    }
   `;
 
   return (
@@ -388,8 +409,8 @@ export default function LandingPage() {
       <style dangerouslySetInnerHTML={{__html:CSS}}/>
 
       {/* NAV */}
-      <nav style={{ position:'sticky', top:0, zIndex:100, background:'rgba(5,5,8,0.9)', backdropFilter:'blur(16px)', borderBottom:'1px solid #0e1218', padding:'0 24px' }}>
-        <div style={{ maxWidth:1100, margin:'0 auto', display:'flex', alignItems:'center', height:58, gap:32 }}>
+      <nav style={{ position:'sticky', top:0, zIndex:100, background:'rgba(5,5,8,0.9)', backdropFilter:'blur(16px)', borderBottom:'1px solid rgba(0,180,240,0.10)', padding:'0 24px' }}>
+        <div className='nav-bar' style={{ maxWidth:1100, margin:'0 auto', display:'flex', alignItems:'center', height:58, gap:32 }}>
           <a href='/' style={{ display:'flex', alignItems:'center', gap:9, textDecoration:'none', color:'inherit', flexShrink:0 }}>
             <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
               <rect width="30" height="30" rx="8" fill="url(#navg)"/>
@@ -399,12 +420,12 @@ export default function LandingPage() {
             </svg>
             <span style={{ fontWeight:800, fontSize:'1rem', letterSpacing:-0.3 }}>Watchtower</span>
           </a>
-          <div style={{ display:'flex', gap:24, marginLeft:16 }}>
+          <div className='desktop-nav' style={{ display:'flex', gap:24, marginLeft:16 }}>
             {[['Features','#features'],['Pricing','#pricing'],['Integrations','#integrations'],['MSSP','#mssp'],['Demo','/demo']].map(([label,href])=>(
               <a key={label} href={href} className='nav-link'>{label}</a>
             ))}
           </div>
-          <div style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:10 }}>
+          <div className='desktop-auth' style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:10 }}>
             <a href='/login' className='btn-outline' style={{padding:'7px 16px',fontSize:'0.78rem'}}>Sign in</a>
             <a href='/signup' className='btn-primary' style={{padding:'8px 18px',fontSize:'0.78rem'}}>Get started free →</a>
           </div>
@@ -442,8 +463,8 @@ export default function LandingPage() {
       </section>
 
       {/* TRUST / STATS BAR */}
-      <section style={{ padding:'32px 24px', background:'#0a0d18', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
-        <div style={{ maxWidth:960, margin:'0 auto', display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:24, textAlign:'center' }}>
+      <section style={{ padding:'32px 24px', background:'rgba(8,12,22,0.90)', borderTop:'1px solid rgba(0,180,240,0.10)', borderBottom:'1px solid rgba(0,180,240,0.10)' }}>
+        <div className='stats-bar' style={{ maxWidth:960, margin:'0 auto', display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:24, textAlign:'center' }}>
           {[
             { val:'3.2s', label:'Average AI triage time', color:'#4f8fff' },
             { val:'80+', label:'Tool integrations — EDR, SIEM, XDR, Cloud, Identity, OT', color:'#22d49a' },
@@ -483,7 +504,7 @@ export default function LandingPage() {
                     <span style={{ marginLeft:'auto', fontSize:'0.62rem', color:'#4a5568' }}>09:14</span>
                   </div>
                   <div style={{ fontSize:'0.68rem', color:'#6b7a94', marginBottom:8 }}>CrowdStrike Falcon · T1003.001 Credential Access</div>
-                  <div style={{ padding:'8px 10px', background:'rgba(4,8,20,0.5)', borderRadius:8, border:'1px solid rgba(0,180,240,0.08)' }}>
+                  <div style={{ padding:'8px 10px', background:'rgba(4,8,20,0.7)', borderRadius:8, border:'1px solid rgba(0,180,240,0.08)' }}>
                     <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:4 }}>
                       <span style={{ fontSize:'0.58rem', fontWeight:800, padding:'2px 6px', borderRadius:3, background:'#f0405e15', color:'#f0405e' }}>TRUE POSITIVE</span>
                       <span style={{ fontSize:'0.62rem', color:'#f0405e', fontWeight:700, fontFamily:'JetBrains Mono,monospace' }}>98% confidence</span>
@@ -544,14 +565,14 @@ export default function LandingPage() {
                 <p style={{ fontSize:'0.82rem', color:'#6b7a94', lineHeight:1.7 }}>EDR, SIEM, XDR, Cloud, Identity, Vuln, CSPM, OT/ICS, SOAR, ITSM. Connect in under 5 minutes. Normalised alert schema across every source.</p>
               </div>
               <div style={{ background:'rgba(14,24,46,0.55)', border:'1px solid rgba(0,180,240,0.13)', borderRadius:14, padding:'16px', overflow:'hidden' }}>
-                <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:6 }}>
+                <div className='int-grid' style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:6 }}>
                   {[
                     {n:'CrowdStrike',c:'#f0405e'},{n:'Defender',c:'#00a4ef'},{n:'SentinelOne',c:'#8c2be2'},{n:'Splunk',c:'#65a637'},{n:'Sentinel',c:'#0078d4'},{n:'Tenable',c:'#00b3e3'},
                     {n:'Okta',c:'#007dc1'},{n:'Elastic',c:'#00bfb3'},{n:'QRadar',c:'#006699'},{n:'Darktrace',c:'#6b4fbd'},{n:'Zscaler',c:'#00aae7'},{n:'Palo Alto',c:'#fa582d'},
                     {n:'AWS',c:'#ff9900'},{n:'Wiz',c:'#10b981'},{n:'Rapid7',c:'#e53935'},{n:'Proofpoint',c:'#007dba'},{n:'ServiceNow',c:'#62d84e'},{n:'Jira',c:'#0052cc'},
                     {n:'Entra ID',c:'#0078d4'},{n:'CyberArk',c:'#e31837'},{n:'FortiGate',c:'#da291c'},{n:'Chronicle',c:'#4285f4'},{n:'Sophos',c:'#005cb9'},{n:'+ 56 more',c:'#4f8fff'},
                   ].map(t=>(
-                    <div key={t.n} style={{ padding:'8px 4px', background:`${t.c}08`, border:`1px solid ${t.c}20`, borderRadius:6, textAlign:'center' }}>
+                    <div key={t.n} style={{ padding:'8px 4px', background:`${t.c}18`, border:`1px solid ${t.c}20`, borderRadius:6, textAlign:'center' }}>
                       <div style={{ width:24, height:24, borderRadius:5, background:`linear-gradient(135deg,${t.c}cc,${t.c}55)`, margin:'0 auto 4px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.42rem', fontWeight:900, color:'#fff' }}>{t.n.slice(0,2).toUpperCase()}</div>
                       <div style={{ fontSize:'0.52rem', color:'#6b7a94', lineHeight:1.2, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{t.n}</div>
                     </div>
@@ -571,14 +592,14 @@ export default function LandingPage() {
       </section>
 
       {/* BEFORE / AFTER */}
-      <section style={{ padding:'60px 24px', background:'#0c1020', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
+      <section style={{ padding:'60px 24px', background:'rgba(10,14,28,0.90)', borderTop:'1px solid rgba(0,180,240,0.10)', borderBottom:'1px solid rgba(0,180,240,0.10)' }}>
         <div style={{ maxWidth:860, margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:36 }}>
             <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#f0405e', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>THE PROBLEM</div>
             <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:-1.5 }}>What your SOC looks like today vs with Watchtower</h2>
           </div>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr auto 1fr', gap:24, alignItems:'center' }}>
-            <div style={{ padding:24, background:'#131929', border:'1px solid #f0405e18', borderRadius:14 }}>
+          <div className='before-after' style={{ display:'grid', gridTemplateColumns:'1fr auto 1fr', gap:24, alignItems:'center' }}>
+            <div style={{ padding:24, background:'rgba(16,22,40,0.85)', border:'1px solid #f0405e18', borderRadius:14 }}>
               <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#f0405e', textTransform:'uppercase', letterSpacing:'1px', marginBottom:14 }}>Before Watchtower</div>
               {['400+ alerts/day, all need human review','6 separate tool consoles open','3.5 hour average triage time','80% are false positives eating analyst time','Junior analysts bottlenecked on senior review'].map(s=>(
                 <div key={s} style={{display:'flex',gap:8,marginBottom:8,alignItems:'flex-start'}}>
@@ -587,8 +608,8 @@ export default function LandingPage() {
                 </div>
               ))}
             </div>
-            <div style={{ fontSize:'1.5rem', color:'#3a4050' }}>→</div>
-            <div style={{ padding:24, background:'#131929', border:'1px solid #22d49a18', borderRadius:14 }}>
+            <div className='ba-arrow' style={{ fontSize:'1.5rem', color:'#3a4050' }}>→</div>
+            <div style={{ padding:24, background:'rgba(16,22,40,0.85)', border:'1px solid #22d49a18', borderRadius:14 }}>
               <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#22d49a', textTransform:'uppercase', letterSpacing:'1px', marginBottom:14 }}>With Watchtower</div>
               {['<60 alerts actually need attention','1 screen for everything','3.2s AI triage with evidence chain','85% auto-resolved with full audit trail','Juniors work at senior level with AI guidance'].map(s=>(
                 <div key={s} style={{display:'flex',gap:8,marginBottom:8,alignItems:'flex-start'}}>
@@ -606,7 +627,7 @@ export default function LandingPage() {
         <div style={{ maxWidth:900, margin:'0 auto' }}>
           <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>HOW IT WORKS</div>
           <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:-1.5, marginBottom:40 }}>Up and running in under 15 minutes</h2>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16, position:'relative' }}>
+          <div className='how-grid' style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:16, position:'relative' }}>
             {[
               { step:'01', icon:'🔌', title:'Connect your tools', body:'Point Watchtower at your existing stack — CrowdStrike, Splunk, Tenable, Okta and 76 more. No agents, no forwarders, no professional services. OAuth or API key, credentials encrypted at rest.', color:'#4f8fff' },
               { step:'02', icon:'🧠', title:'Add your AI key', body:'Paste your Anthropic API key (BYOK). Your AI costs go direct to your Anthropic account — Watchtower never touches your alert data. Each MSSP client gets their own isolated key.', color:'#8b6fff' },
@@ -635,7 +656,7 @@ export default function LandingPage() {
       </section>
 
       {/* INTEGRATIONS */}
-      <section id='integrations' ref={toolsRef as React.RefObject<HTMLElement>} style={{ padding:'60px 24px', textAlign:'center', background:'#0c1020', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
+      <section id='integrations' ref={toolsRef as React.RefObject<HTMLElement>} style={{ padding:'60px 24px', textAlign:'center', background:'rgba(10,14,28,0.90)', borderTop:'1px solid rgba(0,180,240,0.10)', borderBottom:'1px solid rgba(0,180,240,0.10)' }}>
         <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>INTEGRATIONS</div>
         <h2 style={{ fontSize:'2rem', fontWeight:800, letterSpacing:-1.5, marginBottom:12 }}>Connects to everything you run</h2>
         <p style={{ color:'#6b7a94', fontSize:'0.88rem', lineHeight:1.8, marginBottom:24, maxWidth:580, margin:'0 auto 24px' }}>80+ integrations + OT/ICS add-on across EDR, SIEM, XDR, Cloud, Identity, ITSM, SOAR, Threat Intel, OT/ICS and more. No rip-and-replace — live in minutes.</p>
@@ -655,7 +676,7 @@ export default function LandingPage() {
         </div>
         <div className='feat-grid' style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12 }}>
           {FEATURES.map(f=>(
-            <div key={f.title} style={{ padding:22, background:'#131929', border:'1px solid #1d2535', borderRadius:14, transition:'all .2s' }}
+            <div key={f.title} style={{ padding:22, background:'rgba(16,22,40,0.85)', border:'1px solid rgba(0,180,240,0.13)', borderRadius:14, transition:'all .2s' }}
               onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor='#4f8fff25';(e.currentTarget as HTMLElement).style.transform='translateY(-3px)';(e.currentTarget as HTMLElement).style.boxShadow='0 12px 32px rgba(79,143,255,0.08)';}}
               onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor='#1d2535';(e.currentTarget as HTMLElement).style.transform='none';(e.currentTarget as HTMLElement).style.boxShadow='none';}}>
               <div style={{ fontSize:'1.5rem', marginBottom:10 }}>{f.icon}</div>
@@ -674,7 +695,7 @@ export default function LandingPage() {
           <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#8b6fff', textTransform:'uppercase', letterSpacing:'1.5px', marginBottom:10 }}>FOR MSSPs</div>
           <h2 style={{ fontSize:'1.7rem', fontWeight:800, letterSpacing:-1, marginBottom:10 }}>Manage 50 clients from one console</h2>
           <p style={{ fontSize:'0.9rem', color:'#6b7a94', lineHeight:1.75, marginBottom:24 }}>Client health at a glance. Cross-client threat correlation. Per-client BYOK keys — each client's AI calls stay isolated under their own Anthropic account. White-label — your brand, zero Watchtower branding.</p>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:10, marginBottom:24 }}>
+          <div className='ot-grid' style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:10, marginBottom:24 }}>
             {[
               { icon:'📊', title:'Portfolio Dashboard', body:'Every client on one screen. Drill into any tenant in one click. Posture, alerts, incidents, coverage.' },
               { icon:'📈', title:'Sales Dashboard + AI GTM', body:'Set your MRR/ARR targets. AI generates the exact customer mix and go-to-market strategy to get there.' },
@@ -693,7 +714,7 @@ export default function LandingPage() {
       </section>
 
       {/* SECURITY / COMPLIANCE TRUST */}
-      <section style={{ padding:'40px 24px', background:'#080b14', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
+      <section style={{ padding:'40px 24px', background:'#080b14', borderTop:'1px solid rgba(0,180,240,0.10)', borderBottom:'1px solid rgba(0,180,240,0.10)' }}>
         <div style={{ maxWidth:860, margin:'0 auto', textAlign:'center' }}>
           <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#4a5568', textTransform:'uppercase', letterSpacing:'2px', marginBottom:20 }}>BUILT FOR REGULATED INDUSTRIES</div>
           <div style={{ display:'flex', justifyContent:'center', gap:10, flexWrap:'wrap' }}>
@@ -707,7 +728,7 @@ export default function LandingPage() {
               { label:'Per-Tenant Isolation', icon:'🏢' },
               { label:'UK Data Residency', icon:'🇬🇧' },
             ].map(b => (
-              <div key={b.label} style={{ display:'flex', alignItems:'center', gap:7, padding:'8px 14px', background:'#0d111e', border:'1px solid #1a2030', borderRadius:20, fontSize:'0.72rem', color:'#6b7a94' }}>
+              <div key={b.label} style={{ display:'flex', alignItems:'center', gap:7, padding:'8px 14px', background:'#0d111e', border:'1px solid rgba(0,180,240,0.10)', borderRadius:20, fontSize:'0.72rem', color:'#6b7a94' }}>
                 <span>{b.icon}</span>
                 <span style={{ fontWeight:600 }}>{b.label}</span>
               </div>
@@ -717,7 +738,7 @@ export default function LandingPage() {
       </section>
 
       {/* OT ADD-ON */}
-      <section id="ot" style={{ padding:'60px 24px', background:'#0a0d16', borderTop:'1px solid #0e1218', borderBottom:'1px solid #0e1218' }}>
+      <section id="ot" style={{ padding:'60px 24px', background:'#0a0d16', borderTop:'1px solid rgba(0,180,240,0.10)', borderBottom:'1px solid rgba(0,180,240,0.10)' }}>
         <div style={{ maxWidth:860, margin:'0 auto' }}>
           <div style={{ textAlign:'center', marginBottom:32 }}>
             <div style={{ display:'inline-flex',alignItems:'center',gap:8,padding:'4px 12px',background:'#22d49a10',border:'1px solid #22d49a25',borderRadius:20,fontSize:'0.68rem',color:'#22d49a',fontWeight:700,marginBottom:12 }}>ADD-ON</div>
@@ -733,14 +754,14 @@ export default function LandingPage() {
               { icon:'⚡', title:'Cross-zone Anomaly Detection', desc:'IT→OT bypass alerts. Flags traffic that crosses the L3.5 DMZ boundary unexpectedly. Real-time zone-to-zone traffic map.' },
               { icon:'📋', title:'IEC 62443 Posture', desc:'Active alerts mapped to IEC 62443 security levels. Zone-by-zone compliance posture. NERC CIP mapping for energy sector.' },
             ].map((f:any) => (
-              <div key={f.title} style={{ padding:'18px 20px', background:'#131929', border:'1px solid #1d2535', borderRadius:12 }}>
+              <div key={f.title} style={{ padding:'18px 20px', background:'rgba(16,22,40,0.85)', border:'1px solid rgba(0,180,240,0.13)', borderRadius:12 }}>
                 <div style={{ fontSize:'1.4rem', marginBottom:8 }}>{f.icon}</div>
                 <div style={{ fontSize:'0.82rem', fontWeight:700, marginBottom:5 }}>{f.title}</div>
                 <div style={{ fontSize:'0.72rem', color:'#6b7a94', lineHeight:1.7 }}>{f.desc}</div>
               </div>
             ))}
           </div>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'18px 24px', background:'#131929', border:'1px solid #22d49a20', borderRadius:12, flexWrap:'wrap', gap:16 }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'18px 24px', background:'rgba(16,22,40,0.85)', border:'1px solid #22d49a20', borderRadius:12, flexWrap:'wrap', gap:16 }}>
             <div>
               <div style={{ fontSize:'0.72rem', color:'#22d49a', fontWeight:700, textTransform:'uppercase', letterSpacing:'1px', marginBottom:4 }}>OT ADD-ON PRICING</div>
               <div style={{ fontSize:'1.5rem', fontWeight:900, fontFamily:'JetBrains Mono,monospace' }}>£999<span style={{ fontSize:'0.78rem', fontWeight:400, color:'#6b7a94' }}>/mo flat</span> <span style={{ color:'#3a4a60' }}>+</span> £1<span style={{ fontSize:'0.78rem', fontWeight:400, color:'#6b7a94' }}>/OT device/mo</span></div>
@@ -758,7 +779,7 @@ export default function LandingPage() {
         <p style={{ color:'#6b7a94', fontSize:'0.88rem', marginBottom:32 }}>Start free. Upgrade as you grow. No hidden fees.</p>
         <div className='plan-grid' style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:12, maxWidth:1060, margin:'0 auto' }}>
           {PLANS.map(p=>(
-            <div key={p.name} style={{ padding:24, background:'#131929', border:`1px solid ${p.name==='Business'?p.color+'30':'#1d2535'}`, borderRadius:16, position:'relative', display:'flex', flexDirection:'column', gap:4, transition:'all .2s' }}
+            <div key={p.name} style={{ padding:24, background:'rgba(16,22,40,0.85)', border:`1px solid ${p.name==='Business'?p.color+'30':'#1d2535'}`, borderRadius:16, position:'relative', display:'flex', flexDirection:'column', gap:4, transition:'all .2s' }}
               onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.transform='translateY(-4px)';(e.currentTarget as HTMLElement).style.boxShadow=`0 20px 48px ${p.color}18`;}}
               onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.transform='none';(e.currentTarget as HTMLElement).style.boxShadow='none';}}>
               {p.badge && <div style={{ position:'absolute', top:-10, left:'50%', transform:'translateX(-50%)', padding:'3px 12px', background:p.color, borderRadius:20, fontSize:'0.6rem', fontWeight:800, color:'#fff', whiteSpace:'nowrap' }}>{p.badge}</div>}
@@ -806,7 +827,7 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ */}
-      <section style={{ padding:'64px 24px', background:'#0a0d16', borderTop:'1px solid #0e1218' }}>
+      <section style={{ padding:'64px 24px', background:'#0a0d16', borderTop:'1px solid rgba(0,180,240,0.10)' }}>
         <div style={{ maxWidth:700, margin:'0 auto' }}>
           <div style={{ fontSize:'0.68rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'2px', marginBottom:14, textAlign:'center' }}>FAQ</div>
           <h2 style={{ fontSize:'1.9rem', fontWeight:900, letterSpacing:'-1.5px', marginBottom:36, lineHeight:1.1, textAlign:'center' }}>Common questions</h2>
@@ -830,7 +851,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section style={{ padding:'70px 24px', textAlign:'center', background:'#0c1020', borderTop:'1px solid #0e1218' }}>
+      <section style={{ padding:'70px 24px', textAlign:'center', background:'rgba(10,14,28,0.90)', borderTop:'1px solid rgba(0,180,240,0.10)' }}>
         <div style={{ maxWidth:580, margin:'0 auto' }}>
           <h2 style={{ fontSize:'2.2rem', fontWeight:900, letterSpacing:-2, marginBottom:14, lineHeight:1.1 }}>Stop triaging alerts.<br/>Start doing security work.</h2>
           <p style={{ fontSize:'0.95rem', color:'#6b7a94', lineHeight:1.75, marginBottom:32 }}>Start for free today. Connect your first tool in under 5 minutes.</p>
@@ -840,7 +861,7 @@ export default function LandingPage() {
       </section>
 
       {/* FOOTER */}
-      <footer style={{ padding:'32px 24px', borderTop:'1px solid #0e1218', display:'flex', justifyContent:'space-between', alignItems:'center', maxWidth:1100, margin:'0 auto', flexWrap:'wrap', gap:12 }}>
+      <footer className='footer-wrap' style={{ padding:'32px 24px', borderTop:'1px solid rgba(0,180,240,0.10)', display:'flex', justifyContent:'space-between', alignItems:'center', maxWidth:1100, margin:'0 auto', flexWrap:'wrap', gap:12 }}>
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
             <rect width="22" height="22" rx="6" fill="url(#fg)"/>
@@ -851,7 +872,7 @@ export default function LandingPage() {
           <span style={{ fontWeight:700, fontSize:'0.88rem' }}>Watchtower</span>
           <span style={{ color:'#2a3448', marginLeft:8, fontSize:'0.72rem' }}>© 2026 Watchtower Ltd</span>
         </div>
-        <div style={{ display:'flex', gap:20 }}>
+        <div className='footer-links' style={{ display:'flex', gap:20, flexWrap:'wrap' }}>
           {[{l:'Privacy',h:'/privacy'},{l:'Terms',h:'/terms'},{l:'Security',h:'/security'},{l:'Press',h:'/press'},{l:'Blog',h:'/blog'},{l:'Changelog',h:'/changelog'},{l:'Docs',h:'/docs'},{l:'Demo',h:'/demo'}].map(({l,h})=><a key={l} href={h} style={{color:'#4a5568',fontSize:'0.76rem',textDecoration:'none'}} onMouseEnter={e=>{(e.target as HTMLElement).style.color='#8a9ab0';}} onMouseLeave={e=>{(e.target as HTMLElement).style.color='#4a5568';}}>{l}</a>)}
         </div>
       </footer>
