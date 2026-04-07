@@ -1930,38 +1930,12 @@ export default function DashboardPage() {
                 const tlevel = critAlerts.length>=3||slaBreaches>0?'CRITICAL':critAlerts.length>0?'HIGH':alerts.filter(a=>a.severity==='High').length>0?'ELEVATED':'GUARDED';
                 const tlColor = {CRITICAL:'#ff2244',HIGH:'#ffb300',ELEVATED:'#ffb300',GUARDED:'#00ff88'}[tlevel];
                 const tlBg = {CRITICAL:'rgba(30,8,14,0.92)',HIGH:'rgba(30,18,6,0.90)',ELEVATED:'rgba(28,20,6,0.88)',GUARDED:'rgba(10,18,38,0.85)'}[tlevel];
-                const actions = [];
-                if (critAlerts.length>0) actions.push({icon:'🔴',text:`Triage ${critAlerts.length} critical alert${critAlerts.length!==1?'s':''}`,tab:'alerts',color:'#ff2244'});
-                if (slaBreaches>0) actions.push({icon:'⏱',text:`${slaBreaches} SLA breach${slaBreaches!==1?'es':''} — cases overdue`,tab:'incidents',color:'#ff2244'});
-                if (kevVulns.length>0) actions.push({icon:'🛑',text:`Patch ${kevVulns.length} CISA KEV vuln${kevVulns.length!==1?'s':''}`,tab:'vulns',color:'#ffb300'});
-                if (gapDevices.length>0) actions.push({icon:'📡',text:`${gapDevices.length} device${gapDevices.length!==1?'s':''} missing agent coverage`,tab:'coverage',color:'#ffb300'});
-                if (alerts.filter(a=>a.severity==='High'&&a.verdict==='Pending').length>0) actions.push({icon:'🟠',text:`${alerts.filter(a=>a.severity==='High'&&a.verdict==='Pending').length} high-severity alerts need triage`,tab:'alerts',color:'#ffb300'});
-                // Compact single-line when GUARDED with no actions
-                if (actions.length===0) return (
-                  <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:tlBg,border:`1px solid ${tlColor}40`,borderRadius:10}}>
-                    <div style={{width:7,height:7,borderRadius:'50%',background:tlColor,boxShadow:`0 0 6px ${tlColor}`,flexShrink:0}} />
-                    <span style={{fontSize:'0.78rem',fontWeight:700,color:tlColor,letterSpacing:'2px',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>THREAT LEVEL — {tlevel}</span>
-                    <span style={{fontSize:'0.78rem',color:'var(--wt-muted)',marginLeft:'auto'}}>✓ No immediate action required</span>
-                  </div>
-                );
+                const topAction = critAlerts.length>0?{text:`${critAlerts.length} critical — triage now`,tab:'alerts'}:slaBreaches>0?{text:`${slaBreaches} SLA breach${slaBreaches!==1?'es':''}`,tab:'incidents'}:kevVulns.length>0?{text:`${kevVulns.length} KEV vuln${kevVulns.length!==1?'s':''}`,tab:'vulns'}:null;
                 return (
-                  <div style={{background:tlBg,border:`1px solid ${tlColor}50`,borderRadius:12,overflow:'hidden'}}>
-                    <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 16px',borderBottom:`1px solid ${tlColor}35`,flexWrap:'wrap'}}>
-                      <div style={{display:'flex',alignItems:'center',gap:6,flex:1,minWidth:0}}>
-                        <div style={{width:8,height:8,borderRadius:'50%',background:tlColor,boxShadow:`0 0 8px ${tlColor}`,flexShrink:0,animation:tlevel==='CRITICAL'?'pulse 1s ease infinite':tlevel==='HIGH'?'pulse 2s ease infinite':'none'}} />
-                        <span style={{fontSize:'0.8rem',fontWeight:700,color:tlColor,letterSpacing:'2.5px',fontFamily:"'Rajdhani','JetBrains Mono',monospace",textShadow:'0 0 8px currentColor',whiteSpace:'nowrap'}}>THREAT LEVEL — {tlevel}</span>
-                      </div>
-                    </div>
-                    <div style={{padding:'10px 16px',display:'flex',flexDirection:'column',gap:5}}>
-                      {actions.slice(0,3).map((a,i)=>(
-                        <div key={i} onClick={()=>setActiveTab(a.tab)} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 8px',borderRadius:7,cursor:'pointer',transition:'background .12s',background:i===0&&tlevel!=='GUARDED'?`${a.color}08`:'transparent'}}
-                          onMouseEnter={e=>e.currentTarget.style.background=`${a.color}10`} onMouseLeave={e=>e.currentTarget.style.background=i===0&&tlevel!=='GUARDED'?`${a.color}08`:'transparent'}>
-                          <span style={{fontSize:'0.75rem',flexShrink:0}}>{a.icon}</span>
-                          <span style={{fontSize:'0.82rem',fontWeight:i===0?700:500,color:i===0?a.color:'var(--wt-secondary)',flex:1}}>{a.text}</span>
-                          <span style={{fontSize:'0.86rem',color:'var(--wt-dim)'}}>↗</span>
-                        </div>
-                      ))}
-                    </div>
+                  <div onClick={()=>{if(topAction)setActiveTab(topAction.tab);}} style={{display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:tlBg,border:`1px solid ${tlColor}40`,borderRadius:10,cursor:topAction?'pointer':'default'}}>
+                    <div style={{width:8,height:8,borderRadius:'50%',background:tlColor,boxShadow:`0 0 8px ${tlColor}`,flexShrink:0,animation:tlevel==='CRITICAL'?'pulse 1s ease infinite':tlevel==='HIGH'?'pulse 2s ease infinite':'none'}} />
+                    <span style={{fontSize:'0.78rem',fontWeight:700,color:tlColor,letterSpacing:'2px',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>THREAT LEVEL — {tlevel}</span>
+                    <span style={{fontSize:'0.78rem',color:topAction?tlColor:'var(--wt-muted)',marginLeft:'auto',whiteSpace:'nowrap'}}>{topAction?topAction.text+' ↗':'✓ No immediate action required'}</span>
                   </div>
                 );
               })()}
