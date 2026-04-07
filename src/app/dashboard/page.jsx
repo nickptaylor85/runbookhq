@@ -1841,7 +1841,7 @@ export default function DashboardPage() {
         </div>
 
         {/* CONTENT */}
-        <div className="wt-content wt-main" id='main-content' style={{flex:1,overflowY:'auto',overflowX:'hidden',padding:'16px 18px',background:'transparent'}} key={activeTab}>
+        <div className="wt-content wt-main" id='main-content' style={{flex:1,overflowY:'auto',overflowX:'hidden',padding:'16px 18px',background:'transparent'}}>
 
           {/* LIVE MODE — no data yet banner */}
           {!demoMode && liveAlerts.length === 0 && Object.keys(connectedTools).length > 0 && (
@@ -1928,13 +1928,14 @@ export default function DashboardPage() {
               {/* ── THREAT LEVEL BAR ─────────────────────────────────────────────── */}
               {(()=>{
                 const tlevel = critAlerts.length>=3||slaBreaches>0?'CRITICAL':critAlerts.length>0?'HIGH':alerts.filter(a=>a.severity==='High').length>0?'ELEVATED':'GUARDED';
+                if (tlevel === 'GUARDED') return null;
                 const tlColor = {CRITICAL:'#ff2244',HIGH:'#ffb300',ELEVATED:'#ffb300',GUARDED:'#00ff88'}[tlevel];
                 const topAction = critAlerts.length>0?{text:`${critAlerts.length} critical — triage now`,tab:'alerts'}:slaBreaches>0?{text:`${slaBreaches} SLA breach${slaBreaches!==1?'es':''}`,tab:'incidents'}:kevVulns.length>0?{text:`${kevVulns.length} KEV vuln${kevVulns.length!==1?'s':''}`,tab:'vulns'}:null;
                 return (
                   <div onClick={()=>{if(topAction)setActiveTab(topAction.tab);}} style={{display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:'rgba(10,18,38,0.85)',border:`1px solid ${tlColor}40`,borderRadius:10,cursor:topAction?'pointer':'default'}}>
                     <div style={{width:8,height:8,borderRadius:'50%',background:tlColor,boxShadow:`0 0 8px ${tlColor}`,flexShrink:0,animation:tlevel==='CRITICAL'?'pulse 1s ease infinite':tlevel==='HIGH'?'pulse 2s ease infinite':'none'}} />
                     <span style={{fontSize:'0.78rem',fontWeight:700,color:tlColor,letterSpacing:'2px',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>THREAT LEVEL — {tlevel}</span>
-                    <span style={{fontSize:'0.78rem',color:topAction?tlColor:'var(--wt-muted)',marginLeft:'auto',whiteSpace:'nowrap'}}>{topAction?topAction.text+' ↗':'✓ No immediate action required'}</span>
+                    <span style={{fontSize:'0.78rem',color:topAction?tlColor:'var(--wt-muted)',marginLeft:'auto',whiteSpace:'nowrap'}}>{topAction?topAction.text+' ↗':'✓ All clear'}</span>
                   </div>
                 );
               })()}

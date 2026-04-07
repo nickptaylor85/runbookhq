@@ -461,57 +461,6 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
   return (
     <div style={{display:'flex',flexDirection:'column',gap:14}}>
 
-      {/* Sync Log — full width at top */}
-      <div style={{background:'#060b10',border:'1px solid #1a2535',borderRadius:10,overflow:'hidden'}}>
-        <div style={{padding:'8px 14px',borderBottom:'1px solid #1a2535',display:'flex',alignItems:'center',gap:8}}>
-          <span style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff'}}>📋 Sync Log</span>
-          <span style={{fontSize:'0.56rem',color:'var(--wt-dim)',marginLeft:4}}>{syncLog&&syncLog.length>0?`${syncLog.length} events`:'live output'}</span>
-          {syncLog&&syncLog.length>0 && (
-            <span style={{fontSize:'0.56rem',color:syncLog[syncLog.length-1]?.error?'#f0405e':'#22d49a',marginLeft:'auto'}}>
-              Last: {new Date(syncLog[syncLog.length-1]?.ts||Date.now()).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}
-            </span>
-          )}
-          {(!syncLog||syncLog.length===0)&&<span style={{fontSize:'0.56rem',color:'#f0a030',marginLeft:'auto'}}>No syncs yet — connect a tool and click Sync</span>}
-        </div>
-        <div style={{maxHeight:220,overflowY:'auto',fontFamily:'JetBrains Mono,monospace',fontSize:'0.6rem'}} ref={el=>{if(el)el.scrollTop=el.scrollHeight}}>
-          {/* Summary row */}
-          {syncLog&&syncLog.length>0 && (()=>{
-            const ok=syncLog.filter(e=>!e.error);
-            const err=syncLog.filter(e=>e.error);
-            const total=ok.reduce((a,e)=>a+(e.count||0),0);
-            const avgMs=ok.length?Math.round(ok.reduce((a,e)=>a+(e.durationMs||0),0)/ok.length):0;
-            return (
-              <div style={{padding:'6px 14px',borderBottom:'1px solid #1a2535',display:'flex',gap:12,background:'#070d15'}}>
-                <span style={{color:'#22d49a'}}>{ok.length} OK</span>
-                {err.length>0&&<span style={{color:'#f0405e'}}>{err.length} errors</span>}
-                <span style={{color:'#4f8fff'}}>{total.toLocaleString()} records</span>
-                {avgMs>0&&<span style={{color:'#6b7a94'}}>{avgMs}ms avg</span>}
-              </div>
-            );
-          })()}
-          {syncLog&&syncLog.length>0 ? syncLog.slice().reverse().map((entry,i)=>{
-            const toolColor = entry.toolId==='tenable'?'#00b3e3':entry.toolId==='crowdstrike'?'#f0405e':entry.toolId==='sentinel'?'#4f8fff':entry.toolId==='splunk'?'#65a637':entry.toolId==='defender'?'#00a4ef':entry.toolId==='sentinelone'?'#8c2be2':'#7c6aff';
-            return (
-              <div key={i} style={{display:'grid',gridTemplateColumns:'58px 110px 1fr 55px',alignItems:'center',gap:6,padding:'4px 14px',borderBottom:'1px solid #0d1520',background:entry.error?'#f0405e06':i===0?'#0a1525':'transparent'}}>
-                <span style={{color:'#3a4a5e',fontSize:'0.54rem'}}>{new Date(entry.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>
-                <span style={{color:toolColor,fontWeight:700,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{entry.toolId}</span>
-                {entry.error
-                  ? <span style={{color:'#f0405e',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>✗ {entry.error.slice(0,60)}</span>
-                  : <span style={{color:entry.count>0?'#22d49a':'#f0a030',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-                      {entry.count>0
-                        ? `✓ ${entry.count} ${entry.dataType||'records'}`
-                        : '⚠ 0 records — check credentials'}
-                    </span>
-                }
-                <span style={{color:entry.durationMs&&entry.durationMs>5000?'#f0a030':'#4a5568',textAlign:'right',fontSize:'0.54rem'}}>{entry.durationMs?`${entry.durationMs}ms`:''}</span>
-              </div>
-            );
-          }) : (
-            <div style={{padding:'16px 14px',color:'#2a3448',fontSize:'0.6rem',textAlign:'center'}}>waiting for sync...</div>
-          )}
-        </div>
-      </div>
-
       {/* Header row */}
       <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
         <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Integrations</h2>
@@ -669,6 +618,58 @@ export default function ToolsTab({ connected, setConnected, toolSyncResults, doS
           ));
         })()}
       </div>
+
+      {/* Sync Log — full width at bottom */}
+      <div style={{background:'#060b10',border:'1px solid #1a2535',borderRadius:10,overflow:'hidden'}}>
+        <div style={{padding:'8px 14px',borderBottom:'1px solid #1a2535',display:'flex',alignItems:'center',gap:8}}>
+          <span style={{fontSize:'0.62rem',fontWeight:700,color:'#4f8fff'}}>📋 Sync Log</span>
+          <span style={{fontSize:'0.56rem',color:'var(--wt-dim)',marginLeft:4}}>{syncLog&&syncLog.length>0?`${syncLog.length} events`:'live output'}</span>
+          {syncLog&&syncLog.length>0 && (
+            <span style={{fontSize:'0.56rem',color:syncLog[syncLog.length-1]?.error?'#f0405e':'#22d49a',marginLeft:'auto'}}>
+              Last: {new Date(syncLog[syncLog.length-1]?.ts||Date.now()).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}
+            </span>
+          )}
+          {(!syncLog||syncLog.length===0)&&<span style={{fontSize:'0.56rem',color:'#f0a030',marginLeft:'auto'}}>No syncs yet — connect a tool and click Sync</span>}
+        </div>
+        <div style={{maxHeight:220,overflowY:'auto',fontFamily:'JetBrains Mono,monospace',fontSize:'0.6rem'}} ref={el=>{if(el)el.scrollTop=el.scrollHeight}}>
+          {/* Summary row */}
+          {syncLog&&syncLog.length>0 && (()=>{
+            const ok=syncLog.filter(e=>!e.error);
+            const err=syncLog.filter(e=>e.error);
+            const total=ok.reduce((a,e)=>a+(e.count||0),0);
+            const avgMs=ok.length?Math.round(ok.reduce((a,e)=>a+(e.durationMs||0),0)/ok.length):0;
+            return (
+              <div style={{padding:'6px 14px',borderBottom:'1px solid #1a2535',display:'flex',gap:12,background:'#070d15'}}>
+                <span style={{color:'#22d49a'}}>{ok.length} OK</span>
+                {err.length>0&&<span style={{color:'#f0405e'}}>{err.length} errors</span>}
+                <span style={{color:'#4f8fff'}}>{total.toLocaleString()} records</span>
+                {avgMs>0&&<span style={{color:'#6b7a94'}}>{avgMs}ms avg</span>}
+              </div>
+            );
+          })()}
+          {syncLog&&syncLog.length>0 ? syncLog.slice().reverse().map((entry,i)=>{
+            const toolColor = entry.toolId==='tenable'?'#00b3e3':entry.toolId==='crowdstrike'?'#f0405e':entry.toolId==='sentinel'?'#4f8fff':entry.toolId==='splunk'?'#65a637':entry.toolId==='defender'?'#00a4ef':entry.toolId==='sentinelone'?'#8c2be2':'#7c6aff';
+            return (
+              <div key={i} style={{display:'grid',gridTemplateColumns:'58px 110px 1fr 55px',alignItems:'center',gap:6,padding:'4px 14px',borderBottom:'1px solid #0d1520',background:entry.error?'#f0405e06':i===0?'#0a1525':'transparent'}}>
+                <span style={{color:'#3a4a5e',fontSize:'0.54rem'}}>{new Date(entry.ts).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}</span>
+                <span style={{color:toolColor,fontWeight:700,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{entry.toolId}</span>
+                {entry.error
+                  ? <span style={{color:'#f0405e',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>✗ {entry.error.slice(0,60)}</span>
+                  : <span style={{color:entry.count>0?'#22d49a':'#f0a030',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                      {entry.count>0
+                        ? `✓ ${entry.count} ${entry.dataType||'records'}`
+                        : '⚠ 0 records — check credentials'}
+                    </span>
+                }
+                <span style={{color:entry.durationMs&&entry.durationMs>5000?'#f0a030':'#4a5568',textAlign:'right',fontSize:'0.54rem'}}>{entry.durationMs?`${entry.durationMs}ms`:''}</span>
+              </div>
+            );
+          }) : (
+            <div style={{padding:'16px 14px',color:'#2a3448',fontSize:'0.6rem',textAlign:'center'}}>waiting for sync...</div>
+          )}
+        </div>
+      </div>
+
       {modal && (
         <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.8)',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:20}} onClick={()=>setModal(null)}>
           <div style={{background:'var(--wt-card2)',border:'1px solid var(--wt-border2)',borderRadius:16,maxWidth:480,width:'100%',padding:24,maxHeight:'85vh',overflow:'auto'}} onClick={e=>e.stopPropagation()}>
