@@ -276,8 +276,8 @@ export default function OTTab({ tenantId, connectedTools = {}, demoMode, theme }
               : 'Operational Technology — separate triage rules apply'
           )
         ),
-        demoMode && React.createElement('span', { style:{ fontSize:'0.7rem', padding:'2px 8px', borderRadius:4, background:'#f0a03025', color:'#f0a030', border:'1px solid #f0a03030', fontWeight:700 } }, 'DEMO DATA'),
-        activeMW.length > 0 && React.createElement('span', { style:{ fontSize:'0.7rem', padding:'2px 8px', borderRadius:4, background:'#8b6fff25', color:'#8b6fff', border:'1px solid #8b6fff30', fontWeight:700 } }, '🔧 ' + activeMW.length + ' MAINTENANCE WINDOW' + (activeMW.length > 1 ? 'S' : '') + ' ACTIVE'),
+        demoMode && React.createElement('span', { style:{ fontSize:'0.7rem', padding:'2px 8px', borderRadius:4, background:'#f0a03012', color:'#f0a030', border:'1px solid #f0a03030', fontWeight:700 } }, 'DEMO DATA'),
+        activeMW.length > 0 && React.createElement('span', { style:{ fontSize:'0.7rem', padding:'2px 8px', borderRadius:4, background:'#8b6fff12', color:'#8b6fff', border:'1px solid #8b6fff30', fontWeight:700 } }, '🔧 ' + activeMW.length + ' MAINTENANCE WINDOW' + (activeMW.length > 1 ? 'S' : '') + ' ACTIVE'),
         (loadingAssets || loadingAlerts) && React.createElement('span', { style:{ fontSize:'0.7rem', color:'#4f8fff' } }, '⟳ Syncing...')
       ),
       React.createElement('div', { style:{ display:'flex', gap:6 } },
@@ -304,7 +304,7 @@ export default function OTTab({ tenantId, connectedTools = {}, demoMode, theme }
     ),
 
     /* Safety banner */
-    React.createElement('div', { style:{ padding:'8px 14px', background:'#f0a03020', border:'1px solid #f0a03025', borderRadius:8, display:'flex', alignItems:'center', gap:8 } },
+    React.createElement('div', { style:{ padding:'8px 14px', background:'#f0a03008', border:'1px solid #f0a03025', borderRadius:8, display:'flex', alignItems:'center', gap:8 } },
       React.createElement('span', null, '⚠'),
       React.createElement('span', { style:{ fontSize:'0.78rem', color:'#f0a030', fontWeight:600 } }, 'OT Safety Mode active'),
       React.createElement('span', { style:{ fontSize:'0.78rem', color:'var(--wt-muted)' } }, '— APEX will never auto-isolate OT devices. All response actions require plant engineer confirmation.')
@@ -316,7 +316,7 @@ export default function OTTab({ tenantId, connectedTools = {}, demoMode, theme }
       /* Zone bands */
       React.createElement('div', { style:{ background:'var(--wt-card)', border:'1px solid var(--wt-border)', borderRadius:12, padding:16, display:'flex', flexDirection:'column', gap:3 } },
         React.createElement('div', { style:{ fontSize:'0.82rem', fontWeight:700, color:'var(--wt-muted)', textTransform:'uppercase', letterSpacing:'1px', marginBottom:8 } }, 'Purdue Reference Model'),
-        DEMO_CROSS_ZONE.filter(function(c) { return c.anomalous; }).length > 0 && React.createElement('div', { style:{ padding:'6px 10px', background:'#f0405e20', border:'1px solid #f0405e25', borderRadius:7, marginBottom:8, fontSize:'0.76rem', color:'#f0405e' } },
+        DEMO_CROSS_ZONE.filter(function(c) { return c.anomalous; }).length > 0 && React.createElement('div', { style:{ padding:'6px 10px', background:'#f0405e08', border:'1px solid #f0405e25', borderRadius:7, marginBottom:8, fontSize:'0.76rem', color:'#f0405e' } },
           '⚡ ' + DEMO_CROSS_ZONE.filter(function(c) { return c.anomalous; }).length + ' anomalous cross-zone traffic patterns detected',
           DEMO_CROSS_ZONE.filter(function(c) { return c.anomalous; }).map(function(a) {
             return React.createElement('div', { key:a.label, style:{ marginTop:3, color:'var(--wt-muted)', fontFamily:'JetBrains Mono,monospace', fontSize:'0.72rem' } }, a.from + ' → ' + a.label + ' (' + a.count + ' pkts/hr)');
@@ -371,7 +371,7 @@ export default function OTTab({ tenantId, connectedTools = {}, demoMode, theme }
           al.length > 0 && React.createElement('div', null,
             React.createElement('div', { style:{ fontSize:'0.72rem', fontWeight:700, color:'#f0405e', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:6 } }, 'Active Alerts (' + al.length + ')'),
             al.map(function(alert) {
-              return React.createElement('div', { key:alert.id, onClick: function() { setSelectedAlert(alert); setActiveView('alerts'); }, style:{ padding:'8px 10px', background:'#f0405e28', border:'1px solid #f0405e20', borderRadius:7, marginBottom:5, cursor:'pointer' } },
+              return React.createElement('div', { key:alert.id, onClick: function() { setSelectedAlert(alert); setActiveView('alerts'); }, style:{ padding:'8px 10px', background:'#f0405e06', border:'1px solid #f0405e20', borderRadius:7, marginBottom:5, cursor:'pointer' } },
                 React.createElement('div', { style:{ fontSize:'0.78rem', fontWeight:600 } }, alert.title),
                 React.createElement('div', { style:{ display:'flex', gap:6, marginTop:3 } },
                   React.createElement('span', { style:{ fontSize:'0.68rem', fontWeight:700, padding:'0 4px', borderRadius:2, background:SEV_COLOR[alert.severity] || '#f0a030', color:'#fff' } }, alert.severity),
@@ -451,7 +451,7 @@ export default function OTTab({ tenantId, connectedTools = {}, demoMode, theme }
             React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:6 } },
               React.createElement('div', { style:{ width:7, height:7, borderRadius:'50%', background:STATUS_COLOR[asset.status] || '#6b7a94' } }),
               React.createElement('span', { style:{ fontSize:'0.72rem', color:STATUS_COLOR[asset.status], fontWeight:600 } }, asset.status),
-              (asset.cveCount || 0) > 0 && React.createElement('button', { onClick: function() { lookupCVE(asset); }, style:{ fontSize:'0.68rem', fontWeight:700, padding:'1px 5px', borderRadius:3, background:'#8b6fff25', color:'#8b6fff', border:'1px solid #8b6fff25', cursor:'pointer', fontFamily:'Inter,sans-serif' } }, asset.cveCount + ' CVE')
+              (asset.cveCount || 0) > 0 && React.createElement('button', { onClick: function() { lookupCVE(asset); }, style:{ fontSize:'0.68rem', fontWeight:700, padding:'1px 5px', borderRadius:3, background:'#8b6fff12', color:'#8b6fff', border:'1px solid #8b6fff25', cursor:'pointer', fontFamily:'Inter,sans-serif' } }, asset.cveCount + ' CVE')
             )
           );
         })
@@ -529,7 +529,7 @@ export default function OTTab({ tenantId, connectedTools = {}, demoMode, theme }
               React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap', marginBottom:3 } },
                 React.createElement('span', { style:{ fontSize:'0.72rem', fontWeight:800, color:sevColor, textTransform:'uppercase' } }, alert.severity),
                 React.createElement('span', { style:{ fontSize:'0.76rem', fontWeight:600, color:'var(--wt-text)' } }, alert.title),
-                inMW && React.createElement('span', { style:{ fontSize:'0.68rem', color:'#8b6fff', background:'#8b6fff25', padding:'0 4px', borderRadius:3 } }, 'maintenance window active')
+                inMW && React.createElement('span', { style:{ fontSize:'0.68rem', color:'#8b6fff', background:'#8b6fff12', padding:'0 4px', borderRadius:3 } }, 'maintenance window active')
               ),
               React.createElement('div', { style:{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' } },
                 React.createElement('span', { style:{ fontSize:'0.7rem', color:'var(--wt-dim)', fontFamily:'JetBrains Mono,monospace' } }, alert.device),
@@ -540,15 +540,15 @@ export default function OTTab({ tenantId, connectedTools = {}, demoMode, theme }
               )
             ),
             triaging === alert.id && React.createElement('span', { style:{ fontSize:'0.7rem', color:'#4f8fff', flexShrink:0 } }, '⟳ APEX OT...'),
-            React.createElement('span', { style:{ fontSize:'0.68rem', fontWeight:700, padding:'1px 6px', borderRadius:3, background:'#f0a03025', color:'#f0a030', border:'1px solid #f0a03025', flexShrink:0 } }, '⚠ No auto-action')
+            React.createElement('span', { style:{ fontSize:'0.68rem', fontWeight:700, padding:'1px 6px', borderRadius:3, background:'#f0a03012', color:'#f0a030', border:'1px solid #f0a03025', flexShrink:0 } }, '⚠ No auto-action')
           ),
           isExpanded && React.createElement('div', { style:{ borderTop:'1px solid var(--wt-border)', padding:'12px 14px', display:'flex', flexDirection:'column', gap:10 } },
             React.createElement('p', { style:{ fontSize:'0.8rem', color:'var(--wt-secondary)', lineHeight:1.6 } }, alert.description),
-            React.createElement('div', { style:{ padding:'8px 12px', background:'#f0a03020', border:'1px solid #f0a03025', borderRadius:7 } },
+            React.createElement('div', { style:{ padding:'8px 12px', background:'#f0a03008', border:'1px solid #f0a03025', borderRadius:7 } },
               React.createElement('div', { style:{ fontSize:'0.7rem', fontWeight:700, color:'#f0a030', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:4 } }, 'OT-Safe Recommendation'),
               React.createElement('p', { style:{ fontSize:'0.78rem', color:'var(--wt-secondary)', lineHeight:1.6 } }, alert.recommendation)
             ),
-            triage && triage.result && React.createElement('div', { style:{ padding:'10px 12px', background:'#4f8fff28', border:'1px solid #4f8fff20', borderRadius:8 } },
+            triage && triage.result && React.createElement('div', { style:{ padding:'10px 12px', background:'#4f8fff06', border:'1px solid #4f8fff20', borderRadius:8 } },
               React.createElement('div', { style:{ fontSize:'0.7rem', fontWeight:700, color:'#4f8fff', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:6 } }, '✦ APEX OT Analysis'),
               React.createElement('p', { style:{ fontSize:'0.8rem', color:'var(--wt-secondary)', lineHeight:1.6, marginBottom:8 } }, triage.result.analystNarrative),
               (triage.result.evidenceChain || []).map(function(e, i) {
@@ -582,7 +582,7 @@ export default function OTTab({ tenantId, connectedTools = {}, demoMode, theme }
 
     /* ══════════════════════════ IEC 62443 VIEW ════════════════════════════ */
     activeView === 'iec62443' && React.createElement('div', { style:{ display:'flex', flexDirection:'column', gap:12 } },
-      React.createElement('div', { style:{ padding:'10px 14px', background:'#4f8fff20', border:'1px solid #4f8fff20', borderRadius:8 } },
+      React.createElement('div', { style:{ padding:'10px 14px', background:'#4f8fff08', border:'1px solid #4f8fff20', borderRadius:8 } },
         React.createElement('div', { style:{ fontSize:'0.82rem', fontWeight:700, color:'#4f8fff', marginBottom:4 } }, 'IEC 62443-3-3 Security Level Assessment'),
         React.createElement('p', { style:{ fontSize:'0.76rem', color:'var(--wt-muted)', lineHeight:1.6 } }, 'Security levels (SL1 to SL4) assessed per zone based on active alerts, CVE exposure, and control coverage. SL1 = basic protection, SL4 = nation-state level. Mapped to FR1 to FR7 foundational requirements.')
       ),
@@ -593,8 +593,8 @@ export default function OTTab({ tenantId, connectedTools = {}, demoMode, theme }
             React.createElement('span', { style:{ fontSize:'0.88rem', fontWeight:800, color:zoneColor } }, zone),
             React.createElement('span', { style:{ fontSize:'0.82rem', fontWeight:600, color:'var(--wt-text)' } }, zoneName),
             React.createElement('div', { style:{ marginLeft:'auto', display:'flex', gap:10 } },
-              alertCount > 0 && React.createElement('span', { style:{ fontSize:'0.72rem', color:'#f0405e', background:'#f0405e25', padding:'1px 6px', borderRadius:3 } }, alertCount + ' active alerts'),
-              totalCVEs > 0 && React.createElement('span', { style:{ fontSize:'0.72rem', color:'#8b6fff', background:'#8b6fff25', padding:'1px 6px', borderRadius:3 } }, totalCVEs + ' CVEs')
+              alertCount > 0 && React.createElement('span', { style:{ fontSize:'0.72rem', color:'#f0405e', background:'#f0405e12', padding:'1px 6px', borderRadius:3 } }, alertCount + ' active alerts'),
+              totalCVEs > 0 && React.createElement('span', { style:{ fontSize:'0.72rem', color:'#8b6fff', background:'#8b6fff12', padding:'1px 6px', borderRadius:3 } }, totalCVEs + ' CVEs')
             )
           ),
           React.createElement('div', { style:{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:0 } },
@@ -693,7 +693,7 @@ export default function OTTab({ tenantId, connectedTools = {}, demoMode, theme }
               React.createElement('div', { style:{ display:'flex', alignItems:'center', gap:8, marginBottom:4 } },
                 React.createElement('span', { style:{ fontSize:'0.8rem', fontWeight:700, fontFamily:'JetBrains Mono,monospace', color:cvssColor } }, cve.id),
                 React.createElement('span', { style:{ fontSize:'0.72rem', fontWeight:800, padding:'1px 6px', borderRadius:3, background:cvssColor+'20', color:cvssColor } }, 'CVSS ' + cve.cvss),
-                cve.fixed && React.createElement('span', { style:{ fontSize:'0.68rem', color:'#22d49a', background:'#22d49a25', padding:'1px 5px', borderRadius:3 } }, 'Fixed in ' + cve.fixed)
+                cve.fixed && React.createElement('span', { style:{ fontSize:'0.68rem', color:'#22d49a', background:'#22d49a12', padding:'1px 5px', borderRadius:3 } }, 'Fixed in ' + cve.fixed)
               ),
               React.createElement('p', { style:{ fontSize:'0.76rem', color:'var(--wt-secondary)', lineHeight:1.5 } }, cve.desc)
             );

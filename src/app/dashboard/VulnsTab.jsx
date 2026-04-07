@@ -9,8 +9,8 @@ export default function VulnsTab({
       <div style={{display:'flex',flexDirection:'column',gap:0}}>
               <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
                 <h2 style={{fontSize:'0.88rem',fontWeight:700}}>Top 10 Vulnerabilities</h2>
-                <span style={{fontSize:'0.62rem',color:'#f0405e',background:'#f0405e25',padding:'2px 8px',borderRadius:4}}>Ranked by severity × prevalence in your estate</span>
-                <span style={{marginLeft:'auto',fontSize:'0.62rem',color:'#f97316',background:'#f9731625',padding:'2px 8px',borderRadius:4}}>{kevVulns.length} CISA KEV — 72h deadline</span>
+                <span style={{fontSize:'0.62rem',color:'#f0405e',background:'#f0405e12',padding:'2px 8px',borderRadius:4}}>Ranked by severity × prevalence in your estate</span>
+                <span style={{marginLeft:'auto',fontSize:'0.62rem',color:'#f97316',background:'#f9731612',padding:'2px 8px',borderRadius:4}}>{kevVulns.length} CISA KEV — 72h deadline</span>
               </div>
               <div style={{display:'flex',flexDirection:'column',gap:6}}>
                 {DEMO_VULNS.map((vuln,rank)=>(
@@ -33,7 +33,7 @@ export default function VulnsTab({
                       <span style={{fontSize:'0.62rem',color:'#4f8fff',flexShrink:0}}>{selectedVuln?.id===vuln.id?'▲':'▼'}</span>
                     </div>
                     {selectedVuln?.id===vuln.id && (
-                      <div style={{padding:'14px 16px',background:'rgba(12,16,28,0.85)',border:'1px solid #4f8fff20',borderTop:'none',borderRadius:'0 0 10px 10px',marginBottom:0}}>
+                      <div style={{padding:'14px 16px',background:'#070912',border:'1px solid #4f8fff20',borderTop:'none',borderRadius:'0 0 10px 10px',marginBottom:0}}>
                         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
                           <div>
                             <div style={{fontSize:'0.7rem',color:'var(--wt-secondary)',lineHeight:1.65,marginBottom:10}}>{vuln.description}</div>

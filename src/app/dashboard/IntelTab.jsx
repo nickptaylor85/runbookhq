@@ -15,7 +15,7 @@ export default function IntelTab({
           {sev:'High',title:'LockBit 3.0 new infrastructure — financial sector',age:'6h ago',mitre:'T1486'},
           {sev:'Medium',title:'Phishing wave — DocuSign lure — 12 IOCs',age:'8h ago',mitre:'T1566.001'},
         ].map((t,i)=>(
-          <div key={i} style={{padding:'10px 12px',background:'rgba(20,8,14,0.85)',border:`1px solid ${t.sev==='Critical'?'#f0405e18':'#f9731618'}`,borderRadius:9}}>
+          <div key={i} style={{padding:'10px 12px',background:'#0a0206',border:`1px solid ${t.sev==='Critical'?'#f0405e18':'#f9731618'}`,borderRadius:9}}>
             <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:3}}>
               <span style={{fontSize:'0.5rem',fontWeight:800,padding:'1px 5px',borderRadius:3,background:t.sev==='Critical'?'#f0405e':'#f97316',color:'#fff'}}>{t.sev.toUpperCase()}</span>
               <span style={{fontSize:'0.48rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{t.mitre}</span>
@@ -47,7 +47,7 @@ export default function IntelTab({
                 {allIntel.filter(i=>i.industrySpecific).map(item=>{
                   const isExpanded = expandedIntel.has(item.id);
                   return (
-                  <div key={item.id} style={{background:'rgba(20,8,14,0.85)',border:`1px solid ${isExpanded?'#f0405e30':'#f0405e18'}`,borderRadius:10,marginBottom:6,overflow:'hidden'}}>
+                  <div key={item.id} style={{background:'#0a0206',border:`1px solid ${isExpanded?'#f0405e30':'#f0405e18'}`,borderRadius:10,marginBottom:6,overflow:'hidden'}}>
                     <div style={{padding:'12px 14px',cursor:'pointer'}} onClick={()=>toggleIntel(item.id)}>
                       <div style={{display:'flex',alignItems:'flex-start',gap:10}}>
                         <div style={{flex:1}}>
@@ -60,19 +60,19 @@ export default function IntelTab({
                             <span style={{fontSize:'0.58rem',color:'#4f8fff'}}>{item.source}</span>
                             <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{item.time}</span>
                             {item.mitre && <span style={{fontSize:'0.52rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{item.mitre}</span>}
-                            {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.58rem',fontWeight:700,color:'#f0a030',background:'#f0a03025',padding:'1px 6px',borderRadius:3,border:'1px solid #f0a03025'}}>{item.iocs.length} IOCs — click to view</span>}
-                            <a href={item.url || `https://www.ncsc.gov.uk/search?q=${encodeURIComponent(item.title)}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.52rem',color:'#4f8fff',textDecoration:'none',padding:'1px 6px',border:'1px solid #4f8fff20',borderRadius:3,background:'#4f8fff20'}}>Read article →</a>
+                            {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.58rem',fontWeight:700,color:'#f0a030',background:'#f0a03012',padding:'1px 6px',borderRadius:3,border:'1px solid #f0a03025'}}>{item.iocs.length} IOCs — click to view</span>}
+                            <a href={item.url || `https://www.ncsc.gov.uk/search?q=${encodeURIComponent(item.title)}`} target='_blank' rel='noopener noreferrer' onClick={e=>e.stopPropagation()} style={{fontSize:'0.52rem',color:'#4f8fff',textDecoration:'none',padding:'1px 6px',border:'1px solid #4f8fff20',borderRadius:3,background:'#4f8fff0a'}}>Read article →</a>
                           </div>
                         </div>
                         <span style={{fontSize:'0.7rem',color:'var(--wt-dim)',flexShrink:0}}>{isExpanded?'▲':'▼'}</span>
                       </div>
                     </div>
                     {isExpanded && item.iocs && item.iocs.length>0 && (
-                      <div style={{padding:'10px 14px 14px',borderTop:'1px solid rgba(240,64,94,0.20)',background:'rgba(16,6,18,0.82)'}}>
+                      <div style={{padding:'10px 14px 14px',borderTop:'1px solid #f0405e15',background:'#07010a'}}>
                         <div style={{fontSize:'0.6rem',fontWeight:700,color:'#f0a030',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:8}}>Indicators of Compromise</div>
                         <div style={{display:'flex',flexDirection:'column',gap:4}}>
                           {item.iocs.map(ioc=>(
-                            <div key={ioc} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 8px',background:'rgba(22,8,16,0.80)',border:'1px solid rgba(240,64,94,0.18)',borderRadius:6}}>
+                            <div key={ioc} style={{display:'flex',alignItems:'center',gap:8,padding:'5px 8px',background:'#0d0208',border:'1px solid #1e1010',borderRadius:6}}>
                               <span style={{width:6,height:6,borderRadius:'50%',background:'#f0a030',flexShrink:0}} />
                               <code style={{fontSize:'0.68rem',fontFamily:'JetBrains Mono,monospace',color:'#f0c070',flex:1,wordBreak:'break-all'}}>{ioc}</code>
                               <button onClick={e=>{e.stopPropagation();navigator.clipboard.writeText(ioc);}} style={{fontSize:'0.54rem',padding:'2px 7px',borderRadius:3,border:'1px solid #f0a03025',background:'transparent',color:'#f0a030',cursor:'pointer',fontFamily:'Inter,sans-serif',flexShrink:0}}>Copy</button>
@@ -86,7 +86,7 @@ export default function IntelTab({
                           </div>
                         )}
                         {item.iocs && item.iocs.length>0 && (
-                          <div style={{marginTop:10,paddingTop:10,borderTop:'1px solid #f0a03030'}}>
+                          <div style={{marginTop:10,paddingTop:10,borderTop:'1px solid #f0a03015'}}>
                             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
                               <span style={{fontSize:'0.6rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px'}}>🔍 Hunt in your environment</span>
                               <button onClick={e=>{e.stopPropagation();setIocQueryLoading(item.id);fetch('/api/copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:'Generate detection queries to hunt for these IOCs in a corporate environment: '+item.iocs.join(', ')+'. Provide: SPLUNK QUERY (SPL), MICROSOFT SENTINEL KQL, and MICROSOFT DEFENDER ADVANCED HUNTING queries. Each labelled clearly. No markdown, plain text only.'})}).then(r=>r.json()).then(d=>{setIocQueries(prev=>({...prev,[item.id]:d.response||''}));setIocQueryLoading(null);}).catch(()=>setIocQueryLoading(null));}} disabled={iocQueryLoading===item.id} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>
@@ -121,7 +121,7 @@ export default function IntelTab({
                       <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
                         <span style={{fontSize:'0.58rem',color:'#4f8fff'}}>{item.source}</span>
                         <span style={{fontSize:'0.58rem',color:'var(--wt-dim)'}}>{item.time}</span>
-                        {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.58rem',fontWeight:700,color:'#f0a030',background:'#f0a03025',padding:'1px 6px',borderRadius:3,border:'1px solid #f0a03025'}}>{item.iocs.length} IOCs</span>}
+                        {item.iocs && item.iocs.length>0 && <span style={{fontSize:'0.58rem',fontWeight:700,color:'#f0a030',background:'#f0a03012',padding:'1px 6px',borderRadius:3,border:'1px solid #f0a03025'}}>{item.iocs.length} IOCs</span>}
                         {item.mitre && <span style={{fontSize:'0.52rem',color:'#7c6aff',fontFamily:'JetBrains Mono,monospace'}}>{item.mitre}</span>}
                       </div>
                     </div>
@@ -144,7 +144,7 @@ export default function IntelTab({
                           </div>
                         )}
                         {item.iocs && item.iocs.length>0 && (
-                          <div style={{marginTop:10,paddingTop:10,borderTop:'1px solid #f0a03030'}}>
+                          <div style={{marginTop:10,paddingTop:10,borderTop:'1px solid #f0a03015'}}>
                             <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
                               <span style={{fontSize:'0.6rem',fontWeight:700,color:'#22d49a',textTransform:'uppercase',letterSpacing:'0.5px'}}>🔍 Hunt in your environment</span>
                               <button onClick={e=>{e.stopPropagation();setIocQueryLoading(item.id);fetch('/api/copilot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:'Generate detection queries to hunt for these IOCs in a corporate environment: '+item.iocs.join(', ')+'. Provide: SPLUNK QUERY (SPL), MICROSOFT SENTINEL KQL, and MICROSOFT DEFENDER ADVANCED HUNTING queries. Each labelled clearly. No markdown, plain text only.'})}).then(r=>r.json()).then(d=>{setIocQueries(prev=>({...prev,[item.id]:d.response||''}));setIocQueryLoading(null);}).catch(()=>setIocQueryLoading(null));}} disabled={iocQueryLoading===item.id} style={{padding:'3px 10px',borderRadius:5,border:'1px solid #22d49a30',background:'#22d49a10',color:'#22d49a',fontSize:'0.6rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif',display:'flex',alignItems:'center',gap:4}}>
