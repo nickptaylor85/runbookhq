@@ -1929,7 +1929,7 @@ export default function DashboardPage() {
               {(()=>{
                 const tlevel = critAlerts.length>=3||slaBreaches>0?'CRITICAL':critAlerts.length>0?'HIGH':alerts.filter(a=>a.severity==='High').length>0?'ELEVATED':'GUARDED';
                 const tlColor = {CRITICAL:'#ff2244',HIGH:'#ffb300',ELEVATED:'#ffb300',GUARDED:'#00ff88'}[tlevel];
-                const tlBg = {CRITICAL:'rgba(240,64,94,0.15)',HIGH:'rgba(249,115,22,0.12)',ELEVATED:'rgba(240,160,48,0.12)',GUARDED:'rgba(10,18,38,0.85)'}[tlevel];
+                const tlBg = {CRITICAL:'rgba(30,8,14,0.92)',HIGH:'rgba(30,18,6,0.90)',ELEVATED:'rgba(28,20,6,0.88)',GUARDED:'rgba(10,18,38,0.85)'}[tlevel];
                 const actions = [];
                 if (critAlerts.length>0) actions.push({icon:'🔴',text:`Triage ${critAlerts.length} critical alert${critAlerts.length!==1?'s':''}`,tab:'alerts',color:'#ff2244'});
                 if (slaBreaches>0) actions.push({icon:'⏱',text:`${slaBreaches} SLA breach${slaBreaches!==1?'es':''} — cases overdue`,tab:'incidents',color:'#ff2244'});
@@ -1938,15 +1938,15 @@ export default function DashboardPage() {
                 if (alerts.filter(a=>a.severity==='High'&&a.verdict==='Pending').length>0) actions.push({icon:'🟠',text:`${alerts.filter(a=>a.severity==='High'&&a.verdict==='Pending').length} high-severity alerts need triage`,tab:'alerts',color:'#ffb300'});
                 // Compact single-line when GUARDED with no actions
                 if (actions.length===0) return (
-                  <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:tlBg,border:`1px solid ${tlColor}20`,borderRadius:10}}>
+                  <div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:tlBg,border:`1px solid ${tlColor}40`,borderRadius:10}}>
                     <div style={{width:7,height:7,borderRadius:'50%',background:tlColor,boxShadow:`0 0 6px ${tlColor}`,flexShrink:0}} />
                     <span style={{fontSize:'0.78rem',fontWeight:700,color:tlColor,letterSpacing:'2px',fontFamily:"'Rajdhani','JetBrains Mono',monospace"}}>THREAT LEVEL — {tlevel}</span>
                     <span style={{fontSize:'0.78rem',color:'var(--wt-muted)',marginLeft:'auto'}}>✓ No immediate action required</span>
                   </div>
                 );
                 return (
-                  <div style={{background:tlBg,border:`1px solid ${tlColor}25`,borderRadius:12,overflow:'hidden'}}>
-                    <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 16px',borderBottom:`1px solid ${tlColor}15`,flexWrap:'wrap'}}>
+                  <div style={{background:tlBg,border:`1px solid ${tlColor}50`,borderRadius:12,overflow:'hidden'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:8,padding:'10px 16px',borderBottom:`1px solid ${tlColor}35`,flexWrap:'wrap'}}>
                       <div style={{display:'flex',alignItems:'center',gap:6,flex:1,minWidth:0}}>
                         <div style={{width:8,height:8,borderRadius:'50%',background:tlColor,boxShadow:`0 0 8px ${tlColor}`,flexShrink:0,animation:tlevel==='CRITICAL'?'pulse 1s ease infinite':tlevel==='HIGH'?'pulse 2s ease infinite':'none'}} />
                         <span style={{fontSize:'0.8rem',fontWeight:700,color:tlColor,letterSpacing:'2.5px',fontFamily:"'Rajdhani','JetBrains Mono',monospace",textShadow:'0 0 8px currentColor',whiteSpace:'nowrap'}}>THREAT LEVEL — {tlevel}</span>
