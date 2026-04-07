@@ -151,6 +151,7 @@ export default function GuidePage() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#060c18', color: '#e8ecf4', fontFamily: 'Inter,sans-serif', display: 'flex', flexDirection: 'column' }}>
+      <style>{`@media(max-width:768px){.guide-sidebar{display:none!important}}`}</style>
       <div style={{ display: 'flex', alignItems: 'center', padding: '14px 24px', borderBottom: '1px solid rgba(0,180,240,0.13)', background: 'rgba(4,8,20,0.80)', gap: 12, flexWrap: 'wrap' }}>
         <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', color: 'inherit', flexShrink: 0 }}>
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
@@ -168,7 +169,7 @@ export default function GuidePage() {
         <a href="/dashboard" style={{ padding: '7px 16px', background: 'transparent', border: '1px solid rgba(0,180,240,0.13)', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none', flexShrink: 0 }}>← Dashboard</a>
       </div>
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <div style={{ width: 220, background: 'rgba(4,8,20,0.80)', borderRight: '1px solid rgba(0,180,240,0.13)', padding: '16px 0', flexShrink: 0, overflowY: 'auto' }}>
+        <div className='guide-sidebar' style={{ width: 220, background: 'rgba(4,8,20,0.80)', borderRight: '1px solid rgba(0,180,240,0.13)', padding: '16px 0', flexShrink: 0, overflowY: 'auto' }}>
           {(search.length > 1 ? filtered : SECTIONS).map(s => (
             <button key={s.id} onClick={() => { setActiveSection(s.id); setSearch(''); }}
               style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', background: activeSection === s.id ? '#4f8fff14' : 'transparent', border: 'none', borderLeft: `2px solid ${activeSection === s.id ? '#4f8fff' : 'transparent'}`, color: activeSection === s.id ? '#4f8fff' : '#7a8aa4', fontSize: '0.78rem', fontWeight: activeSection === s.id ? 700 : 500, cursor: 'pointer', fontFamily: 'Inter,sans-serif', textAlign: 'left', transition: 'all .12s' }}>

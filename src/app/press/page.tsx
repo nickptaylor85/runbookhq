@@ -31,7 +31,7 @@ export default function PressPage() {
   ];
   return (
     <div style={{background:'#060c18',color:'#e8ecf4',fontFamily:'Inter,sans-serif',minHeight:'100vh'}}>
-      <style>{`*{margin:0;padding:0;box-sizing:border-box}body{background:#060c18}`}</style>
+      <style>{`*{margin:0;padding:0;box-sizing:border-box}body{background:#060c18}@media(max-width:600px){.press-row{grid-template-columns:1fr!important}}`}</style>
       <nav style={{display:'flex',alignItems:'center',padding:'14px 28px',borderBottom:'1px solid rgba(0,180,240,0.13)',background:'rgba(4,8,20,0.80)',backdropFilter:'blur(18px)',position:'sticky',top:0,zIndex:50}}>
         <a href='/' style={{display:'flex',alignItems:'center',gap:8,fontWeight:800,fontSize:'0.95rem',textDecoration:'none',color:'inherit'}}>
           <div style={{width:26,height:26,borderRadius:7,background:'linear-gradient(135deg,#4f8fff,#8b6fff)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.6rem',color:'#fff',fontWeight:900}}>W</div>
@@ -57,7 +57,7 @@ export default function PressPage() {
           <h2 style={{fontSize:'1rem',fontWeight:800,marginBottom:16}}>Company Facts</h2>
           <div style={{background:'rgba(14,24,46,0.55)',border:'1px solid rgba(0,180,240,0.13)',borderRadius:12,overflow:'hidden'}}>
             {facts.map(([label,val],i)=>(
-              <div key={String(label)} style={{display:'grid',gridTemplateColumns:'200px 1fr',gap:16,padding:'12px 20px',borderBottom:i<facts.length-1?'1px solid #141820':'none',background:i%2===0?'transparent':'#09091a'}}>
+              <div key={String(label)} className='press-row' style={{display:'grid',gridTemplateColumns:'200px 1fr',gap:16,padding:'12px 20px',borderBottom:i<facts.length-1?'1px solid #141820':'none',background:i%2===0?'transparent':'#09091a'}}>
                 <div style={{fontSize:'0.76rem',fontWeight:700,color:'#6b7a94'}}>{label}</div>
                 <div style={{fontSize:'0.76rem',color:'#e8ecf4'}}>{val}</div>
               </div>

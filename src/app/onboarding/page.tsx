@@ -78,7 +78,11 @@ export default function OnboardingPage() {
 .ob-bg{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 60% at 50% 20%,rgba(79,143,255,0.10) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 80% 80%,rgba(130,0,255,0.08) 0%,transparent 55%),radial-gradient(rgba(0,180,240,0.04) 1px,transparent 1px),#060c18;background-size:auto,auto,40px 40px,auto}
 @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .ob-card{animation:fadeIn .35s ease both}
-.ob-field:focus{border-color:rgba(79,143,255,0.5)!important;outline:none}`}</style>
+.ob-field:focus{border-color:rgba(79,143,255,0.5)!important;outline:none}
+@media(max-width:480px){
+  .ob-roles{grid-template-columns:1fr!important}
+  .ob-tools{grid-template-columns:1fr!important}
+}`}</style>
       <div className="ob-bg" />
 
       {/* Progress bar */}
@@ -105,7 +109,7 @@ export default function OnboardingPage() {
             <div style={{fontSize:'2.4rem',marginBottom:12}}>👋</div>
             <h1 style={{fontSize:'1.6rem',fontWeight:900,letterSpacing:'-1px',marginBottom:8}}>Welcome to Watchtower</h1>
             <p style={{fontSize:'0.88rem',color:'#6b7a94',marginBottom:32,lineHeight:1.6}}>Let&apos;s get your SOC connected. This takes about 2 minutes.</p>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:24}}>
+            <div className='ob-roles' style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:24}}>
               {ROLES.map(r=>(
                 <div key={r.id} onClick={()=>setRole(r.id)}
                   style={{padding:'16px 14px',background:role===r.id?'rgba(79,143,255,0.12)':'rgba(14,24,46,0.55)',border:`1px solid ${role===r.id?'rgba(79,143,255,0.40)':'rgba(0,180,240,0.13)'}`,borderRadius:12,cursor:'pointer',transition:'all .15s',textAlign:'left'}}>
@@ -132,7 +136,7 @@ export default function OnboardingPage() {
             </div>
 
             {!selectedTool ? (
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+              <div className='ob-tools' style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
                 {TOP_TOOLS.map(t=>(
                   <div key={t.id} onClick={()=>{setSelectedTool(t.id);setToolFields({});}}
                     style={{padding:'14px',background:'rgba(14,24,46,0.55)',border:'1px solid rgba(0,180,240,0.13)',borderRadius:10,cursor:'pointer',transition:'border-color .15s',display:'flex',alignItems:'center',gap:10}}
