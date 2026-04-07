@@ -1929,7 +1929,7 @@ export default function DashboardPage() {
               {(()=>{
                 const tlevel = critAlerts.length>=3||slaBreaches>0?'CRITICAL':critAlerts.length>0?'HIGH':alerts.filter(a=>a.severity==='High').length>0?'ELEVATED':'GUARDED';
                 const tlColor = {CRITICAL:'#ff2244',HIGH:'#ffb300',ELEVATED:'#ffb300',GUARDED:'#00ff88'}[tlevel];
-                const tlBg = {CRITICAL:'rgba(30,8,14,0.92)',HIGH:'rgba(30,18,6,0.90)',ELEVATED:'rgba(28,20,6,0.88)',GUARDED:'rgba(10,18,38,0.85)'}[tlevel];
+                const tlBg = 'rgba(10,18,38,0.85)';
                 const topAction = critAlerts.length>0?{text:`${critAlerts.length} critical — triage now`,tab:'alerts'}:slaBreaches>0?{text:`${slaBreaches} SLA breach${slaBreaches!==1?'es':''}`,tab:'incidents'}:kevVulns.length>0?{text:`${kevVulns.length} KEV vuln${kevVulns.length!==1?'s':''}`,tab:'vulns'}:null;
                 return (
                   <div onClick={()=>{if(topAction)setActiveTab(topAction.tab);}} style={{display:'flex',alignItems:'center',gap:8,padding:'8px 14px',background:tlBg,border:`1px solid ${tlColor}40`,borderRadius:10,cursor:topAction?'pointer':'default'}}>
