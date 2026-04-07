@@ -89,7 +89,7 @@ const DASHBOARD_CSS = `*{margin:0;padding:0;box-sizing:border-box}
           --glow-purple: none;
         }
 
-        .tab-btn{padding:6px 14px;border:none;background:transparent;cursor:pointer;font-size:0.7rem;font-weight:700;font-family:Rajdhani,"JetBrains Mono",monospace;letter-spacing:0.8px;border-radius:3px;transition:all .15s;white-space:nowrap;color:var(--wt-muted);text-transform:uppercase}
+        .tab-btn{padding:6px 10px;border:none;background:transparent;cursor:pointer;font-size:0.7rem;font-weight:700;font-family:Rajdhani,"JetBrains Mono",monospace;letter-spacing:0.8px;border-radius:3px;transition:all .15s;white-space:nowrap;color:var(--wt-muted);text-transform:uppercase;flex-shrink:1;min-width:0}
         .tab-btn.active{background:rgba(0,229,255,0.07);color:var(--cp-cyan);box-shadow:inset 0 0 0 1px rgba(0,229,255,0.25),var(--glow-cyan)}
         .tab-btn:not(.active) {color:var(--wt-secondary);background:var(--wt-card2)}
         .row-hover{transition:background .12s}
@@ -195,6 +195,8 @@ const DASHBOARD_CSS = `*{margin:0;padding:0;box-sizing:border-box}
 
         /* Topbar - premium glass */
         .wt-topbar {
+          position: relative;
+          z-index: 50;
           background: rgba(4,8,20,0.80) !important;
           backdrop-filter: blur(30px) saturate(1.8) brightness(1.08) !important;
           -webkit-backdrop-filter: blur(30px) saturate(1.8) brightness(1.08) !important;
@@ -1862,7 +1864,7 @@ export default function DashboardPage() {
                 }).catch(()=>{});
               }
             }}>
-              <div style={{padding:'12px 16px',background:'linear-gradient(135deg,rgba(139,111,255,0.06),rgba(79,143,255,0.04))',border:'1px solid #bd00ff25',borderRadius:10,marginBottom:14,display:'flex',alignItems:'center',gap:10}}>
+              <div style={{padding:'12px 16px',background:'linear-gradient(135deg,rgba(139,111,255,0.14),rgba(79,143,255,0.12))',border:'1px solid #bd00ff25',borderRadius:10,marginBottom:14,display:'flex',alignItems:'center',gap:10}}>
                 <span style={{fontSize:'0.9rem'}}>🧠</span>
                 <div style={{flex:1}}>
                   <div style={{fontSize:'0.82rem',fontWeight:700,color:'#bd00ff'}}>Add your Anthropic API key to unlock APEX AI triage</div>
@@ -1927,7 +1929,7 @@ export default function DashboardPage() {
               {(()=>{
                 const tlevel = critAlerts.length>=3||slaBreaches>0?'CRITICAL':critAlerts.length>0?'HIGH':alerts.filter(a=>a.severity==='High').length>0?'ELEVATED':'GUARDED';
                 const tlColor = {CRITICAL:'#ff2244',HIGH:'#ffb300',ELEVATED:'#ffb300',GUARDED:'#00ff88'}[tlevel];
-                const tlBg = {CRITICAL:'rgba(240,64,94,0.06)',HIGH:'rgba(249,115,22,0.05)',ELEVATED:'rgba(240,160,48,0.05)',GUARDED:'rgba(34,201,146,0.05)'}[tlevel];
+                const tlBg = {CRITICAL:'rgba(240,64,94,0.15)',HIGH:'rgba(249,115,22,0.12)',ELEVATED:'rgba(240,160,48,0.12)',GUARDED:'rgba(10,18,38,0.85)'}[tlevel];
                 const actions = [];
                 if (critAlerts.length>0) actions.push({icon:'🔴',text:`Triage ${critAlerts.length} critical alert${critAlerts.length!==1?'s':''}`,tab:'alerts',color:'#ff2244'});
                 if (slaBreaches>0) actions.push({icon:'⏱',text:`${slaBreaches} SLA breach${slaBreaches!==1?'es':''} — cases overdue`,tab:'incidents',color:'#ff2244'});
@@ -1970,7 +1972,7 @@ export default function DashboardPage() {
                   <div style={{fontSize:'0.84rem',fontWeight:700,color:'#00ff88',textTransform:'uppercase',letterSpacing:'0.5px',marginBottom:6}}>⇄ Shift Handover Brief</div>
                   <WtMarkdown text={shiftHandover.summary} accent='#00ff88' />
                   {shiftHandover.recommendation&&<div style={{marginTop:8,padding:'8px 12px',background:'#00ff8808',border:'1px solid #00ff8820',borderRadius:7,fontSize:'0.84rem',color:'#00ff88',fontWeight:600}}>🎯 Priority: {shiftHandover.recommendation}</div>}
-                  {(shiftHandover.keyActions||[]).length>0&&(<div style={{marginTop:10}}><div style={{fontSize:'0.72rem',fontWeight:800,color:'#00ff88',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Actions for incoming analyst</div>{(shiftHandover.keyActions||[]).map((a,i)=><div key={i} style={{display:'flex',gap:8,padding:'6px 8px',marginBottom:4,background:'rgba(34,212,154,0.04)',border:'1px solid rgba(34,212,154,0.12)',borderRadius:6,alignItems:'flex-start'}}><span style={{width:20,height:20,borderRadius:5,background:'#00ff88',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:'0.7rem',fontWeight:900,color:'#050810'}}>{i+1}</span><span style={{fontSize:'0.84rem',color:'var(--wt-secondary)',lineHeight:1.55}}>{a}</span></div>)}</div>)}
+                  {(shiftHandover.keyActions||[]).length>0&&(<div style={{marginTop:10}}><div style={{fontSize:'0.72rem',fontWeight:800,color:'#00ff88',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>Actions for incoming analyst</div>{(shiftHandover.keyActions||[]).map((a,i)=><div key={i} style={{display:'flex',gap:8,padding:'6px 8px',marginBottom:4,background:'rgba(34,212,154,0.12)',border:'1px solid rgba(34,212,154,0.12)',borderRadius:6,alignItems:'flex-start'}}><span style={{width:20,height:20,borderRadius:5,background:'#00ff88',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:'0.7rem',fontWeight:900,color:'#050810'}}>{i+1}</span><span style={{fontSize:'0.84rem',color:'var(--wt-secondary)',lineHeight:1.55}}>{a}</span></div>)}</div>)}
                   <div style={{marginTop:6,fontSize:'0.86rem',color:'var(--wt-dim)'}}>Generated {new Date(shiftHandover.generatedAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</div>
                 </div>
               )}
@@ -3013,7 +3015,7 @@ export default function DashboardPage() {
                     {isSel && (
                       <div style={{borderTop:'1px solid var(--wt-border)',padding:'14px 16px'}}>
                         <GateWall feature='AI Attack Narrative' requiredTier='team' userTier={userTier} isAdmin={isAdmin}>
-              <div style={{fontSize:'0.82rem',color:'var(--wt-secondary)',lineHeight:1.65,padding:'10px',background:'linear-gradient(135deg,rgba(79,143,255,0.04),rgba(34,201,146,0.04))',border:'1px solid #00e5ff15',borderRadius:8,marginBottom:12}}>
+              <div style={{fontSize:'0.82rem',color:'var(--wt-secondary)',lineHeight:1.65,padding:'10px',background:'linear-gradient(135deg,rgba(79,143,255,0.12),rgba(34,201,146,0.12))',border:'1px solid #00e5ff15',borderRadius:8,marginBottom:12}}>
                           <span style={{fontSize:'0.84rem',fontWeight:700,color:'#00e5ff',display:'block',marginBottom:4}}>AI ATTACK NARRATIVE</span>
                           {inc.aiSummary}
                         </div>
@@ -3110,7 +3112,7 @@ export default function DashboardPage() {
                         )}
                         {/* DEEP INVESTIGATION PANEL */}
                         {showInvest.has(inc.id) && (
-                          <div style={{marginTop:14,background:'linear-gradient(135deg,rgba(139,111,255,0.05),rgba(79,143,255,0.03))',border:'1px solid #bd00ff25',borderRadius:12,overflow:'hidden'}}>
+                          <div style={{marginTop:14,background:'linear-gradient(135deg,rgba(139,111,255,0.13),rgba(79,143,255,0.10))',border:'1px solid #bd00ff25',borderRadius:12,overflow:'hidden'}}>
                             <div style={{padding:'10px 14px',borderBottom:'1px solid #bd00ff15',display:'flex',alignItems:'center',gap:8}}>
                               <span style={{fontSize:'0.8rem',fontWeight:800,color:'#bd00ff',letterSpacing:'0.5px'}}>✦ TIER 2/3 DEEP INVESTIGATION</span>
                               {investResults[inc.id] && <span style={{fontSize:'0.8rem',color:'var(--wt-muted)',marginLeft:'auto'}}>AI-generated · verify with your tools</span>}
@@ -3119,7 +3121,7 @@ export default function DashboardPage() {
                             {investResults[inc.id]?._error && <div style={{padding:'12px 14px',background:'#ff224408',border:'1px solid #ff224425',borderRadius:8,display:'flex',alignItems:'center',gap:8}}><span style={{color:'#ff2244',fontSize:'0.8rem'}}>⚠</span><div><div style={{fontSize:'0.8rem',color:'#ff2244',fontWeight:600,marginBottom:2}}>Investigation failed</div><div style={{fontSize:'0.84rem',color:'var(--wt-muted)'}}>{investResults[inc.id]._error}</div></div><button onClick={()=>{setInvestResults(prev=>{const n={...prev};delete n[inc.id];return n;});runInvestigation(inc);}} style={{marginLeft:'auto',padding:'4px 12px',borderRadius:6,border:'1px solid #bd00ff30',background:'#bd00ff10',color:'#bd00ff',fontSize:'0.82rem',fontWeight:700,cursor:'pointer',fontFamily:"'Rajdhani','JetBrains Mono',monospace",flexShrink:0}}>↺ Retry</button></div>}
                             {investResults[inc.id] && !investResults[inc.id]._error && (()=>{const inv=investResults[inc.id];return(
                               <div style={{padding:'14px',display:'flex',flexDirection:'column',gap:14}}>
-                                {inv.rootCause&&<div style={{marginBottom:10}}><div style={{fontSize:'0.72rem',fontWeight:800,color:'#ff2244',textTransform:'uppercase',letterSpacing:'1px',marginBottom:6}}>Root Cause</div><div style={{padding:'10px 12px',background:'rgba(240,64,94,0.04)',border:'1px solid rgba(240,64,94,0.12)',borderRadius:7}}><WtMarkdown text={inv.rootCause} accent='#ff2244' compact={true} /></div></div>}
+                                {inv.rootCause&&<div style={{marginBottom:10}}><div style={{fontSize:'0.72rem',fontWeight:800,color:'#ff2244',textTransform:'uppercase',letterSpacing:'1px',marginBottom:6}}>Root Cause</div><div style={{padding:'10px 12px',background:'rgba(240,64,94,0.12)',border:'1px solid rgba(240,64,94,0.12)',borderRadius:7}}><WtMarkdown text={inv.rootCause} accent='#ff2244' compact={true} /></div></div>}
                                 {inv.attackerObjective&&<div style={{marginBottom:10,padding:'10px 12px',background:'#ffb30008',border:'1px solid #ffb30020',borderRadius:7,display:'flex',gap:8,alignItems:'flex-start'}}><span style={{fontSize:'1rem',flexShrink:0}}>🎯</span><div><div style={{fontSize:'0.72rem',fontWeight:800,color:'#ffb300',textTransform:'uppercase',letterSpacing:'1px',marginBottom:3}}>Attacker Objective</div><div style={{fontSize:'0.84rem',color:'#ffb300',lineHeight:1.6}}>{inv.attackerObjective}</div></div></div>}
                                 {inv.affectedScope&&<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}><div><div style={{fontSize:'0.8rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Users at Risk</div>{(inv.affectedScope.users||[]).map((u,i)=><div key={i} style={{fontSize:'0.8rem',color:'var(--wt-secondary)',marginBottom:1}}>👤 {u}</div>)}</div><div><div style={{fontSize:'0.8rem',fontWeight:700,color:'var(--wt-muted)',textTransform:'uppercase',marginBottom:4}}>Devices at Risk</div>{(inv.affectedScope.devices||[]).map((d,i)=><div key={i} style={{fontSize:'0.8rem',color:'var(--wt-secondary)',marginBottom:1}}>💻 {d}</div>)}</div></div>}
                                 {inv.attackTimeline?.length>0&&<div><div style={{fontSize:'0.8rem',fontWeight:700,color:'#00e5ff',textTransform:'uppercase',marginBottom:6}}>Reconstructed Timeline</div>{inv.attackTimeline.map((ev,i)=>(<div key={i} style={{display:'flex',gap:8,padding:'5px 0',borderBottom:'1px solid var(--wt-border)',alignItems:'flex-start'}}><span style={{fontSize:'0.84rem',fontFamily:"'JetBrains Mono',monospace",color:'#00e5ff',flexShrink:0,minWidth:36}}>{ev.time}</span><div style={{flex:1}}><div style={{fontSize:'0.82rem',fontWeight:600,color:'var(--wt-text)',marginBottom:1}}>{ev.event}</div><div style={{fontSize:'0.84rem',color:'var(--wt-dim)'}}>{ev.significance}</div></div><span style={{fontSize:'0.84rem',color:'#00e5ff',fontWeight:700,flexShrink:0,padding:'1px 5px',background:'#00e5ff12',borderRadius:3}}>{ev.source}</span></div>))}</div>}

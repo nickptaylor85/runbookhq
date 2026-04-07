@@ -221,7 +221,7 @@ export default function MSSPPortfolio({ currentTenant, setCurrentTenant, DEMO_TE
 
       {/* ── NEEDS ATTENTION STRIP ── */}
       {needsAttention.length > 0 && portfolioView==='security' && (
-        <div style={{background:'rgba(240,64,94,0.04)',border:'1px solid #f0405e25',borderRadius:10,padding:'10px 14px'}}>
+        <div style={{background:'rgba(240,64,94,0.12)',border:'1px solid #f0405e25',borderRadius:10,padding:'10px 14px'}}>
           <div style={{fontSize:'0.58rem',fontWeight:800,color:'#f0405e',textTransform:'uppercase',letterSpacing:'1px',marginBottom:8}}>⚡ Needs Attention — {needsAttention.length} client{needsAttention.length!==1?'s':''}</div>
           <div style={{display:'flex',flexDirection:'column',gap:6}}>
             {needsAttention.map(c=>(

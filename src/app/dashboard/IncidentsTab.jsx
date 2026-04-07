@@ -70,7 +70,7 @@ export default function IncidentsTab({
                 {isSel && (
                   <div style={{borderTop:'1px solid #1d2535',padding:'14px 16px'}}>
                     <GateWall feature='AI Attack Narrative' requiredTier='team' userTier={userTier} isAdmin={isAdmin}>
-                      <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,padding:'10px',background:'linear-gradient(135deg,rgba(79,143,255,0.04),rgba(34,201,146,0.04))',border:'1px solid #4f8fff15',borderRadius:8,marginBottom:12}}>
+                      <div style={{fontSize:'0.74rem',color:'var(--wt-secondary)',lineHeight:1.65,padding:'10px',background:'linear-gradient(135deg,rgba(79,143,255,0.12),rgba(34,201,146,0.12))',border:'1px solid #4f8fff15',borderRadius:8,marginBottom:12}}>
                         <span style={{fontSize:'0.6rem',fontWeight:700,color:'#4f8fff',display:'block',marginBottom:4}}>AI ATTACK NARRATIVE</span>
                         {inc.aiSummary}
                       </div>
@@ -102,7 +102,7 @@ export default function IncidentsTab({
                       <button onClick={()=>deleteIncident(inc.id)} style={{padding:'5px 12px',borderRadius:6,border:'1px solid #f0405e25',background:'#f0405e0a',color:'#f0405e',fontSize:'0.68rem',fontWeight:600,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>🗑 Delete</button>
                     </div>
                     {showingInvest && (
-                      <div style={{marginTop:14,background:'linear-gradient(135deg,rgba(139,111,255,0.05),rgba(79,143,255,0.03))',border:'1px solid #8b6fff25',borderRadius:12,overflow:'hidden'}}>
+                      <div style={{marginTop:14,background:'linear-gradient(135deg,rgba(139,111,255,0.13),rgba(79,143,255,0.10))',border:'1px solid #8b6fff25',borderRadius:12,overflow:'hidden'}}>
                         <div style={{padding:'10px 14px',borderBottom:'1px solid #8b6fff15',display:'flex',alignItems:'center',gap:8}}>
                           <span style={{fontSize:'0.64rem',fontWeight:800,color:'#8b6fff',letterSpacing:'0.5px'}}>✦ TIER 2/3 DEEP INVESTIGATION</span>
                           {investigation && <span style={{fontSize:'0.56rem',color:'var(--wt-muted)',marginLeft:'auto'}}>AI-generated · verify with your tools</span>}
