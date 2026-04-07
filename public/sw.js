@@ -1,5 +1,5 @@
 // Watchtower Service Worker — network-first with offline fallback
-const CACHE = 'wt-v1';
+const CACHE = 'wt-v2';
 const OFFLINE_URL = '/offline';
 
 self.addEventListener('install', e => {
