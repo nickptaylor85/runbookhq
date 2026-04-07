@@ -150,8 +150,8 @@ export default function GuidePage() {
   const currentSection = filtered.find(s => s.id === activeSection) ?? filtered[0] ?? { id: '', title: '', icon: '', items: [] };
 
   return (
-    <div style={{ minHeight: '100vh', background: '#090d18', color: '#e8ecf4', fontFamily: 'Inter,sans-serif', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ display: 'flex', alignItems: 'center', padding: '14px 24px', borderBottom: '1px solid #1d2535', background: '#0c1122', gap: 12, flexWrap: 'wrap' }}>
+    <div style={{ minHeight: '100vh', background: '#060c18', color: '#e8ecf4', fontFamily: 'Inter,sans-serif', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ display: 'flex', alignItems: 'center', padding: '14px 24px', borderBottom: '1px solid rgba(0,180,240,0.13)', background: 'rgba(4,8,20,0.80)', gap: 12, flexWrap: 'wrap' }}>
         <a href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', color: 'inherit', flexShrink: 0 }}>
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
             <rect width="28" height="28" rx="7" fill="url(#gg)"/>
@@ -164,11 +164,11 @@ export default function GuidePage() {
         <span style={{ color: '#2a3448', margin: '0 4px' }}>/</span>
         <span style={{ fontSize: '0.86rem', color: '#6b7a94', fontWeight: 600 }}>User Guide</span>
         <input placeholder="Search guide…" value={search} onChange={e => setSearch(e.target.value)}
-          style={{ marginLeft: 'auto', padding: '6px 12px', borderRadius: 8, border: '1px solid #1d2535', background: '#131929', color: '#e8ecf4', fontSize: '0.8rem', fontFamily: 'Inter,sans-serif', outline: 'none', width: 200 }} />
-        <a href="/dashboard" style={{ padding: '7px 16px', background: 'transparent', border: '1px solid #1d2535', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none', flexShrink: 0 }}>← Dashboard</a>
+          style={{ marginLeft: 'auto', padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(0,180,240,0.13)', background: 'rgba(14,24,46,0.55)', color: '#e8ecf4', fontSize: '0.8rem', fontFamily: 'Inter,sans-serif', outline: 'none', width: 200 }} />
+        <a href="/dashboard" style={{ padding: '7px 16px', background: 'transparent', border: '1px solid rgba(0,180,240,0.13)', borderRadius: 8, color: '#6b7a94', fontSize: '0.78rem', fontWeight: 600, textDecoration: 'none', flexShrink: 0 }}>← Dashboard</a>
       </div>
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        <div style={{ width: 220, background: '#0c1122', borderRight: '1px solid #1d2535', padding: '16px 0', flexShrink: 0, overflowY: 'auto' }}>
+        <div style={{ width: 220, background: 'rgba(4,8,20,0.80)', borderRight: '1px solid rgba(0,180,240,0.13)', padding: '16px 0', flexShrink: 0, overflowY: 'auto' }}>
           {(search.length > 1 ? filtered : SECTIONS).map(s => (
             <button key={s.id} onClick={() => { setActiveSection(s.id); setSearch(''); }}
               style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '9px 16px', background: activeSection === s.id ? '#4f8fff14' : 'transparent', border: 'none', borderLeft: `2px solid ${activeSection === s.id ? '#4f8fff' : 'transparent'}`, color: activeSection === s.id ? '#4f8fff' : '#7a8aa4', fontSize: '0.78rem', fontWeight: activeSection === s.id ? 700 : 500, cursor: 'pointer', fontFamily: 'Inter,sans-serif', textAlign: 'left', transition: 'all .12s' }}>
@@ -184,7 +184,7 @@ export default function GuidePage() {
               <div key={s.id} style={{ marginBottom: 32 }}>
                 <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#4f8fff', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 12 }}>{s.icon} {s.title}</div>
                 {s.items.map(item => (
-                  <div key={item.heading} style={{ marginBottom: 10, padding: '14px 16px', background: '#131929', border: '1px solid #1d2535', borderRadius: 10 }}>
+                  <div key={item.heading} style={{ marginBottom: 10, padding: '14px 16px', background: 'rgba(14,24,46,0.55)', border: '1px solid rgba(0,180,240,0.13)', borderRadius: 10 }}>
                     <h2 style={{ fontSize: '0.86rem', fontWeight: 700, marginBottom: 8, color: '#e8ecf4' }}>{item.heading}</h2>
                     <p style={{ fontSize: '0.8rem', color: '#96a6bc', lineHeight: 1.8, whiteSpace: 'pre-line', margin: 0 }}>{item.body}</p>
                   </div>
@@ -201,14 +201,14 @@ export default function GuidePage() {
                 const key = currentSection.id + item.heading;
                 const expanded = expandedItem === key;
                 return (
-                  <div key={key} style={{ marginBottom: 8, background: '#131929', border: `1px solid ${expanded ? '#4f8fff30' : '#1d2535'}`, borderRadius: 10, overflow: 'hidden', transition: 'border-color .15s' }}>
+                  <div key={key} style={{ marginBottom: 8, background: 'rgba(14,24,46,0.55)', border: `1px solid ${expanded ? '#4f8fff30' : '#1d2535'}`, borderRadius: 10, overflow: 'hidden', transition: 'border-color .15s' }}>
                     <button onClick={() => setExpandedItem(expanded ? null : key)}
                       style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: 'transparent', border: 'none', color: '#e8ecf4', cursor: 'pointer', fontFamily: 'Inter,sans-serif', textAlign: 'left' }}>
                       <span style={{ fontSize: '0.86rem', fontWeight: 700 }}>{item.heading}</span>
                       <span style={{ fontSize: '0.7rem', color: '#4a5568', flexShrink: 0, marginLeft: 12 }}>{expanded ? '▲' : '▼'}</span>
                     </button>
                     {expanded && (
-                      <div style={{ padding: '0 16px 16px 16px', borderTop: '1px solid #1d2535' }}>
+                      <div style={{ padding: '0 16px 16px 16px', borderTop: '1px solid rgba(0,180,240,0.13)' }}>
                         <p style={{ fontSize: '0.82rem', color: '#96a6bc', lineHeight: 1.85, whiteSpace: 'pre-line', marginTop: 12, marginBottom: 0 }}>{item.body}</p>
                       </div>
                     )}

@@ -3,8 +3,8 @@ import React from 'react';
 
 export default function Page() {
   return (
-    <div style={{minHeight: '100vh', background: '#050508', color: '#e8ecf4', fontFamily: 'Inter,sans-serif'}}>
-      <div style={{display: 'flex', alignItems: 'center', padding: '14px 24px', borderBottom: '1px solid #141820', background: '#07090f', gap: 12}}>
+    <div style={{minHeight: '100vh', background: '#060c18', color: '#e8ecf4', fontFamily: 'Inter,sans-serif'}}>
+      <div style={{display: 'flex', alignItems: 'center', padding: '14px 24px', borderBottom: '1px solid rgba(0,180,240,0.13)', background: 'rgba(4,8,20,0.80)', gap: 12}}>
         <a href="/" style={{display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', color: 'inherit'}}>
           <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
             <rect width="26" height="26" rx="7" fill="url(#plg)"/>
@@ -56,7 +56,7 @@ export default function Page() {
             <h2 style={{fontSize: '1rem', fontWeight: 800, marginBottom: '10px', color: '#e8ecf4'}}>Support</h2>
             <p style={{fontSize: '0.87rem', color: '#8a9ab0', lineHeight: '1.8'}}>support@getwatchtower.io. Community plan: community support. Essentials/Professional/Enterprise: direct email support with 24h SLA.</p>
           </div>
-        <div style={{marginTop: 48, padding: '16px 20px', background: '#070a14', borderRadius: 10, border: '1px solid #141820', fontSize: '0.72rem', color: '#3a4050', textAlign: 'center'}}>
+        <div style={{marginTop: 48, padding: '16px 20px', background: 'rgba(4,8,20,0.6)', borderRadius: 10, border: '1px solid rgba(0,180,240,0.13)', fontSize: '0.72rem', color: '#3a4050', textAlign: 'center'}}>
           Watchtower &middot; Watchtower Ltd &middot; 2026 &middot; <a href="/privacy" style={{color: '#4a5568', textDecoration: 'none'}}>Privacy</a> &middot; <a href="/terms" style={{color: '#4a5568', textDecoration: 'none'}}>Terms</a>
         </div>
       </div>

@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 const INPUT: React.CSSProperties = {
-  width: '100%', padding: '11px 14px', background: '#070a14',
-  border: '1px solid #263044', borderRadius: 8, color: '#e8ecf4',
+  width: '100%', padding: '11px 14px', background: 'rgba(4,8,20,0.6)',
+  border: '1px solid rgba(0,180,240,0.13)', borderRadius: 8, color: '#e8ecf4',
   fontSize: '0.9rem', fontFamily: 'JetBrains Mono, monospace',
   outline: 'none', textAlign: 'center', letterSpacing: '0.3em',
   boxSizing: 'border-box',
@@ -65,13 +65,13 @@ export default function Setup2FAPage() {
   }
 
   const containerStyle: React.CSSProperties = {
-    minHeight: '100vh', background: '#050508', color: '#e8ecf4',
+    minHeight: '100vh', background: '#060c18', color: '#e8ecf4',
     fontFamily: 'Inter, sans-serif', display: 'flex', alignItems: 'center',
     justifyContent: 'center', padding: '24px',
   };
   const cardStyle: React.CSSProperties = {
     width: '100%', maxWidth: 440,
-    background: '#0a0d14', border: '1px solid #1d2535', borderRadius: 16,
+    background: 'rgba(14,24,46,0.55)', border: '1px solid rgba(0,180,240,0.13)', borderRadius: 16,
     padding: '36px 32px', textAlign: 'center',
   };
 
@@ -141,7 +141,7 @@ export default function Setup2FAPage() {
             )}
             <div style={{marginBottom:18}}>
               <div style={{fontSize:'0.62rem',color:'#6b7a94',marginBottom:6}}>Or enter this key manually:</div>
-              <div style={{padding:'8px 12px',background:'#070a14',border:'1px solid #263044',borderRadius:8,fontFamily:'JetBrains Mono,monospace',fontSize:'0.76rem',color:'#4f8fff',letterSpacing:'0.15em',wordBreak:'break-all'}}>{secret}</div>
+              <div style={{padding:'8px 12px',background:'rgba(4,8,20,0.6)',border:'1px solid rgba(0,180,240,0.13)',borderRadius:8,fontFamily:'JetBrains Mono,monospace',fontSize:'0.76rem',color:'#4f8fff',letterSpacing:'0.15em',wordBreak:'break-all'}}>{secret}</div>
             </div>
             <button onClick={()=>setStep('verify')} style={{width:'100%',padding:'12px 0',borderRadius:9,border:'none',background:'#4f8fff',color:'#fff',fontSize:'0.9rem',fontWeight:700,cursor:'pointer',fontFamily:'Inter,sans-serif'}}>
               I've scanned it →
@@ -171,7 +171,7 @@ export default function Setup2FAPage() {
               {loading ? <span style={{width:14,height:14,borderRadius:'50%',border:'2px solid rgba(255,255,255,0.4)',borderTopColor:'#fff',display:'block',animation:'spin .8s linear infinite'}} /> : null}
               {loading ? 'Verifying…' : 'Verify and activate 2FA'}
             </button>
-            <button onClick={()=>setStep('scan')} style={{width:'100%',marginTop:8,padding:'8px 0',borderRadius:7,border:'1px solid #1d2535',background:'transparent',color:'#6b7a94',fontSize:'0.76rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>← Back to QR code</button>
+            <button onClick={()=>setStep('scan')} style={{width:'100%',marginTop:8,padding:'8px 0',borderRadius:7,border:'1px solid rgba(0,180,240,0.13)',background:'transparent',color:'#6b7a94',fontSize:'0.76rem',cursor:'pointer',fontFamily:'Inter,sans-serif'}}>← Back to QR code</button>
           </>
         )}
 

@@ -179,7 +179,7 @@ export default function DemoPage() {
         <div style={{ padding:'16px 20px', overflow:'auto', borderRight:'1px solid #141820' }}>
 
           {/* Scenario Header */}
-          <div style={{ padding:'18px 20px', background:'linear-gradient(145deg,#0a0d14,#0f1219)', border:'1px solid #141820', borderRadius:12, marginBottom:14 }}>
+          <div style={{ padding:'18px 20px', background:'rgba(14,24,46,0.55)', border:'1px solid rgba(0,180,240,0.13)', borderRadius:12, marginBottom:14 }}>
             <div style={{ fontSize:'0.92rem', fontWeight:800, marginBottom:5 }}>{scenario.title}</div>
             <div style={{ fontSize:'0.72rem', color:'#50607a', marginBottom:4 }}>{scenario.sub}</div>
             <p style={{ fontSize:'0.74rem', color:'#8a9ab8', lineHeight:1.65, marginBottom:14 }}>{scenario.description}</p>
@@ -248,7 +248,7 @@ export default function DemoPage() {
               <div style={{ fontSize:'0.88rem', fontWeight:800, color:'#22c992', marginBottom:12 }}>🏆 Attack Contained — Full AI Response Summary</div>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6, marginBottom:14 }}>
                 {[{val:steps.length,label:'Alerts Ingested',c:'#4f8fff'},{val:tpCount,label:'True Positives',c:'#f0405e'},{val:fpCount,label:'Auto-Closed FPs',c:'#22d49a'},{val:`${scenario.duration}s`,label:'Total Response',c:'#8b6fff'}].map(s => (
-                  <div key={s.label} style={{ textAlign:'center', padding:'10px 4px', background:'#090d18', border:'1px solid #141820', borderRadius:8 }}>
+                  <div key={s.label} style={{ textAlign:'center', padding:'10px 4px', background:'#090d18', border:'1px solid rgba(0,180,240,0.13)', borderRadius:8 }}>
                     <div style={{ fontSize:'1.4rem', fontWeight:900, fontFamily:'JetBrains Mono,monospace', color:s.c, letterSpacing:-1 }}>{s.val}</div>
                     <div style={{ fontSize:'0.47rem', color:'#50607a', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.4px', marginTop:2 }}>{s.label}</div>
                   </div>
@@ -268,7 +268,7 @@ export default function DemoPage() {
         <div className='demo-sidebar' style={{ padding:'14px', display:'flex', flexDirection:'column', gap:8, overflow:'auto', background:'#07080f' }}>
 
           {/* Posture */}
-          <div style={{ padding:'12px 14px', background:'#0a0d14', border:'1px solid #141820', borderRadius:12 }}>
+          <div style={{ padding:'12px 14px', background:'rgba(14,24,46,0.55)', border:'1px solid rgba(0,180,240,0.13)', borderRadius:12 }}>
             <div style={{ fontSize:'0.72rem', fontWeight:800, marginBottom:8, color:'#6b7a94' }}>🛡 Security Posture</div>
             <div style={{ display:'flex', alignItems:'center', gap:14 }}>
               <div style={{ position:'relative', width:70, height:70, flexShrink:0 }}>
@@ -289,11 +289,11 @@ export default function DemoPage() {
           </div>
 
           {/* Live Metrics */}
-          <div style={{ padding:'12px 14px', background:'#0a0d14', border:'1px solid #141820', borderRadius:12 }}>
+          <div style={{ padding:'12px 14px', background:'rgba(14,24,46,0.55)', border:'1px solid rgba(0,180,240,0.13)', borderRadius:12 }}>
             <div style={{ fontSize:'0.72rem', fontWeight:800, marginBottom:8, color:'#6b7a94' }}>📊 Live Metrics</div>
             <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:4 }}>
               {[{val:steps.length,label:'Alerts',c:'#4f8fff'},{val:steps.filter(s=>s.sev==='CRITICAL').length,label:'Critical',c:'#f0405e'},{val:tpCount,label:'TPs Escalated',c:'#f97316'},{val:fpCount,label:'FPs Closed',c:'#22d49a'}].map(s => (
-                <div key={s.label} style={{ textAlign:'center', padding:'7px 2px', background:'#090d18', border:'1px solid #141820', borderRadius:6 }}>
+                <div key={s.label} style={{ textAlign:'center', padding:'7px 2px', background:'#090d18', border:'1px solid rgba(0,180,240,0.13)', borderRadius:6 }}>
                   <div style={{ fontSize:'1.1rem', fontWeight:900, fontFamily:'JetBrains Mono,monospace', letterSpacing:-1, color:s.c }}>{s.val}</div>
                   <div style={{ fontSize:'0.44rem', color:'#50607a', fontWeight:700, textTransform:'uppercase', letterSpacing:'0.4px' }}>{s.label}</div>
                 </div>
@@ -302,7 +302,7 @@ export default function DemoPage() {
           </div>
 
           {/* Tool Detection Status */}
-          <div style={{ padding:'12px 14px', background:'#0a0d14', border:'1px solid #141820', borderRadius:12 }}>
+          <div style={{ padding:'12px 14px', background:'rgba(14,24,46,0.55)', border:'1px solid rgba(0,180,240,0.13)', borderRadius:12 }}>
             <div style={{ fontSize:'0.72rem', fontWeight:800, marginBottom:8, color:'#6b7a94' }}>🔌 Tool Detection Status</div>
             <div style={{ display:'flex', flexDirection:'column', gap:3 }}>
               {TOOLS_LIST.map(tool => {
@@ -328,7 +328,7 @@ export default function DemoPage() {
                 <button onClick={() => setSelectedStep(null)} style={{ marginLeft:'auto', background:'none', border:'none', color:'#50607a', cursor:'pointer', fontSize:'0.9rem', lineHeight:1 }}>×</button>
               </div>
               <div style={{ fontSize:'0.8rem', fontWeight:700, lineHeight:1.4, marginBottom:8 }}>{selectedStep.title}</div>
-              <div style={{ fontSize:'0.74rem', fontWeight:800, padding:'5px 10px', borderRadius:6, background:'#090d18', border:'1px solid #141820', marginBottom:10, color:VERDICT_COLOR[selectedStep.verdict].c, display:'inline-block' }}>
+              <div style={{ fontSize:'0.74rem', fontWeight:800, padding:'5px 10px', borderRadius:6, background:'#090d18', border:'1px solid rgba(0,180,240,0.13)', marginBottom:10, color:VERDICT_COLOR[selectedStep.verdict].c, display:'inline-block' }}>
                 {selectedStep.verdict === 'TP' ? 'TRUE POSITIVE' : selectedStep.verdict === 'FP' ? 'FALSE POSITIVE' : 'SUSPICIOUS'} — {selectedStep.conf}%
               </div>
               <div style={{ fontSize:'0.6rem', fontWeight:700, color:'#50607a', textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:4 }}>AI Analysis</div>
@@ -347,7 +347,7 @@ export default function DemoPage() {
 
           {/* Explainer */}
           {!selectedStep && (
-            <div style={{ padding:'12px 14px', background:'#0a0d14', border:'1px solid #141820', borderRadius:12 }}>
+            <div style={{ padding:'12px 14px', background:'rgba(14,24,46,0.55)', border:'1px solid rgba(0,180,240,0.13)', borderRadius:12 }}>
               <div style={{ fontSize:'0.72rem', fontWeight:800, marginBottom:8, color:'#6b7a94' }}>💡 What you&apos;re seeing</div>
               <div style={{ fontSize:'0.72rem', color:'#8a9ab8', lineHeight:1.75 }}>
                 This is what Watchtower does automatically, 24/7. Every alert is triaged by AI in &lt;3.2 seconds — with a confidence score, evidence chain, and automated response action.<br /><br />

@@ -34,8 +34,8 @@ export default function Report() {
             </p>
           </div>
           <select value={period} onChange={e => setPeriod(e.target.value)}
-            style={{ padding:'8px 14px', borderRadius:8, border:'1px solid #1e2536',
-              background:'#0a0d14', color:'#e8ecf4', fontSize:'0.82rem',
+            style={{ padding:'8px 14px', borderRadius:8, border:'1px solid rgba(0,180,240,0.13)',
+              background:'rgba(14,24,46,0.55)', color:'#e8ecf4', fontSize:'0.82rem',
               fontFamily:'Inter,sans-serif', cursor:'pointer', outline:'none' }}>
             {['7d','14d','30d','90d'].map(p => (
               <option key={p} value={p}>{p === '7d' ? '7 days' : p === '14d' ? '14 days' :
@@ -54,7 +54,7 @@ export default function Report() {
               { label:'Coverage', val: data?.coverage?.totalConnected || 0, color:'#22d49a' },
               { label:'Posture Score', val: data?.posture?.score || 'N/A', color:'#f0a030' },
             ].map(s => (
-              <div key={s.label} style={{ padding:'20px', background:'#0a0d14',
+              <div key={s.label} style={{ padding:'20px', background:'rgba(14,24,46,0.55)',
                 border:`1px solid ${s.color}18`, borderRadius:12 }}>
                 <div style={{ fontSize:'2rem', fontWeight:900, color:s.color,
                   fontFamily:'JetBrains Mono,monospace', letterSpacing:-2 }}>{s.val}</div>

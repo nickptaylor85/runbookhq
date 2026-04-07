@@ -3,13 +3,13 @@ import React from 'react';
 
 export default function PressPage() {
   const facts = [
-    ['Founded', '2025'],
-    ['Headquarters', 'United Kingdom'],
+    ['Founded', '2025 · Glasgow, UK'],
+    ['Product', 'AI-powered SOC dashboard + MSSP client portal platform'],
     ['Category', 'AI-powered Security Operations (SOC)'],
     ['Target market', 'MSSPs, enterprise SOC teams, security analysts'],
     ['Key differentiator', 'BYOK model — per-client Anthropic key isolation, zero data commingling'],
     ['Alert triage speed', '3.2 seconds average (vs 3.5 hours manual)'],
-    ['Tool integrations', '18 — CrowdStrike, Tenable, Taegis, Splunk, Sentinel and more'],
+    ['Tool integrations', '80+ across EDR, SIEM, XDR, Cloud, Identity, OT/ICS, SOAR, ITSM'],
     ['AI model', 'Claude (Anthropic) via customer BYOK key'],
     ['Pricing', 'Community free · Essentials £149/seat · Professional £1,199/mo · Enterprise £3,499/mo'],
     ['14-day free trial', 'No credit card required'],
@@ -20,8 +20,8 @@ export default function PressPage() {
     {name:'Accent Green',hex:'#22d49a'},
     {name:'Alert Red',hex:'#f0405e'},
     {name:'Purple',hex:'#8b6fff'},
-    {name:'Background',hex:'#050508'},
-    {name:'Card',hex:'#0a0d14'},
+    {name:'Background',hex:'#060c18'},
+    {name:'Card',hex:'rgba(14,24,46,0.55)'},
   ];
   const downloads = [
     {label:'Logo — SVG', href:'/favicon.svg', note:'Primary wordmark, works on dark backgrounds'},
@@ -30,9 +30,9 @@ export default function PressPage() {
     {label:'Company overview PDF', href:'mailto:hello@getwatchtower.io?subject=Company+Overview', note:'1-page fact sheet — email us'},
   ];
   return (
-    <div style={{background:'#050508',color:'#e8ecf4',fontFamily:'Inter,sans-serif',minHeight:'100vh'}}>
-      <style>{`*{margin:0;padding:0;box-sizing:border-box}body{background:#050508}`}</style>
-      <nav style={{display:'flex',alignItems:'center',padding:'14px 28px',borderBottom:'1px solid #ffffff06',background:'rgba(5,5,8,0.9)',backdropFilter:'blur(18px)',position:'sticky',top:0,zIndex:50}}>
+    <div style={{background:'#060c18',color:'#e8ecf4',fontFamily:'Inter,sans-serif',minHeight:'100vh'}}>
+      <style>{`*{margin:0;padding:0;box-sizing:border-box}body{background:#060c18}`}</style>
+      <nav style={{display:'flex',alignItems:'center',padding:'14px 28px',borderBottom:'1px solid rgba(0,180,240,0.13)',background:'rgba(4,8,20,0.80)',backdropFilter:'blur(18px)',position:'sticky',top:0,zIndex:50}}>
         <a href='/' style={{display:'flex',alignItems:'center',gap:8,fontWeight:800,fontSize:'0.95rem',textDecoration:'none',color:'inherit'}}>
           <div style={{width:26,height:26,borderRadius:7,background:'linear-gradient(135deg,#4f8fff,#8b6fff)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.6rem',color:'#fff',fontWeight:900}}>W</div>
           Watchtower
@@ -55,7 +55,7 @@ export default function PressPage() {
 
         <div style={{marginBottom:48}}>
           <h2 style={{fontSize:'1rem',fontWeight:800,marginBottom:16}}>Company Facts</h2>
-          <div style={{background:'#0a0d14',border:'1px solid #141820',borderRadius:12,overflow:'hidden'}}>
+          <div style={{background:'rgba(14,24,46,0.55)',border:'1px solid rgba(0,180,240,0.13)',borderRadius:12,overflow:'hidden'}}>
             {facts.map(([label,val],i)=>(
               <div key={String(label)} style={{display:'grid',gridTemplateColumns:'200px 1fr',gap:16,padding:'12px 20px',borderBottom:i<facts.length-1?'1px solid #141820':'none',background:i%2===0?'transparent':'#09091a'}}>
                 <div style={{fontSize:'0.76rem',fontWeight:700,color:'#6b7a94'}}>{label}</div>
@@ -82,7 +82,7 @@ export default function PressPage() {
           <h2 style={{fontSize:'1rem',fontWeight:800,marginBottom:16}}>Assets {'&'} Downloads</h2>
           <div style={{display:'flex',flexDirection:'column',gap:8}}>
             {downloads.map(d=>(
-              <a key={d.label} href={d.href} style={{display:'flex',alignItems:'center',gap:14,padding:'14px 18px',background:'#0a0d14',border:'1px solid #141820',borderRadius:10,textDecoration:'none',color:'inherit'}}>
+              <a key={d.label} href={d.href} style={{display:'flex',alignItems:'center',gap:14,padding:'14px 18px',background:'rgba(14,24,46,0.55)',border:'1px solid rgba(0,180,240,0.13)',borderRadius:10,textDecoration:'none',color:'inherit'}}>
                 <span style={{fontSize:'1rem'}}>⬇</span>
                 <div>
                   <div style={{fontSize:'0.78rem',fontWeight:700,marginBottom:2}}>{d.label}</div>

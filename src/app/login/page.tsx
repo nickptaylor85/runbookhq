@@ -4,8 +4,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import React from 'react';
 
 const INPUT: React.CSSProperties = {
-  width: '100%', padding: '10px 12px', background: '#070a14',
-  border: '1px solid #263044', borderRadius: 8, color: '#e8ecf4',
+  width: '100%', padding: '10px 12px', background: 'rgba(4,8,20,0.6)',
+  border: '1px solid rgba(0,180,240,0.13)', borderRadius: 8, color: '#e8ecf4',
   fontSize: '0.88rem', fontFamily: 'Inter,sans-serif', outline: 'none',
   boxSizing: 'border-box',
 };
@@ -146,7 +146,7 @@ function LoginPageInner() {
             <span style={{ fontWeight:800, fontSize:'1.1rem' }}>Watchtower</span>
           </a>
         </div>
-        <div style={{ background:'#131929', border:'1px solid #263044', borderRadius:16, padding:'28px' }}>
+        <div style={{ background:'rgba(14,24,46,0.55)', border:'1px solid rgba(0,180,240,0.13)', borderRadius:16, padding:'28px' }}>
           <h1 style={{ fontSize:'1.2rem', fontWeight:800, marginBottom:4 }}>{title}</h1>
           <p style={{ fontSize:'0.78rem', color:'#6b7a94', marginBottom:24 }}>{subtitle}</p>
           {success && <div style={{ marginBottom:16, padding:'8px 12px', background:'#22d49a0a', border:'1px solid #22d49a30', borderRadius:7, fontSize:'0.76rem', color:'#22d49a' }}>{success}</div>}

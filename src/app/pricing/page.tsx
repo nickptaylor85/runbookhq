@@ -161,10 +161,10 @@ export default function PricingPage() {
   }
 
   return (
-    <div style={{ background: '#050508', color: '#e8ecf4', fontFamily: 'Inter, sans-serif', minHeight: '100vh' }}>
+    <div style={{ background: '#060c18', color: '#e8ecf4', fontFamily: 'Inter, sans-serif', minHeight: '100vh' }}>
       <style>{`
         *{margin:0;padding:0;box-sizing:border-box}
-        body{background:#050508}
+        body{background:#060c18}
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
         @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
         @media(max-width:900px){.price-grid{grid-template-columns:1fr 1fr!important}}
@@ -194,7 +194,7 @@ export default function PricingPage() {
         <h1 style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: -2, marginBottom: 12 }}>Simple, transparent pricing</h1>
         <p style={{ fontSize: '1rem', color: '#6b7a94', maxWidth: 520, margin: '0 auto 20px', lineHeight: 1.7 }}>BYOK model — you connect your own Anthropic key. AI costs go direct to your Anthropic account. No markups, no AI overage bills from us.</p>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
-          <input value={email} onChange={e => setEmail(e.target.value)} placeholder='your@email.com (optional — pre-fills checkout)' style={{ padding: '9px 14px', borderRadius: 8, border: '1px solid #1e2536', background: '#0a0d14', color: '#e8ecf4', fontSize: '0.8rem', fontFamily: 'Inter, sans-serif', outline: 'none', width: 300 }} />
+          <input value={email} onChange={e => setEmail(e.target.value)} placeholder='your@email.com (optional — pre-fills checkout)' style={{ padding: '9px 14px', borderRadius: 8, border: '1px solid rgba(0,180,240,0.13)', background: 'rgba(14,24,46,0.55)', color: '#e8ecf4', fontSize: '0.8rem', fontFamily: 'Inter, sans-serif', outline: 'none', width: 300 }} />
         </div>
         {error && <div style={{ marginTop: 10, fontSize: '0.76rem', color: '#f0405e' }}>{error}</div>}
       </div>
@@ -213,7 +213,7 @@ export default function PricingPage() {
       {/* PLANS */}
       <div className='price-grid' style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, maxWidth: 1060, margin: '0 auto', padding: '0 24px 60px' }}>
         {PLANS.map(plan => (
-          <div key={plan.id} style={{ padding: 24, background: '#0a0d14', border: `1px solid ${plan.popular ? '#4f8fff35' : '#141820'}`, borderRadius: 16, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+          <div key={plan.id} style={{ padding: 24, background: 'rgba(14,24,46,0.55)', border: `1px solid ${plan.popular ? '#4f8fff35' : '#141820'}`, borderRadius: 16, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
             {plan.popular && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, textAlign: 'center', fontSize: '0.52rem', fontWeight: 700, color: '#fff', background: '#4f8fff', padding: '4px 0' }}>MOST POPULAR</div>}
             <div style={{ marginTop: plan.popular ? 18 : 0, marginBottom: 4, fontSize: '0.92rem', fontWeight: 700 }}>{plan.name}</div>
             <div style={{ fontSize: '2.2rem', fontWeight: 900, fontFamily: 'JetBrains Mono, monospace', letterSpacing: -2, color: plan.color, lineHeight: 1 }}>{plan.price}</div>
@@ -239,7 +239,7 @@ export default function PricingPage() {
       {/* COMPARISON */}
       <div className='compare-grid' style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px 60px' }}>
         <h2 style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: -1, textAlign: 'center', marginBottom: 28 }}>Everything in detail</h2>
-        <div style={{ background: '#0a0d14', border: '1px solid #141820', borderRadius: 14, overflow: 'hidden' }}>
+        <div style={{ background: 'rgba(14,24,46,0.55)', border: '1px solid rgba(0,180,240,0.13)', borderRadius: 14, overflow: 'hidden' }}>
           {COMPARISON.map((row, i) => (
             <div key={i} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr', borderBottom: i < COMPARISON.length - 1 ? '1px solid #141820' : 'none', background: i === 0 ? '#0d1018' : i % 2 === 0 ? '#09091a' : 'transparent' }}>
               {row.map((cell, j) => (
@@ -255,7 +255,7 @@ export default function PricingPage() {
         <h2 style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: -1, textAlign: 'center', marginBottom: 24 }}>Common questions</h2>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           {FAQ.map(({ q, a }) => (
-            <div key={q} style={{ padding: '16px 20px', background: '#0a0d14', border: '1px solid #141820', borderRadius: 12 }}>
+            <div key={q} style={{ padding: '16px 20px', background: 'rgba(14,24,46,0.55)', border: '1px solid rgba(0,180,240,0.13)', borderRadius: 12 }}>
               <div style={{ fontSize: '0.84rem', fontWeight: 700, marginBottom: 6 }}>{q}</div>
               <div style={{ fontSize: '0.76rem', color: '#6b7a94', lineHeight: 1.7 }}>{a}</div>
             </div>
@@ -267,7 +267,7 @@ export default function PricingPage() {
       <div style={{ textAlign: 'center', padding: '0 24px 80px' }}>
         <h2 style={{ fontSize: '1.8rem', fontWeight: 800, letterSpacing: -1, marginBottom: 10 }}>Still unsure? Talk to us.</h2>
         <p style={{ color: '#6b7a94', fontSize: '0.88rem', marginBottom: 20 }}>We'll walk you through a live demo on your own stack.</p>
-        <a href='mailto:hello@getwatchtower.io' style={{ display: 'inline-block', padding: '12px 30px', borderRadius: 10, border: '1px solid #1e2536', background: 'transparent', color: '#e8ecf4', fontSize: '0.88rem', fontWeight: 600 }}>hello@getwatchtower.io</a>
+        <a href='mailto:hello@getwatchtower.io' style={{ display: 'inline-block', padding: '12px 30px', borderRadius: 10, border: '1px solid rgba(0,180,240,0.13)', background: 'transparent', color: '#e8ecf4', fontSize: '0.88rem', fontWeight: 600 }}>hello@getwatchtower.io</a>
       </div>
     </div>
   );

@@ -46,7 +46,7 @@ export default function Page() {
           </div>
           <div style={{marginBottom: '28px'}}>
             <h2 style={{fontSize: '1rem', fontWeight: 800, marginBottom: '10px', color: '#e8ecf4'}}>Liability Limitation</h2>
-            <p style={{fontSize: '0.87rem', color: '#8a9ab0', lineHeight: '1.8'}}>RunbookHQ Ltd is not liable for security incidents, data loss, or business disruption arising from use of the service. The service does not constitute professional security advice.</p>
+            <p style={{fontSize: '0.87rem', color: '#8a9ab0', lineHeight: '1.8'}}>Watchtower Ltd is not liable for security incidents, data loss, or business disruption arising from use of the service. The service does not constitute professional security advice.</p>
           </div>
           <div style={{marginBottom: '28px'}}>
             <h2 style={{fontSize: '1rem', fontWeight: 800, marginBottom: '10px', color: '#e8ecf4'}}>Termination</h2>
@@ -54,10 +54,10 @@ export default function Page() {
           </div>
           <div style={{marginBottom: '28px'}}>
             <h2 style={{fontSize: '1rem', fontWeight: 800, marginBottom: '10px', color: '#e8ecf4'}}>Contact</h2>
-            <p style={{fontSize: '0.87rem', color: '#8a9ab0', lineHeight: '1.8'}}>RunbookHQ Ltd · legal@runbookhq.com</p>
+            <p style={{fontSize: '0.87rem', color: '#8a9ab0', lineHeight: '1.8'}}>Watchtower Ltd · legal@getwatchtower.io</p>
           </div>
         <div style={{marginTop: 48, padding: '16px 20px', background: '#070a14', borderRadius: 10, border: '1px solid #141820', fontSize: '0.72rem', color: '#3a4050', textAlign: 'center'}}>
-          Watchtower &middot; RunbookHQ Ltd &middot; 2026 &middot; <a href="/privacy" style={{color: '#4a5568', textDecoration: 'none'}}>Privacy</a> &middot; <a href="/terms" style={{color: '#4a5568', textDecoration: 'none'}}>Terms</a>
+          Watchtower &middot; Watchtower Ltd &middot; 2026 &middot; <a href="/privacy" style={{color: '#4a5568', textDecoration: 'none'}}>Privacy</a> &middot; <a href="/terms" style={{color: '#4a5568', textDecoration: 'none'}}>Terms</a>
         </div>
       </div>
     </div>

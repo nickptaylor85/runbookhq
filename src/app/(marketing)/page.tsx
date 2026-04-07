@@ -121,12 +121,6 @@ const FEATURES = [
   { icon:'⏱', title:'SLA Intelligence', body:'MTTA and MTTR tracked by severity. Analyst acknowledgement timestamped automatically. SLA breach alerts fire before you miss an SLA — not after.' },
 ];
 
-const TESTIMONIALS = [
-  { quote:'The AI triage alone saved us 30+ hours a week. We went from drowning in alerts to actually doing security work.', name:'Sarah R.', role:'CISO, Healthcare SaaS', init:'SR', color:'#4f8fff' },
-  { quote:'As an MSSP managing 12 clients, the portfolio view is a game-changer. One click to drill into any tenant.', name:'Marcus T.', role:'Director, MSSP', init:'MT', color:'#22d49a' },
-  { quote:'Junior analysts now triage alerts that used to require a senior. The AI explains its reasoning — it\'s like having a mentor on every alert.', name:'James C.', role:'SOC Manager, Financial Services', init:'JC', color:'#8b6fff' },
-];
-
 const PLANS = [
   { name:'Community', price:'£0', annualPrice:'£0', period:'forever', color:'#6b7a94', features:['Up to 3 tool integrations','AI alert triage (read-only)','Up to 250 alerts/day','1 seat','Community support'] },
   { name:'Essentials', price:'£149', annualPrice:'£127', period:'/seat/mo', annualPeriod:'/seat/mo billed annually', color:'#4f8fff', badge:'Most Popular', features:['Unlimited integrations','Full AI Co-Pilot + agentic triage','Automation & response actions','BYOK — your Anthropic key', 'RBAC & full audit log','SLA tracking (MTTA/MTTR)'] },
@@ -691,7 +685,7 @@ export default function LandingPage() {
           <p style={{ fontSize:'0.9rem', color:'#6b7a94', lineHeight:1.7, marginBottom:28, maxWidth:480, margin:'0 auto 28px' }}>Connect your first tool in under 5 minutes. Community tier is free forever — no credit card, no sales call.</p>
           <div style={{ display:'flex', gap:10, justifyContent:'center', flexWrap:'wrap' }}>
             <a href='/signup' style={{ padding:'12px 28px', borderRadius:9, background:'#4f8fff', color:'#fff', fontWeight:700, fontSize:'0.9rem', textDecoration:'none' }}>Start free →</a>
-            <a href='mailto:hello@getwatchtower.io?subject=Demo+Request' style={{ padding:'12px 28px', borderRadius:9, border:'1px solid #263044', background:'transparent', color:'#e8ecf4', fontWeight:600, fontSize:'0.9rem', textDecoration:'none', display:'inline-flex', alignItems:'center', gap:8 }}>
+            <a href='mailto:hello@getwatchtower.io?subject=Demo+Request' style={{ padding:'12px 28px', borderRadius:9, border:'1px solid rgba(0,180,240,0.20)', background:'transparent', color:'#e8ecf4', fontWeight:600, fontSize:'0.9rem', textDecoration:'none', display:'inline-flex', alignItems:'center', gap:8 }}>
               📅 Book a live demo
             </a>
           </div>

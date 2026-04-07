@@ -103,7 +103,7 @@ export default function PortalLoginPage() {
 
   if (!resolved) {
     return (
-      <html lang="en"><body style={{ margin: 0, background: '#050508' }}>
+      <html lang="en"><body style={{ margin: 0, background: '#060c18' }}>
         <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter,system-ui,sans-serif', color: '#6b7a94' }}>
           <div style={{ textAlign: 'center' }}>
             <div style={{ width: 40, height: 40, border: '3px solid #1d2535', borderTopColor: '#4f8fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 16px' }} />
@@ -117,7 +117,7 @@ export default function PortalLoginPage() {
 
   if (notFound) {
     return (
-      <html lang="en"><body style={{ margin: 0, background: '#050508' }}>
+      <html lang="en"><body style={{ margin: 0, background: '#060c18' }}>
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter,system-ui,sans-serif', color: '#e8ecf4', padding: 20, textAlign: 'center' }}>
           <div style={{ width: 56, height: 56, background: 'linear-gradient(135deg, #f0405e, #f0405e80)', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem', marginBottom: 18 }}>🔒</div>
           <h1 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0 0 8px' }}>Portal Not Found</h1>
@@ -131,7 +131,7 @@ export default function PortalLoginPage() {
   }
 
   return (
-    <html lang="en"><body style={{ margin: 0, background: '#050508' }}>
+    <html lang="en"><body style={{ margin: 0, background: '#060c18' }}>
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter,system-ui,sans-serif', color: '#e8ecf4', padding: 20 }}>
 
         {/* Branding header */}
@@ -155,12 +155,12 @@ export default function PortalLoginPage() {
                 <div style={{ marginBottom: 16 }}>
                   <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, color: '#6b7a94', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Email</label>
                   <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="you@company.com" autoComplete="email"
-                    style={{ width: '100%', padding: '11px 14px', background: '#070a14', border: `1px solid ${email ? accent + '50' : '#1d2535'}`, borderRadius: 9, color: '#e8ecf4', fontSize: '0.9rem', fontFamily: 'Inter,system-ui,sans-serif', outline: 'none', boxSizing: 'border-box', transition: 'border-color .15s' }} />
+                    style={{ width: '100%', padding: '11px 14px', background: 'rgba(4,8,20,0.6)', border: `1px solid ${email ? accent + '50' : '#1d2535'}`, borderRadius: 9, color: '#e8ecf4', fontSize: '0.9rem', fontFamily: 'Inter,system-ui,sans-serif', outline: 'none', boxSizing: 'border-box', transition: 'border-color .15s' }} />
                 </div>
                 <div style={{ marginBottom: 24 }}>
                   <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, color: '#6b7a94', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Password</label>
                   <input type="password" value={password} onChange={e => setPassword(e.target.value)} required autoComplete="current-password"
-                    style={{ width: '100%', padding: '11px 14px', background: '#070a14', border: `1px solid ${password ? accent + '50' : '#1d2535'}`, borderRadius: 9, color: '#e8ecf4', fontSize: '0.9rem', fontFamily: 'Inter,system-ui,sans-serif', outline: 'none', boxSizing: 'border-box', transition: 'border-color .15s' }} />
+                    style={{ width: '100%', padding: '11px 14px', background: 'rgba(4,8,20,0.6)', border: `1px solid ${password ? accent + '50' : '#1d2535'}`, borderRadius: 9, color: '#e8ecf4', fontSize: '0.9rem', fontFamily: 'Inter,system-ui,sans-serif', outline: 'none', boxSizing: 'border-box', transition: 'border-color .15s' }} />
                 </div>
               </>
             )}
@@ -169,7 +169,7 @@ export default function PortalLoginPage() {
               <div style={{ marginBottom: 24 }}>
                 <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, color: '#6b7a94', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>6-digit code from your authenticator</label>
                 <input type="text" value={mfaCode} onChange={e => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))} required placeholder="000000" autoComplete="one-time-code"
-                  style={{ width: '100%', padding: '11px 14px', background: '#070a14', border: `1px solid ${mfaCode ? accent + '50' : '#1d2535'}`, borderRadius: 9, color: '#e8ecf4', fontSize: '1.2rem', fontFamily: "'JetBrains Mono',monospace", outline: 'none', boxSizing: 'border-box', textAlign: 'center', letterSpacing: '6px' }} />
+                  style={{ width: '100%', padding: '11px 14px', background: 'rgba(4,8,20,0.6)', border: `1px solid ${mfaCode ? accent + '50' : '#1d2535'}`, borderRadius: 9, color: '#e8ecf4', fontSize: '1.2rem', fontFamily: "'JetBrains Mono',monospace", outline: 'none', boxSizing: 'border-box', textAlign: 'center', letterSpacing: '6px' }} />
               </div>
             )}
 

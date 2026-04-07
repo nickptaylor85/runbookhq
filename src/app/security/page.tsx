@@ -11,7 +11,7 @@ const SECTION = ({title, children}: {title: string; children: React.ReactNode}) 
 export default function Page() {
   return (
     <div style={{minHeight: '100vh', background: '#090d18', color: '#e8ecf4', fontFamily: 'Inter,sans-serif'}}>
-      <div style={{display: 'flex', alignItems: 'center', padding: '14px 24px', borderBottom: '1px solid #1d2535', background: '#0c1122', gap: 12}}>
+      <div style={{display: 'flex', alignItems: 'center', padding: '14px 24px', borderBottom: '1px solid rgba(0,180,240,0.13)', background: 'rgba(4,8,20,0.80)', gap: 12}}>
         <a href="/" style={{display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none', color: 'inherit'}}>
           <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
             <rect width="26" height="26" rx="7" fill="url(#plg)"/>
@@ -23,7 +23,7 @@ export default function Page() {
         </a>
         <span style={{color: '#2a3448', margin: '0 4px'}}>›</span>
         <span style={{fontSize: '0.84rem', color: '#6b7a94', fontWeight: 600}}>Security</span>
-        <a href="/" style={{marginLeft: 'auto', padding: '6px 14px', background: 'transparent', border: '1px solid #1d2535', borderRadius: 7, color: '#6b7a94', fontSize: '0.76rem', fontWeight: 600, textDecoration: 'none'}}>← Back</a>
+        <a href="/" style={{marginLeft: 'auto', padding: '6px 14px', background: 'transparent', border: '1px solid rgba(0,180,240,0.13)', borderRadius: 7, color: '#6b7a94', fontSize: '0.76rem', fontWeight: 600, textDecoration: 'none'}}>← Back</a>
       </div>
 
       <div style={{maxWidth: 760, margin: '0 auto', padding: '48px 24px'}}>
@@ -82,7 +82,7 @@ export default function Page() {
           General: <a href="mailto:hello@getwatchtower.io" style={{color: '#4f8fff'}}>hello@getwatchtower.io</a>
         </SECTION>
 
-        <div style={{marginTop: 48, padding: '16px 20px', background: '#131929', borderRadius: 10, border: '1px solid #1d2535', fontSize: '0.72rem', color: '#3a4050', textAlign: 'center'}}>
+        <div style={{marginTop: 48, padding: '16px 20px', background: 'rgba(14,24,46,0.55)', borderRadius: 10, border: '1px solid rgba(0,180,240,0.13)', fontSize: '0.72rem', color: '#3a4050', textAlign: 'center'}}>
           Watchtower &middot; Watchtower Ltd &middot; 2026 &middot; <a href="/privacy" style={{color: '#4a5568', textDecoration: 'none'}}>Privacy</a> &middot; <a href="/terms" style={{color: '#4a5568', textDecoration: 'none'}}>Terms</a>
         </div>
       </div>
